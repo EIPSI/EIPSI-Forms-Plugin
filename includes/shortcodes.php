@@ -47,7 +47,7 @@ function eipsi_form_shortcode($atts) {
         
         if ($wave_id && $participant_id) {
             $assignment = $wpdb->get_row($wpdb->prepare(
-                "SELECT a.status, a.available_at, w.window_minutes 
+                "SELECT a.status, a.available_at, w.window_minutes, w.wave_index 
                  FROM {$wpdb->prefix}survey_assignments a
                  JOIN {$wpdb->prefix}survey_waves w ON a.wave_id = w.id
                  WHERE a.wave_id = %d AND a.participant_id = %d",
@@ -56,8 +56,9 @@ function eipsi_form_shortcode($atts) {
             ));
             
             if ($assignment) {
+                $is_t1 = (intval($assignment->wave_index) === 1);
                 // GAP 2: Auto-expire if window has passed (real-time check)
-                if (!empty($assignment->window_minutes) && !empty($assignment->available_at)) {
+                if (!$is_t1 && !empty($assignment->window_minutes) && !empty($assignment->available_at)) {
                     $available_ts = strtotime($assignment->available_at);
                     $window_seconds = intval($assignment->window_minutes) * 60;
                     $expiration_ts = $available_ts + $window_seconds;
@@ -950,7 +951,7 @@ function eipsi_longitudinal_study_shortcode($atts) {
 
                 // Find wave that uses this form_id (window config only, no available_at)
                 $wave = $wpdb->get_row($wpdb->prepare(
-                    "SELECT id, window_minutes
+                    "SELECT id, wave_index, window_minutes
                      FROM {$wpdb->prefix}survey_waves
                      WHERE study_id = %d AND form_id = %d",
                     $actual_study_id,
@@ -958,6 +959,7 @@ function eipsi_longitudinal_study_shortcode($atts) {
                 ));
 
                 if ($wave && $participant_id) {
+                    $is_t1 = (intval($wave->wave_index) === 1);
                     // Check assignment for this participant
                     $wave_assignment = $wpdb->get_row($wpdb->prepare(
                         "SELECT status, available_at
@@ -977,7 +979,8 @@ function eipsi_longitudinal_study_shortcode($atts) {
 
                     // available_at comes ONLY from the assignment; empty => do NOT render
                     $assign_avail = $wave_assignment->available_at;
-                    if (empty($assign_avail)) {
+                    // T1-Anchor: T1 is immediately available, does not require available_at
+                    if (!$is_t1 && empty($assign_avail)) {
                         return eipsi_longitudinal_study_error(
                             __('Esta toma no está disponible.', 'eipsi-forms'),
                             __('La ventana de respuesta de esta toma aún no está definida.', 'eipsi-forms')
@@ -985,9 +988,10 @@ function eipsi_longitudinal_study_shortcode($atts) {
                     }
 
                     // Real-time auto-expiration check (assignment available_at + wave window)
+                    // T1-Anchor: T1 never expires based on available_at window
                     $window_mins = intval($wave->window_minutes);
 
-                    if ($window_mins > 0) {
+                    if (!$is_t1 && $window_mins > 0) {
                         $avail_ts = strtotime($assign_avail);
                         $window_secs = $window_mins * 60;
                         $exp_ts = $avail_ts + $window_secs;
