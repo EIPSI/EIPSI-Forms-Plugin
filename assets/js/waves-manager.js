@@ -155,7 +155,9 @@ jQuery(document).ready(function($) {
         const nextIndex = $(this).data('next-index');
         $waveForm[0].reset();
         $('#wave_id').val('');
-        $('#wave_index').val(nextIndex);
+        $('#wave_index').val(nextIndex).prop('readonly', false);
+        $('#form_id').prop('disabled', false);
+        $('#start_date, #due_date').prop('disabled', false);
         $('#wave-modal-title').text('Crear Nueva Onda');
         $waveModal.css('display', 'flex').fadeIn();
     });
@@ -166,14 +168,17 @@ jQuery(document).ready(function($) {
         
         $('#wave_id').val(wave.id);
         $('#wave_name').val(wave.name);
-        $('#wave_index').val(wave.wave_index);
+        $('#wave_index').val(wave.wave_index).prop('readonly', true);
+        $('#form_id').prop('disabled', !!wave.has_assignments);
+        $('#start_date, #due_date').prop('disabled', !!wave.has_assignments);
         $('#form_id').val(wave.form_id);
         $('#wave_description').val(wave.description);
+        $('#start_date').val(wave.start_date ? wave.start_date.replace(' ', 'T').slice(0, 16) : '');
+        $('#wave_status').val(wave.status);
         
         if (wave.due_date) {
             // Convert to datetime-local format: YYYY-MM-DDTHH:mm
-            const date = new Date(wave.due_date);
-            const formattedDate = date.toISOString().slice(0, 16);
+            const formattedDate = wave.due_date.replace(' ', 'T').slice(0, 16);
             $('#due_date').val(formattedDate);
         }
 
@@ -196,6 +201,7 @@ jQuery(document).ready(function($) {
         const formData = new FormData(this);
         formData.append('action', 'eipsi_save_wave');
         formData.append('nonce', api.nonce);
+        if (!formData.has('form_id')) formData.append('form_id', $('#form_id').val());
 
         $.ajax({
             url: api.ajaxUrl,

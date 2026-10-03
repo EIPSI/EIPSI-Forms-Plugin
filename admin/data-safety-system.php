@@ -469,7 +469,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
         
         // Determinar wave desde wave_id o inferir desde el contexto
         $wave_id = $data['wave_id'] ?? null;
-        $wave_number = 1; // Default a T1
+        $wave_number = isset($data['wave_index']) && (int) $data['wave_index'] > 0 ? (int) $data['wave_index'] : 1; // Validated one-based submission context
         
         if ($wave_id) {
             // Buscar wave_index desde la tabla
@@ -478,7 +478,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
                 $wave_id
             ));
             if ($wave_index !== null) {
-                $wave_number = intval($wave_index) + 1; // 0-based a 1-based
+                $wave_number = intval($wave_index); // Persisted convention: T1=1, T2=2, T3=3
             }
         }
         

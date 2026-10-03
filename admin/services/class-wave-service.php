@@ -45,6 +45,16 @@ class EIPSI_Wave_Service {
         }
 
         $wave_index = isset($wave_data['wave_index']) ? absint($wave_data['wave_index']) : 1;
+        if ($wave_index < 1 || $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$wpdb->prefix}survey_waves WHERE study_id = %d AND wave_index = %d", $study_id, $wave_index
+        ))) { return new WP_Error('invalid_wave_index', 'Índice inválido o ya utilizado en el estudio.'); }
+        foreach (array('start_date', 'due_date') as $field) {
+            if (empty($wave_data[$field])) { continue; }
+            $date = DateTime::createFromFormat('!Y-m-d\TH:i', $wave_data[$field]) ?: DateTime::createFromFormat('!Y-m-d H:i:s', $wave_data[$field]);
+            $errors = DateTime::getLastErrors();
+            if (!$date || ($errors && ($errors['warning_count'] || $errors['error_count']))) { return new WP_Error('invalid_date', 'Fecha inválida: ' . $field); }
+            $wave_data[$field] = $date->format('Y-m-d H:i:s');
+        }
         $reminder_days = isset($wave_data['reminder_days']) ? absint($wave_data['reminder_days']) : 3;
         $retry_enabled = isset($wave_data['retry_enabled']) ? (int) (bool) $wave_data['retry_enabled'] : 1;
         $retry_days = isset($wave_data['retry_days']) ? absint($wave_data['retry_days']) : 7;
@@ -117,6 +127,13 @@ class EIPSI_Wave_Service {
         if (!empty($wave_data['due_date'])) {
             $data['due_date'] = sanitize_text_field($wave_data['due_date']);
             $formats[] = '%s';
+        }
+
+        foreach (array('has_time_limit', 'completion_time_limit') as $field) {
+            if (array_key_exists($field, $wave_data)) {
+                $data[$field] = $wave_data[$field] === null ? null : absint($wave_data[$field]);
+                $formats[] = '%d';
+            }
         }
 
         error_log(sprintf('[EIPSI WAVE SERVICE] Inserting wave: study_id=%d, wave_index=%d, name="%s", offset_minutes=%d, window_minutes=%s', 
@@ -205,6 +222,34 @@ class EIPSI_Wave_Service {
             return new WP_Error('invalid_wave_id', 'Invalid wave_id');
         }
 
+        $existing = self::get_wave($wave_id);
+        if (!$existing) { return new WP_Error('wave_not_found', 'Wave not found'); }
+        if (isset($wave_data['wave_index']) && (int) $wave_data['wave_index'] !== (int) $existing->wave_index) {
+            return new WP_Error('read_only_index', 'El índice de una onda existente es de solo lectura.');
+        }
+        $has_assignments = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d", $wave_id
+        ));
+        foreach (array('form_id', 'start_date', 'due_date') as $field) {
+            if (!array_key_exists($field, $wave_data)) { continue; }
+            $value = $wave_data[$field];
+            if ($field !== 'form_id') {
+                if ($value === '' || $value === null) { $value = null; }
+                else {
+                    $date = DateTime::createFromFormat('!Y-m-d\TH:i', $value) ?: DateTime::createFromFormat('!Y-m-d H:i:s', $value);
+                    $errors = DateTime::getLastErrors();
+                    if (!$date || ($errors && ($errors['warning_count'] || $errors['error_count']))) {
+                        return new WP_Error('invalid_date', 'Fecha inválida: ' . $field);
+                    }
+                    $value = $date->format('Y-m-d H:i:s');
+                }
+                $wave_data[$field] = $value;
+            }
+            if ($has_assignments && (string) $value !== (string) $existing->$field) {
+                return new WP_Error('assigned_wave_read_only', 'Formulario y fechas no se editan aquí después de asignar participantes.');
+            }
+        }
+
         $allowed_fields = array(
             'name',
             'form_id',
@@ -269,11 +314,7 @@ class EIPSI_Wave_Service {
                     break;
                 case 'start_date':
                 case 'due_date':
-                    // Permitimos NULL (si viene vacío, no actualizamos)
-                    if ($value === null || $value === '') {
-                        continue 2;
-                    }
-                    $data[$key] = sanitize_text_field($value);
+                    $data[$key] = ($value === null || $value === '') ? null : sanitize_text_field($value);
                     $formats[] = '%s';
                     break;
             }

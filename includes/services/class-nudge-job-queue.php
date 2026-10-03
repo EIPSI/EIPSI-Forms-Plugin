@@ -18,6 +18,17 @@ if (!defined('ABSPATH')) {
  */
 class EIPSI_Nudge_Job_Queue {
     
+    /** Cancel pending follow-ups without touching the availability notification. */
+    public static function cancel_follow_up_jobs($assignment_id) {
+        global $wpdb;
+        $table = self::get_table_name();
+        return $wpdb->query($wpdb->prepare(
+            "UPDATE {$table} SET status = 'cancelled', updated_at = %s
+             WHERE status = 'pending' AND job_type IN ('send_nudge_1','send_nudge_2','send_nudge_3','send_nudge_4')
+             AND JSON_EXTRACT(payload, '$.assignment_id') = %d", current_time('mysql'), $assignment_id
+        ));
+    }
+
     /**
      * Tabla de jobs
      */

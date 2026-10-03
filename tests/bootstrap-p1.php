@@ -31,7 +31,7 @@ function get_post($id) {
     return (object) array('ID' => (int) $id, 'post_type' => 'eipsi_form_template', 'post_status' => 'publish', 'post_content' => '<form>fixture</form>');
 }
 function get_post_meta($id, $key, $single = false) { return $GLOBALS['p1_meta'][$id][$key] ?? ''; }
-function is_wp_error($value) { return false; }
+function is_wp_error($value) { return $value instanceof WP_Error; }
 function esc_attr($value) { return htmlspecialchars((string) $value, ENT_QUOTES); }
 function esc_html__($value, $domain = '') { return $value; }
 function wp_kses_post($value) { return $value; }
@@ -57,6 +57,7 @@ function p1_fixture($callback) {
     $db->suppress_errors(true);
     $tables = array('survey_studies', 'survey_participants', 'survey_sessions', 'survey_magic_links', 'survey_waves', 'survey_assignments',
                     'vas_form_results', 'eipsi_partial_responses', 'eipsi_pool_assignments', 'eipsi_emergency_submissions');
+    if (defined('EIPSI_P1B_TESTS')) { $tables[] = 'survey_nudge_jobs'; $tables[] = 'survey_audit_log'; }
     $_POST = $_GET = $_COOKIE = $_SESSION = array();
     $GLOBALS['p0_options'] = array('admin_email' => 'test@example.invalid');
     $GLOBALS['p0_admin'] = false; $GLOBALS['p0_mail'] = array(); $GLOBALS['p1_events'] = array();

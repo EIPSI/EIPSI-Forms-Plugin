@@ -18,6 +18,36 @@ if (!defined('ABSPATH')) {
  */
 class EIPSI_Nudge_Event_Scheduler {
     
+    /** Rebuild only follow-ups: configuration edits must never resend nudge 0. */
+    public static function refresh_wave_follow_ups($wave_id, $assignment_id = null) {
+        global $wpdb;
+        $filter = $assignment_id === null ? '' : $wpdb->prepare(' AND a.id = %d', $assignment_id);
+        $assignments = $wpdb->get_results($wpdb->prepare(
+            "SELECT a.*, w.follow_up_reminders_enabled FROM {$wpdb->prefix}survey_assignments a
+             JOIN {$wpdb->prefix}survey_waves w ON w.id = a.wave_id
+             WHERE a.wave_id = %d AND a.status IN ('pending','in_progress')" . $filter, $wave_id
+        ));
+        $scheduled = 0;
+        foreach ($assignments as $assignment) {
+            require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-job-queue.php';
+            if (EIPSI_Nudge_Job_Queue::cancel_follow_up_jobs($assignment->id) === false) {
+                return new WP_Error('reschedule_failed', 'Configuración guardada; no se pudieron cancelar los jobs anteriores. Reintentá.');
+            }
+            for ($stage = 1; $stage <= 4; $stage++) {
+                foreach (array((int) $assignment->id, (string) $assignment->id) as $id) {
+                    wp_clear_scheduled_hook(self::NUDGE_EVENT_HOOK, array(array('assignment_id' => $id, 'stage' => $stage)));
+                }
+            }
+            // reminder_count >= 1 means availability has already been notified.
+            if ((int) $assignment->reminder_count >= 1 && !empty($assignment->follow_up_reminders_enabled)) {
+                $count = self::schedule_follow_up_nudges_only($assignment);
+                if ($count === false) { return new WP_Error('reschedule_failed', 'Configuración guardada; falló la programación. Reintentá.'); }
+                $scheduled += $count;
+            }
+        }
+        return $scheduled;
+    }
+
     /**
      * Hook para eventos de nudge
      */
@@ -183,7 +213,7 @@ class EIPSI_Nudge_Event_Scheduler {
                 
                 // v1.4.2 - Scheduled time is absolute from available_at
                 $delay_seconds = self::convert_to_seconds($value, $unit);
-                $scheduled_time = $available_at + $delay_seconds;
+                $scheduled_time = (int) round($available_at + $delay_seconds);
                 
                 error_log(sprintf('[EIPSI EventScheduler] Nudge %d: %d seconds from available', 
                     $stage, $delay_seconds));
@@ -628,6 +658,9 @@ class EIPSI_Nudge_Event_Scheduler {
         
         error_log(sprintf('[EIPSI EventScheduler] Rescheduling nudges for assignment %d due to deadline change', $assignment_id));
         
+        if ((int) $assignment->reminder_count >= 1) {
+            return self::refresh_wave_follow_ups($assignment->wave_id, $assignment_id);
+        }
         // Cancelar nudges programados existentes
         self::cancel_scheduled_nudges($assignment_id);
         
@@ -780,6 +813,12 @@ class EIPSI_Nudge_Event_Scheduler {
      * @since 2.6.0
      */
     public static function reschedule_nudges_for_assignment($assignment_id) {
+        global $wpdb;
+        $assignment = $wpdb->get_row($wpdb->prepare("SELECT wave_id, reminder_count FROM {$wpdb->prefix}survey_assignments WHERE id = %d", $assignment_id));
+        if ($assignment && (int) $assignment->reminder_count >= 1) {
+            $result = self::refresh_wave_follow_ups($assignment->wave_id, $assignment_id);
+            return !is_wp_error($result);
+        }
         error_log("[EIPSI EventScheduler] Rescheduling nudges for assignment {$assignment_id}");
         
         // 1. Cancelar nudges pendientes
@@ -818,7 +857,7 @@ class EIPSI_Nudge_Event_Scheduler {
             return 0;
         }
         
-        $assignment_id = $assignment->id;
+        $assignment_id = (int) $assignment->id;
         
         error_log(sprintf(
             '[EIPSI EventScheduler] Assignment %d: reminder_count=%d, status=%s, wave_id=%d, available_at=%s',
@@ -830,7 +869,7 @@ class EIPSI_Nudge_Event_Scheduler {
         ));
         
         // Verify reminder_count is 1 (Nudge 0 was sent)
-        if ($assignment->reminder_count != 1) {
+        if ((int) $assignment->reminder_count < 1) {
             error_log(sprintf(
                 '[EIPSI EventScheduler] ❌ ABORT: Assignment %d has reminder_count=%d (expected 1)',
                 $assignment_id,
@@ -889,6 +928,7 @@ class EIPSI_Nudge_Event_Scheduler {
         $scheduled_count = 0;
         
         for ($stage = 1; $stage <= 4; $stage++) {
+            if ($stage < (int) $assignment->reminder_count) { continue; }
             $nudge_key = "nudge_{$stage}";
             
             // Check if enabled
@@ -902,7 +942,7 @@ class EIPSI_Nudge_Event_Scheduler {
             
             // v1.4.2 - Absolute offset from available_at
             $delay_seconds = self::convert_to_seconds($value, $unit);
-            $scheduled_time = $available_at + $delay_seconds;
+            $scheduled_time = (int) round($available_at + $delay_seconds);
             
             // Don't schedule in the past
             if ($scheduled_time <= current_time('timestamp')) {
@@ -936,6 +976,7 @@ class EIPSI_Nudge_Event_Scheduler {
             // Schedule new event
             $result = wp_schedule_single_event($scheduled_time, self::NUDGE_EVENT_HOOK, array($event_args));
             
+            if ($result === false || is_wp_error($result)) { return false; }
             if ($result !== false) {
                 $scheduled_count++;
                 error_log(sprintf(

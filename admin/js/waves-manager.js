@@ -274,13 +274,16 @@
 	function populateWaveForm( waveData ) {
 		$( '#wave_id' ).val( waveData.id );
 		$( '#wave_name' ).val( waveData.name );
-		$( '#wave_index' ).val( waveData.wave_index );
+		$( '#wave_index' ).val( waveData.wave_index ).prop( 'readonly', true );
+		$( '#form_id' ).prop( 'disabled', !!waveData.has_assignments );
+		$( '#start_date, #due_date' ).prop( 'disabled', !!waveData.has_assignments );
+		$( '#wave_status' ).val( waveData.status );
 		$( '#form_id' ).val( waveData.form_id );
 		$( '#start_date' ).val(
-			waveData.start_date ? waveData.start_date.slice( 0, 16 ) : ''
+			waveData.start_date ? waveData.start_date.replace( ' ', 'T' ).slice( 0, 16 ) : ''
 		);
 		$( '#due_date' ).val(
-			waveData.due_date ? waveData.due_date.slice( 0, 16 ) : ''
+			waveData.due_date ? waveData.due_date.replace( ' ', 'T' ).slice( 0, 16 ) : ''
 		);
 		$( '#wave_description' ).val( waveData.description || '' );
 		$( 'input[name="is_mandatory"]' ).prop(
@@ -300,7 +303,9 @@
 	function resetWaveForm() {
 		$( '#eipsi-wave-form' )[ 0 ].reset();
 		$( '#wave_id' ).val( '' );
-		$( '#wave_index' ).val( 1 );
+		$( '#wave_index' ).val( 1 ).prop( 'readonly', false );
+		$( '#form_id' ).prop( 'disabled', false );
+		$( '#start_date, #due_date' ).prop( 'disabled', false );
 		$( 'input[name="is_mandatory"]' ).prop( 'checked', true );
 	}
 
@@ -326,9 +331,9 @@
 				name: $( '#wave_name' ).val(),
 				wave_index: $( '#wave_index' ).val(),
 				form_id: $( '#form_id' ).val(),
-				start_date: $( '#start_date' ).val(),
-				due_date: $( '#due_date' ).val(),
-				description: $( '#wave_description' ).val(),
+				start_date: $( '#start_date' ).prop( 'disabled' ) ? undefined : $( '#start_date' ).val(),
+				due_date: $( '#due_date' ).prop( 'disabled' ) ? undefined : $( '#due_date' ).val(),
+				status: $( '#wave_status' ).val(),
 				is_mandatory:
 					$( 'input[name="is_mandatory"]:checked' ).val() || 0,
 				has_time_limit: $( '#has_time_limit' ).is( ':checked' ) ? 1 : 0,

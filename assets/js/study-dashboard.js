@@ -1102,8 +1102,8 @@
                     unit = 'hours';
                 } else {
                     // Fracción de hora (usar horas con decimales)
-                    value = parseFloat((minutes / 60).toFixed(2));
-                    unit = 'hours';
+                    value = minutes;
+                    unit = 'minutes';
                 }
                 
                 console.log(`[NUDGE] Row ${index}: ${minutes} min -> ${value} ${unit}`);

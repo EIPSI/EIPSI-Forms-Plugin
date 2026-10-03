@@ -776,7 +776,15 @@ function eipsi_ajax_get_pool_analytics() {
         'recent_activity' => $activity_formatted
     ));
 }
-add_action('wp_ajax_eipsi_get_pool_analytics', 'eipsi_ajax_get_pool_analytics');
+add_action('wp_ajax_eipsi_get_pool_analytics', 'eipsi_get_pool_analytics_dispatch');
+function eipsi_get_pool_analytics_dispatch() {
+    $nonce = $_POST['nonce'] ?? '';
+    if (is_string($nonce) && wp_verify_nonce($nonce, 'eipsi_pool_dashboard_nonce')) {
+        eipsi_get_pool_analytics();
+        return;
+    }
+    eipsi_ajax_get_pool_analytics();
+}
 
 /**
  * Handler AJAX: exportar asignaciones de pool a CSV.
@@ -857,7 +865,15 @@ function eipsi_ajax_export_pool_assignments() {
     fclose($output);
     exit;
 }
-add_action('wp_ajax_eipsi_export_pool_assignments', 'eipsi_ajax_export_pool_assignments');
+add_action('wp_ajax_eipsi_export_pool_assignments', 'eipsi_export_pool_assignments_dispatch');
+function eipsi_export_pool_assignments_dispatch() {
+    $nonce = $_POST['nonce'] ?? '';
+    if (is_string($nonce) && wp_verify_nonce($nonce, 'eipsi_pool_dashboard_nonce')) {
+        eipsi_export_pool_assignments();
+        return;
+    }
+    eipsi_ajax_export_pool_assignments();
+}
 
 // =========================================================================
 // HELPER FUNCTIONS FOR POOL AUTHENTICATION

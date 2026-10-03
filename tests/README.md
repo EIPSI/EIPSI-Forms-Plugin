@@ -115,3 +115,20 @@ atomicidad entre guardar respuesta y actualizar assignment, ventanas temporales,
 waves/nudges, pools ni exports. Los hooks se aíslan: esos subsistemas no quedan
 validados por esta suite. Los helpers legacy restantes no se eliminan y otros
 endpoints no se consideran auditados por estas pruebas.
+
+## Regresiones P1-B
+
+```bash
+docker exec wp-eco-wordpress-1 php /var/www/html/wp-content/plugins/EIPSI-Forms-Plugin/tests/run-p1b.php
+```
+
+40 casos de contratos AJAX, persistencia/read-only de waves, copia T1/T2/T3 y
+nudges. Reutiliza las tablas aisladas y `wpdb` real del runner P1-A, agrega la cola
+`survey_nudge_jobs` y auditoría con schema actual. Dos casos inyectan rechazo SQL
+mediante triggers de fixture, eliminados al borrar sus tablas. WP-Cron es un doble
+que registra eventos y permite simular fallos; no programa eventos reales ni envía
+correo. `EIPSI_TEST_FILTER` permite seleccionar casos por parte del nombre.
+
+Mantener verdes los 22 P0, 40 P1-A y 40 P1-B: 102 casos. La auditoría, matrices de
+campos/consumidores y riesgos están en
+`wp-eco/informes/EIPSI-Forms/2026.10.03 - Estabilización P1-B.md`.

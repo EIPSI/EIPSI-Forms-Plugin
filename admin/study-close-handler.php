@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 }
 
 // AJAX Handler para cerrar estudio
-add_action('wp_ajax_eipsi_close_study', 'eipsi_close_study_handler');
+// Legacy callable retained; the dashboard API owns the operative action.
 
 /**
  * Handler para cerrar estudio y anonimizar datos

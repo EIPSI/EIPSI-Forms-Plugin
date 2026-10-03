@@ -42,7 +42,15 @@ add_action('wp_ajax_eipsi_resend_participant_email', 'wp_ajax_eipsi_resend_parti
 add_action('wp_ajax_eipsi_get_participant_email_history', 'wp_ajax_eipsi_get_participant_email_history_handler');
 add_action('wp_ajax_eipsi_get_participant_detail', 'wp_ajax_eipsi_get_participant_detail_handler');
 add_action('wp_ajax_eipsi_remove_participant', 'wp_ajax_eipsi_remove_participant_handler');
-add_action('wp_ajax_eipsi_delete_participant', 'wp_ajax_eipsi_delete_participant_handler');
+add_action('wp_ajax_eipsi_delete_participant', 'eipsi_delete_participant_dispatch');
+function eipsi_delete_participant_dispatch() {
+    $nonce = $_POST['nonce'] ?? '';
+    if (is_string($nonce) && wp_verify_nonce($nonce, 'eipsi_waves_nonce')) {
+        wp_ajax_eipsi_delete_participant_waves_handler();
+        return;
+    }
+    wp_ajax_eipsi_delete_participant_handler();
+}
 
 /**
  * GET consolidated study data
@@ -1315,7 +1323,7 @@ function wp_ajax_eipsi_save_wave_nudges_handler() {
         error_log("[EIPSI DASHBOARD API] Decoded nudges from JSON: " . print_r($nudges, true));
     }
     if (!is_array($nudges)) {
-        $nudges = array();
+        wp_send_json_error(array('message' => 'Configuración de nudges inválida.'));
     }
     
     $nudge_count = is_array($nudges) ? count($nudges) : 0;
@@ -1329,167 +1337,18 @@ function wp_ajax_eipsi_save_wave_nudges_handler() {
         wp_send_json_error('Missing wave ID');
     }
 
-    try {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'survey_waves';
-        
-        // v2.5.1 - Verificar valor actual en la base de datos
-        $current_wave = $wpdb->get_row($wpdb->prepare("SELECT follow_up_reminders_enabled, nudge_config, window_minutes FROM {$table_name} WHERE id = %d", $wave_id));
-        error_log("[EIPSI DASHBOARD API] Current DB value - follow_up_reminders_enabled: " . ($current_wave ? $current_wave->follow_up_reminders_enabled : 'N/A'));
-        error_log("[EIPSI DASHBOARD API] Current DB value - nudge_config: " . ($current_wave ? $current_wave->nudge_config : 'N/A'));
-        error_log("[EIPSI DASHBOARD API] Current DB value - window_minutes: " . ($current_wave ? $current_wave->window_minutes : 'N/A'));
-        
-        // Validate and redistribute nudges if they exceed window
-        $window_minutes = $current_wave ? $current_wave->window_minutes : null;
-        if ($window_minutes > 0 && !empty($nudges)) {
-            $total_nudge_minutes = 0;
-            foreach ($nudges as $nudge) {
-                if (!empty($nudge['value'])) {
-                    $total_nudge_minutes += floatval($nudge['value']);
-                }
-            }
-            
-            // If total nudges exceed window, redistribute proportionally
-            if ($total_nudge_minutes > $window_minutes) {
-                error_log("[EIPSI DASHBOARD API] WARNING: Total nudges ({$total_nudge_minutes} min) exceed window ({$window_minutes} min). Redistributing...");
-                
-                // Redistribute proportionally within the window (use 90% to leave buffer)
-                $usable_window = $window_minutes * 0.9;
-                $scale_factor = $usable_window / $total_nudge_minutes;
-                
-                foreach ($nudges as $index => $nudge) {
-                    if (!empty($nudge['value'])) {
-                        $nudges[$index]['value'] = round(floatval($nudge['value']) * $scale_factor);
-                        error_log("[EIPSI DASHBOARD API] Nudge " . ($index + 1) . " redistributed to: " . $nudges[$index]['value'] . " minutes");
-                    }
-                }
-            }
-        }
-
-        // Build nudge config JSON
-        $nudge_config = array(
-            'nudge_1' => array(
-                'enabled' => $enabled && !empty($nudges[0]),
-                'value' => isset($nudges[0]['value']) ? floatval($nudges[0]['value']) : 24,
-                'unit' => isset($nudges[0]['unit']) ? sanitize_text_field($nudges[0]['unit']) : 'hours'
-            ),
-            'nudge_2' => array(
-                'enabled' => $enabled && !empty($nudges[1]),
-                'value' => isset($nudges[1]['value']) ? floatval($nudges[1]['value']) : 72,
-                'unit' => isset($nudges[1]['unit']) ? sanitize_text_field($nudges[1]['unit']) : 'hours'
-            ),
-            'nudge_3' => array(
-                'enabled' => $enabled && !empty($nudges[2]),
-                'value' => isset($nudges[2]['value']) ? floatval($nudges[2]['value']) : 168,
-                'unit' => isset($nudges[2]['unit']) ? sanitize_text_field($nudges[2]['unit']) : 'hours'
-            ),
-            'nudge_4' => array(
-                'enabled' => $enabled && !empty($nudges[3]),
-                'value' => isset($nudges[3]['value']) ? floatval($nudges[3]['value']) : 336,
-                'unit' => isset($nudges[3]['unit']) ? sanitize_text_field($nudges[3]['unit']) : 'hours'
-            )
-        );
-        
-        error_log("[EIPSI DASHBOARD API] Built nudge_config: " . wp_json_encode($nudge_config));
-
-        // v2.5.1 - Update wave with nudge_config, follow_up_reminders_enabled, and window_minutes
-        $update_data = array(
-            'nudge_config' => wp_json_encode($nudge_config),
-            'follow_up_reminders_enabled' => $enabled ? 1 : 0
-        );
-        $update_formats = array('%s', '%d');
-        
-        if ($window_minutes !== null) {
-            $update_data['window_minutes'] = $window_minutes;
-            $update_formats[] = '%d';
-            
-            // Recalculate nudge_config proportionally to window_minutes (20/40/60/80%)
-            $nudge1_hours = round($window_minutes * 0.20 / 60, 2);
-            $nudge2_hours = round($window_minutes * 0.40 / 60, 2);
-            $nudge3_hours = round($window_minutes * 0.60 / 60, 2);
-            $nudge4_hours = round($window_minutes * 0.80 / 60, 2);
-            
-            $nudge_config = array(
-                'nudge_1' => array('enabled' => $enabled && !empty($nudges[0]), 'value' => $nudge1_hours, 'unit' => 'hours'),
-                'nudge_2' => array('enabled' => $enabled && !empty($nudges[1]), 'value' => $nudge2_hours, 'unit' => 'hours'),
-                'nudge_3' => array('enabled' => $enabled && !empty($nudges[2]), 'value' => $nudge3_hours, 'unit' => 'hours'),
-                'nudge_4' => array('enabled' => $enabled && !empty($nudges[3]), 'value' => $nudge4_hours, 'unit' => 'hours')
-            );
-            $update_data['nudge_config'] = wp_json_encode($nudge_config);
-            
-            error_log("[EIPSI DASHBOARD API] Recalculated nudges from window_minutes: " . wp_json_encode($nudge_config));
-            
-            // Recalculate due_at for pending assignments
-            $assignments_table = $wpdb->prefix . 'survey_assignments';
-            $assignments = $wpdb->get_results($wpdb->prepare(
-                "SELECT id, available_at FROM {$assignments_table} WHERE wave_id = %d AND status = 'pending'",
-                $wave_id
-            ));
-            
-            if (!empty($assignments)) {
-                foreach ($assignments as $assignment) {
-                    $available_at = $assignment->available_at;
-                    $due_at = date('Y-m-d H:i:s', strtotime($available_at) + ($window_minutes * 60));
-                    
-                    $wpdb->update(
-                        $assignments_table,
-                        array('due_at' => $due_at),
-                        array('id' => $assignment->id),
-                        array('%s'),
-                        array('%d')
-                    );
-                    
-                    error_log("[EIPSI DASHBOARD API] Updated due_at for assignment {$assignment->id}: {$due_at}");
-                    
-                    // Cancel and reschedule pending nudges
-                    wp_clear_scheduled_hook('eipsi_nudge_event', array($assignment->id, 1));
-                    wp_clear_scheduled_hook('eipsi_nudge_event', array($assignment->id, 2));
-                    wp_clear_scheduled_hook('eipsi_nudge_event', array($assignment->id, 3));
-                    wp_clear_scheduled_hook('eipsi_nudge_event', array($assignment->id, 4));
-                    
-                    // Reschedule with new nudge times
-                    if (class_exists('EIPSI_Nudge_Event_Scheduler')) {
-                        require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-event-scheduler.php';
-                        EIPSI_Nudge_Event_Scheduler::reschedule_nudges_for_assignment($assignment->id);
-                    }
-                }
-            }
-        }
-        
-        error_log("[EIPSI DASHBOARD API] Update data: " . print_r($update_data, true));
-        
-        $result = $wpdb->update(
-            $table_name,
-            $update_data,
-            array('id' => $wave_id),
-            $update_formats,
-            array('%d')
-        );
-
-        if ($result === false) {
-            error_log("[EIPSI DASHBOARD API] ERROR: " . $wpdb->last_error);
-            throw new Exception($wpdb->last_error);
-        }
-
-        error_log("[EIPSI DASHBOARD API] Update result: " . var_export($result, true));
-        
-        // v2.5.1 - Verificar valor después del update
-        $updated_wave = $wpdb->get_row($wpdb->prepare("SELECT follow_up_reminders_enabled, nudge_config FROM {$table_name} WHERE id = %d", $wave_id));
-        error_log("[EIPSI DASHBOARD API] Updated DB value - follow_up_reminders_enabled: " . ($updated_wave ? $updated_wave->follow_up_reminders_enabled : 'N/A'));
-
-        wp_send_json_success(array(
-            'message' => 'Configuración de nudges guardada',
-            'nudge_config' => $nudge_config,
-            'follow_up_reminders_enabled' => $enabled,
-            'rows_updated' => $result
-        ));
-    } catch (Exception $e) {
-        error_log('[EIPSI Save Nudges] Error: ' . $e->getMessage());
-        wp_send_json_error(array(
-            'message' => 'Error al guardar nudges: ' . $e->getMessage(),
-            'error' => 'exception'
-        ), 500);
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-service.php';
+    $config = array();
+    for ($stage = 1; $stage <= 4; $stage++) {
+        $item = $nudges[$stage - 1] ?? array('value' => 24 * $stage, 'unit' => 'hours');
+        $config['nudge_' . $stage] = array('enabled' => $enabled && isset($nudges[$stage - 1]),
+            'value' => $item['value'] ?? null, 'unit' => $item['unit'] ?? null);
     }
+    // Empty UI field means preserve the window; it must not overwrite it with NULL.
+    $window_supplied = isset($_POST['window_minutes']) && $_POST['window_minutes'] !== '';
+    $result = EIPSI_Nudge_Service::save_wave_configuration($wave_id, $config, $window_supplied, $_POST['window_minutes'] ?? null);
+    if (is_wp_error($result)) { wp_send_json_error(array('message' => $result->get_error_message(), 'error' => $result->get_error_code())); }
+    wp_send_json_success(array_merge(array('message' => 'Configuración de nudges guardada'), $result));
 }
 
 /**

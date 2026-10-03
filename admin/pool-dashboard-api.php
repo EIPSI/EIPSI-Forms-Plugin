@@ -34,7 +34,7 @@ function eipsi_get_pool_analytics() {
 
     wp_send_json_success( $analytics );
 }
-add_action( 'wp_ajax_eipsi_get_pool_analytics', 'eipsi_get_pool_analytics' );
+// Registration owned by the pool API's explicit contract dispatcher.
 
 /**
  * Export pool assignments to CSV.
@@ -125,4 +125,4 @@ function eipsi_export_pool_assignments() {
     fclose( $output );
     wp_die();
 }
-add_action( 'wp_ajax_eipsi_export_pool_assignments', 'eipsi_export_pool_assignments' );
+// Registration owned by the pool API's explicit contract dispatcher.

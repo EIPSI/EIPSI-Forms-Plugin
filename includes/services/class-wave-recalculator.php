@@ -70,7 +70,7 @@ class EIPSI_Wave_Recalculator {
 
         foreach ($waves as $wave) {
             // Skip T1 (wave_index = 1) as it's already completed
-            if ($wave->wave_index === 1) {
+            if ((int) $wave->wave_index === 1) {
                 continue;
             }
 
