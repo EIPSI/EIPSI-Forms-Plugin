@@ -95,8 +95,12 @@ function eipsi_render_form_template_markup($template_id, $context = 'block', $op
         return eipsi_render_form_notice($template->get_error_message(), 'error');
     }
 
-    // Check if form requires login
-    if (eipsi_form_requires_login($template_id)) {
+    // A template attached to a study must use that study's participant session.
+    global $wpdb;
+    $is_longitudinal = (bool) $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}survey_waves WHERE form_id = %d", $template_id
+    ));
+    if (eipsi_form_requires_login($template_id) || $is_longitudinal) {
         // If NOT authenticated → show login gate
         if (!eipsi_is_participant_logged_in()) {
             // Enqueue login gate styles
@@ -110,6 +114,17 @@ function eipsi_render_form_template_markup($template_id, $context = 'block', $op
             ob_start();
             include EIPSI_FORMS_PLUGIN_DIR . 'includes/templates/login-gate.php';
             return ob_get_clean();
+        }
+    }
+
+    if ($is_longitudinal) {
+        $access = EIPSI_Auth_Service::authorize_session_context($options);
+        $belongs_to_study = $access['success'] ? $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_waves WHERE form_id = %d AND study_id = %d",
+            $template_id, $access['study_id']
+        )) : 0;
+        if (!$belongs_to_study) {
+            return eipsi_render_form_notice(__('Unauthorized', 'eipsi-forms'), 'error');
         }
     }
 
@@ -182,15 +197,11 @@ function eipsi_get_current_participant() {
         return false;
     }
     
-    // Search in session or cookie
-    $participant_id = $_SESSION['eipsi_participant_id'] ?? 
-                     $_COOKIE['eipsi_participant_id'] ?? 
-                     false;
-    
+    $participant_id = EIPSI_Auth_Service::get_current_participant();
     if (!$participant_id) {
         return false;
     }
-    
+
     // Fetch from DB
     global $wpdb;
     return $wpdb->get_row(

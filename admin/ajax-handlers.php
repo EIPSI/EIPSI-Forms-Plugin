@@ -1199,21 +1199,15 @@ function eipsi_forms_submit_form_handler() {
     // Carga el sistema crítico de seguridad de datos
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/data-safety-system.php';
     
-    // v1.5.6 - Obtener participante autenticado desde la sesión
-    // Esto corrige el bug donde participant_id llegaba como 0 desde el frontend
-    $authenticated_participant_id = 0;
-    $authenticated_study_id = 0;
-    if (class_exists('EIPSI_Auth_Service')) {
-        $authenticated_participant_id = EIPSI_Auth_Service::get_current_participant();
-        $authenticated_study_id = EIPSI_Auth_Service::get_current_survey();
-    }
-    
-    // v1.4.3 - VALIDACIÓN CONTEXTUAL DE CONSENTIMIENTO
-    // La validación de consentimiento se hace en el frontend (eipsi-forms.js líneas 88-127)
-    // Solo valida si existe el bloque consent-block en el formulario
-    // Esto permite usar bloques individuales sin consentimiento obligatorio
-    
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-auth-service.php';
     $form_name = isset($_POST['form_id']) ? sanitize_text_field($_POST['form_id']) : 'default';
+    $submission_context = EIPSI_Auth_Service::authorize_form_operation($form_name, $_POST, $_GET);
+    if (!$submission_context['success']) {
+        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms'), 'code' => $submission_context['error']), 403);
+        return;
+    }
+    $authenticated_participant_id = $submission_context['participant_id'];
+    $authenticated_study_id = $submission_context['study_id'];
 
     // Ética clínica: si el estudio está cerrado, no aceptamos nuevos envíos
     if (eipsi_get_study_status_for_form_name($form_name) === 'closed') {
@@ -1329,7 +1323,7 @@ function eipsi_forms_submit_form_handler() {
     }
     
     $form_responses = array();
-    $exclude_fields = array('form_id', 'form_action', 'ip_address', 'device', 'browser', 'os', 'screen_width', 'form_start_time', 'form_end_time', 'current_page', 'nonce', 'action', 'participant_id', 'session_id', 'metadata', 'end_timestamp_ms', 'eipsi_user_fingerprint', 'eipsi_fingerprint_raw');  // ✅ v1.5.4 - Agregar fingerprint fields
+    $exclude_fields = array('form_id', 'form_action', 'ip_address', 'device', 'browser', 'os', 'screen_width', 'form_start_time', 'form_end_time', 'current_page', 'nonce', 'action', 'participant_id', 'session_id', 'metadata', 'end_timestamp_ms', 'eipsi_user_fingerprint', 'eipsi_fingerprint_raw', 'survey_id', 'study_id', 'wave_id', 'longitudinal_participant_id');  // ✅ v1.5.4 - Agregar fingerprint fields
     
     $user_data = array(
         'email' => '',
@@ -1393,101 +1387,14 @@ function eipsi_forms_submit_form_handler() {
     // Usar Participant ID universal del frontend si está disponible, sino fallback al viejo sistema
     $participant_id = !empty($frontend_participant_id) ? $frontend_participant_id : generateStableFingerprint($user_data);
     
-    // v1.5.6 - Para operaciones longitudinales (assignments), usar el participant_id autenticado
-    // El participant_id del frontend es un fingerprint/string, pero las tablas de assignments usan INT
+    // The browser participant_id remains a tracking key, never a longitudinal identity.
+    $partial_participant_id = $participant_id;
     $longitudinal_participant_id = $authenticated_participant_id;
-
-    // Capture longitudinal context (v1.4.0) - usar study_id en lugar de survey_id
-    // Prioridad: authenticated_study_id > POST > GET > fallback desde wave_id
     $study_id = $authenticated_study_id;
-    
-    // Fallback 1: POST directo (viene del formulario)
-    if (empty($study_id) && !empty($_POST['survey_id'])) {
-        $study_id = absint($_POST['survey_id']);
-    }
-    
-    // Fallback 2: GET (viene de la URL)
-    if (empty($study_id) && !empty($_GET['survey_id'])) {
-        $study_id = absint($_GET['survey_id']);
-    }
-    
-    // Fallback 3: obtener desde wave_id si está disponible
-    if (empty($study_id) && !empty($wave_id)) {
-        $study_id_from_wave = $wpdb->get_var($wpdb->prepare(
-            "SELECT study_id FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-            $wave_id
-        ));
-        if ($study_id_from_wave) {
-            $study_id = absint($study_id_from_wave);
-        }
-    }
-    
-    // Debug: Log para verificar survey_id
-    error_log("[EIPSI Forms] Survey ID resolution: authenticated={$authenticated_study_id}, final={$study_id}, wave_id=(pending)");
-    
-    $wave_index = null;
-
-    // Intentar obtener wave_id de múltiples fuentes
-    $wave_id = 0;
-
-    // Fuente 1: POST directo (viene del formulario via ?wave_id= en URL)
-    if (!empty($_POST['wave_id'])) {
-        $wave_id = absint($_POST['wave_id']);
-    }
-
-    // Fuente 2: GET (viene de ?wave_id= en la URL del shortcode)
-    if (empty($wave_id) && !empty($_GET['wave_id'])) {
-        $wave_id = absint($_GET['wave_id']);
-    }
-
-    // Fuente 3: sesión DB del participante (EIPSI_Auth_Service)
-    if (empty($wave_id) && $longitudinal_participant_id && $study_id) {
-        if (class_exists('EIPSI_Wave_Service')) {
-            $pending = EIPSI_Wave_Service::get_next_pending_wave($longitudinal_participant_id, $study_id);
-            if ($pending) {
-                $wave_id = $pending['wave_id'];
-                $wave_index = $pending['wave_index'];
-            }
-        }
-    }
-    
-    // Debug: Log final con wave_id resuelto
-    error_log("[EIPSI Forms] Wave ID resolution: wave_id={$wave_id}, wave_index={$wave_index}");
-
-    // Si obtuvimos wave_id, mapear wave_index desde DB
-    if (!empty($wave_id)) {
-        $wave_index_val = $wpdb->get_var($wpdb->prepare(
-            "SELECT wave_index FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-            $wave_id
-        ));
-        if ($wave_index_val !== null) {
-            $wave_index = (int) $wave_index_val;
-        }
-    }
-    
-    // ✅ FIX: Si no tenemos participant_id autenticado, intentar obtenerlo desde el email
-    // Esto debe ir DESPUÉS de que $study_id está completamente resuelto
-    if (empty($longitudinal_participant_id) && !empty($user_data['email']) && $study_id) {
-        $longitudinal_participant_id = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}survey_participants WHERE email = %s AND survey_id = %d LIMIT 1",
-            $user_data['email'],
-            $study_id
-        ));
-        if ($longitudinal_participant_id && defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf('[EIPSI] Fallback: participant_id %d obtenido desde email %s', $longitudinal_participant_id, $user_data['email']));
-        }
-    }
-    
-    // ✅ FIX: Si aún no tenemos participant_id, intentar desde el fingerprint
-    if (empty($longitudinal_participant_id) && !empty($frontend_participant_id) && $study_id) {
-        $longitudinal_participant_id = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}survey_participants WHERE fingerprint = %s AND survey_id = %d LIMIT 1",
-            $frontend_participant_id,
-            $study_id
-        ));
-        if ($longitudinal_participant_id && defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf('[EIPSI] Fallback: participant_id %d obtenido desde fingerprint %s', $longitudinal_participant_id, $frontend_participant_id));
-        }
+    $wave_id = $submission_context['wave_id'];
+    $wave_index = $submission_context['wave_index'];
+    if ($submission_context['longitudinal']) {
+        $participant_id = (string) $longitudinal_participant_id;
     }
 
     $submitted_at = current_time('mysql');
@@ -1515,6 +1422,17 @@ function eipsi_forms_submit_form_handler() {
         $metadata = array();
     }
     
+    $metadata['participant_id'] = $participant_id;
+    if ($submission_context['longitudinal']) {
+        $metadata['longitudinal_participant_id'] = $longitudinal_participant_id;
+        $metadata['survey_id'] = $study_id;
+        $metadata['study_id'] = $study_id;
+        $metadata['wave_id'] = $wave_id;
+        $metadata['wave_index'] = $wave_index;
+    } else {
+        unset($metadata['longitudinal_participant_id'], $metadata['survey_id'], $metadata['study_id'], $metadata['wave_id'], $metadata['wave_index']);
+    }
+
     // Asegurar que siempre tengamos los campos base
     if (!isset($metadata['form_id'])) {
         $metadata['form_id'] = $stable_form_id;
@@ -1699,7 +1617,7 @@ function eipsi_forms_submit_form_handler() {
         }
         
         // Marcar partial response como completado
-        EIPSI_Partial_Responses::mark_completed($form_name, $participant_id, $session_id);
+        EIPSI_Partial_Responses::mark_completed($form_name, $partial_participant_id, $session_id);
         
         // Si fue modo emergencia, notificar al usuario pero confirmar éxito
         if ($emergency_mode) {
@@ -3262,50 +3180,22 @@ function eipsi_save_consent_decision_handler() {
     
     $form_id = sanitize_text_field($_POST['form_id'] ?? '');
     $decision = sanitize_text_field($_POST['decision'] ?? '');
-    $participant_id = sanitize_text_field($_POST['participant_id'] ?? '');
-    $participant_source = !empty($participant_id) ? 'POST' : 'UNKNOWN';
-    
-    if (empty($form_id) || !in_array($decision, array('accepted', 'declined'))) {
+    if (empty($form_id) || !in_array($decision, array('accepted', 'declined'), true)) {
         wp_send_json_error(array('message' => __('Invalid parameters', 'eipsi-forms')));
         return;
     }
-    
-    // Get participant_id from session if not provided
-    if (empty($participant_id)) {
-        $participant_id = eipsi_get_current_participant_id();
-        $participant_source = 'SESSION/HELPER';
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-auth-service.php';
+    $consent_context = EIPSI_Auth_Service::authorize_form_operation($form_id, $_POST, array(), 'consent');
+    if (!$consent_context['success']) {
+        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms'), 'code' => $consent_context['error']), 403);
+        return;
     }
-    
+    $participant_id = $consent_context['participant_id'];
+    $study_id = $consent_context['study_id'];
+    $template_id = $consent_context['template_id'];
+    $participant_source = $consent_context['longitudinal'] ? 'SESSION' : 'ANONYMOUS';
+    $study_source = $consent_context['longitudinal'] ? 'SESSION' : 'NONE';
     global $wpdb;
-
-    // Resolve numeric template ID
-    $template_id = is_numeric($form_id) ? intval($form_id) : 0;
-    if (!$template_id) {
-        $template_id = $wpdb->get_var($wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type IN ('eipsi_form_template', 'eipsi_form', 'page') LIMIT 1",
-            $form_id
-        ));
-    }
-    
-    // v2.5.6: PRIORIDAD DE CONTEXTO - Invertida para evitar colisiones por form_id "default"
-    // 1. Intentar por sesión activa (Lo más confiable si el usuario ya inició sesión)
-    $study_id = eipsi_get_current_survey_id();
-    $study_source = $study_id ? 'SESSION' : 'NONE';
-
-    // 2. Rescate por Participant ID (Si no hay sesión pero tenemos el ID del participante)
-    if (!$study_id && !empty($participant_id) && is_numeric($participant_id)) {
-        $study_id = $wpdb->get_var($wpdb->prepare(
-            "SELECT survey_id FROM {$wpdb->prefix}survey_participants WHERE id = %d LIMIT 1",
-            intval($participant_id)
-        ));
-        if ($study_id) { $study_source = 'PARTICIPANT_LOOKUP'; }
-    }
-
-    // 3. Último recurso: Adivinar por el form_id (Origen del error actual)
-    if (!$study_id) {
-        $study_id = eipsi_get_study_id_for_form($form_id);
-        if ($study_id) { $study_source = 'FORM_ID_FALLBACK'; }
-    }
 
     // Instrumentación detallada antes de la validación
     error_log(sprintf(
@@ -3380,51 +3270,10 @@ function eipsi_save_consent_decision_handler() {
             wp_send_json_error(array('message' => __('Could not save consent decision', 'eipsi-forms')));
             return;
         }
-    } else {
-        // Standalone form: also save to wp_survey_participants (NOT assignments)
-        $table = $wpdb->prefix . 'survey_participants';
-        $context_id = $template_id ?: $form_id;
-        
-        $data = array(
-            'consent_decision' => $decision,
-            'consent_decided_at' => current_time('mysql'),
-            'consent_ip_address' => eipsi_get_client_ip(),
-            'consent_user_agent' => sanitize_text_field($_SERVER['HTTP_USER_AGENT'] ?? ''),
-            'consent_context' => 'T1_consent_block',
-        );
-        
-        // If declined, also set blocked_survey_id
-        if ($decision === 'declined') {
-            // v2.5.5: Ensure it is a numeric ID
-            $blocked_id = (is_numeric($template_id) && $template_id > 0) ? intval($template_id) : null;
-            if (!$blocked_id && is_numeric($form_id)) {
-                $blocked_id = intval($form_id);
-            }
-            $data['consent_blocked_survey_id'] = $blocked_id;
-            $data["is_active"] = 0; // Marcar como inactivo al rechazar
-        }
-
-        $where = array(
-
-            'survey_id' => $context_id,
-            'id' => $participant_id,
-        );
-        
-        error_log(sprintf('[EIPSI-CONSENT-DEBUG] Standalone Fallback: ContextID=%s, ParticipantID=%s', $context_id, $participant_id));
-        
-        $result = $wpdb->update($table, $data, $where);
-        
-        // If no existing record, and we have a participant_id, try to insert if it's a numeric ID
-        if ($result === false || $result === 0) {
-            if ($participant_id && is_numeric($participant_id)) {
-                $data['survey_id'] = $context_id;
-                $data['id'] = $participant_id;
-                $data['status'] = ($decision === 'declined') ? 'consent_declined' : 'active';
-                $wpdb->insert($table, $data);
-            }
-        }
     }
-    
+    // Standalone consent keeps the existing UI response, without manufacturing
+    // a longitudinal participant from an unverified client identifier.
+
     // Log the decision
     if (function_exists('eipsi_log_audit')) {
         eipsi_log_audit('consent_decision', array(
@@ -3460,7 +3309,7 @@ function eipsi_save_consent_decision_handler() {
         error_log("[EIPSI-CONSENT] Decision declined - Redirecting to: {$redirect_url} (Study ID: {$study_id})");
         
         // Destruir sesión SOLO después de haber procesado redirección y logs
-        if (class_exists('EIPSI_Auth_Service')) {
+        if ($consent_context['longitudinal'] && class_exists('EIPSI_Auth_Service')) {
             EIPSI_Auth_Service::destroy_session();
         }
     }

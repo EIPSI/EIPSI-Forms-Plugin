@@ -30,7 +30,12 @@ function wp_send_json_success($data, $status = 200) { throw new P0JsonResponse(t
 function __($text, $domain = '') { return $text; }
 function sanitize_text_field($text) { return trim(strip_tags((string) $text)); }
 function absint($value) { return abs((int) $value); }
-function current_time($format, $gmt = false) { return '2026-10-03 12:00:00'; }
+function current_time($format, $gmt = false) {
+    if (defined('EIPSI_P1_TESTS')) {
+        return $format === 'timestamp' ? time() : gmdate($format === 'mysql' ? 'Y-m-d H:i:s' : $format);
+    }
+    return '2026-10-03 12:00:00';
+}
 function wp_json_encode($value, $flags = 0) { return json_encode($value, $flags); }
 function get_option($key, $default = false) { return $GLOBALS['p0_options'][$key] ?? $default; }
 function update_option($key, $value) { $GLOBALS['p0_options'][$key] = $value; }
@@ -40,6 +45,7 @@ function eipsi_get_client_ip() { return '127.0.0.1'; }
 function eipsi_get_study_page_url($study_id) { return 'https://example.invalid/study'; }
 function home_url($path) { return 'https://example.invalid' . $path; }
 function add_query_arg($args, $url) { return $url . '?' . http_build_query($args); }
+if (!defined('EIPSI_P1_TESTS')) {
 class EIPSI_Auth_Service {
     public static $participant = 7;
     public static $survey = 3;
@@ -47,6 +53,7 @@ class EIPSI_Auth_Service {
     public static function get_current_participant() { return self::$participant; }
     public static function get_current_survey() { return self::$survey; }
     public static function destroy_session() { self::$destroyed = true; }
+}
 }
 class P0Database {
     public $prefix = 'p0_';

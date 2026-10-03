@@ -126,7 +126,10 @@ function eipsi_safety_attempt_save($data) {
     // Fallback a WordPress DB
     $table_name = $wpdb->prefix . 'vas_form_results';
     
-    $wpdb_result = $wpdb->insert($table_name, $data);
+    // Internal authorization context is for participant sync, not a schema column.
+    $submission_data = $data;
+    unset($submission_data['longitudinal_participant_id']);
+    $wpdb_result = $wpdb->insert($table_name, $submission_data);
     
     if ($wpdb_result !== false) {
         return array(
@@ -400,6 +403,11 @@ function eipsi_safety_verify_submission($insert_id, $storage_type, $data) {
 function eipsi_auto_sync_participant_fields($data, $insert_id) {
     global $wpdb;
     
+    // Anonymous answers/email must not mutate a longitudinal participant record.
+    if (empty($data['longitudinal_participant_id'])) {
+        return;
+    }
+
     try {
         // ✅ DEBUG: Ver qué datos estamos recibiendo
         error_log('[EIPSI SYNC-DEBUG] Data received: participant_id=' . ($data['participant_id'] ?? 'NULL') . 

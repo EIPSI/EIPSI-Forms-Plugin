@@ -446,7 +446,11 @@ class EIPSI_Survey_Access_Handler {
         }
 
         // FIX (v2.1.0): create session via EIPSI_Auth_Service, not raw $_SESSION.
-        $this->setup_session( $result, $wave_info );
+        $session_result = $this->setup_session( $result, $wave_info );
+        if ( empty( $session_result['success'] ) ) {
+            $this->render_error( 'Acceso no autorizado', 'No se pudo crear una sesión válida para este estudio.' );
+            return;
+        }
 
         // Mark token as used.
         EIPSI_MagicLinksService::mark_magic_link_used( $result['ml_id'] );
@@ -508,7 +512,7 @@ class EIPSI_Survey_Access_Handler {
      */
     private function setup_session( $auth_result, $wave_info ) {
         if ( class_exists( 'EIPSI_Auth_Service' ) ) {
-            EIPSI_Auth_Service::create_session(
+            return EIPSI_Auth_Service::create_session(
                 $auth_result['participant_id'],
                 $auth_result['survey_id'],
                 1 // 1 hour TTL for magic link sessions

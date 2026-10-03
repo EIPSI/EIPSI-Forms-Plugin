@@ -18,6 +18,158 @@ if (!defined('ABSPATH')) {
 }
 
 class EIPSI_Auth_Service {
+
+    /**
+     * Shared longitudinal access policy. An undecided participant may enter to
+     * consent; declined/withdrawn/inactive participants may never authorize access.
+     */
+    public static function authorize_participant($participant_id, $survey_id) {
+        global $wpdb;
+        $participant = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}survey_participants WHERE id = %d",
+            $participant_id
+        ));
+        $error = null;
+        if (!$participant) {
+            $error = 'user_not_found';
+        } elseif ((int) $survey_id <= 0 || (int) $participant->survey_id !== (int) $survey_id) {
+            $error = 'study_mismatch';
+        } elseif (($participant->consent_decision ?? '') === 'withdrawn' || ($participant->status ?? '') === 'withdrawn') {
+            $error = 'study_withdrawn';
+        } elseif (($participant->consent_decision ?? '') === 'declined' || in_array($participant->status ?? '', array('declined', 'consent_declined'), true)) {
+            $error = 'consent_declined';
+        } elseif ((int) $participant->is_active !== 1) {
+            $error = 'user_inactive';
+        } elseif (!in_array($participant->consent_decision ?? '', array('', 'accepted'), true)) {
+            $error = 'invalid_consent_state';
+        }
+        return array('success' => $error === null, 'error' => $error, 'participant' => $error === null ? $participant : null);
+    }
+
+    /** Read both identity and study from one token, revalidating state on every use. */
+    public static function get_current_session() {
+        global $wpdb;
+        $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
+        $token = $_COOKIE[$cookie_name] ?? null;
+        if (!is_string($token) || $token === '') {
+            return null;
+        }
+        $session = $wpdb->get_row($wpdb->prepare(
+            "SELECT participant_id, survey_id FROM {$wpdb->prefix}survey_sessions WHERE token = %s AND expires_at > %s",
+            hash('sha256', $token), current_time('mysql')
+        ));
+        if (!$session) {
+            return null;
+        }
+        $access = self::authorize_participant($session->participant_id, $session->survey_id);
+        if (!$access['success']) {
+            self::destroy_session();
+            return null;
+        }
+        return $session;
+    }
+
+    /** Client IDs may confirm a session context, never replace it. */
+    public static function authorize_session_context($request = array()) {
+        $session = self::get_current_session();
+        if (!$session) {
+            return array('success' => false, 'error' => 'authentication_required');
+        }
+        foreach (array('participant_id' => $session->participant_id, 'longitudinal_participant_id' => $session->participant_id,
+                       'study_id' => $session->survey_id, 'survey_id' => $session->survey_id) as $key => $expected) {
+            if (isset($request[$key]) && $request[$key] !== '' &&
+                (!is_scalar($request[$key]) || (string) $request[$key] !== (string) $expected)) {
+                return array('success' => false, 'error' => 'session_context_mismatch');
+            }
+        }
+        return array('success' => true, 'error' => null, 'participant_id' => (int) $session->participant_id, 'study_id' => (int) $session->survey_id);
+    }
+
+    /** Resolve actual templates for a container form name, including older slug inputs. */
+    public static function get_form_template_ids($form_name) {
+        $args = array('post_type' => array('eipsi_form_template', 'eipsi_form', 'page'),
+                      'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids');
+        $ids = get_posts(array_merge($args, array('meta_key' => '_eipsi_form_name', 'meta_value' => $form_name)));
+        $ids = array_merge($ids, get_posts(array_merge($args, array('name' => $form_name))));
+        if (ctype_digit((string) $form_name)) {
+            $post = get_post((int) $form_name);
+            if ($post && $post->post_status === 'publish' && in_array($post->post_type, $args['post_type'], true)) {
+                $ids[] = (int) $form_name;
+            }
+        }
+        return array_values(array_unique(array_filter(array_map('absint', $ids))));
+    }
+
+    /**
+     * Authorize form identity before any persistence. Standalone submissions keep
+     * their anonymous fingerprint; longitudinal submissions use only the session.
+     * No timing/scheduling rules are changed here.
+     */
+    public static function authorize_form_operation($form_name, $request = array(), $query = array(), $operation = 'submit') {
+        global $wpdb;
+        $ids = self::get_form_template_ids($form_name);
+        $form_ids = $ids ? implode(',', $ids) : '0';
+        $has_waves = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}survey_waves WHERE form_id IN ({$form_ids})");
+        $explicit_context = false;
+        $wave_id = 0;
+        foreach (array($request, $query) as $input) {
+            foreach (array('wave_id', 'study_id', 'survey_id') as $key) {
+                if (isset($input[$key]) && $input[$key] !== '' && $input[$key] !== '0' && $input[$key] !== 0) {
+                    $explicit_context = true;
+                    if (!is_scalar($input[$key]) || !ctype_digit((string) $input[$key]) || (int) $input[$key] <= 0) {
+                        return array('success' => false, 'error' => 'invalid_context');
+                    }
+                }
+            }
+            if (!empty($input['wave_id'])) {
+                if ($wave_id && $wave_id !== (int) $input['wave_id']) {
+                    return array('success' => false, 'error' => 'session_context_mismatch');
+                }
+                $wave_id = (int) $input['wave_id'];
+            }
+        }
+        $longitudinal = $has_waves || $explicit_context;
+        $context_request = $request;
+        // participant_id in submit is a browser fingerprint in the existing API.
+        // Numeric participant claims still have to match; fingerprints never authorize.
+        if ($operation === 'submit' && isset($context_request['participant_id']) && is_string($context_request['participant_id']) && !is_numeric($context_request['participant_id'])) {
+            unset($context_request['participant_id']);
+        }
+        if (!$longitudinal) {
+            $requires_login = false;
+            foreach ($ids as $id) { $requires_login = $requires_login || (bool) get_post_meta($id, '_eipsi_require_login', true); }
+            if ($requires_login || ($operation === 'consent' && !empty($context_request['participant_id']))) {
+                $access = self::authorize_session_context($context_request);
+                if (!$access['success']) { return $access; }
+            }
+            return array('success' => true, 'longitudinal' => false, 'participant_id' => 0, 'study_id' => null, 'wave_id' => 0, 'wave_index' => null, 'template_id' => $ids[0] ?? 0);
+        }
+        $access = self::authorize_session_context($context_request);
+        if (!$access['success']) { return $access; }
+        $query_access = self::authorize_session_context($query);
+        if (!$query_access['success']) { return $query_access; }
+        $study_id = $access['study_id'];
+        $participant_id = $access['participant_id'];
+        if ($operation === 'consent') {
+            $template_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT form_id FROM {$wpdb->prefix}survey_waves WHERE study_id = %d AND form_id IN ({$form_ids}) LIMIT 1", $study_id
+            ));
+            if (!$template_id) { return array('success' => false, 'error' => 'form_study_mismatch'); }
+            return array_merge($access, array('longitudinal' => true, 'template_id' => (int) $template_id));
+        }
+        $wave_filter = $wave_id ? $wpdb->prepare(' AND w.id = %d', $wave_id) : " AND a.status IN ('pending', 'in_progress')";
+        $assignment = $wpdb->get_row($wpdb->prepare(
+            "SELECT a.id AS assignment_id, a.status, w.id AS wave_id, w.wave_index, w.form_id
+             FROM {$wpdb->prefix}survey_assignments a JOIN {$wpdb->prefix}survey_waves w ON a.wave_id = w.id AND a.study_id = w.study_id
+             WHERE a.participant_id = %d AND a.study_id = %d AND w.study_id = %d AND w.form_id IN ({$form_ids})"
+             . $wave_filter . ' ORDER BY w.wave_index ASC LIMIT 1', $participant_id, $study_id, $study_id
+        ));
+        if (!$assignment || !in_array($assignment->status, array('pending', 'in_progress'), true)) {
+            return array('success' => false, 'error' => 'assignment_unavailable');
+        }
+        return array_merge($access, array('longitudinal' => true, 'wave_id' => (int) $assignment->wave_id,
+            'wave_index' => (int) $assignment->wave_index, 'template_id' => (int) $assignment->form_id));
+    }
     
     /**
      * Authenticate participant (login).
@@ -46,22 +198,9 @@ class EIPSI_Auth_Service {
             );
         }
 
-        // Verificar si está activo
-        if (!$participant->is_active) {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'user_inactive'
-            );
-        }
-
-        // Verificar si rechazó el consentimiento
-        if (isset($participant->consent_decision) && $participant->consent_decision === 'declined') {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'consent_declined'
-            );
+        $access = self::authorize_participant($participant->id, $survey_id);
+        if (!$access['success']) {
+            return array('success' => false, 'participant_id' => null, 'error' => $access['error']);
         }
 
         // Verificar password
@@ -112,31 +251,9 @@ class EIPSI_Auth_Service {
             );
         }
 
-        // Verificar si está activo
-        if (!$participant->is_active) {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'user_inactive'
-            );
-        }
-
-        // Verificar si rechazó el consentimiento
-        if (isset($participant->consent_decision) && $participant->consent_decision === 'declined') {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'consent_declined'
-            );
-        }
-
-        // Verificar si abandonó el estudio (withdrawn)
-        if (isset($participant->consent_decision) && $participant->consent_decision === 'withdrawn') {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'study_withdrawn'
-            );
+        $access = self::authorize_participant($participant->id, $survey_id);
+        if (!$access['success']) {
+            return array('success' => false, 'participant_id' => null, 'error' => $access['error']);
         }
 
         // Actualizar último login
@@ -166,6 +283,11 @@ class EIPSI_Auth_Service {
     public static function create_session($participant_id, $survey_id, $ttl_hours = 168) {
         global $wpdb;
         
+        $access = self::authorize_participant($participant_id, $survey_id);
+        if (!$access['success']) {
+            return array('success' => false, 'token' => null, 'error' => $access['error']);
+        }
+
         try {
             // Generar token único
             $token = wp_generate_password(64, true, true);
@@ -235,6 +357,10 @@ class EIPSI_Auth_Service {
                 error_log('EIPSI Auth: headers already sent, cookie fallback required for participant ' . $participant_id);
             }
             
+            // Make the validated new identity available to magic-link rendering
+            // in this same request, before the browser returns the cookie.
+            $_COOKIE[$cookie_name] = $token;
+
             return array(
                 'success'     => true,
                 'token'       => $token,
@@ -263,49 +389,8 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function get_current_participant() {
-        global $wpdb;
-        
-        // Cookie name
-        $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
-        
-        // Leer cookie
-        $token = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : null;
-        if (!$token) {
-            return null;
-        }
-        
-        // Hash token
-        $token_hash = hash('sha256', $token);
-        
-        // Query: SELECT participant_id FROM sessions WHERE token = %s AND expires_at > NOW()
-        $table_name = $wpdb->prefix . 'survey_sessions';
-        $result = $wpdb->get_var($wpdb->prepare(
-            "SELECT participant_id FROM $table_name WHERE token = %s AND expires_at > %s",
-            $token_hash,
-            current_time('mysql')
-        ));
-        
-        if (!$result) {
-            return null;
-        }
-        
-        $participant_id = (int) $result;
-        
-        // Check if participant has withdrawn from the study
-        $participants_table = $wpdb->prefix . 'survey_participants';
-        $consent_decision = $wpdb->get_var($wpdb->prepare(
-            "SELECT consent_decision FROM {$participants_table} WHERE id = %d LIMIT 1",
-            $participant_id
-        ));
-        
-        if ($consent_decision === 'withdrawn') {
-            // Participant has withdrawn - clear session and return null
-            error_log("[EIPSI-AUTH] Blocked withdrawn participant {$participant_id} from accessing session");
-            self::destroy_session();
-            return null;
-        }
-        
-        return $participant_id;
+        $session = self::get_current_session();
+        return $session ? (int) $session->participant_id : null;
     }
     
     /**
@@ -316,29 +401,8 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function get_current_survey() {
-        global $wpdb;
-        
-        // Cookie name
-        $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
-        
-        // Leer cookie
-        $token = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : null;
-        if (!$token) {
-            return null;
-        }
-        
-        // Hash token
-        $token_hash = hash('sha256', $token);
-        
-        // Query: SELECT survey_id FROM sessions WHERE token = %s AND expires_at > NOW()
-        $table_name = $wpdb->prefix . 'survey_sessions';
-        $result = $wpdb->get_var($wpdb->prepare(
-            "SELECT survey_id FROM $table_name WHERE token = %s AND expires_at > %s",
-            $token_hash,
-            current_time('mysql')
-        ));
-        
-        return $result ? (int) $result : null;
+        $session = self::get_current_session();
+        return $session ? (int) $session->survey_id : null;
     }
     
     /**
@@ -372,6 +436,8 @@ class EIPSI_Auth_Service {
             );
         }
         
+        unset($_COOKIE[$cookie_name]);
+
         // Borrar cookie: setear con fecha de expiración en el pasado
         $past_time = time() - 3600;
         

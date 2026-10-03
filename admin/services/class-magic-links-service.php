@@ -171,6 +171,14 @@ class EIPSI_MagicLinksService {
             );
         }
 
+        if (!class_exists('EIPSI_Auth_Service')) {
+            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-auth-service.php';
+        }
+        $access = EIPSI_Auth_Service::authorize_participant($magic_link->participant_id, $magic_link->survey_id);
+        if (!$access['success']) {
+            return array('valid' => false, 'reason' => $access['error']);
+        }
+
         // Valid token
         return array(
             'valid' => true,

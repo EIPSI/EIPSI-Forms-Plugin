@@ -49,3 +49,69 @@ No cambia la reconciliación de emergencia ni la cobertura del borrado B2.
 No prueba el bootstrap completo del plugin, UI de navegador, transporte de email,
 WordPress HTTP/nonces reales o administración de cookies. El `phpunit.xml`
 histórico no es el runner de estas pruebas; estas se ejecutan con el comando anterior.
+
+## Regresiones P1-A: autorización e identidad longitudinal
+
+```bash
+docker exec wp-eco-wordpress-1 php /var/www/html/wp-content/plugins/EIPSI-Forms-Plugin/tests/run-p1.php
+```
+
+Las 40 pruebas usan los servicios de autenticación, participantes y magic links,
+los handlers de consentimiento/submit y el renderer reales. SQL se ejecuta mediante
+`wpdb` de WordPress contra MariaDB, con las definiciones actuales de SchemaManager.
+Cada caso crea tablas `eipsi_p1_test_*` con prefijo aleatorio y las elimina en
+`finally`. Requiere WordPress en `/var/www/html` y las mismas variables de DB del
+runner P0. No usa participantes reales ni envía correo. Nonces, posts/metadatos,
+hooks y funciones auxiliares de WordPress son dobles explícitos; no sustituye una
+prueba HTTP completa del plugin con navegador.
+
+### Política final
+
+`EIPSI_Auth_Service::authorize_participant()` exige participante existente,
+pertenencia al estudio y `is_active=1`. Rechaza `declined`, `withdrawn` y decisiones
+de consentimiento desconocidas, comprobando también los estados equivalentes.
+Permite consentimiento pendiente (NULL/vacío) para conservar el acceso previo a
+la decisión; esta fase no impone una nueva obligatoriedad global de consentimiento.
+
+`get_current_session()` deriva participante y estudio del mismo token vigente y
+revalida la política en cada lectura. Si el estado cambió, revoca esa sesión.
+`authorize_session_context()` rechaza IDs cliente diferentes. Para submit,
+`authorize_form_operation()` exige además formulario/wave/assignment propios,
+con assignment pendiente o en progreso. Email y fingerprint no autorizan identidad
+longitudinal. Formularios publicados vinculados a waves requieren sesión incluso
+si el cliente omite contexto; los independientes siguen siendo anónimos salvo su
+bandera de login. El fingerprint conserva su función de tracking de parciales.
+
+### Recorridos auditados antes y después
+
+| Recorrido | Antes | Después |
+| --- | --- | --- |
+| Login → participante → sesión → cookie → lectura | Contraseña comprobaba activo/rechazo; passwordless agregaba retiro. La lectura de sesión no cubría todos los cambios de estado. | Ambos logins y creación/lectura de sesión aplican la política común; token hash y duración conservados. |
+| Magic link → token → participante → sesión → estudio | Token/uso/vencimiento sin política uniforme del participante. | Mantiene esas comprobaciones y agrega política/pertenencia antes de crear sesión; el caller solo consume el enlace si la creación tiene éxito. |
+| Sesión existente → participante → formulario | Helpers legacy podían leer IDs de cookies; acceso al formulario podía omitir pertenencia. | Token autoritativo y revalidación; formulario longitudinal y shortcode exigen el estudio de la sesión. |
+| Consentimiento → IDs → sesión → estado | ID del cliente podía prevalecer; sesión era fallback. | Nonce `eipsi_forms_nonce` conservado, identidad de sesión y comprobación de IDs/formulario antes de cambiar estado. Aceptar/rechazar propios y redirect se conservan. |
+| Submit → identidad → study → wave → assignment → persistencia | Podía resolver participante por email/fingerprint y contexto cliente. | Nonce original conservado; sesión → participante autorizado → estudio → wave/formulario → assignment antes de guardar. Metadata y respuesta usan identidad canónica. |
+
+Las tablas involucradas son `survey_participants`, `survey_sessions`,
+`survey_magic_links`, `survey_waves`, `survey_assignments`, `vas_form_results`
+y `eipsi_partial_responses`; no se modifica schema. El contexto interno
+`longitudinal_participant_id` se excluye del INSERT local y se conserva solo para
+la sincronización autorizada. Envíos anónimos ya no sincronizan participantes por
+email. Los consumidores siguen usando los callbacks/APIs y respuestas existentes;
+las nuevas denegaciones de consentimiento/submit devuelven error antes de persistir.
+
+### Cobertura y límites
+
+Incluye los 14 escenarios solicitados, contraseña/passwordless, estado modificado
+después del login, pertenencia cambiada, sesión vencida/participante eliminado,
+links usados/vencidos, consentimiento propio/ajeno, submit con email de B bajo
+sesión A, contexto falsificado, assignment ausente/cerrado, persistencia real y
+tracking de parciales. También verifica render y formularios anónimos con y sin
+una sesión longitudinal abierta. Ejecutar asimismo las 22 pruebas P0.
+
+Fuera de este bloque: autenticación passwordless inicial por email conserva su
+contrato; no se resuelve concurrencia entre validación/consumo de magic links,
+atomicidad entre guardar respuesta y actualizar assignment, ventanas temporales,
+waves/nudges, pools ni exports. Los hooks se aíslan: esos subsistemas no quedan
+validados por esta suite. Los helpers legacy restantes no se eliminan y otros
+endpoints no se consideran auditados por estas pruebas.

@@ -934,6 +934,10 @@ function eipsi_longitudinal_study_shortcode($atts) {
 
         if ($study) {
             $actual_study_id = (int) $study->id;
+            if ((int) $current_survey_id !== $actual_study_id) {
+                return eipsi_longitudinal_study_error(__('Unauthorized', 'eipsi-forms'), __('Tu sesión pertenece a otro estudio.', 'eipsi-forms'));
+            }
+
 
             // Check if form_id belongs to a wave in this study
             $form_belongs_to_study = $wpdb->get_var($wpdb->prepare(
@@ -1177,6 +1181,10 @@ function eipsi_longitudinal_study_shortcode($atts) {
     
     // Get the actual study ID from the fetched study
     $actual_study_id = (int) $study->id;
+    if ($is_participant_logged_in && (int) $current_survey_id !== $actual_study_id && $view_mode !== 'dashboard') {
+        return eipsi_longitudinal_study_error(__('Unauthorized', 'eipsi-forms'), __('Tu sesión pertenece a otro estudio.', 'eipsi-forms'));
+    }
+
     
     // Get waves for the study
     $waves = array();
