@@ -75,6 +75,9 @@ class EIPSI_Partial_Responses {
             );
         }
         
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+        $privacy_form = function_exists('generate_stable_form_id') ? generate_stable_form_id($form_id) : $form_id;
+        $responses = eipsi_filter_capture_data($responses, get_privacy_config($privacy_form));
         $responses_json = wp_json_encode($responses);
         $now = current_time('mysql');
 

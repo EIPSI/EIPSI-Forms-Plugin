@@ -15,6 +15,18 @@ if (!defined('ABSPATH')) {
  *                   real preview endpoint, summary stats.
  */
 class EIPSI_Export_Service {
+    public static function strip_credentials($data) {
+        if (!is_array($data)) { return $data; }
+        foreach ($data as $key=>$value) {
+            if (preg_match('/(^|_)(password|token|secret|credential|nonce)(_|$)/i',(string)$key)) { unset($data[$key]); }
+            else { $data[$key]=self::strip_credentials($value); }
+        }
+        return $data;
+    }
+
+    public static function write_csv_row($stream, $row) {
+        if (fputcsv($stream,$row) === false) { throw new RuntimeException('No se pudo escribir el export CSV.'); }
+    }
 
     /** @var array Request-level cache for form fields */
     private $form_fields_cache = array();
@@ -110,16 +122,13 @@ class EIPSI_Export_Service {
 
         $query = "
             SELECT
-                CASE
-                    WHEN sp.is_anonymized = 1 THEN NULL
-                    ELSE sp.id
-                END as participant_id,
+                sp.id as participant_id,
                 sp.consent_decision,
                 sw.wave_index,
                 sr.id as submission_id,
                 sr.submitted_at,
                 TIMESTAMPDIFF(SECOND, sr.created_at, sr.submitted_at) as response_time_seconds,
-                sr.response_data,
+                sr.form_responses as response_data,
                 sr.user_fingerprint,
                 CASE
                     WHEN sw.due_date < sr.submitted_at THEN 'Late'
@@ -129,7 +138,7 @@ class EIPSI_Export_Service {
                 sa.assigned_at as wave_assigned_at
             FROM {$wpdb->prefix}survey_participants sp
             JOIN {$wpdb->prefix}survey_waves sw ON sp.survey_id = sw.study_id
-            LEFT JOIN {$wpdb->prefix}survey_responses sr ON sp.id = sr.participant_id AND sw.id = sr.wave_id
+            LEFT JOIN {$wpdb->prefix}vas_form_results sr ON CAST(sp.id AS CHAR) = sr.participant_id AND sp.survey_id = sr.survey_id AND sw.wave_index = sr.wave_index
             LEFT JOIN {$wpdb->prefix}survey_assignments sa ON sp.id = sa.participant_id AND sw.id = sa.wave_id
             WHERE sp.survey_id = %d
         ";
@@ -164,7 +173,9 @@ class EIPSI_Export_Service {
 
         $query .= ' ORDER BY sp.id, sw.wave_index';
 
-        return $wpdb->get_results($wpdb->prepare($query, $params));
+        $rows = $wpdb->get_results($wpdb->prepare($query, $params));
+        if ($wpdb->last_error) { throw new RuntimeException('No se pudo consultar el export longitudinal.'); }
+        return $rows;
     }
 
     /** Export longitudinal data to .xlsx, returns filename. */
@@ -205,7 +216,7 @@ class EIPSI_Export_Service {
         $headers = array_merge($headers, $device_headers);
 
         if (!empty($data)) {
-            $response_data = json_decode($data[0]->response_data, true);
+            $response_data = self::strip_credentials(json_decode($data[0]->response_data, true));
             if (is_array($response_data)) {
                 foreach (array_keys($response_data) as $field) {
                     $headers[] = $field;
@@ -230,7 +241,7 @@ class EIPSI_Export_Service {
         }
 
         foreach ($data as $item) {
-            $response_data = json_decode($item->response_data, true);
+            $response_data = self::strip_credentials(json_decode($item->response_data, true));
             if (!is_array($response_data)) {
                 $response_data = array();
             }
@@ -278,8 +289,9 @@ class EIPSI_Export_Service {
         }
 
         $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($xlsx_data);
-        $xlsx->saveAs($export_dir . '/' . $filename);
+        if (!$xlsx->saveAs($export_dir . '/' . $filename) || !is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('No se pudo crear el export XLSX.'); }
 
+        if (!is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('El archivo de export no fue generado.'); }
         return $filename;
     }
 
@@ -292,7 +304,8 @@ class EIPSI_Export_Service {
         }
 
         $file_path = $export_dir . '/' . $filename;
-        $file      = fopen($file_path, 'w');
+        $file      = @fopen($file_path, 'w');
+        if (!$file) { throw new RuntimeException('No se pudo crear el export CSV.'); }
 
         // Ensure device data service is available
         if (!class_exists('EIPSI_Device_Data_Service')) {
@@ -328,7 +341,7 @@ class EIPSI_Export_Service {
         $headers = array_merge($headers, $device_headers);
 
         if (!empty($data)) {
-            $response_data = json_decode($data[0]->response_data, true);
+            $response_data = self::strip_credentials(json_decode($data[0]->response_data, true));
             if (is_array($response_data)) {
                 foreach (array_keys($response_data) as $field) {
                     $headers[] = $field;
@@ -336,7 +349,7 @@ class EIPSI_Export_Service {
             }
         }
 
-        fputcsv($file, $headers);
+        self::write_csv_row($file, $headers);
 
         // Get all submission IDs for batch device data retrieval
         $submission_ids = array();
@@ -353,7 +366,7 @@ class EIPSI_Export_Service {
         }
 
         foreach ($data as $item) {
-            $response_data = json_decode($item->response_data, true);
+            $response_data = self::strip_credentials(json_decode($item->response_data, true));
             if (!is_array($response_data)) {
                 $response_data = array();
             }
@@ -391,10 +404,11 @@ class EIPSI_Export_Service {
                 $row[] = $value;
             }
 
-            fputcsv($file, $row);
+            self::write_csv_row($file, $row);
         }
 
-        fclose($file);
+        if (!fclose($file)) { throw new RuntimeException('No se pudo cerrar el archivo CSV.'); }
+        if (!is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('El archivo de export no fue generado.'); }
         return $filename;
     }
 
@@ -443,6 +457,7 @@ public function fetch_participants_data($study_id, $filters = array()) {
         )
     );
 
+    if ($wpdb->last_error) { throw new RuntimeException('No se pudo consultar participantes.'); }
     if (empty($participants)) {
         return array('rows' => array(), 'waves' => array());
     }
@@ -458,6 +473,7 @@ public function fetch_participants_data($study_id, $filters = array()) {
         )
     );
 
+    if ($wpdb->last_error) { throw new RuntimeException('No se pudo consultar waves para el export.'); }
     // Index waves by wave_index and by form_id
     $waves_by_index = array();
     $waves_by_form_id = array();
@@ -471,7 +487,7 @@ public function fetch_participants_data($study_id, $filters = array()) {
     // --- Step 3: Get longitudinal submissions from vas_form_results ---
     $submissions = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT r.id, r.longitudinal_participant_id, r.wave_index, r.form_id, r.form_responses,
+            "SELECT r.id, r.participant_id as longitudinal_participant_id, r.wave_index, r.form_id, r.form_responses,
                     r.submitted_at, r.duration_seconds, r.user_fingerprint,
                     r.device, r.browser, r.os, r.screen_width, r.ip_address,
                     r.participant_id as fingerprint_participant_id
@@ -483,6 +499,7 @@ public function fetch_participants_data($study_id, $filters = array()) {
         )
     );
 
+    if ($wpdb->last_error) { throw new RuntimeException('No se pudo consultar respuestas de participantes.'); }
     // Load privacy configs
     if (!function_exists('get_privacy_config')) {
         require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
@@ -514,7 +531,7 @@ public function fetch_participants_data($study_id, $filters = array()) {
         $privacy = $privacy_configs[$form_id];
 
         // Decode form responses
-        $decoded_responses = json_decode($sub->form_responses, true);
+        $decoded_responses = self::strip_credentials(json_decode($sub->form_responses, true));
         
         // Build submission data
         $submission_data = array(
@@ -587,6 +604,7 @@ public function fetch_participants_data($study_id, $filters = array()) {
                     $participant_ids
                 )
             );
+            if ($wpdb->last_error) { throw new RuntimeException('No se pudo consultar progreso para el export.'); }
         } else {
             $assignments = array();
         }
@@ -1024,8 +1042,9 @@ public function fetch_participants_data($study_id, $filters = array()) {
         }
 
         $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($xlsx_data);
-        $xlsx->saveAs($export_dir . '/' . $filename);
+        if (!$xlsx->saveAs($export_dir . '/' . $filename) || !is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('No se pudo crear el export XLSX.'); }
 
+        if (!is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('El archivo de export no fue generado.'); }
         return $filename;
     }
 
@@ -1041,10 +1060,10 @@ public function fetch_participants_data($study_id, $filters = array()) {
         $rows   = isset($result['rows'])  ? $result['rows']  : array();
         $waves  = isset($result['waves']) ? $result['waves'] : array();
 
-        fputcsv($output, $this->build_participants_wide_headers($waves));
+        self::write_csv_row($output, $this->build_participants_wide_headers($waves));
 
         foreach ($rows as $row) {
-            fputcsv($output, $this->build_participants_wide_row($row, $waves));
+            self::write_csv_row($output, $this->build_participants_wide_row($row, $waves));
         }
     }
 

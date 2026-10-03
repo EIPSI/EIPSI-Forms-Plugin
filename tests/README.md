@@ -132,3 +132,26 @@ correo. `EIPSI_TEST_FILTER` permite seleccionar casos por parte del nombre.
 Mantener verdes los 22 P0, 40 P1-A y 40 P1-B: 102 casos. La auditoría, matrices de
 campos/consumidores y riesgos están en
 `wp-eco/informes/EIPSI-Forms/2026.10.03 - Estabilización P1-B.md`.
+
+
+## Regresiones P1-C: exports y privacidad
+
+```bash
+docker exec wp-eco-wordpress-1 php /var/www/html/wp-content/plugins/EIPSI-Forms-Plugin/tests/run-p1c.php
+```
+
+45 casos nuevos con `wpdb` y MariaDB reales, tablas de schema actual con prefijo
+aleatorio y archivos temporales aislados. Cubre longitudinal/roster/wide/pool,
+CSV/XLSX y errores de escritura; export personal y descargas autorizadas;
+privacidad en submit, metadata, parciales, events, emergencia, acceso y device;
+anonimización, columnas T*, hard delete y B2, con fallos SQL mediante triggers.
+Comprueba también cobertura externa incompleta y preservación de registros con
+identificadores de navegador compartidos. No envía correo ni toca participantes
+reales. El estado de WordPress, permisos, nonces y cookies sigue siendo un doble:
+no reemplaza una prueba HTTP del plugin completo.
+
+Las 102 pruebas previas permanecen sin cambios de escenarios. Total: **147 casos**.
+El inventario de destinos, la semántica final, los archivos modificados y los
+límites se documentan en `informes/EIPSI-Forms/2026.10.03 - Estabilización P1-C.md`.
+El límite de B2 descrito en la sección histórica P0 corresponde a aquella fase;
+P1-C corrige ahora su limpieza local y la comprobación de resultados.

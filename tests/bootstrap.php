@@ -89,6 +89,9 @@ class P0Database {
         if (strpos($sql, 'SHOW TABLES LIKE') !== false) { return strpos($sql, 'p0_survey_participants') !== false ? 'p0_survey_participants' : null; }
         return null;
     }
+    public function esc_like($value) { return addcslashes($value, '_%\\'); }
+    public function get_results($sql, $output = null) { return array(); }
+    public function get_col($sql) { return array(); }
     public function get_row($sql) {
         $this->loads++;
         return (object) array('id' => 1, 'form_id' => 'f', 'participant_id' => '7', 'session_id' => 's',

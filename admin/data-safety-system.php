@@ -60,6 +60,9 @@ function eipsi_safety_validate_submission($data) {
  * Guardar submission con retry automático
  */
 function eipsi_safety_save_with_retry($data, $max_retries = 3) {
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+    $data = eipsi_filter_capture_data($data, get_privacy_config($data['form_id'] ?? null));
+
     $attempt = 0;
     $last_error = null;
     
@@ -152,6 +155,9 @@ function eipsi_safety_attempt_save($data) {
  * Usa la base de datos configurada (WordPress o External según configuración del usuario)
  */
 function eipsi_safety_emergency_save($data, $original_error) {
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+    $data = eipsi_filter_capture_data($data, get_privacy_config($data['form_id'] ?? null));
+
     global $wpdb;
     
     error_log('[EIPSI SAFETY] ACTIVATING EMERGENCY SAVE MODE');
@@ -170,7 +176,7 @@ function eipsi_safety_emergency_save($data, $original_error) {
         'participant_id' => $data['participant_id'] ?? null,
         'form_responses' => $data['form_responses'] ?? null,
         'metadata' => $data['metadata'] ?? null,
-        'raw_post_data' => wp_json_encode($_POST),
+        'raw_post_data' => wp_json_encode(eipsi_filter_capture_data($_POST, get_privacy_config($data['form_id'] ?? null))),
         'error_message' => $original_error,
     );
     

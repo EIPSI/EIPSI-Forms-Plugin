@@ -44,6 +44,10 @@ class EIPSI_Participant_Data_Request_Service {
             );
         }
 
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-auth-service.php';
+        $context = EIPSI_Auth_Service::authorize_session_context(array('participant_id'=>$participant_id));
+        if (!$context['success']) { return array('success'=>false,'message'=>'No autorizado'); }
+
         // Validate request type
         $valid_types = array('export', 'delete', 'anonymize');
         if (!in_array($request_type, $valid_types, true)) {
@@ -186,6 +190,7 @@ class EIPSI_Participant_Data_Request_Service {
      */
     public static function process_request($request_id, $action, $admin_notes = '') {
         global $wpdb;
+        if (!current_user_can('manage_options') || !in_array($action,array('approve','reject'),true)) { return array('success'=>false,'message'=>'No autorizado.'); }
 
         $request_id = absint($request_id);
         if (!$request_id) {
@@ -212,7 +217,7 @@ class EIPSI_Participant_Data_Request_Service {
         $processed_at = current_time('mysql');
 
         if ($action === 'reject') {
-            $wpdb->update(
+            $state_saved = $wpdb->update(
                 $wpdb->prefix . 'survey_data_requests',
                 array(
                     'status' => self::STATUS_REJECTED,
@@ -225,6 +230,7 @@ class EIPSI_Participant_Data_Request_Service {
                 array('%d')
             );
 
+            if ($state_saved === false) { return array('success'=>false,'message'=>'No se pudo guardar el estado de la solicitud.'); }
             // Notify participant
             self::notify_participant_rejected($request);
 
@@ -235,7 +241,7 @@ class EIPSI_Participant_Data_Request_Service {
         }
 
         // Process based on request type
-        $wpdb->update(
+        $state_saved = $wpdb->update(
             $wpdb->prefix . 'survey_data_requests',
             array(
                 'status' => self::STATUS_PROCESSING,
@@ -247,6 +253,8 @@ class EIPSI_Participant_Data_Request_Service {
             array('%d')
         );
 
+        if ($state_saved === false) { return array('success'=>false,'message'=>'No se pudo iniciar la solicitud.'); }
+        try {
         switch ($request->request_type) {
             case 'export':
                 $result = self::process_export_request($request);
@@ -261,8 +269,9 @@ class EIPSI_Participant_Data_Request_Service {
                 $result = array('success' => false, 'message' => 'Tipo de solicitud desconocido');
         }
 
+        } catch(Throwable $error) { $result=array('success'=>false,'message'=>$error->getMessage()); }
         if ($result['success']) {
-            $wpdb->update(
+            $state_saved = $wpdb->update(
                 $wpdb->prefix . 'survey_data_requests',
                 array(
                     'status' => self::STATUS_COMPLETED,
@@ -274,11 +283,16 @@ class EIPSI_Participant_Data_Request_Service {
                 array('%d')
             );
 
+            if ($state_saved === false) {
+                $path=$result['data']['file_path']??null;
+                if($path && is_file($path)){unlink($path);}
+                return array('success'=>false,'message'=>'No se pudo guardar el estado de la solicitud.');
+            }
             // Notify participant
             self::notify_participant_completed($request, $result);
         } else {
             // Mark as failed but keep for retry
-            $wpdb->update(
+            $state_saved = $wpdb->update(
                 $wpdb->prefix . 'survey_data_requests',
                 array(
                     'status' => self::STATUS_PENDING,
@@ -290,6 +304,7 @@ class EIPSI_Participant_Data_Request_Service {
             );
         }
 
+        if ($state_saved === false) { return array('success'=>false,'message'=>'No se pudo confirmar el estado final.'); }
         return $result;
     }
 
@@ -298,64 +313,69 @@ class EIPSI_Participant_Data_Request_Service {
      */
     private static function process_export_request($request) {
         global $wpdb;
-
-        $participant_id = $request->participant_id;
-
-        // Gather all participant data
-        $data = array(
-            'participant_info' => $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}survey_participants WHERE id = %d",
-                $participant_id
-            )),
-            'access_logs' => $wpdb->get_results($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}survey_participant_access_log
-                 WHERE participant_id = %d ORDER BY created_at DESC",
-                $participant_id
-            )),
-            'assignments' => $wpdb->get_results($wpdb->prepare(
-                "SELECT a.*, w.wave_index, w.name as wave_name
-                 FROM {$wpdb->prefix}survey_assignments a
-                 JOIN {$wpdb->prefix}survey_waves w ON a.wave_id = w.id
-                 WHERE a.participant_id = %d",
-                $participant_id
-            )),
-            'email_history' => $wpdb->get_results($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}survey_email_log
-                 WHERE participant_id = %d ORDER BY sent_at DESC",
-                $participant_id
-            )),
-            'responses' => $wpdb->get_results($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}vas_form_results
-                 WHERE participant_id = %d ORDER BY created_at DESC",
-                $participant_id
-            ))
-        );
-
-        // Create JSON file
-        $export_dir = EIPSI_FORMS_PLUGIN_DIR . 'exports/data-requests';
-        if (!file_exists($export_dir)) {
-            wp_mkdir_p($export_dir);
+        $id=absint($request->participant_id);
+        $participant=$wpdb->get_row($wpdb->prepare("SELECT id,survey_id,email,first_name,last_name,created_at,consent_decision FROM {$wpdb->prefix}survey_participants WHERE id=%d",$id), ARRAY_A);
+        if(!$participant){return array('success'=>false,'message'=>'Participante no encontrado.');}
+        $data=array('participant_info'=>$participant,'access_logs'=>self::checked_rows($wpdb->prepare(
+            "SELECT action_type,created_at FROM {$wpdb->prefix}survey_participant_access_log WHERE participant_id=%d",$id),ARRAY_A),
+            'assignments'=>self::checked_rows($wpdb->prepare("SELECT w.wave_index,w.name AS wave_name,a.status,a.assigned_at,a.submitted_at FROM {$wpdb->prefix}survey_assignments a JOIN {$wpdb->prefix}survey_waves w ON w.id=a.wave_id WHERE a.participant_id=%d",$id),ARRAY_A),
+            'email_history'=>self::checked_rows($wpdb->prepare("SELECT email_type,subject,sent_at,status FROM {$wpdb->prefix}survey_email_log WHERE participant_id=%d",$id),ARRAY_A),
+            'responses'=>self::checked_rows($wpdb->prepare("SELECT form_name,wave_index,submitted_at,form_responses FROM {$wpdb->prefix}vas_form_results WHERE participant_id=%s AND survey_id=%d",(string)$id,$request->survey_id),ARRAY_A),
+            'coverage'=>array('source'=>'wordpress_db','complete'=>false,'not_covered'=>array('external_db','unlinked_browser_records','emergency_submissions','historical_export_files')));
+        if($wpdb->last_error){return array('success'=>false,'message'=>'No se pudieron consultar los datos.');}
+        // Nested answer keys must not reintroduce credentials/tokens supplied by a client.
+        $data=self::remove_secrets($data);
+        $json=wp_json_encode($data,JSON_PRETTY_PRINT);
+        if($json===false){return array('success'=>false,'message'=>'No se pudo generar JSON.');}
+        $directory=get_temp_dir();
+        $real=realpath($directory);$web=realpath(ABSPATH);
+        if(!$real || !is_dir($real) || !is_writable($real) || ($web && ($real===$web || strpos($real,$web.DIRECTORY_SEPARATOR)===0))) { return array('success'=>false,'message'=>'No hay directorio privado disponible.'); }
+        $path=@tempnam($real,'eipsi-personal-');
+        if(!$path || dirname($path)!==$real || !@chmod($path,0600) || @file_put_contents($path,$json,LOCK_EX)!==strlen($json)) {
+            if($path && is_file($path)){unlink($path);}
+            return array('success'=>false,'message'=>'No se pudo crear el archivo privado.');
         }
+        return array('success'=>true,'message'=>'Export local generado; DB externa no incluida.',
+            'data'=>array('file_path'=>$path,'filename'=>basename($path).'.json','coverage'=>$data['coverage'],
+                'download_url'=>add_query_arg(array('action'=>'eipsi_download_personal_data','request_id'=>$request->id,'nonce'=>wp_create_nonce('eipsi_data_download')),admin_url('admin-ajax.php')),
+                'record_count'=>array('responses'=>count($data['responses']),'assignments'=>count($data['assignments']))));
+    }
 
-        $filename = "data-export-{$participant_id}-" . date('Y-m-d') . '.json';
-        $file_path = $export_dir . '/' . $filename;
+    private static function checked_rows($query,$output=ARRAY_A) {
+        global $wpdb;
+        $rows=$wpdb->get_results($query,$output);
+        if($wpdb->last_error){throw new RuntimeException('No se pudieron consultar todos los datos personales.');}
+        return $rows;
+    }
 
-        file_put_contents($file_path, wp_json_encode($data, JSON_PRETTY_PRINT));
+    public static function remove_secrets($data) {
+        if(is_object($data)){$data=(array)$data;}
+        if(!is_array($data)){return $data;}
+        foreach($data as $key=>$item){
+            if(preg_match('/password|token|secret|credential|nonce|session|fingerprint/i',(string)$key)){unset($data[$key]);continue;}
+            if(is_string($item) && $key==='form_responses'){$decoded=json_decode($item,true);$data[$key]=wp_json_encode(self::remove_secrets($decoded?:array()));}
+            else{$data[$key]=self::remove_secrets($item);}
+        }
+        return $data;
+    }
 
-        return array(
-            'success' => true,
-            'message' => 'Datos exportados exitosamente',
-            'data' => array(
-                'file_path' => $file_path,
-                'filename' => $filename,
-                'record_count' => array(
-                    'access_logs' => count($data['access_logs']),
-                    'assignments' => count($data['assignments']),
-                    'emails' => count($data['email_history']),
-                    'responses' => count($data['responses'])
-                )
-            )
-        );
+    /** Authorize every download; paths are read from DB, never from a client. */
+    public static function get_download($request_id, $nonce) {
+        global $wpdb;
+        if(!wp_verify_nonce($nonce,'eipsi_data_download')){return array('success'=>false,'message'=>'Token inválido.');}
+        $request=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}survey_data_requests WHERE id=%d",absint($request_id)));
+        if(!$request || $request->status!==self::STATUS_COMPLETED || $request->request_type!=='export'){return array('success'=>false,'message'=>'Export no disponible.');}
+        if(!current_user_can('manage_options')){
+            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-auth-service.php';
+            $access=EIPSI_Auth_Service::authorize_session_context(array('participant_id'=>$request->participant_id,'study_id'=>$request->survey_id));
+            if(!$access['success']){return array('success'=>false,'message'=>'No autorizado.');}
+        }
+        $data=json_decode($request->result_data,true);$path=$data['file_path']??'';
+        $real=realpath($path);$private=realpath(get_temp_dir());
+        if(!$real || !$private || strpos($real,$private.DIRECTORY_SEPARATOR)!==0 || strpos(basename($real),'eipsi-personal-')!==0 || !is_readable($real)){
+            return array('success'=>false,'message'=>'Archivo no disponible.');
+        }
+        return array('success'=>true,'file_path'=>$real,'filename'=>$data['filename']);
     }
 
     /**
@@ -375,7 +395,8 @@ class EIPSI_Participant_Data_Request_Service {
         if ($result['success']) {
             return array(
                 'success' => true,
-                'message' => 'Datos eliminados exitosamente'
+                'message' => 'Identificadores locales anonimizados; respuestas conservadas. DB externa no incluida',
+                'data' => array('operation'=>'anonymize','coverage'=>$result['coverage'])
             );
         } else {
             return array(

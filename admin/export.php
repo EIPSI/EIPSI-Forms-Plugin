@@ -4,7 +4,10 @@ if (!defined('ABSPATH')) {
 }
 
 // Incluir la librería
-require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/lib/SimpleXLSXGen.php';
+if (!class_exists('\Shuchkin\SimpleXLSXGen')) {
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/lib/SimpleXLSXGen.php';
+}
+require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-export-service.php';
 
 // Usar el namespace
 use Shuchkin\SimpleXLSXGen;
@@ -92,11 +95,13 @@ function eipsi_export_to_excel() {
         // Instanciar clase de BD externa
         $external_db = new EIPSI_External_Database();
         $results = array();
+        $export_source = 'wordpress_db';
 
         if ($external_db->is_enabled()) {
             // Usar BD externa si está habilitada
             $mysqli = $external_db->get_connection();
             if ($mysqli) {
+                $export_source = 'external_db';
                 // Preparar filtro de forma segura para mysqli
                 $where = "WHERE 1=1";
                 if (isset($_GET['form_id']) && !empty($_GET['form_id'])) {
@@ -107,6 +112,7 @@ function eipsi_export_to_excel() {
                 $query = "SELECT * FROM `{$table_name}` {$where} ORDER BY created_at DESC";
                 $result = $mysqli->query($query);
 
+                if (!$result) { throw new RuntimeException('No se pudieron consultar las respuestas externas.'); }
                 if ($result) {
                     while ($row = $result->fetch_assoc()) {
                         // Convertir array asociativo a stdClass para mantener compatibilidad
@@ -125,6 +131,8 @@ function eipsi_export_to_excel() {
             $results = $wpdb->get_results("SELECT * FROM $table_name WHERE 1=1 $form_filter ORDER BY created_at DESC");
         }
 
+        if ($export_source === 'wordpress_db' && $wpdb->last_error) { throw new RuntimeException('No se pudieron consultar las respuestas locales.'); }
+        header('X-EIPSI-Data-Source: ' . $export_source);
         if (empty($results)) {
             wp_die(__('No data to export.', 'eipsi-forms'));
         }
@@ -137,7 +145,7 @@ function eipsi_export_to_excel() {
     // v2.1.3 - Load Device Data Service for extended metadata export
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-device-data-service.php';
     $submission_ids = array_column($results, 'id');
-    $device_data_batch = EIPSI_Device_Data_Service::get_device_data_batch($submission_ids);
+    $device_data_batch = $export_source === 'wordpress_db' ? EIPSI_Device_Data_Service::get_device_data_batch($submission_ids) : array();
 
     // Obtener todas las preguntas únicas para crear columnas (excluir campos internos)
     $internal_fields = array('action', 'eipsi_nonce', 'start_time', 'end_time', 'form_start_time', 'form_end_time', 'nonce', 'form_action', 'ip_address', 'device', 'browser', 'os', 'screen_width', 'current_page', 'form_id', 'eipsi_consent_accepted');
@@ -148,7 +156,7 @@ function eipsi_export_to_excel() {
     $max_fields = 0;
 
     foreach ($results as $row) {
-        $form_data = $row->form_responses ? json_decode($row->form_responses, true) : [];
+        $form_data = $row->form_responses ? EIPSI_Export_Service::strip_credentials(json_decode($row->form_responses, true)) : [];
         if (!is_array($form_data)) continue;
         
         // Filtrar campos internos
@@ -166,7 +174,7 @@ function eipsi_export_to_excel() {
 
     // Segunda pasada: agregar al final cualquier campo que no esté en la referencia
     foreach ($results as $row) {
-        $form_data = $row->form_responses ? json_decode($row->form_responses, true) : [];
+        $form_data = $row->form_responses ? EIPSI_Export_Service::strip_credentials(json_decode($row->form_responses, true)) : [];
         if (!is_array($form_data)) continue;
         
         foreach ($form_data as $question => $answer) {
@@ -338,7 +346,7 @@ function eipsi_export_to_excel() {
     $data[] = $headers;
 
     foreach ($results as $row) {
-        $form_data = $row->form_responses ? json_decode($row->form_responses, true) : [];
+        $form_data = $row->form_responses ? EIPSI_Export_Service::strip_credentials(json_decode($row->form_responses, true)) : [];
         
         // Generate IDs if not already present
         $form_id = !empty($row->form_id) ? $row->form_id : export_generate_stable_form_id($row->form_name);
@@ -556,11 +564,13 @@ function eipsi_export_to_csv() {
         // Instanciar clase de BD externa
         $external_db = new EIPSI_External_Database();
         $results = array();
+        $export_source = 'wordpress_db';
 
         if ($external_db->is_enabled()) {
             // Usar BD externa si está habilitada
             $mysqli = $external_db->get_connection();
             if ($mysqli) {
+                $export_source = 'external_db';
                 // Preparar filtro de forma segura para mysqli
                 $where = "WHERE 1=1";
                 if (isset($_GET['form_id']) && !empty($_GET['form_id'])) {
@@ -571,6 +581,7 @@ function eipsi_export_to_csv() {
                 $query = "SELECT * FROM `{$table_name}` {$where} ORDER BY created_at DESC";
                 $result = $mysqli->query($query);
 
+                if (!$result) { throw new RuntimeException('No se pudieron consultar las respuestas externas.'); }
                 if ($result) {
                     while ($row = $result->fetch_assoc()) {
                         // Convertir array asociativo a stdClass para mantener compatibilidad
@@ -589,6 +600,8 @@ function eipsi_export_to_csv() {
             $results = $wpdb->get_results("SELECT * FROM $table_name WHERE 1=1 $form_filter ORDER BY created_at DESC");
         }
 
+        if ($export_source === 'wordpress_db' && $wpdb->last_error) { throw new RuntimeException('No se pudieron consultar las respuestas locales.'); }
+        header('X-EIPSI-Data-Source: ' . $export_source);
         if (empty($results)) {
             wp_die(__('No data to export.', 'eipsi-forms'));
         }
@@ -607,7 +620,7 @@ function eipsi_export_to_csv() {
     $max_fields = 0;
 
     foreach ($results as $row) {
-        $form_data = $row->form_responses ? json_decode($row->form_responses, true) : [];
+        $form_data = $row->form_responses ? EIPSI_Export_Service::strip_credentials(json_decode($row->form_responses, true)) : [];
         if (!is_array($form_data)) continue;
         
         // Filtrar campos internos
@@ -625,7 +638,7 @@ function eipsi_export_to_csv() {
 
     // Segunda pasada: agregar al final cualquier campo que no esté en la referencia
     foreach ($results as $row) {
-        $form_data = $row->form_responses ? json_decode($row->form_responses, true) : [];
+        $form_data = $row->form_responses ? EIPSI_Export_Service::strip_credentials(json_decode($row->form_responses, true)) : [];
         if (!is_array($form_data)) continue;
         
         foreach ($form_data as $question => $answer) {
@@ -762,10 +775,10 @@ function eipsi_export_to_csv() {
     }
 
     $headers = array_merge($headers, $all_questions);
-    fputcsv($output, $headers);
+    EIPSI_Export_Service::write_csv_row($output, $headers);
     
     foreach ($results as $row) {
-        $form_data = $row->form_responses ? json_decode($row->form_responses, true) : [];
+        $form_data = $row->form_responses ? EIPSI_Export_Service::strip_credentials(json_decode($row->form_responses, true)) : [];
         
         // Generate IDs if not already present
         $form_id = !empty($row->form_id) ? $row->form_id : export_generate_stable_form_id($row->form_name);
@@ -898,7 +911,7 @@ function eipsi_export_to_csv() {
             $row_data[] = eipsi_sanitize_export_value($val);
         }
 
-        fputcsv($output, $row_data);
+        EIPSI_Export_Service::write_csv_row($output, $row_data);
     }
 
     fclose($output);
@@ -1198,16 +1211,18 @@ function eipsi_export_responses_with_pool_context($form_id, $study_id) {
             r.*,
             a.pool_id as pool_code,
             a.assigned_at as pool_assigned_at,
-            a.assignment_method as pool_assignment_method
+            pool.method as pool_assignment_method
         FROM {$responses_table} r
         LEFT JOIN {$assignments_table} a 
             ON r.participant_id = a.participant_id 
             AND a.study_id = %s
+        LEFT JOIN {$wpdb->prefix}eipsi_longitudinal_pools pool ON pool.id = a.pool_id
         WHERE r.form_id = %s
         ORDER BY r.submitted_at DESC
     ";
     
     $results = $wpdb->get_results($wpdb->prepare($sql, $study_id, $form_id));
+    if ($wpdb->last_error) { throw new RuntimeException('No se pudieron consultar las respuestas con contexto de pool.'); }
     
     error_log('[EIPSI-POOL] Export with context: ' . count($results) . ' responses for study ' . $study_id);
     
@@ -1241,7 +1256,7 @@ function eipsi_generate_pool_context_csv($form_id, $study_id) {
         'Assignment Method',
         'Form Responses (JSON)'
     );
-    fputcsv($output, $headers);
+    EIPSI_Export_Service::write_csv_row($output, $headers);
     
     // Data
     foreach ($responses as $row) {
@@ -1252,9 +1267,9 @@ function eipsi_generate_pool_context_csv($form_id, $study_id) {
             $row->pool_code ?: '-',
             $row->pool_assigned_at ?: '-',
             $row->pool_assignment_method ?: '-',
-            $row->form_responses
+            wp_json_encode(EIPSI_Export_Service::strip_credentials(json_decode($row->form_responses,true)))
         );
-        fputcsv($output, $data);
+        EIPSI_Export_Service::write_csv_row($output, $data);
     }
     
     rewind($output);

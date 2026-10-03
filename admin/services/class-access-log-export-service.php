@@ -123,7 +123,8 @@ class EIPSI_Access_Log_Export_Service {
             // Parse metadata if exists
             $metadata_str = '';
             if (!empty($log->metadata)) {
-                $metadata = json_decode($log->metadata, true);
+                require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-export-service.php';
+                $metadata = EIPSI_Export_Service::strip_credentials(json_decode($log->metadata, true));
                 if (is_array($metadata)) {
                     $metadata_parts = array();
                     foreach ($metadata as $key => $value) {
@@ -162,7 +163,7 @@ class EIPSI_Access_Log_Export_Service {
      * Export data to Excel format.
      */
     private static function export_to_excel($data, $filename, $count) {
-        require_once EIPSI_FORMS_PLUGIN_DIR . 'lib/SimpleXLSXGen.php';
+        if (!class_exists('\Shuchkin\SimpleXLSXGen')) { require_once EIPSI_FORMS_PLUGIN_DIR . 'lib/SimpleXLSXGen.php'; }
 
         $export_dir = EIPSI_FORMS_PLUGIN_DIR . 'exports';
         if (!file_exists($export_dir)) {
@@ -173,7 +174,7 @@ class EIPSI_Access_Log_Export_Service {
         $file_path = $export_dir . '/' . $full_filename;
 
         $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($data);
-        $xlsx->saveAs($file_path);
+        if (!$xlsx->saveAs($file_path) || !is_file($file_path) || !filesize($file_path)) { return array('success'=>false,'message'=>'No se pudo crear el archivo XLSX.'); }
 
         return array(
             'success' => true,
@@ -196,15 +197,18 @@ class EIPSI_Access_Log_Export_Service {
         $full_filename = $filename . '.csv';
         $file_path = $export_dir . '/' . $full_filename;
 
-        $file = fopen($file_path, 'w');
+        $file = @fopen($file_path, 'w');
+        if (!$file) { return array('success'=>false,'message'=>'No se pudo crear el archivo CSV.'); }
         // UTF-8 BOM for Excel
         fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         foreach ($data as $row) {
-            fputcsv($file, $row);
+            if (fputcsv($file,$row) === false) { fclose($file); return array('success'=>false,'message'=>'No se pudo escribir el export CSV.'); }
         }
 
-        fclose($file);
+        if (!fclose($file) || !is_file($file_path) || filesize($file_path)===0) {
+            return array('success'=>false,'message'=>'No se pudo confirmar el archivo CSV.');
+        }
 
         return array(
             'success' => true,
@@ -343,6 +347,8 @@ class EIPSI_Access_Log_Export_Service {
         $logs = $wpdb->get_results($query);
 
         // Output headers
+        if ($wpdb->last_error) { wp_die('No se pudieron consultar los logs de acceso.'); }
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-export-service.php';
         header('Content-Type: text/csv; charset=utf-8');
         $study_slug = !empty($filters['study_id']) && $filters['study_id'] !== 'all' ? '-study-' . $filters['study_id'] : '';
         header('Content-Disposition: attachment; filename="access-logs' . $study_slug . '-' . date('Y-m-d') . '.csv"');
@@ -352,7 +358,7 @@ class EIPSI_Access_Log_Export_Service {
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         // CSV headers
-        fputcsv($output, array(
+        EIPSI_Export_Service::write_csv_row($output, array(
             'Date',
             'Participant Name',
             'Email',
@@ -364,7 +370,7 @@ class EIPSI_Access_Log_Export_Service {
 
         // Output rows
         foreach ($logs as $log) {
-            fputcsv($output, array(
+            EIPSI_Export_Service::write_csv_row($output, array(
                 $log->date,
                 trim($log->participant_name) ?: 'N/A',
                 $log->participant_email ?: 'N/A',

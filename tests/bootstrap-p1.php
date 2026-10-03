@@ -57,6 +57,7 @@ function p1_fixture($callback) {
     $db->suppress_errors(true);
     $tables = array('survey_studies', 'survey_participants', 'survey_sessions', 'survey_magic_links', 'survey_waves', 'survey_assignments',
                     'vas_form_results', 'eipsi_partial_responses', 'eipsi_pool_assignments', 'eipsi_emergency_submissions');
+    if (defined('EIPSI_P1C_TESTS')) { $tables = array_unique(array_merge($tables,array('survey_email_log','survey_audit_log','survey_participant_access_log','survey_data_requests','vas_form_events','eipsi_device_data','survey_nudge_jobs','survey_weekly_reminders','eipsi_pool_email_log','eipsi_randomization_assignments','eipsi_longitudinal_pools'))); }
     if (defined('EIPSI_P1B_TESTS')) { $tables[] = 'survey_nudge_jobs'; $tables[] = 'survey_audit_log'; }
     $_POST = $_GET = $_COOKIE = $_SESSION = array();
     $GLOBALS['p0_options'] = array('admin_email' => 'test@example.invalid');

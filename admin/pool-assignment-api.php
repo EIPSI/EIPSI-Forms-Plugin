@@ -824,7 +824,7 @@ function eipsi_ajax_export_pool_assignments() {
     ));
 
     $assignments = $wpdb->get_results($wpdb->prepare(
-        "SELECT a.*, p.email, p.name as participant_name, s.study_name
+        "SELECT a.*, p.email, CONCAT(COALESCE(p.first_name,''), ' ', COALESCE(p.last_name,'')) as participant_name, s.study_name
          FROM {$assignments_table} a
          LEFT JOIN {$participants_table} p ON a.participant_id = p.id
          LEFT JOIN {$studies_table} s ON a.study_id = s.id

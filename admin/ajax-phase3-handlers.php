@@ -17,6 +17,22 @@ if (!defined('ABSPATH')) {
 
 add_action('wp_ajax_eipsi_export_access_logs', 'eipsi_ajax_export_access_logs');
 add_action('wp_ajax_eipsi_get_access_log_filters', 'eipsi_ajax_get_access_log_filters');
+add_action('wp_ajax_eipsi_download_access_log_export', 'eipsi_ajax_download_access_log_export');
+
+function eipsi_ajax_download_access_log_export() {
+    check_ajax_referer('eipsi_admin_nonce', 'nonce');
+    if (!current_user_can('manage_options')) { wp_die('No autorizado', '', array('response'=>403)); }
+    $filename=isset($_GET['file']) ? sanitize_text_field(wp_unslash($_GET['file'])) : '';
+    if (!preg_match('/^access-logs[a-zA-Z0-9_-]*\.(csv|xlsx)$/',$filename)) { wp_die('Archivo inválido'); }
+    $directory=realpath(EIPSI_FORMS_PLUGIN_DIR.'exports');
+    $path=realpath(EIPSI_FORMS_PLUGIN_DIR.'exports/'.$filename);
+    if (!$directory || !$path || dirname($path)!==$directory || !is_file($path) || !is_readable($path)) { wp_die('Archivo no disponible'); }
+    header('Content-Type: application/octet-stream');
+    header('Content-Disposition: attachment; filename="'.$filename.'"');
+    header('Cache-Control: no-store');
+    readfile($path);
+    exit;
+}
 
 function eipsi_ajax_export_access_logs() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
@@ -47,7 +63,7 @@ function eipsi_ajax_export_access_logs() {
         wp_send_json_success(array(
             'message' => $result['message'],
             'count' => $result['count'],
-            'download_url' => admin_url('admin.php?page=eipsi-results&action=download_export&file=' . urlencode($result['filename']))
+            'download_url' => add_query_arg(array('action'=>'eipsi_download_access_log_export','file'=>$result['filename'],'nonce'=>wp_create_nonce('eipsi_admin_nonce')),admin_url('admin-ajax.php'))
         ));
     } else {
         wp_send_json_error(array('message' => $result['message']));
@@ -350,7 +366,7 @@ add_action('wp_ajax_eipsi_get_data_request_counts', 'eipsi_ajax_get_data_request
 
 function eipsi_ajax_submit_data_request() {
     // Verify participant nonce for security
-    if (!isset($_POST['participant_nonce'])) {
+    if (!isset($_POST['participant_nonce']) || !wp_verify_nonce($_POST['participant_nonce'], 'eipsi_participant_nonce')) {
         wp_send_json_error(array('message' => 'Token de seguridad requerido'));
     }
 
@@ -364,7 +380,10 @@ function eipsi_ajax_submit_data_request() {
         wp_send_json_error(array('message' => 'Datos incompletos'));
     }
 
-    $result = EIPSI_Participant_Data_Request_Service::submit_request($participant_id, $request_type, $reason);
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-auth-service.php';
+    $context = EIPSI_Auth_Service::authorize_session_context($_POST);
+    if (!$context['success']) { wp_send_json_error(array('message'=>'No autorizado'),403); }
+    $result = EIPSI_Participant_Data_Request_Service::submit_request($context['participant_id'], $request_type, $reason);
 
     if ($result['success']) {
         wp_send_json_success($result);
@@ -434,4 +453,17 @@ function eipsi_ajax_get_data_request_counts() {
     $counts = EIPSI_Participant_Data_Request_Service::get_request_counts();
 
     wp_send_json_success($counts);
+}
+
+
+add_action('wp_ajax_eipsi_download_personal_data', 'eipsi_download_personal_data_handler');
+add_action('wp_ajax_nopriv_eipsi_download_personal_data', 'eipsi_download_personal_data_handler');
+function eipsi_download_personal_data_handler() {
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-participant-data-request-service.php';
+    $result=EIPSI_Participant_Data_Request_Service::get_download($_GET['request_id']??0,$_GET['nonce']??'');
+    if(!$result['success']){wp_send_json_error(array('message'=>$result['message']),403);return;}
+    header('Content-Type: application/json');
+    header('Cache-Control: private, no-store');
+    header('Content-Disposition: attachment; filename="'.basename($result['filename']).'"');
+    readfile($result['file_path']);exit;
 }

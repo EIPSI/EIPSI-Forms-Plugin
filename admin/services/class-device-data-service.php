@@ -23,6 +23,11 @@ class EIPSI_Device_Data_Service {
      */
     public static function save_device_data($submission_id, $device_data) {
         global $wpdb;
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+        $submission = $wpdb->get_row($wpdb->prepare("SELECT form_id,participant_id FROM {$wpdb->prefix}vas_form_results WHERE id=%d", $submission_id));
+        if (!$submission) { return false; }
+        $device_data = eipsi_filter_capture_data($device_data, get_privacy_config($submission->form_id));
+        if (!$device_data) { return false; }
         $table_name = $wpdb->prefix . 'eipsi_device_data';
 
         error_log("[EIPSI-DEVICE-DATA] SAVE START: submission_id={$submission_id}, data_keys=" . implode(',', array_keys($device_data)));

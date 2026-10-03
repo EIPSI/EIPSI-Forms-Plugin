@@ -38,148 +38,23 @@ class EIPSI_Anonymize_Service {
      */
     public static function anonymize_survey($survey_id, $audit_reason = '') {
         global $wpdb;
-
-        try {
-            // Validate survey exists
-            $survey_id = intval($survey_id);
-            if ($survey_id <= 0) {
-                return array(
-                    'success' => false,
-                    'anonymized_count' => 0,
-                    'error' => 'Invalid survey_id'
-                );
-            }
-
-            $survey = get_post($survey_id);
-            if (!$survey || $survey->post_type !== 'survey') {
-                return array(
-                    'success' => false,
-                    'anonymized_count' => 0,
-                    'error' => 'Survey not found'
-                );
-            }
-
-            // Check permissions
-            if (!current_user_can('manage_options')) {
-                return array(
-                    'success' => false,
-                    'anonymized_count' => 0,
-                    'error' => 'insufficient_permissions'
-                );
-            }
-
-            // Check if survey can be anonymized
-            $can_anonymize = self::can_anonymize_survey($survey_id);
-            if (!$can_anonymize['can_anonymize']) {
-                return array(
-                    'success' => false,
-                    'anonymized_count' => 0,
-                    'error' => $can_anonymize['reason']
-                );
-            }
-
-            // Start transaction if MySQL >= 5.7.0
-            $use_transaction = version_compare($wpdb->db_version(), '5.7.0', '>=');
-            if ($use_transaction) {
-                $wpdb->query('START TRANSACTION');
-            }
-
-            $participants_table = $wpdb->prefix . 'survey_participants';
-
-            // Count active participants
-            $active_count = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM $participants_table WHERE survey_id = %d AND is_active = 1",
-                $survey_id
-            ));
-
-            if (!$active_count) {
-                if ($use_transaction) {
-                    $wpdb->query('COMMIT');
-                }
-                return array(
-                    'success' => true,
-                    'anonymized_count' => 0,
-                    'error' => null
-                );
-            }
-
-            $anonymized_count = 0;
-
-            // Get all active participants
-            $participants = $wpdb->get_results($wpdb->prepare(
-                "SELECT id FROM $participants_table WHERE survey_id = %d AND is_active = 1",
-                $survey_id
-            ));
-
-            foreach ($participants as $participant) {
-                // Delete PII
-                $deleted = self::delete_pii($participant->id);
-                if ($deleted) {
-                    $anonymized_count++;
-                }
-
-                // Invalidate magic links
-                self::invalidate_participant_magic_links($participant->id);
-
-                // Mark as inactive
-                $wpdb->update(
-                    $participants_table,
-                    array('is_active' => 0),
-                    array('id' => $participant->id),
-                    array('%d'),
-                    array('%d')
-                );
-            }
-
-            // Invalidate ALL magic links for survey (redundancy)
-            self::invalidate_magic_links($survey_id);
-
-            // Mark survey as anonymized in post_meta
-            update_post_meta($survey_id, '_survey_anonymized', 1);
-            update_post_meta($survey_id, '_anonymized_at', current_time('mysql', 1));
-            update_post_meta($survey_id, '_anonymized_by_user', get_current_user_id());
-
-            // Log to audit log
-            self::audit_log('anonymize_survey', $survey_id, null, array(
-                'reason' => $audit_reason,
-                'anonymized_count' => $anonymized_count,
-                'active_count' => $active_count
-            ));
-
-            // Commit transaction
-            if ($use_transaction) {
-                $wpdb->query('COMMIT');
-            }
-
-            if (EIPSI_LONGITUDINAL_DEBUG) {
-                error_log(sprintf(
-                    '[EIPSI Anonymize] Survey %d anonymized: %d/%d participants',
-                    $survey_id,
-                    $anonymized_count,
-                    $active_count
-                ));
-            }
-
-            return array(
-                'success' => true,
-                'anonymized_count' => $anonymized_count,
-                'error' => null
-            );
-
-        } catch (Exception $e) {
-            // Rollback on error
-            if (isset($use_transaction) && $use_transaction) {
-                $wpdb->query('ROLLBACK');
-            }
-
-            error_log('[EIPSI Anonymize] Error anonymizing survey ' . $survey_id . ': ' . $e->getMessage());
-
-            return array(
-                'success' => false,
-                'anonymized_count' => 0,
-                'error' => 'db_error'
-            );
+        $count=0;
+        $coverage=array('source'=>'wordpress_db','complete'=>false,'not_covered'=>array('external_db','unlinked_browser_records','historical_export_files','unclassified_free_text'));
+        if(!current_user_can('manage_options')){return array('success'=>false,'anonymized_count'=>0,'error'=>'insufficient_permissions');}
+        $allowed=self::can_anonymize_survey($survey_id);
+        if(!$allowed['can_anonymize']){return array('success'=>false,'anonymized_count'=>0,'error'=>$allowed['reason']);}
+        $participants=$wpdb->get_col($wpdb->prepare("SELECT id FROM {$wpdb->prefix}survey_participants WHERE survey_id=%d",absint($survey_id)));
+        if($wpdb->last_error){return array('success'=>false,'anonymized_count'=>0,'error'=>'participant_query_failed');}
+        foreach($participants as$id){
+            $result=self::anonymize_participant($id,$audit_reason);
+            $coverage['not_covered']=array_values(array_unique(array_merge($coverage['not_covered'],$result['coverage']['not_covered']??array())));
+            if(!$result['success']){return array('success'=>false,'anonymized_count'=>$count,'partial_count'=>$count,'error'=>$result['error'],'coverage'=>$coverage);}
+            $count++;
         }
+        if(!self::audit_log('anonymize_survey',$survey_id,null,array('operation'=>'anonymize','anonymized_count'=>$count,'local_only'=>true))){
+            return array('success'=>false,'anonymized_count'=>$count,'error'=>'audit_failed','coverage'=>$coverage);
+        }
+        return array('success'=>true,'anonymized_count'=>$count,'error'=>null,'coverage'=>$coverage);
     }
 
     /**
@@ -196,78 +71,11 @@ class EIPSI_Anonymize_Service {
      * }
      */
     public static function anonymize_participant($participant_id, $audit_reason = '') {
-        global $wpdb;
-
-        try {
-            // Validate permissions
-            if (!current_user_can('manage_options')) {
-                return array(
-                    'success' => false,
-                    'error' => 'insufficient_permissions'
-                );
-            }
-
-            $participant_id = intval($participant_id);
-            if ($participant_id <= 0) {
-                return array(
-                    'success' => false,
-                    'error' => 'Invalid participant_id'
-                );
-            }
-
-            // Check participant exists
-            $participants_table = $wpdb->prefix . 'survey_participants';
-            $participant = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM $participants_table WHERE id = %d",
-                $participant_id
-            ));
-
-            if (!$participant) {
-                return array(
-                    'success' => false,
-                    'error' => 'participant_not_found'
-                );
-            }
-
-            $survey_id = $participant->survey_id;
-
-            // Delete PII
-            $deleted = self::delete_pii($participant_id);
-
-            // Invalidate magic links
-            self::invalidate_participant_magic_links($participant_id);
-
-            // Mark as inactive
-            $wpdb->update(
-                $participants_table,
-                array('is_active' => 0),
-                array('id' => $participant_id),
-                array('%d'),
-                array('%d')
-            );
-
-            // Log to audit log
-            self::audit_log('anonymize_participant', $survey_id, $participant_id, array(
-                'reason' => $audit_reason
-            ));
-
-            if (EIPSI_LONGITUDINAL_DEBUG) {
-                error_log('[EIPSI Anonymize] Participant ' . $participant_id . ' anonymized');
-            }
-
-            return array(
-                'success' => true,
-                'error' => null
-            );
-
-        } catch (Exception $e) {
-            error_log('[EIPSI Anonymize] Error anonymizing participant ' . $participant_id . ': ' . $e->getMessage());
-
-            return array(
-                'success' => false,
-                'error' => 'db_error'
-            );
-        }
+        if (!current_user_can('manage_options')) { return array('success'=>false,'error'=>'insufficient_permissions'); }
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-participant-data-cleanup.php';
+        $result = EIPSI_Participant_Data_Cleanup::run($participant_id, 'anonymize', $audit_reason);
+        $result['error'] = $result['success'] ? null : implode('; ', $result['errors']);
+        return $result;
     }
 
     /**
@@ -286,31 +94,8 @@ class EIPSI_Anonymize_Service {
      * // last_name = NULL
      */
     public static function delete_pii($participant_id) {
-        global $wpdb;
-
-        $participant_id = intval($participant_id);
-        if ($participant_id <= 0) {
-            return false;
-        }
-
-        $participants_table = $wpdb->prefix . 'survey_participants';
-
-        // Update with PII deletion
-        $result = $wpdb->query($wpdb->prepare(
-            "UPDATE $participants_table SET
-                email = CONCAT(%s, id, %s),
-                password_hash = NULL,
-                first_name = NULL,
-                last_name = NULL,
-                metadata = JSON_SET(metadata, '$.pii_deleted_at', %s)
-            WHERE id = %d",
-            EIPSI_ANONYMOUS_EMAIL_PREFIX,
-            '@' . EIPSI_ANONYMOUS_EMAIL_DOMAIN,
-            current_time('mysql', 1),
-            $participant_id
-        ));
-
-        return $result !== false && $result > 0;
+        $result = self::anonymize_participant($participant_id);
+        return $result['success'];
     }
 
     /**
@@ -525,20 +310,11 @@ class EIPSI_Anonymize_Service {
         }
 
         // Check survey exists
-        $survey = get_post($survey_id);
-        if (!$survey || $survey->post_type !== 'survey') {
+        $survey = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$wpdb->prefix}survey_studies WHERE id=%d", $survey_id));
+        if (!$survey) {
             return array(
                 'can_anonymize' => false,
                 'reason' => 'Survey not found'
-            );
-        }
-
-        // Check if already anonymized
-        $is_anonymized = get_post_meta($survey_id, '_survey_anonymized', true);
-        if ($is_anonymized) {
-            return array(
-                'can_anonymize' => false,
-                'reason' => 'Survey already anonymized'
             );
         }
 

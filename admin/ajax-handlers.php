@@ -1301,7 +1301,7 @@ function eipsi_forms_submit_form_handler() {
     $frontend_metadata = isset($_POST['metadata']) ? wp_unslash($_POST['metadata']) : '';
     $metadata_array = null;
 
-    error_log("[EIPSI-SUBMIT-DIAG] RAW metadata received: " . substr($frontend_metadata, 0, 200));
+    error_log("[EIPSI-SUBMIT-DIAG] Metadata received, bytes=" . strlen($frontend_metadata));
 
     if (!empty($frontend_metadata)) {
         $metadata_decoded = json_decode($frontend_metadata, true);
@@ -1552,6 +1552,13 @@ function eipsi_forms_submit_form_handler() {
         }
     }
     
+    // Scrub raw frontend metadata and answers as well as the canonical columns.
+    $form_responses = eipsi_filter_capture_data($form_responses, $privacy_config);
+    $metadata = eipsi_filter_capture_data($metadata, $privacy_config);
+    $metadata_array = eipsi_filter_capture_data($metadata_array ?: array(), $privacy_config);
+    $device = !empty($privacy_config['device_type']) ? $device : null;
+    $user_fingerprint = ($privacy_config['fingerprint_enabled'] ?? true) ? $user_fingerprint : null;
+
     // Prepare data for insertion
     $data = array(
         'form_id' => $stable_form_id,
@@ -1610,7 +1617,7 @@ function eipsi_forms_submit_form_handler() {
             require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-device-data-service.php';
         }
         error_log("[EIPSI-SUBMIT-DIAG] CHECK save_device_data: insert_id={$insert_id}, has_device_data=" . (isset($metadata_array['device_data']) ? 'YES' : 'NO') . ", class_exists=" . (class_exists('EIPSI_Device_Data_Service') ? 'YES' : 'NO'));
-        if ($insert_id && !empty($metadata_array['device_data']) && class_exists('EIPSI_Device_Data_Service')) {
+        if ($storage_type === 'wordpress_db' && !$emergency_mode && $insert_id && !empty($metadata_array['device_data']) && class_exists('EIPSI_Device_Data_Service')) {
             error_log("[EIPSI-SUBMIT-DIAG] CALLING save_device_data with insert_id={$insert_id}, device_data_keys=" . implode(',', array_keys($metadata_array['device_data'])));
             $result = EIPSI_Device_Data_Service::save_device_data($insert_id, $metadata_array['device_data']);
             error_log("[EIPSI-SUBMIT-DIAG] save_device_data result: " . ($result ? "SUCCESS (insert_id={$result})" : "FAILED"));
@@ -2447,6 +2454,10 @@ function eipsi_track_event_handler() {
         'created_at' => current_time('mysql')
     );
     
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+    $config = get_privacy_config($form_id);
+    $insert_data = eipsi_filter_capture_data($insert_data, $config);
+
     // Check if external database is configured
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
     $db_helper = new EIPSI_External_Database();
@@ -3220,6 +3231,11 @@ function eipsi_save_consent_decision_handler() {
             'consent_context' => 'T1_consent_block',
         );
         
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+        $config=get_privacy_config(generate_stable_form_id($form_id));
+        if (empty($config['ip_address'])) { $data['consent_ip_address']=null; }
+        if (empty($config['user_agent_full'])) { $data['consent_user_agent']=null; }
+
         // If declined, also set blocked_survey_id
         if ($decision === 'declined') {
             // v2.5.5: Ensure it is a numeric ID (template_id if available, else numeric fallback)
@@ -3395,6 +3411,11 @@ function eipsi_abandon_study_handler() {
     $ip_address = eipsi_get_client_ip();
     $user_agent = sanitize_text_field($_SERVER['HTTP_USER_AGENT'] ?? '');
     
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+    $capture_config=get_global_privacy_defaults();
+    if (empty($capture_config['ip_address'])) { $ip_address=null; }
+    if (empty($capture_config['user_agent_full'])) { $user_agent=null; }
+
     // Update participant record
     $participants_table = $wpdb->prefix . 'survey_participants';
     error_log("[EIPSI-ABANDON] Table: {$participants_table}");
@@ -3439,7 +3460,7 @@ function eipsi_abandon_study_handler() {
     error_log("[EIPSI-ABANDON] UPDATE successful, rows affected: " . ($result === 0 ? '0 (already withdrawn?)' : $result));
     
     // Mark all pending waves as withdrawn
-    $waves_table = $wpdb->prefix . 'study_waves';
+    $waves_table = $wpdb->prefix . 'survey_waves';
     $assignments_table = $wpdb->prefix . 'survey_assignments';
     
     // Check if waves table exists
@@ -3459,150 +3480,21 @@ function eipsi_abandon_study_handler() {
     
     // Note: withdrawal_wave_id column doesn't exist, skipping update
     
-    // For B2, anonymize/delete existing responses and related data
+    // B2 uses the real local relationships and reports any critical failure.
+    $cleanup_coverage = null;
     if ($withdrawal_type === 'b2') {
-        error_log("[EIPSI-ABANDON] Processing B2 data deletion");
-        
-        try {
-            $submissions_table = $wpdb->prefix . 'vas_form_results';
-            $partial_table = $wpdb->prefix . 'eipsi_partial_responses';
-            
-            // Check which tables exist (added eipsi_form_events for complete deletion)
-            $tables_to_check = array('survey_waves', 'vas_form_results', 'eipsi_partial_responses', 'eipsi_device_data', 'survey_email_log', 'survey_magic_links', 'survey_sessions', 'eipsi_pool_email_log', 'eipsi_form_events');
-            $existing_tables = array();
-            foreach ($tables_to_check as $tbl) {
-                $full_name = $wpdb->prefix . $tbl;
-                if ($wpdb->get_var("SHOW TABLES LIKE '{$full_name}'") === $full_name) {
-                    $existing_tables[] = $tbl;
-                }
-            }
-            error_log("[EIPSI-ABANDON] Existing tables for B2: " . json_encode($existing_tables));
-            
-            // Get form IDs if survey_waves exists
-            if (in_array('survey_waves', $existing_tables)) {
-                $waves_table_forms = $wpdb->prefix . 'survey_waves';
-                $form_ids = $wpdb->get_col($wpdb->prepare(
-                    "SELECT DISTINCT form_id FROM {$waves_table_forms} WHERE study_id = %s",
-                    $study_id
-                ));
-                error_log("[EIPSI-ABANDON] Found form IDs: " . json_encode($form_ids));
-            } else {
-                $form_ids = array();
-            }
-            
-            // Track which forms had data deleted (for phantom rows)
-            $forms_with_deleted_data = array();
-            
-            // Process each form
-            foreach ($form_ids as $form_id) {
-                // B2: DELETE submissions completely (not anonymize)
-                if (in_array('vas_form_results', $existing_tables)) {
-                    $deleted_count = $wpdb->query($wpdb->prepare(
-                        "DELETE FROM {$submissions_table} 
-                         WHERE form_id = %s 
-                         AND participant_id = %s",
-                        $form_id,
-                        $participant_id
-                    ));
-                    if ($deleted_count > 0) {
-                        $forms_with_deleted_data[] = $form_id;
-                        error_log("[EIPSI-ABANDON] Deleted {$deleted_count} submission(s) for form {$form_id}");
-                    }
-                }
-                
-                // Delete partial responses if table exists
-                if (in_array('eipsi_partial_responses', $existing_tables)) {
-                    $wpdb->query($wpdb->prepare(
-                        "DELETE FROM {$partial_table} 
-                         WHERE form_id = %s 
-                         AND participant_id = %s",
-                        $form_id,
-                        $participant_id
-                    ));
-                }
-                
-                // Delete form events (interaction data) if table exists
-                if (in_array('eipsi_form_events', $existing_tables)) {
-                    $events_table = $wpdb->prefix . 'eipsi_form_events';
-                    $wpdb->query($wpdb->prepare(
-                        "DELETE FROM {$events_table} 
-                         WHERE form_id = %s 
-                         AND participant_id = %s",
-                        $form_id,
-                        $participant_id
-                    ));
-                }
-            }
-            
-            // Insert phantom rows to track B2 withdrawals in exports
-            if (!empty($forms_with_deleted_data) && in_array('vas_form_results', $existing_tables)) {
-                foreach ($forms_with_deleted_data as $form_id) {
-                    $wpdb->insert($submissions_table, array(
-                        'participant_id' => 'WITHDRAWN_B2',
-                        'status' => 'data_deleted',
-                        'form_id' => $form_id,
-                        'form_name' => 'B2_WITHDRAWAL',
-                        'form_responses' => null,
-                        'submitted_at' => $current_time,
-                        'created_at' => $current_time,
-                        'ip_address' => $ip_address,
-                        'metadata' => wp_json_encode(array(
-                            'withdrawal_type' => 'b2',
-                            'withdrawal_at' => $current_time,
-                            'original_participant_hash' => hash('sha256', $participant_id),
-                            'study_id' => $study_id
-                        ))
-                    ));
-                }
-                error_log("[EIPSI-ABANDON] Inserted phantom rows for B2 tracking: " . count($forms_with_deleted_data));
-            }
-            
-            // Delete device fingerprint data
-            if (in_array('eipsi_device_data', $existing_tables)) {
-                $device_table = $wpdb->prefix . 'eipsi_device_data';
-                $wpdb->delete($device_table, array('participant_id' => $participant_id), array('%s'));
-            }
-            
-            // Anonymize email logs
-            if (in_array('survey_email_log', $existing_tables)) {
-                $email_log_table = $wpdb->prefix . 'survey_email_log';
-                $wpdb->update(
-                    $email_log_table,
-                    array(
-                        'recipient_email' => 'purged@withdrawal.b2',
-                        'metadata' => wp_json_encode(array('purged_at' => $current_time, 'reason' => 'b2_withdrawal'))
-                    ),
-                    array('participant_id' => $participant_id),
-                    array('%s', '%s'),
-                    array('%s')
-                );
-            }
-            
-            // Delete magic links
-            if (in_array('survey_magic_links', $existing_tables)) {
-                $magic_links_table = $wpdb->prefix . 'survey_magic_links';
-                $wpdb->delete($magic_links_table, array('participant_id' => $participant_id), array('%s'));
-            }
-            
-            // Delete sessions
-            if (in_array('survey_sessions', $existing_tables)) {
-                $sessions_table = $wpdb->prefix . 'survey_sessions';
-                $wpdb->delete($sessions_table, array('participant_id' => $participant_id), array('%s'));
-            }
-            
-            // Delete pool email logs
-            if (in_array('eipsi_pool_email_log', $existing_tables)) {
-                $pool_email_log_table = $wpdb->prefix . 'eipsi_pool_email_log';
-                $wpdb->delete($pool_email_log_table, array('participant_id' => $participant_id), array('%s'));
-            }
-            
-            error_log("[EIPSI-ABANDON] B2 data deletion completed");
-        } catch (Exception $e) {
-            error_log("[EIPSI-ABANDON] ERROR in B2 deletion: " . $e->getMessage());
-            // Continue anyway - main withdrawal already succeeded
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-participant-data-cleanup.php';
+        $cleanup = EIPSI_Participant_Data_Cleanup::run($participant_id, 'b2');
+        if (!$cleanup['success']) {
+            EIPSI_Auth_Service::destroy_session();
+            wp_send_json_error(array('message'=>__('El retiro fue registrado; la eliminación de datos no se completó.', 'eipsi-forms'),
+                'errors'=>$cleanup['errors'], 'coverage'=>$cleanup['coverage']), 500);
+            return;
         }
+        $cleanup_coverage = $cleanup['coverage'];
+        $ip_address = null; // Do not reintroduce participant PII after B2 cleanup.
     }
-    
+
     // Destroy session and logout participant (B1 and B2)
     if (class_exists('EIPSI_Auth_Service')) {
         // Log logout before destroying session
@@ -3623,6 +3515,7 @@ function eipsi_abandon_study_handler() {
             'study_id' => $study_id,
             'withdrawal_type' => $withdrawal_type,
             'data_deleted' => ($withdrawal_type === 'b2'),
+            'coverage' => $cleanup_coverage,
             'ip_address' => $ip_address,
         ));
     }
@@ -3654,10 +3547,11 @@ function eipsi_abandon_study_handler() {
     
     wp_send_json_success(array(
         'message' => ($withdrawal_type === 'b2') 
-            ? __('Your data has been scheduled for deletion', 'eipsi-forms')
+            ? __('Your local data has been deleted. External data is not included.', 'eipsi-forms')
             : __('You have successfully withdrawn from the study', 'eipsi-forms'),
         'withdrawal_type' => $withdrawal_type,
         'redirect_url' => $redirect_url,
+        'coverage' => $cleanup_coverage,
     ));
 }
 
