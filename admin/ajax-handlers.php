@@ -3140,6 +3140,12 @@ add_action('wp_ajax_nopriv_eipsi_debug_partial_response', 'eipsi_debug_partial_r
 add_action('wp_ajax_eipsi_debug_partial_response', 'eipsi_debug_partial_response_handler');
 
 function eipsi_debug_partial_response_handler() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')), 403);
+        return;
+    }
+    check_ajax_referer('eipsi_admin_nonce', 'nonce');
+
     $form_id = isset($_POST['form_id']) ? sanitize_text_field($_POST['form_id']) : '';
     $participant_id = isset($_POST['participant_id']) ? sanitize_text_field($_POST['participant_id']) : '';
     $session_id = isset($_POST['session_id']) ? sanitize_text_field($_POST['session_id']) : '';
@@ -3487,21 +3493,35 @@ function eipsi_abandon_study_handler() {
     
     global $wpdb;
     
-    // Get and sanitize input
-    $participant_id = sanitize_text_field($_POST['participant_id'] ?? '');
-    $study_id = sanitize_text_field($_POST['study_id'] ?? '');
-    $withdrawal_type = sanitize_text_field($_POST['withdrawal_type'] ?? ''); // 'b1' or 'b2'
-    $verification_text = sanitize_text_field($_POST['verification_text'] ?? '');
-    
-    error_log("[EIPSI-ABANDON] === START === participant_id={$participant_id}, study_id={$study_id}, type={$withdrawal_type}");
-    
-    // Validate required fields
-    if (empty($participant_id) || empty($study_id)) {
-        error_log("[EIPSI-ABANDON] ERROR: Empty participant_id or study_id");
-        wp_send_json_error(array('message' => __('Participant ID and Study ID are required', 'eipsi-forms')));
+    // Participant identity and study context must come from the authenticated session.
+    $participant_id = class_exists('EIPSI_Auth_Service') ? (int) EIPSI_Auth_Service::get_current_participant() : 0;
+    $study_id = $participant_id ? (int) EIPSI_Auth_Service::get_current_survey() : 0;
+    if (!$participant_id || !$study_id) {
+        wp_send_json_error(array('message' => __('Authentication required', 'eipsi-forms')), 403);
         return;
     }
-    
+
+    // Preserve existing payloads, but reject attempts to act on another identity or study.
+    foreach (array('participant_id' => $participant_id, 'study_id' => $study_id) as $key => $expected) {
+        if (isset($_POST[$key]) && (!is_scalar($_POST[$key]) || (string) $_POST[$key] !== (string) $expected)) {
+            wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')), 403);
+            return;
+        }
+    }
+    $belongs_to_study = $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM {$wpdb->prefix}survey_participants WHERE id = %d AND survey_id = %d",
+        $participant_id,
+        $study_id
+    ));
+    if (!$belongs_to_study) {
+        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')), 403);
+        return;
+    }
+
+    $withdrawal_type = sanitize_text_field($_POST['withdrawal_type'] ?? ''); // 'b1' or 'b2'
+    $verification_text = sanitize_text_field($_POST['verification_text'] ?? '');
+    error_log("[EIPSI-ABANDON] === START === participant_id={$participant_id}, study_id={$study_id}, type={$withdrawal_type}");
+
     // Validate withdrawal type
     if (!in_array($withdrawal_type, array('b1', 'b2'), true)) {
         wp_send_json_error(array('message' => __('Invalid withdrawal type', 'eipsi-forms')));

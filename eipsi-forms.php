@@ -1362,6 +1362,11 @@ function eipsi_forms_enqueue_frontend_assets() {
         EIPSI_FORMS_VERSION,
         true
     );
+    if (current_user_can('manage_options')) {
+        wp_localize_script('eipsi-save-continue-js', 'eipsiPartialDebugConfig', array(
+            'nonce' => wp_create_nonce('eipsi_admin_nonce'),
+        ));
+    }
     // === FIN SAVE & CONTINUE ===
 
     // Enqueue Randomization Public System styles (Fase 3)

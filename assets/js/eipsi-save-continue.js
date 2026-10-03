@@ -1473,6 +1473,10 @@
 	 * Uso desde consola: window.eipsiDebugSaveState()
 	 */
 	window.eipsiDebugSaveState = async function() {
+		if (!window.eipsiPartialDebugConfig?.nonce) {
+			console.error('[S&C DEBUG] El diagnóstico requiere una sesión de administrador.');
+			return;
+		}
 		const form = document.querySelector('.eipsi-form form');
 		if (!form) {
 			console.error('[S&C DEBUG] No se encontró el formulario');
@@ -1501,6 +1505,7 @@
 		try {
 			const formData = new FormData();
 			formData.append('action', 'eipsi_debug_partial_response');
+			formData.append('nonce', window.eipsiPartialDebugConfig.nonce);
 			formData.append('form_id', instance.formId);
 			formData.append('participant_id', instance.participantId);
 			formData.append('session_id', instance.sessionId);
