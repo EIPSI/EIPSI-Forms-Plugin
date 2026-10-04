@@ -32,4 +32,12 @@ Propuesta pendiente de adopción: usar una única versión de distribución del 
 
 ## Alcance actual
 
-Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. No hay CI/E2E completo ni modularización M1–M8. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
+Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M1 incorporó la capa `includes/bootstrap/`; M2–M8 siguen pendientes. No hay CI/E2E completo. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
+
+## Cambiar el bootstrap
+
+Mantener el manifest de ServiceLoader en orden y ejecutar sus requires desde la composición global. Las entradas `:migration` y `:survey-access` documentan límites de inicialización, no archivos. No convertir cargas actualmente universales en admin-only sin caracterización nueva.
+
+Registrar mediante el owner adecuado y preservar callback, prioridad, accepted args y orden respecto de otros registros. Las funciones globales de compatibilidad no deben retirarse por existir una clase. Lifecycle usa `EIPSI_FORMS_PLUGIN_FILE` para conservar la identidad de los hooks de activación y la ruta de traducciones.
+
+Los cron por estudio/asignación continúan programándose en sus recorridos de dominio. Actualizar el catálogo explícito de CronRegistry cuando se demuestre un nuevo hook propietario; no limpiar todos los nombres con prefijo `eipsi_`. [Pruebas de contratos y ciclo de vida](testing.md).
