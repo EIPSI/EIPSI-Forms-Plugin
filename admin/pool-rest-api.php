@@ -52,7 +52,7 @@ function eipsi_register_pool_rest_routes() {
     register_rest_route($namespace, '/pool-assign', array(
         'methods' => WP_REST_Server::CREATABLE,
         'callback' => 'eipsi_rest_pool_assign',
-        'permission_callback' => '__return_true', // Public endpoint for participants
+        'permission_callback' => 'eipsi_rest_pool_assign_permission',
     ));
 
     // GET /eipsi/v1/pool-analytics - Get pool analytics
@@ -326,16 +326,33 @@ function eipsi_rest_pool_config(WP_REST_Request $request) {
  * @param WP_REST_Request $request
  * @return WP_REST_Response
  */
+function eipsi_rest_pool_assign_permission(WP_REST_Request $request) {
+    $access = EIPSI_Auth_Service::authorize_session_context((array) $request->get_json_params());
+    if (!$access['success']) {
+        return new WP_Error($access['error'], 'La sesión no autoriza esta asignación.', array(
+            'status' => $access['error'] === 'authentication_required' ? 401 : 403,
+        ));
+    }
+    return true;
+}
+
 function eipsi_rest_pool_assign(WP_REST_Request $request) {
     $params = $request->get_json_params();
 
-    $pool_id        = isset($params['pool_id']) ? intval($params['pool_id']) : 0;
-    $participant_id = isset($params['participant_id']) ? sanitize_text_field($params['participant_id']) : '';
+    // Revalidate even when called directly: client IDs may only confirm the session.
+    $access = EIPSI_Auth_Service::authorize_session_context((array) $params);
+    if (!$access['success']) {
+        return new WP_REST_Response(array('success' => false, 'message' => 'La sesión no autoriza esta asignación.'),
+            $access['error'] === 'authentication_required' ? 401 : 403);
+    }
 
-    if ($pool_id <= 0 || empty($participant_id)) {
+    $pool_id        = isset($params['pool_id']) ? intval($params['pool_id']) : 0;
+    $participant_id = (string) $access['participant_id'];
+
+    if ($pool_id <= 0) {
         return new WP_REST_Response(array(
             'success' => false,
-            'message' => 'Se requiere pool_id y participant_id.',
+            'message' => 'Se requiere pool_id.',
         ), 400);
     }
 

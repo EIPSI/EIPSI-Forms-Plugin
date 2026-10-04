@@ -155,3 +155,7 @@ El inventario de destinos, la semántica final, los archivos modificados y los
 límites se documentan en `informes/EIPSI-Forms/2026.10.03 - Estabilización P1-C.md`.
 El límite de B2 descrito en la sección histórica P0 corresponde a aquella fase;
 P1-C corrige ahora su limpieza local y la comprobación de resultados.
+
+## M0: caracterización post-estabilización
+
+[M0 sobre WordPress real](m0/README.md) documenta el entorno Docker aislado, el build limpio, la suite de 36 casos, el inventario ejecutable y el manifiesto de PURGA 1. Conserva los 147 casos anteriores: total **183**. Las nueve pruebas de deuda UI caracterizan handlers ausentes; no equivalen a flujos funcionales restaurados.

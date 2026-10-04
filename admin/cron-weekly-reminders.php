@@ -178,8 +178,11 @@ function eipsi_send_weekly_t1_reminder($assignment, $reminder_number) {
         require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-email-service.php';
     }
     
-    $result = EIPSI_Email_Service::send(
+    $result = EIPSI_Email_Service::send_email(
+        $assignment->study_id,
+        $assignment->participant_id,
         $assignment->email,
+        'weekly_t1_reminder',
         $email['subject'],
         $email['body'],
         array(

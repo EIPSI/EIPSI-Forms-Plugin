@@ -2340,6 +2340,7 @@ function eipsi_handle_pool_join() {
  *
  * @since 2.5.0
  */
+add_action('eipsi_cleanup_partial_responses', 'eipsi_run_partial_cleanup');
 function eipsi_run_partial_cleanup() {
     global $wpdb;
     $table = $wpdb->prefix . 'eipsi_partial_responses';

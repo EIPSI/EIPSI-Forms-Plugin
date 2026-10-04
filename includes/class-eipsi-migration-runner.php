@@ -357,6 +357,11 @@ class EIPSI_Migration_Runner {
         $db = $this->get_connection();
         $table = $wpdb->prefix . 'eipsi_longitudinal_pools';
 
+        // Fresh/current schemas use config; only legacy schemas have pool_data.
+        if ( ! $this->column_exists( $db, $table, 'pool_data' ) ) {
+            return;
+        }
+
         $pools = $this->db_get_results( $db, "SELECT id, pool_data FROM `{$table}`" );
 
         foreach ( $pools as $pool ) {

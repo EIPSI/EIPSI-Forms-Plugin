@@ -1,547 +1,82 @@
-# EIPSI Forms - Professional Form Builder for Clinical Research
+# EIPSI Forms
 
-> **Plugin multipágina diseñado para psicólogxs y psiquiatras hispanohablantes.**
-> 
-> «Por fin alguien entendió cómo trabajo de verdad con mis pacientes»
+## Estado del proyecto
 
-[![WordPress](https://img.shields.io/badge/WordPress-5.8%2B-blue.svg)](https://wordpress.org/)
-[![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://php.net/)
-[![License](https://img.shields.io/badge/License-GPL%20v2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-brightgreen.svg)](https://www.w3.org/WAI/WCAG21/quickref/)
+Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene la estabilización P0/P1 y la caracterización M0. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
 
----
+## Qué es
 
-## 📋 Versión Actual: 2.5.3
+Plugin de WordPress para construir formularios con Gutenberg y administrar estudios longitudinales, participantes, respuestas y comunicaciones.
 
-**Compatibilidad:** WordPress 5.8+ | PHP 7.4+ | Tested up to WP 6.7
+## Funcionalidades principales
 
-**Instalación:** [Download ZIP](https://github.com/eipsi/eipsi-forms/archive/refs/heads/main.zip) → Upload to `/wp-content/plugins/` → Activate
+- Bloques de formularios, páginas, campos, escalas y consentimiento.
+- Biblioteca de formularios con importación/exportación JSON y compatibilidad con formatos anteriores.
+- Persistencia de respuestas, guardado parcial y almacenamiento de emergencia confirmado.
+- Estudios por waves, fechas relativas a T1 y dashboard del participante.
+- Sesiones de participantes, magic links, retiro del estudio y asignación a Pools.
+- Servicios de correo, recordatorios, nudges y tareas cron.
+- Administración y exportación de datos mediante recorridos existentes. Algunas acciones de UI siguen sin handler; consultar las limitaciones en [arquitectura](docs/architecture.md).
 
----
+## Arquitectura
 
-## 🚀 Quick Start
+El bootstrap `eipsi-forms.php` conecta `admin/`, `includes/`, servicios, AJAX/REST y bloques en `src/blocks/`. Coexisten recorridos actuales y legacy. La separación futura por dominios es una dirección de trabajo: M1–M8 no están implementados. Véase [arquitectura actual](docs/architecture.md).
 
-### Instalación Rápida
+## Requisitos
 
-```bash
-# Clonar o descargar el plugin
-cd /wp-content/plugins/
-git clone https://github.com/eipsi/eipsi-forms.git
-cd eipsi-forms
+- WordPress: el header heredado declara 5.8; los bloques usan `apiVersion: 3`. La compatibilidad con versiones antiguas no está certificada. Referencia comprobada: WordPress 7.1.2.
+- PHP: mínimo declarado 7.4, con acceso mysqli para las pruebas SQL. Referencia comprobada: PHP 8.3.35; no hay una matriz completa de compatibilidad.
+- MariaDB/MySQL con JSON y funciones de ventana (`ROW_NUMBER()`); MySQL 8.0 o MariaDB 10.2 son el piso técnico por esas funciones, no una matriz certificada. MySQL 5.7 no alcanza para este último recorrido. MariaDB 11 es la referencia comprobada. El usuario de base necesita permisos de creación y modificación de schema durante instalación/migraciones.
+- Build: Node compatible con las dependencias bloqueadas; `jsdom` admite Node 20.x desde 20.19, 22.x desde 22.12 o versiones 24+. Referencia comprobada: Node 22.23.3 / npm 10.9.9. Node/npm no son necesarios para ejecutar un build ya generado.
 
-# Instalar dependencias y compilar
-npm install
+Los mínimos históricos declarados no equivalen a compatibilidad funcional validada.
+
+## Instalación para desarrollo
+
+Ubicar este repositorio en `wp-content/plugins/EIPSI-Forms-Plugin`, instalar dependencias y generar los bloques antes de activar el plugin. La activación crea/verifica el schema; usar una base descartable para pruebas de instalación. Véase [desarrollo](docs/development.md).
+
+## Build Gutenberg
+
+```sh
+npm ci --no-audit --no-fund
 npm run build
 ```
 
-### Crear tu primer formulario
+El proceso ejecuta `wp-scripts` y corrige referencias CSS de los metadatos. Debe generar `build/blocks/` con 13 bloques. `build/` y `node_modules/` están ignorados por Git.
 
-1. **Ir a WordPress Admin** → Posts/Pages → Add New
-2. **Agregar bloque "EIPSI Form Container"** desde el editor Gutenberg
-3. **Dentro del container**, agregar bloques de campos:
-   - `Campo Texto`, `Campo Textarea`, `Campo Radio`, `Campo Select`
-   - `Campo Likert`, `VAS Slider` (escalas visuales analógicas)
-   - `Consent Block` (consentimiento informado)
-4. **Publicar** y el formulario está listo para recibir respuestas
+## Tests
 
-### Ver resultados
+| Suite | Pruebas |
+|---|---:|
+| P0 | 22 |
+| P1-A | 40 |
+| P1-B | 40 |
+| P1-C | 45 |
+| M0 | 36 |
+| Total | 183 |
 
-- **Admin** → EIPSI Forms → Cross-sectional Study → Submissions
-- Exportar a Excel (.xlsx) o CSV con un click
+Comandos y límites en [testing](docs/testing.md). Nueve pruebas M0 caracterizan discrepancias UI→handler: pasar esas pruebas no demuestra que esas acciones funcionen.
 
----
+## Entorno local Docker
 
-## ✨ Features Principales
+El workspace usa `wp-eco-wordpress-1` y `wp-eco-db-1`. M0 usa una instalación independiente, `eipsi-m0-wordpress` / `eipsi-m0-db`, con puerto local 18080, correo interceptado y cron automático desactivado. [Instrucciones reproducibles y aislamiento](tests/m0/README.md).
 
-### 📊 Longitudinal Studies (Estudios Longitudinales)
+## Ramas
 
-Sistema completo para estudios con múltiples tomas (T1, T2, T3...) con seguimiento de participantes.
+- `main` / `origin/main`: referencia de integración; no implica release ni certificación de producción.
+- `develop`: estabilización y desarrollo actual.
+- `feature/*`: convención propuesta para cambios acotados a partir de `develop`.
 
-**Características:**
-- **Multiple Waves:** Configura hasta N tomas con intervalos personalizables
-- **Magic Links:** Links seguros con TTL 30 min, one-time use, auto-login
-- **Participant Management:** CRUD completo, importación CSV, estados activo/inactivo
-- **Email Automation:** Bienvenida, recordatorios por wave, confirmaciones, recuperación de dropouts
-- **Session Management:** Sesiones de 7 días, cookies seguras (HttpOnly, Secure, SameSite)
-- **Wave Completion Tracking:** Seguimiento de progreso por participante y wave
-- **Setup Wizard:** Crea estudios en 3 pasos con templates pre-configurados
+## Versionado
 
-**Shortcodes:**
-```
-[eipsi_survey_login]           // Portal de login para participantes
-[eipsi_participant_dashboard]  // Dashboard personal del participante
-[eipsi_longitudinal_study id="123"]  // Formulario de estudio específico
-```
+PHP/header/constante/assets usan `2.6.1`; npm y lockfile usan `1.5.5`. Son numeraciones internas heredadas sin política pública demostrada. Se preservan sin renumeración arbitraria. Las versiones JSON describen formatos, no releases del plugin.
 
----
+Política propuesta: acordar una única versión del plugin antes de publicar, alinear los metadatos de distribución y registrar cada publicación con tag, artefacto reproducible, changelog y validación. Hasta entonces, identificar trabajo por rama y commit. El número de la primera release pública queda pendiente de decisión; no se declara aquí. [Evidencia y política](docs/development.md).
 
-### 🎲 Randomized Controlled Trials (RCT)
+## Licencia
 
-Sistema de aleatorización completo para ensayos clínicos controlados.
+GPL-2.0-or-later según los metadatos del proyecto. Se conserva la [licencia GPL](LICENSE).
 
-**Características:**
-- **Configuración de brazos:** Múltiples brazos con probabilidades custom
-- **Fingerprinting robusto:** Canvas, WebGL, Screen, Timezone, Language, Hardware (CPU, RAM) ⚠️ *Audio/Fonts: No implementado*
-- **Métodos de aleatorización:**
-  - `seeded` - Reproducible para auditoría
-  - `pure-random` - Aleatoriedad criptográfica
-- **Dashboard en tiempo real:** Estadísticas de asignación por brazo
-- **Manual overrides:** Asignación manual para casos especiales
+## Estado de madurez
 
-**Shortcodes:**
-```
-[eipsi_randomized_form configuration_id="456"]
-[eipsi_randomized_form_page configuration_id="456"]
-```
-
----
-
-### 🏥 Pool Hub v2.5.3 (Longitudinal Pools)
-
-Sistema avanzado de asignación aleatoria de participantes a estudios longitudinales con tracking completo y analytics.
-
-**Características:**
-- **Pools de estudios:** Agrupa múltiples estudios longitudinales con configuración JSON estructurada
-- **Weighted Random Assignment:** Dos métodos de aleatorización:
-  - `seeded` - Asignación determinística reproducible (mismo participante = mismo estudio)
-  - `pure-random` - Aleatoriedad criptográfica para máxima imparcialidad
-- **Persistencia de asignaciones:** Tabla `eipsi_pool_assignments` para tracking completo
-- **Analytics diarios:** Tabla `eipsi_pool_analytics` con métricas de asignaciones y completitud
-- **Dashboard v3:** Visualización de estadísticas, completitud, y estado de pools
-- **Re-asignación configurable:** Permitir o bloquear re-asignación después de completar
-- **Migración automática:** Función `eipsi_migrate_pools_to_v2()` para migrar formatos viejos
-
-**Tablas de base de datos:**
-- `wp_eipsi_longitudinal_pools` - Configuración de pools
-- `wp_eipsi_pool_assignments` - Asignaciones de participantes
-- `wp_eipsi_pool_analytics` - Analytics diarios por pool/estudio
-
-**Shortcodes (backward compatible):**
-```
-[eipsi_pool pool_id="789"]                    // Shortcode nuevo (v2.5.3)
-[eipsi_pool pool_id="789" method="seeded"]   // Especificar método
-[eipsi_pool_join pool_id="789"]               // Legacy alias (v2.1.0+)
-```
-
-**Testing E2E:**
-```php
-// tests/test-pool-hub-e2e.php
-require_once __DIR__ . '/tests/test-pool-hub-e2e.php';
-eipsi_e2e_run_all_tests();
-```
-
-**Estado:** ✅ v2.5.3 - Sistema completo con migración, analytics, y testing E2E.
-
----
-
-### 📧 Email Service
-
-Sistema de emails transaccionales con templates HTML y logging completo.
-
-**Templates disponibles:**
-- `welcome.php` - Bienvenida con Magic Link inicial
-- `wave-reminder.php` - Recordatorio de toma pendiente
-- `wave-confirmation.php` - Confirmación de recepción
-- `dropout-recovery.php` - Mensaje "Te extrañamos"
-- `magic-link.php` - Links seguros de acceso
-- `gentle-reminder.php` - Recordatorios empáticos
-
-**Características técnicas:**
-- Logging en `wp_survey_email_log`
-- Retry mechanism para envíos fallidos
-- SMTP integration configurable
-- Placeholders dinámicos: `{name}`, `{study_name}`, `{wave_date}`, `{magic_link}`
-
----
-
-### 📈 Monitoring Dashboard
-
-Panel de monitoreo integral para administradores.
-
-**Métricas disponibles:**
-- **Email Stats:** Enviados, fallidos, bounce rate
-- **Cron Jobs:** Estado, última ejecución, health indicator
-- **Sessions:** Activas, expiradas, unused
-- **Database Health:** Integridad de tablas
-- **Audit Log:** Historial de acciones administrativas
-
----
-
-### 🔐 Security & Privacy
-
-Diseñado para cumplir con estándares de investigación clínica.
-
-**Seguridad:**
-- Rate limiting: 5 intentos de login / 15 minutos
-- Session TTL: 7 días
-- Magic link TTL: 30 minutos
-- Cookie flags: HttpOnly, Secure, SameSite=Lax
-- Nonce verification en todos los AJAX handlers
-- Prepared statements en todas las queries SQL
-
-**Privacidad (GDPR compliant):**
-- IP configurable (OFF por defecto)
-- Browser/OS/Screen OFF por defecto
-- Data Request Portal para participantes
-- Admin-initiated anonymization
-- Audit logging completo
-- Retention policy enforcement
-
----
-
-### 💾 Export System
-
-Exportación de datos en múltiples formatos.
-
-**Formatos:**
-- Excel (.xlsx) con estilos
-- CSV (UTF-8 compatible)
-
-**Filtros disponibles:**
-- Por estudio/survey
-- Por wave
-- Por rango de fechas
-- Por estado (pending/submitted)
-
-**Stats incluidos:**
-- Tasa de finalización
-- Tiempos de respuesta
-- Distribución de respuestas
-
----
-
-### 🧱 12 Gutenberg Blocks
-
-Bloques diseñados específicamente para investigación clínica.
-
-| Bloque | Descripción |
-|--------|-------------|
-| `Form Container` | Contenedor principal del formulario |
-| `Form Page` | Página/sección dentro del formulario |
-| `Campo Texto` | Input de texto simple |
-| `Campo Textarea` | Área de texto largo |
-| `Campo Radio` | Opción única (radio buttons) |
-| `Campo Multiple` | Opción múltiple (checkboxes) |
-| `Campo Select` | Dropdown/selector |
-| `Campo Descripción` | Texto informativo (markdown) |
-| `Campo Likert` | Escala Likert configurable |
-| `VAS Slider` | Escala visual analógica 1-100 |
-| `Consent Block` | Consentimiento informado |
-| `Randomization Block` | Configuración de aleatorización |
-
----
-
-### 🔀 Conditional Logic
-
-Lógica condicional potente para formularios dinámicos.
-
-**Operadores:** AND / OR
-**Acciones:**
-- `jump_to_page` - Saltar a página específica ✅
-- `show/hide` - Mostrar/ocultar campos ⚠️ *Parcial: funciona entre páginas, no dentro de la misma página*
-- `conditional required` - Campos obligatorios condicionales ✅
-
-**Compatibilidad:** Funciona con todos los tipos de campo
-
----
-
-### 💾 Save & Continue Later
-
-Sistema de guardado automático para formularios largos.
-
-**Características:**
-- IndexedDB para drafts persistentes
-- Autosave cada 30 segundos
-- beforeunload warning (previene pérdida accidental)
-- Modal de recuperación de sesión
-- Cross-session persistence
-
----
-
-## 📋 Changelog Reciente
-
-### v2.1.3 (2025-04-09) - Privacy & Metadata Fixes + Pool Deletion
-
-**Fixes recientes:**
-- ✅ Extended Metadata Export: Ahora funciona correctamente el guardado de configuración
-- ✅ Privacy & Metadata UI: Nueva sección "Exportación Extendida" con checkboxes funcionales
-- ✅ Pool Deletion: Arreglado error de permisos y foreign keys al eliminar pools
-- ✅ Randomization Excel Export: Ahora incluye submission ID, duration, completed at, form responses
-- ✅ Wizard UI: Eliminados campos innecesarios (Duración estimada) y arreglado botón Monitoreo Semanal
-- ✅ Wide Export: Removida columna fingerprint_id (el investigador debe construirlo si lo necesita)
-
-### v2.1.0 (2025-02-24) - Phase 3: Researcher Data Confidence
-
-**Epic:** Researcher Data Confidence
-
-#### 3A - Export Hardening
-- ✅ Participant Access Log Export (IRB compliance)
-- ✅ Completion Rate Verification
-- ✅ Wave-Level Timestamps (`wave_started_at`, `wave_completed_at`, `time_to_complete`)
-- ✅ **v2.1.3**: Extended Metadata Export (Canvas, WebGL, Hardware) - Configurable vía Privacy & Metadata
-- ✅ **v2.1.3**: Randomization Excel Export con submission data, duration, form responses
-
-#### 3B - Monitoring Upgrades
-- ✅ Per-Participant Progress View (Timeline)
-- ✅ Failed Email Alerts Dashboard
-- ✅ Cron Health Indicator
-
----
-
-### v2.0.0 (2025-02-XX)
-
-- 🎉 Longitudinal Pools Parts 1-4 completadas
-- ✅ Pool Assignment Service con weighted random
-- ✅ Pool Dashboard con monitoreo de asignaciones
-- ✅ Pool Join Shortcode
-- ✅ Múltiples fixes de UI/UX
-- ✅ **v2.1.3**: Fix de permisos para eliminar pools con foreign keys
-
----
-
-### v1.4.2 (2025-02-06) - Security Hardening
-
-- 🔒 12 vulnerabilidades corregidas
-- ✅ SQL Injection fixes (prepared statements)
-- ✅ Input validation con whitelists
-- ✅ Race condition fix (atomic delete)
-- ✅ Database indices optimizados
-
----
-
-### v1.4.1 (2025-02-05) - Email Service
-
-- 📧 4 templates HTML creados
-- ✅ Email logging en base de datos
-- ✅ SMTP integration
-
----
-
-### v1.4.0 (2025-02-04) - Longitudinal Studies
-
-- 📊 Sistema longitudinal completo
-- ✅ Waves, Magic Links, Participants
-- ✅ Email automation
-- ✅ Session management
-
----
-
-## 🗄️ Database Schema
-
-El plugin crea las siguientes tablas en la base de datos:
-
-### Tablas principales
-
-| Tabla | Descripción |
-|-------|-------------|
-| `wp_vas_form_results` | Respuestas de formularios |
-| `wp_vas_form_events` | Eventos de sesión (page views, etc.) |
-| `wp_vas_randomizations` | Configuraciones RCT |
-| `wp_vas_rct_assignments` | Asignaciones de brazos RCT |
-
-### Tablas longitudinales
-
-| Tabla | Descripción |
-|-------|-------------|
-| `wp_survey_studies` | Definición de estudios longitudinales |
-| `wp_survey_waves` | Waves/tomas de cada estudio |
-| `wp_survey_participants` | Participantes registrados |
-| `wp_survey_sessions` | Sesiones activas |
-| `wp_survey_email_log` | Log de emails enviados |
-| `wp_survey_audit_log` | Auditoría de acciones |
-| `wp_survey_cron_log` | Historial de cron jobs |
-| `wp_survey_data_requests` | Solicitudes GDPR |
-
-### Tablas de pools
-
-| Tabla | Descripción |
-|-------|-------------|
-| `wp_eipsi_longitudinal_pools` | Definición de pools |
-| `wp_eipsi_pool_assignments` | Asignaciones a pools |
-
----
-
-## 🏗️ Architecture
-
-El plugin sigue una arquitectura orientada a servicios (Service Layer Pattern).
-
-### Services (20 clases)
-
-```php
-// Servicios principales
-EIPSI_Email_Service          // Envío de emails
-EIPSI_Participant_Service    // Gestión de participantes
-EIPSI_Wave_Service           // Gestión de waves
-EIPSI_MagicLinksService      // Generación de magic links
-EIPSI_Auth_Service           // Autenticación
-EIPSI_Anonymize_Service      // Anonimización GDPR
-EIPSI_Export_Service         // Exportación de datos
-EIPSI_SMTP_Service           // Configuración SMTP
-EIPSI_Assignment_Service     // Asignación de participantes
-
-// Phase 3 - Researcher Data Confidence
-EIPSI_Access_Log_Export_Service       // Export de logs de acceso
-EIPSI_Completion_Verification_Service // Verificación de completitud
-EIPSI_Participant_Timeline_Service    // Timeline por participante
-EIPSI_Failed_Email_Alerts_Service     // Alertas de emails fallidos
-EIPSI_Cron_Health_Service             // Monitoreo de cron
-EIPSI_Participant_Data_Request_Service // Portal GDPR
-EIPSI_Participant_Access_Log_Service  // Logs de acceso
-EIPSI_Participant_Auth_Handler        // Handler de auth
-EIPSI_Device_Data_Service             // Datos de dispositivo
-
-// Pools
-EIPSI_Pool_Assignment_Service  // Lógica de asignación
-EIPSI_Pool_Dashboard_Service   // Dashboard de monitoreo
-```
-
----
-
-## 📁 Directory Structure
-
-```
-eipsi-forms/
-├── admin/                          # Panel de administración
-│   ├── services/                   # Clases de servicio (20 archivos)
-│   ├── tabs/                       # Tabs del panel admin
-│   ├── ajax-*.php                  # Handlers AJAX
-│   ├── cron-*.php                  # Handlers de cron
-│   ├── database-schema-manager.php # Gestión de schema
-│   ├── export.php                  # Sistema de export
-│   ├── monitoring.php              # Dashboard de monitoreo
-│   └── ...
-├── assets/                         # Assets estáticos
-│   ├── css/                        # Estilos (15+ archivos)
-│   ├── js/                         # JavaScript (15+ archivos)
-│   └── images/                     # Iconos e imágenes
-├── build/                          # Build output (generado)
-├── includes/                       # Includes principales
-│   ├── emails/                     # Templates de email (9 archivos)
-│   ├── shortcodes/                 # Clases de shortcodes
-│   └── class-*.php                 # Clases helper
-├── src/                            # Código fuente Gutenberg
-│   ├── blocks/                     # 13 bloques Gutenberg
-│   └── utils/                      # Utilidades JS
-├── languages/                      # Traducciones (.pot, .po, .mo)
-├── eipsi-forms.php                 # Archivo principal del plugin
-├── package.json                    # Dependencias npm
-├── webpack.config.js               # Configuración de build
-└── README.md                       # Este archivo
-```
-
----
-
-## 🔧 Development
-
-### Requisitos
-
-- Node.js 16+
-- npm 8+
-- PHP 7.4+
-- WordPress 5.8+
-
-### Comandos de desarrollo
-
-```bash
-# Instalar dependencias
-npm install
-
-# Build de producción
-npm run build
-
-# Build de desarrollo (watch)
-npm run start
-
-# Linting JavaScript
-npm run lint:js
-
-# Linting con auto-fix
-npm run lint:js -- --fix
-
-# Linting CSS
-npm run lint:css
-```
-
-### Build Output
-
-- Bundle size: < 250 KB (gzipped)
-- Build time: < 5 segundos
-- Lint: 0 errors / 0 warnings
-
----
-
-## 🛣️ Roadmap
-
-### ✅ Completado (v1.0 - v2.1)
-
-- [x] 12 Gutenberg Blocks clínicos
-- [x] Sistema longitudinal completo
-- [x] Randomized Controlled Trials (RCT)
-- [x] Email Service con templates
-- [x] Monitoring Dashboard
-- [x] Export System (Excel/CSV)
-- [x] Conditional Logic (AND/OR, jump_to_page)
-- [x] Save & Continue Later
-- [x] GDPR Compliance Portal
-- [x] Security Hardening (12 vulnerabilidades)
-- [x] Longitudinal Pools (Parts 1-4)
-
-### 🚧 En Progreso / Próximos
-
-- [ ] **Integrated completion page** (misma URL forever, sin redirects externos)
-- [ ] **Conditional field visibility** (dentro de la misma página - actualmente solo funciona entre páginas)
-- [ ] **Clinical templates** (PHQ-9, GAD-7, PCL-5, AUDIT, DASS-21) con scoring automático
-- [x] **Fingerprint ID → Datos RAW** ✅ *Implementado en v2.1.3: Sección "Exportación Extendida" en Privacy & Metadata*
-
-### 📅 Futuro (Nice-to-have)
-
-- [ ] Visual progress bar
-- [ ] Matrix questions (grid)
-- [ ] Analytics UI avanzada
-- [ ] Multilingual (i18n completo)
-- [ ] REST API pública
-- [ ] Field encryption
-
----
-
-## 🤝 Contributing
-
-Las contribuciones son bienvenidas. Por favor:
-
-1. Fork el repositorio
-2. Crear branch feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit cambios (`git commit -m 'feat: descripción del cambio'`)
-4. Push al branch (`git push origin feature/nueva-funcionalidad`)
-5. Abrir Pull Request
-
-### Código de Conducta
-
-Este proyecto sigue el principio de **Zero fear + Zero friction + Zero excuses**. Todo comentario, issue o PR debe ser respetuoso y constructivo.
-
----
-
-## 📜 License
-
-GPL v2 or later. Ver [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html).
-
----
-
-## 👤 Author
-
-**Mathias N. Rojas de la Fuente**
-- Instagram: [@enmediodel.contexto](https://www.instagram.com/enmediodel.contexto/)
-- Web: [enmediodelcontexto.com.ar](https://enmediodelcontexto.com.ar)
-
----
-
-## 🙏 Acknowledgments
-
-EIPSI Forms existe porque **ningún plugin de forms entendió cómo trabajan realmente lxs psicólogxs y psiquiatras** con sus pacientes. Este plugin es la respuesta a esa frustración compartida por miles de clínicos en el mundo hispanohablante.
-
-**"Por fin alguien entendió cómo trabajo de verdad con mis pacientes"**
-
----
-
-<p align="center">
-  <strong>EIPSI Forms</strong> - El form builder que habla tu idioma clínico
-</p>
+P0/P1, M0 y PURGA 1 completados; purga documental previa a M1. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización M1–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.

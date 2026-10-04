@@ -1004,6 +1004,8 @@ class EIPSI_Database_Schema_Manager {
 
                     'form_data' => 'longtext DEFAULT NULL',
 
+                    'raw_post_data' => 'longtext DEFAULT NULL',
+
                     'metadata' => 'longtext DEFAULT NULL',
 
                     'device' => 'varchar(100) DEFAULT NULL',

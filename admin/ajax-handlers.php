@@ -4597,7 +4597,15 @@ function eipsi_repair_single_table_handler() {
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database-schema-manager.php';
     
     // Repair the table
-    $result = EIPSI_Database_Schema_Manager::repair_single_table($table_name);
+    $result = EIPSI_Database_Schema_Manager::sync_local_table($table_name);
+    global $wpdb;
+    $sync_error = $wpdb->last_error;
+    $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($wpdb->prefix . $table_name)));
+    if ($sync_error || !$table_exists) {
+        $result['success'] = false;
+        $result['error'] = $sync_error ?: 'No se pudo confirmar la existencia de la tabla.';
+    }
+    $result['message'] = $result['success'] ? 'Tabla sincronizada: ' . $table_name : ($result['error'] ?? 'Error al sincronizar la tabla');
     
     // Log the repair action
     error_log("[EIPSI Schema Repair] User repair request for table {$table_name}: " . json_encode($result));

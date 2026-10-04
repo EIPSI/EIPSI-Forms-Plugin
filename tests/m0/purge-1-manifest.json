@@ -1,0 +1,135 @@
+[
+  {
+    "file": "admin/ajax-handlers.php.backup",
+    "bytes": 135485,
+    "sha256": "4dc9ede47c18c613a2e623153f81a76813b7de22e67857ddaeb25b3c10b35dc0",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/ajax-handlers.php.backup-20260214-181121",
+    "bytes": 144191,
+    "sha256": "89c3eeb26e10da2756f47ca49a072597390e3af3d698a30809214c48b5478efd",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/database-schema-manager.php.backup",
+    "bytes": 121531,
+    "sha256": "b07e5332ceb42f6df99d01e30968a8376024d83be5c424e96cb05604cca9e955",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/database-schema-manager.php.backup2",
+    "bytes": 106790,
+    "sha256": "751378f573e7c163f02feb648665f9750f11a20dde3d9ebeea0cc3e3a0a82ece",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/export.php.backup2",
+    "bytes": 31655,
+    "sha256": "970dde496122afac2509a074ec6bc201ed03ed79cd6f9ce2009303948cf458ee",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/study-dashboard-modal-old.php",
+    "bytes": 45938,
+    "sha256": "f98fc2779ae72dd037755d1b71789c93b3abb1e220034d28e1bbdc48b19c33e4",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/tabs/pool-hub-v2-backup.php",
+    "bytes": 111352,
+    "sha256": "52f307fa77c2532861d13b080e7101750754992adce24ac89e0d11dfea15e172",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/tabs/waves-manager-tab.php.bak",
+    "bytes": 31917,
+    "sha256": "b9bbf88300d3fb97a7cabd899923a333cfd4b4b0e6a296fc5fa367b45cfd3c2a",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/templates/longitudinal-study-wizard-old.php",
+    "bytes": 14259,
+    "sha256": "2ee6c0aabc1919f8dd1085d14bbb6308b48d11502c54887a697943f60c5d7b46",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/templates/wizard-steps/step-1-info-old.php",
+    "bytes": 8577,
+    "sha256": "59d29301353101980cfbe191d7991654f1a14ea778ca6e611c7a66215e241532",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/templates/wizard-steps/step-2-info-old.php",
+    "bytes": 11911,
+    "sha256": "237618dbb345077af586359cbeb5a1882478c4af88f01db4487593f4353e3d0c",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/templates/wizard-steps/step-3-info-old.php",
+    "bytes": 19453,
+    "sha256": "8a6b72acc7632e22f2a5a3497961c135b06d5e5b10ebe804d45d0260589f2c05",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/templates/wizard-steps/step-4-info-old.php",
+    "bytes": 17084,
+    "sha256": "1fdc4e47bf0c8e24de891643e6f2f536ed6bd73cbd086aa73209e08b1a3a890d",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/templates/wizard-steps/step-5-info-old.php",
+    "bytes": 20009,
+    "sha256": "526700e73fb2e99517bc020ee244a2170c367a25d4e14ea49655d9093801e4a7",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "admin/test_fix.txt",
+    "bytes": 33,
+    "sha256": "55cdfd543f8751de84a58839d90d88c51fbc8894a6efeb4d41a7ca76941b1810",
+    "class": "A",
+    "reason": "marcador de pruebas sin consumidores"
+  },
+  {
+    "file": "assets/js/eipsi-forms.js.backup",
+    "bytes": 147898,
+    "sha256": "8b44f4cec114734da264967f886fa444044da6aeb262327f84b87a873c80f4bb",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "assets/js/theme-toggle.js",
+    "bytes": 836,
+    "sha256": "3bd53540652366cc55388e599fb56ac1af451fa720e96a7addd67d3b74581856",
+    "class": "A",
+    "reason": "stub deprecated; tema activo dentro de eipsi-forms.js"
+  },
+  {
+    "file": "includes/templates/participant-dashboard.php.backup",
+    "bytes": 16234,
+    "sha256": "b96df623f102f7b7d1c168c2123d75a1dd029a720b67754c333eac68dac4dee3",
+    "class": "A",
+    "reason": "backup/old confirmado"
+  },
+  {
+    "file": "npm",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "class": "A",
+    "reason": "archivo vacío"
+  }
+]

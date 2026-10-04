@@ -107,12 +107,11 @@ class EIPSI_MagicLinksService {
                 'survey_id' => $survey_id,
                 'participant_id' => $participant_id,
                 'token_hash' => $token_hash,
-                'token_plain' => $token_plain, // For debugging, will be removed in production
                 'expires_at' => $expires_at,
                 'used_at' => null,
                 'created_at' => current_time('mysql')
             ),
-            array('%d', '%d', '%s', '%s', '%s', '%s', '%s')
+            array('%d', '%d', '%s', '%s', '%s', '%s')
         );
 
         if ($inserted === false) {
