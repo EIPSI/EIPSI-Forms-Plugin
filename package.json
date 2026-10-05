@@ -4,7 +4,7 @@
     "description": "Professional form builder with Gutenberg blocks and Excel export capabilities.",
     "sideEffects": false,
     "scripts": {
-        "build": "wp-scripts build && node scripts/fix-block-json-css-references.js",
+        "build": "wp-scripts build && node scripts/fix-block-json-css-references.js && node scripts/build-form-runtime.js",
         "start": "wp-scripts start",
         "lint:js": "wp-scripts lint-js",
         "lint:js:fix": "wp-scripts lint-js --fix",

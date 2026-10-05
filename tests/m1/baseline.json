@@ -13504,8 +13504,20 @@
       "includes/participants/class-participant-password-service.php",
       "includes/participants/class-participant-registration-service.php",
       "includes/participants/class-participant-repository.php",
-      "includes/participants/class-participant-state-service.php"
+      "includes/participants/class-participant-state-service.php",
+      "includes/forms/bootstrap.php",
+      "includes/forms/class-form-capture-service.php",
+      "includes/forms/class-submit-service.php",
+      "includes/forms/class-form-tracking-service.php",
+      "includes/forms/class-form-context.php",
+      "includes/forms/class-form-storage-adapter.php",
+      "includes/forms/class-form-consent-service.php",
+      "includes/forms/class-form-response.php",
+      "includes/forms/class-partial-response-service.php",
+      "includes/forms/class-form-renderer.php",
+      "admin/services/class-form-longitudinal-submit-adapter.php"
     ],
-    "m2_includes": "Auth/Participants definition-only owners, originals keep their relative order; M2 policy equivalence checked independently."
+    "m2_includes": "Auth/Participants definition-only owners, originals keep their relative order; M2 policy equivalence checked independently.",
+    "m3_includes": "Explicit Forms owners/adapters; all external records remain compared."
   }
 }

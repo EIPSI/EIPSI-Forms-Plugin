@@ -2,7 +2,7 @@
 
 ## Bootstrap y dominios
 
-[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants. Forms/Submit y los módulos M3–M8 siguen pendientes.
+[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants y M3 separó Forms/Submit. Los módulos M4–M8 siguen pendientes.
 
 Los dominios existentes son formularios/respuestas, estudios/waves, participantes/sesiones, Pools/asignación, correo/cron y administración/exportación. No son módulos aislados: comparten bootstrap, tablas y callbacks. El inventario ejecutable de [M0](../tests/m0/README.md) permite observar registros efectivos y declaraciones por perfil admin/frontend.
 
@@ -64,3 +64,30 @@ El login passwordless conserva la autenticación email-only del endpoint activo.
 Los adapters conservan actions, nonces, capabilities, JSON, códigos HTTP y redirects. Los nuevos owners se cargan desde los archivos de facade, en el orden de bootstrap existente. Las 37 firmas públicas de Auth/MagicLinks/Participant siguen disponibles. `EIPSI_Participant_Auth_Handler` se conserva: su action magic-link continúa activa, y sus métodos públicos no registrados pueden ser consumidos por extensiones. `generate_and_create_page`, lecturas de waves/historial, `has_active_session` y hard-delete continúan como interfaces de compatibilidad; no se absorbieron asignaciones, Pools, exportación ni eliminación P1-C.
 
 `eipsi_check_consent_blocked` no tiene caller interno demostrado y permanece como helper legacy de información, no como autorización activa. Los métodos históricos de metadata/extensión de sesión conservan su contrato; no deben sustituir `get_current_session` para autorizar. Cleanup de magic links conserva su predicado heredado de igualdad de fecha: requiere revisión posterior. La purga M2 retira solo implementaciones sustituidas y el helper privado de diagnóstico de la facade MagicLinks, trasladado al owner; no elimina APIs públicas ni assets legacy.
+
+## Forms/Submit: ownership M3
+
+| Responsabilidad | Owner | Contrato conservado |
+| --- | --- | --- |
+| HTML, notices, acceso previo al render, Gutenberg/shortcodes | `EIPSI_Form_Renderer` | Funciones de `includes/form-template-render.php` |
+| Identificadores estables y estado del estudio | `EIPSI_Form_Context` | Helpers globales originales |
+| Respuestas, metadata, fingerprint y filtros previos a storage | `EIPSI_Form_Capture_Service` | Request histórico; helpers globales |
+| Coordinación del envío | `EIPSI_Submit_Service` | `eipsi_forms_submit_form`, `eipsi_forms_nonce` |
+| Resultados internos y adapter JSON | `EIPSI_Form_Response` | Payload/status existentes |
+| Guardado/verificación/retry/fallback/emergency | `EIPSI_Form_Storage_Adapter` → Data Safety existente | Sin cambios a Storage |
+| Coordinación longitudinal legacy después de persistencia | `EIPSI_Form_Longitudinal_Submit_Adapter` | Assignment/T1/recalculation/next wave/nudge/Pools existentes |
+| Save/load/discard/completed/retención y claves | `EIPSI_Partial_Response_Service` | `EIPSI_Partial_Responses` y AJAX existentes; `create_table` queda intacto |
+| Eventos y privacy | `EIPSI_Form_Tracking_Service` | `eipsi_track_event`, seis tipos existentes |
+| Consentimiento backend | `EIPSI_Form_Consent_Service` → Auth Policy / ParticipantState | `eipsi_save_consent_decision` |
+
+Submit sigue la secuencia autorización → Capture/privacy → Data Safety → verificación/device data → partial completed → actualización longitudinal → resultado/completion hook → JSON. En emergency confirmado, el retorno anticipado histórico no ejecuta el bloque longitudinal ni `eipsi_form_submitted`. Ese contrato se conserva, no se rediseña en M3. Para envíos longitudinales normales el hook sucede después del commit assignment/T1 y mantiene identidad canónica y wave_index de base uno.
+
+Frontera Auth: `authorize_form_operation` decide participante/estudio/wave/assignment. Forms no duplica reglas ni identifica por email o metadata. Frontera Storage: `validate`, `save`, `verify` delegan a funciones Data Safety sin modificar destinos ni políticas. Frontera Longitudinal: el adapter contiene el bloque legacy previamente inline; sus reglas siguen invocando Wave_Service, Assignment Service, Wave Recalculator, Nudge y el helper de Pools. No es un nuevo motor longitudinal ni se movieron implementaciones de esos servicios.
+
+Frontend: 18 fuentes internas ordenadas comparten el closure original: capture, conditional-logic, timing, runtime, branching-events, tracking, device-capture, consent-navigation, navigation-init, fields, navigation, validation, submit-client, messages, navigation-compatibility, completion, consent y bootstrap. El artifact público se genera en el build. Navigation gobierna páginas/next/back y campos deshabilitados; ConditionalNavigator evalúa branching, historial y páginas visitadas. Validation conserva required y reglas de text/textarea/select/radio/checkbox/VAS/email. Tracking delega en el cliente independiente activo de `assets/js/eipsi-tracking.js`; save/continue conserva el cliente independiente de `assets/js/eipsi-save-continue.js`.
+
+La visibilidad caracterizada es la de páginas y su required-state; no se agregó un motor nuevo de visibilidad condicional por campo. Required, validez email y VAS tocado siguen siendo validaciones frontend. Backend conserva nonce, identidad/estado/assignment, estudio cerrado, campos mínimos de Data Safety, tipos de tracking, límites de parciales y filtrado. No se creó ValidationService artificial que simule reglas backend inexistentes.
+
+Purga M3: únicamente `src/frontend/eipsi-save-continue.js`, copia alternativa sin requires/imports/entrada webpack. El cliente activo permanece idéntico. Facades render/helpers/partial y métodos JS públicos son compatibilidad C. Randomization/Pools, dashboard, servicios longitudinales y notificaciones quedan B para fases posteriores.
+
+Deuda demostrada y conservada: completion de Pools consulta `p.name` aunque el schema actual tiene `pool_name`; el helper antiguo busca email en `participant_id` BIGINT. El hook sigue registrado/disparado, pero esto no acredita completion funcional del Pool. Load/discard de parciales mantienen su contrato legacy por claves, sin agregar nonce/session auth en M3. La verificación genérica de Data Safety no reconoce todos los nombres de destino emergency/external aunque el guardado emergency confirma su INSERT. Required permanece frontend-only; ninguna de estas deudas se ocultó como funcionalidad nueva.

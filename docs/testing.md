@@ -1,6 +1,6 @@
 # Testing
 
-La suite actual tiene 268 pruebas: P0 22, P1-A 40, P1-B 40, P1-C 45, M0 36, M1 31 (29 contratos/lifecycle y 2 sin WP_DEBUG) y M2 54. Las 214 anteriores se mantienen.
+La suite anterior a M3 tiene 268 pruebas: P0 22, P1-A 40, P1-B 40, P1-C 45, M0 36, M1 31 (29 contratos/lifecycle y 2 sin WP_DEBUG) y M2 54. Las 214 anteriores se mantienen.
 
 ## Ejecutar las regresiones
 
@@ -69,3 +69,21 @@ docker exec eipsi-m0-wordpress php /tmp/eipsi-regression-source/tests/run-p1c.ph
 ```
 
 M0/M1/M2 se ejecutan contra el plugin activo del bind real. No sustituir un fallo operativo por un éxito basado únicamente en dobles. La suite sigue sin equivaler a E2E visual, CI ni validación de todas las políticas legacy de cron.
+
+## M3: Forms, submit y runtime
+
+M3 agrega 80 pruebas: 39 de WordPress/MariaDB/HTTP, 26 de DOM (cada una contra runtime anterior y generado) y 15 de límites/compilación/purga. Total: **348**, conservando las 268 anteriores. Después de instalar M0:
+
+```sh
+docker exec eipsi-m0-wordpress php /var/www/html/wp-content/plugins/EIPSI-Forms-Plugin/tests/run-m3.php
+docker run --rm -v "$PWD:/app" -w /app node:22 node tests/m3/source-contracts.js
+docker run --rm -v "$PWD:/app" -w /app node:22 node tests/m3/runtime-dom.js
+```
+
+El runner PHP rechaza toda base que no sea M0; reserva IDs 9922xx, detecta colisiones, instala temporalmente un mu-plugin para interceptar mail/observar completion HTTP y borra fixtures al salir. No ejecutar simultáneamente M2 y M3: usan el mismo rango de fixtures. Los fallos de INSERT se inyectan mediante `query` solo en el proceso CLI de la instalación descartable; Storage no se sustituye. El fallback externo se prueba con credenciales inválidas únicamente contra el DB host del propio Docker. Parciales prueban nonce/payload de 50KB, claves, completed, privacy y recuperación de página. T1/T2/T3 prueban identidad y wave_index, y observan el hook después del commit.
+
+La suite DOM usa jsdom ya presente en el lockfile, con fixtures de layout y red controlada. Ejecuta required, controles, VAS, páginas/historial, branching, consentimiento, restore del cliente parcial real, contrato de submit/fallo de transporte y completion. No es navegador headless ni E2E de render visual, IndexedDB real o compatibilidad móvil. El hash de la composición prueba que se conserva el código anterior; las assertions DOM comprueban efectos observables además del hash.
+
+El caso de Pools es caracterización explícita de deuda (`p.name`/`pool_name` y búsqueda legacy por email), no prueba de completion exitoso. Las reglas backend frontend-only y las limitaciones de verificación de Storage están documentadas en arquitectura. Las 15 comprobaciones de fuente congelan archivos de frontera y el artifact clásico; no sustituyen las pruebas HTTP.
+
+Para ejecutar P0/P1 en M0 con el plugin montado read-only, copiar la fuente exacta dentro del contenedor a `/tmp/eipsi-m3-source` (excluyendo `.git`, `node_modules`, `build`) y ejecutar allí esos cuatro runners: P1-C crea un destino de exportación de prueba. M0/M1/M2/M3 se ejecutan sobre el plugin activo montado. Para instalación realmente limpia recrear exclusivamente el proyecto `eipsi-m0` según `tests/m0/README.md`, construir y ejecutar nuevamente todas las suites.

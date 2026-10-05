@@ -2,7 +2,7 @@
 
 ## Estado del proyecto
 
-Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene la estabilización P0/P1, la caracterización M0 y la extracción del bootstrap M1 y Auth/Participants M2. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
+Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene la estabilización P0/P1, la caracterización M0 y la extracción del bootstrap M1 y Auth/Participants M2 y Forms/Submit M3. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
 
 ## Qué es
 
@@ -20,9 +20,9 @@ Plugin de WordPress para construir formularios con Gutenberg y administrar estud
 
 ## Arquitectura
 
-`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 separó el bootstrap y M2 asignó ownership a Auth/Participants; la modularización M3–M8 sigue pendiente. Véase [arquitectura actual](docs/architecture.md).
+`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 separó el bootstrap y M2 asignó ownership a Auth/Participants; M3 separó Forms/Submit y el runtime; M4–M8 siguen pendientes. Véase [arquitectura actual](docs/architecture.md).
 
-La composición está en `includes/bootstrap/`; Auth y Participants tienen owners en `includes/auth/` e `includes/participants/`, con facades compatibles en `admin/services/`.
+La composición está en `includes/bootstrap/`; Auth y Participants tienen owners en `includes/auth/` e `includes/participants/`, con facades compatibles en `admin/services/`. Forms tiene owners en `includes/forms/`; el runtime clásico se compone desde `src/frontend/forms/manifest.json` durante `npm run build`, manteniendo `assets/js/eipsi-forms.js` como URL pública.
 
 ## Requisitos
 
@@ -44,7 +44,7 @@ npm ci --no-audit --no-fund
 npm run build
 ```
 
-El proceso ejecuta `wp-scripts` y corrige referencias CSS de los metadatos. Debe generar `build/blocks/` con 13 bloques. `build/` y `node_modules/` están ignorados por Git.
+El proceso ejecuta `wp-scripts`, corrige referencias CSS de los metadatos y compone el runtime Forms clásico. Debe generar `build/blocks/` con 13 bloques. `build/` y `node_modules/` están ignorados por Git.
 
 ## Tests
 
@@ -57,7 +57,8 @@ El proceso ejecuta `wp-scripts` y corrige referencias CSS de los metadatos. Debe
 | M0 | 36 |
 | M1 | 31 |
 | M2 | 54 |
-| Total | 268 |
+| M3 | 80 |
+| Total | 348 |
 
 Comandos y límites en [testing](docs/testing.md). Nueve pruebas M0 caracterizan discrepancias UI→handler: pasar esas pruebas no demuestra que esas acciones funcionen.
 
@@ -83,4 +84,4 @@ GPL-2.0-or-later según los metadatos del proyecto. Se conserva la [licencia GPL
 
 ## Estado de madurez
 
-P0/P1, M0, PURGA 1, purga documental, M1 y M2 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M3–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.
+P0/P1, M0, PURGA 1, purga documental, M1, M2 y M3 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M4–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.

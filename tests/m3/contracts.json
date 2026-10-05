@@ -1,0 +1,388 @@
+{
+  "head": "74af0c12ad02b393ab24ce8e0ffec3fc97014d5b",
+  "unchanged_files": {
+    "admin/data-safety-system.php": "5894c323440c820bb45fa109d17dcf7bf6dc28dd16f191bb79a78a09857f25e6",
+    "admin/privacy-config.php": "60e06e88b6e5bda1178d79bb62a39c5f1ec4ec284ca0b7938be6af612b10c630",
+    "includes/auth/class-authorization-policy.php": "daa31687dfbbe54b3d730681918f2b94cadf0eb07d0eceba8537a92df84ec54a",
+    "includes/bootstrap/asset-callbacks.php": "80d524d75b6974aa5f578fba71cd9de19c617ce1ad2777649f3312ea7dfe7420",
+    "admin/database-schema-manager.php": "5fd8b044dd220899f3d570c4c4278e7d5591d1589eb5b1ea1b0e2c5fa402eb47",
+    "includes/services/Wave_Service.php": "42fbabeaf605b88bfb4e36e5971973d5f6775b69fb150d396116e47377940f1a",
+    "includes/services/class-wave-recalculator.php": "2537e61666676bda806378da365c4870b85a790ba44d520822cb7461593d52e8",
+    "admin/pool-completion-hooks.php": "e28d6bb81696eac1d23b3c1a39269578175ad45fe7b77339cd611a7211491c0c",
+    "includes/shortcodes.php": "2fcfb9c47c7602c4edba4195a643bcf25837a7292076c6e92e57d4d7d6a2899a",
+    "assets/js/eipsi-save-continue.js": "d63bf795e79bf1a72de967fc513e7a6f747bad77b9ce1d7ee9c3002dbf3392c3",
+    "assets/js/eipsi-tracking.js": "807d5b7af4886bd4db97a9a31e89c9311fd87063c6487cdef55bf2476b26d1a6",
+    "admin/services/class-email-service.php": "2f11f30121357f9fe006bac2583252ea7a981b26174b4574a9bf3d95d61f8cd5",
+    "admin/services/class-assignment-service.php": "40ba31ffd3d9d1f77a67d201c43b4bcf1f0fb8db8180ce1bb6bcb5c1e3fa9168"
+  },
+  "global_functions": {
+    "generate_stable_form_id": "function generate_stable_form_id($form_name)",
+    "get_form_initials": "function get_form_initials($form_name)",
+    "eipsi_get_study_status_for_form_name": "function eipsi_get_study_status_for_form_name($form_name)",
+    "eipsi_detect_device_type": "function eipsi_detect_device_type($user_agent)",
+    "eipsi_detect_browser": "function eipsi_detect_browser($user_agent)",
+    "eipsi_detect_os": "function eipsi_detect_os($user_agent)",
+    "generateStableFingerprint": "function generateStableFingerprint($user_data)",
+    "normalizeName": "function normalizeName($name)",
+    "eipsi_get_monitoring_data_handler": "function eipsi_get_monitoring_data_handler()",
+    "eipsi_get_audit_log_handler": "function eipsi_get_audit_log_handler()",
+    "eipsi_export_monitoring_report_handler": "function eipsi_export_monitoring_report_handler()",
+    "eipsi_test_smtp_connection_handler": "function eipsi_test_smtp_connection_handler()",
+    "eipsi_save_smtp_config_handler": "function eipsi_save_smtp_config_handler()",
+    "eipsi_disable_smtp_handler": "function eipsi_disable_smtp_handler()",
+    "eipsi_get_forms_list_handler": "function eipsi_get_forms_list_handler()",
+    "eipsi_get_demo_templates_handler": "function eipsi_get_demo_templates_handler()",
+    "eipsi_random_assign_handler": "function eipsi_random_assign_handler()",
+    "eipsi_save_assignment": "function eipsi_save_assignment($main_form_id, $email, $assigned_form_id, $seed, $type)",
+    "eipsi_weighted_random": "function eipsi_weighted_random($forms, $probabilities)",
+    "eipsi_get_assignment": "function eipsi_get_assignment($main_form_id, $email)",
+    "eipsi_validate_reminder_token_handler": "function eipsi_validate_reminder_token_handler()",
+    "eipsi_send_reminder_manual_handler": "function eipsi_send_reminder_manual_handler()",
+    "eipsi_unsubscribe_reminders_handler": "function eipsi_unsubscribe_reminders_handler()",
+    "eipsi_save_privacy_config_handler": "function eipsi_save_privacy_config_handler()",
+    "eipsi_save_global_privacy_config_handler": "function eipsi_save_global_privacy_config_handler()",
+    "eipsi_forms_submit_form_handler": "function eipsi_forms_submit_form_handler()",
+    "eipsi_get_research_context": "function eipsi_get_research_context($device, $duration)",
+    "eipsi_get_time_context": "function eipsi_get_time_context($datetime)",
+    "eipsi_get_platform_type": "function eipsi_get_platform_type($device, $screen_width)",
+    "eipsi_ajax_get_response_details": "function eipsi_ajax_get_response_details()",
+    "eipsi_track_event_handler": "function eipsi_track_event_handler()",
+    "eipsi_test_db_connection_handler": "function eipsi_test_db_connection_handler()",
+    "eipsi_save_db_config_handler": "function eipsi_save_db_config_handler()",
+    "eipsi_disable_external_db_handler": "function eipsi_disable_external_db_handler()",
+    "eipsi_get_db_status_handler": "function eipsi_get_db_status_handler()",
+    "eipsi_check_external_db_handler": "function eipsi_check_external_db_handler()",
+    "eipsi_verify_schema_handler": "function eipsi_verify_schema_handler()",
+    "eipsi_verify_local_schema_handler": "function eipsi_verify_local_schema_handler()",
+    "eipsi_check_local_table_status_handler": "function eipsi_check_local_table_status_handler()",
+    "eipsi_check_table_status_handler": "function eipsi_check_table_status_handler()",
+    "eipsi_delete_all_data_handler": "function eipsi_delete_all_data_handler()",
+    "eipsi_save_completion_message_handler": "function eipsi_save_completion_message_handler()",
+    "eipsi_get_completion_config_handler": "function eipsi_get_completion_config_handler()",
+    "eipsi_save_partial_response_handler": "function eipsi_save_partial_response_handler()",
+    "eipsi_load_partial_response_handler": "function eipsi_load_partial_response_handler()",
+    "eipsi_debug_partial_response_handler": "function eipsi_debug_partial_response_handler()",
+    "eipsi_save_consent_decision_handler": "function eipsi_save_consent_decision_handler()",
+    "eipsi_abandon_study_handler": "function eipsi_abandon_study_handler()",
+    "eipsi_discard_partial_response_handler": "function eipsi_discard_partial_response_handler()",
+    "eipsi_sync_submissions_handler": "function eipsi_sync_submissions_handler()",
+    "eipsi_get_site_logo_handler": "function eipsi_get_site_logo_handler()",
+    "eipsi_get_randomization_config": "function eipsi_get_randomization_config()",
+    "eipsi_check_manual_assignment": "function eipsi_check_manual_assignment($config = null, $participant_identifier = null)",
+    "eipsi_persist_assignment": "function eipsi_persist_assignment()",
+    "eipsi_get_randomization_pages_handler": "function eipsi_get_randomization_pages_handler()",
+    "eipsi_get_error_message": "function eipsi_get_error_message($error_code)",
+    "eipsi_check_login_rate_limit": "function eipsi_check_login_rate_limit($email, $survey_id)",
+    "eipsi_record_failed_login": "function eipsi_record_failed_login($email, $survey_id)",
+    "eipsi_clear_login_rate_limit": "function eipsi_clear_login_rate_limit($email, $survey_id)",
+    "eipsi_close_randomization_session_handler": "function eipsi_close_randomization_session_handler()",
+    "eipsi_ajax_save_form_auth_config": "function eipsi_ajax_save_form_auth_config()",
+    "eipsi_add_participant_magic_link_handler": "function eipsi_add_participant_magic_link_handler()",
+    "eipsi_add_participants_bulk_handler": "function eipsi_add_participants_bulk_handler()",
+    "eipsi_get_public_registration_link_handler": "function eipsi_get_public_registration_link_handler()",
+    "eipsi_get_schema_status_handler": "function eipsi_get_schema_status_handler()",
+    "eipsi_repair_single_table_handler": "function eipsi_repair_single_table_handler()",
+    "eipsi_export_schema_report_handler": "function eipsi_export_schema_report_handler()",
+    "eipsi_save_wave_nudge_config_handler": "function eipsi_save_wave_nudge_config_handler()",
+    "eipsi_fix_collations_handler": "function eipsi_fix_collations_handler()",
+    "eipsi_check_collation_issues_handler": "function eipsi_check_collation_issues_handler()",
+    "eipsi_execute_maintenance_sql_handler": "function eipsi_execute_maintenance_sql_handler()",
+    "eipsi_check_schema_issues_handler": "function eipsi_check_schema_issues_handler()",
+    "eipsi_auto_fix_schema_issues_handler": "function eipsi_auto_fix_schema_issues_handler()",
+    "eipsi_check_and_mark_pool_completion": "function eipsi_check_and_mark_pool_completion($participant_id, $study_id, $form_id)",
+    "eipsi_build_html_attributes": "function eipsi_build_html_attributes($attributes = array())",
+    "eipsi_render_form_notice": "function eipsi_render_form_notice($message, $type = 'info')",
+    "eipsi_get_form_template": "function eipsi_get_form_template($template_id)",
+    "eipsi_render_form_template_markup": "function eipsi_render_form_template_markup($template_id, $context = 'block', $options = array())",
+    "eipsi_render_form_shortcode_markup": "function eipsi_render_form_shortcode_markup($template_id)",
+    "eipsi_form_requires_login": "function eipsi_form_requires_login($template_id)",
+    "eipsi_get_current_participant": "function eipsi_get_current_participant()"
+  },
+  "public_api": {
+    "generate_stable_form_id": [
+      {
+        "name": "form_name",
+        "optional": false
+      }
+    ],
+    "get_form_initials": [
+      {
+        "name": "form_name",
+        "optional": false
+      }
+    ],
+    "eipsi_get_study_status_for_form_name": [
+      {
+        "name": "form_name",
+        "optional": false
+      }
+    ],
+    "eipsi_detect_device_type": [
+      {
+        "name": "user_agent",
+        "optional": false
+      }
+    ],
+    "eipsi_detect_browser": [
+      {
+        "name": "user_agent",
+        "optional": false
+      }
+    ],
+    "eipsi_detect_os": [
+      {
+        "name": "user_agent",
+        "optional": false
+      }
+    ],
+    "generateStableFingerprint": [
+      {
+        "name": "user_data",
+        "optional": false
+      }
+    ],
+    "normalizeName": [
+      {
+        "name": "name",
+        "optional": false
+      }
+    ],
+    "eipsi_get_monitoring_data_handler": [],
+    "eipsi_get_audit_log_handler": [],
+    "eipsi_export_monitoring_report_handler": [],
+    "eipsi_test_smtp_connection_handler": [],
+    "eipsi_save_smtp_config_handler": [],
+    "eipsi_disable_smtp_handler": [],
+    "eipsi_get_forms_list_handler": [],
+    "eipsi_get_demo_templates_handler": [],
+    "eipsi_random_assign_handler": [],
+    "eipsi_save_assignment": [
+      {
+        "name": "main_form_id",
+        "optional": false
+      },
+      {
+        "name": "email",
+        "optional": false
+      },
+      {
+        "name": "assigned_form_id",
+        "optional": false
+      },
+      {
+        "name": "seed",
+        "optional": false
+      },
+      {
+        "name": "type",
+        "optional": false
+      }
+    ],
+    "eipsi_weighted_random": [
+      {
+        "name": "forms",
+        "optional": false
+      },
+      {
+        "name": "probabilities",
+        "optional": false
+      }
+    ],
+    "eipsi_get_assignment": [
+      {
+        "name": "main_form_id",
+        "optional": false
+      },
+      {
+        "name": "email",
+        "optional": false
+      }
+    ],
+    "eipsi_validate_reminder_token_handler": [],
+    "eipsi_send_reminder_manual_handler": [],
+    "eipsi_unsubscribe_reminders_handler": [],
+    "eipsi_save_privacy_config_handler": [],
+    "eipsi_save_global_privacy_config_handler": [],
+    "eipsi_forms_submit_form_handler": [],
+    "eipsi_get_research_context": [
+      {
+        "name": "device",
+        "optional": false
+      },
+      {
+        "name": "duration",
+        "optional": false
+      }
+    ],
+    "eipsi_get_time_context": [
+      {
+        "name": "datetime",
+        "optional": false
+      }
+    ],
+    "eipsi_get_platform_type": [
+      {
+        "name": "device",
+        "optional": false
+      },
+      {
+        "name": "screen_width",
+        "optional": false
+      }
+    ],
+    "eipsi_ajax_get_response_details": [],
+    "eipsi_track_event_handler": [],
+    "eipsi_test_db_connection_handler": [],
+    "eipsi_save_db_config_handler": [],
+    "eipsi_disable_external_db_handler": [],
+    "eipsi_get_db_status_handler": [],
+    "eipsi_check_external_db_handler": [],
+    "eipsi_verify_schema_handler": [],
+    "eipsi_verify_local_schema_handler": [],
+    "eipsi_check_local_table_status_handler": [],
+    "eipsi_check_table_status_handler": [],
+    "eipsi_delete_all_data_handler": [],
+    "eipsi_save_completion_message_handler": [],
+    "eipsi_get_completion_config_handler": [],
+    "eipsi_save_partial_response_handler": [],
+    "eipsi_load_partial_response_handler": [],
+    "eipsi_debug_partial_response_handler": [],
+    "eipsi_save_consent_decision_handler": [],
+    "eipsi_abandon_study_handler": [],
+    "eipsi_discard_partial_response_handler": [],
+    "eipsi_sync_submissions_handler": [],
+    "eipsi_get_site_logo_handler": [],
+    "eipsi_get_randomization_config": [],
+    "eipsi_check_manual_assignment": [
+      {
+        "name": "config",
+        "optional": true,
+        "default": null
+      },
+      {
+        "name": "participant_identifier",
+        "optional": true,
+        "default": null
+      }
+    ],
+    "eipsi_persist_assignment": [],
+    "eipsi_get_randomization_pages_handler": [],
+    "eipsi_get_error_message": [
+      {
+        "name": "error_code",
+        "optional": false
+      }
+    ],
+    "eipsi_check_login_rate_limit": [
+      {
+        "name": "email",
+        "optional": false
+      },
+      {
+        "name": "survey_id",
+        "optional": false
+      }
+    ],
+    "eipsi_record_failed_login": [
+      {
+        "name": "email",
+        "optional": false
+      },
+      {
+        "name": "survey_id",
+        "optional": false
+      }
+    ],
+    "eipsi_clear_login_rate_limit": [
+      {
+        "name": "email",
+        "optional": false
+      },
+      {
+        "name": "survey_id",
+        "optional": false
+      }
+    ],
+    "eipsi_close_randomization_session_handler": [],
+    "eipsi_ajax_save_form_auth_config": [],
+    "eipsi_add_participant_magic_link_handler": [],
+    "eipsi_add_participants_bulk_handler": [],
+    "eipsi_get_public_registration_link_handler": [],
+    "eipsi_get_schema_status_handler": [],
+    "eipsi_repair_single_table_handler": [],
+    "eipsi_export_schema_report_handler": [],
+    "eipsi_save_wave_nudge_config_handler": [],
+    "eipsi_fix_collations_handler": [],
+    "eipsi_check_collation_issues_handler": [],
+    "eipsi_execute_maintenance_sql_handler": [],
+    "eipsi_check_schema_issues_handler": [],
+    "eipsi_auto_fix_schema_issues_handler": [],
+    "eipsi_check_and_mark_pool_completion": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "study_id",
+        "optional": false
+      },
+      {
+        "name": "form_id",
+        "optional": false
+      }
+    ],
+    "eipsi_build_html_attributes": [
+      {
+        "name": "attributes",
+        "optional": true,
+        "default": []
+      }
+    ],
+    "eipsi_render_form_notice": [
+      {
+        "name": "message",
+        "optional": false
+      },
+      {
+        "name": "type",
+        "optional": true,
+        "default": "info"
+      }
+    ],
+    "eipsi_get_form_template": [
+      {
+        "name": "template_id",
+        "optional": false
+      }
+    ],
+    "eipsi_render_form_template_markup": [
+      {
+        "name": "template_id",
+        "optional": false
+      },
+      {
+        "name": "context",
+        "optional": true,
+        "default": "block"
+      },
+      {
+        "name": "options",
+        "optional": true,
+        "default": []
+      }
+    ],
+    "eipsi_render_form_shortcode_markup": [
+      {
+        "name": "template_id",
+        "optional": false
+      }
+    ],
+    "eipsi_form_requires_login": [
+      {
+        "name": "template_id",
+        "optional": false
+      }
+    ],
+    "eipsi_get_current_participant": []
+  }
+}

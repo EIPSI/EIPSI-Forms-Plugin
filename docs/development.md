@@ -32,7 +32,7 @@ Propuesta pendiente de adopción: usar una única versión de distribución del 
 
 ## Alcance actual
 
-Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M1 incorporó `includes/bootstrap/`; M2 incorporó `includes/auth/` y `includes/participants/`. M3–M8 siguen pendientes. No hay CI/E2E completo. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
+Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M1 incorporó `includes/bootstrap/`; M2 incorporó `includes/auth/` y `includes/participants/`. M3 incorporó `includes/forms/` y `src/frontend/forms/`; M4–M8 siguen pendientes. No hay CI/E2E completo. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
 
 ## Cambiar el bootstrap
 
@@ -49,3 +49,13 @@ La semántica P1-A vive en `EIPSI_Authorization_Policy`. No agregar decisiones a
 Mantener las facades en `admin/services/`: sus firmas forman API compatible, incluso cuando no aparece un caller interno. Los adapters WP siguen validando request/nonce/capability y formando respuestas; Registration/Import/State ejecutan operaciones del dominio. Los servicios de correo, asignaciones, anonimización y Pools continúan siendo dependencias externas. No cambiar durations, cookies, tablas, columnas, action names o redirects incidentalmente.
 
 Ejecutar las 214 regresiones anteriores y la suite M2 real descrita en [testing](testing.md). El baseline de APIs M2 procede de `develop` en `2775faa`; no regenerarlo desde el resultado de un cambio para ocultar una regresión. La allowlist M1 añade únicamente los nueve includes M2 enumerados; no excluye hooks/REST/AJAX de la comparación.
+
+## Cambiar Forms/Submit
+
+El adapter AJAX conserva nonce y request de WordPress (incluido su slashing). `EIPSI_Submit_Service::submit($request, $query, $server)` devuelve un resultado interno; `EIPSI_Form_Response::emit` conserva los JSON/status públicos. Capture mantiene filtros P1-C antes de persistir. El servicio no vuelve a inferir identidad: delega en la facade Auth y su Policy; el flujo anónimo mantiene identidad longitudinal cero.
+
+El adapter Storage llama las tres funciones originales de Data Safety. El adapter longitudinal en `admin/services/` encapsula el bloque legacy extraído sin cambiar reglas, transacciones, SQL, notificaciones ni próximos eventos. No extender ese bloque en Forms; sus reglas pertenecen a M4. No borrar facades globales ni `EIPSI_Partial_Responses` por no encontrar callers internos.
+
+Editar las fuentes ordenadas en [manifest.json](../src/frontend/forms/manifest.json), no el artifact generado. Los archivos `.js.inc` son fragmentos del mismo closure clásico; algunos contienen métodos de un objeto compartido y no son scripts independientes. No cambiar orden, globals, nombres, selectores ni convertir a imports sin caracterización adicional. El build usa terser con `compress:false` y `mangle:false`; conserva la URL/handle y localizations existentes. `npm run start` sigue siendo el watcher histórico de Gutenberg: después de editar Forms ejecutar `node scripts/build-form-runtime.js` o `npm run build`.
+
+La fixture `tests/m3/runtime-baseline.js` es exclusivamente de pruebas; no restaurarla como fuente de producto. La composición M3 debe reproducir su hash hasta que se autorice un cambio funcional. Las pruebas comparan DOM anterior/generado y congelan límites críticos. Actualizar baselines requiere explicar qué contrato cambia; no regenerarlos para hacer pasar una regresión.
