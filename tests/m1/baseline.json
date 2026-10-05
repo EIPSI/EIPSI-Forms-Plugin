@@ -13484,6 +13484,10 @@
     "textdomain_file_identity": "__FILE__ becomes EIPSI_FORMS_PLUGIN_FILE to preserve language directory.",
     "deactivation": "Unschedule all argument variants of the 19 explicitly owned cron hooks; no persistent data deletion.",
     "additional_includes": [
+      "includes/auth/class-authentication-service.php",
+      "includes/auth/class-authorization-policy.php",
+      "includes/auth/class-magic-link-service.php",
+      "includes/auth/class-session-service.php",
       "includes/bootstrap/asset-callbacks.php",
       "includes/bootstrap/block-callbacks.php",
       "includes/bootstrap/bootstrap.php",
@@ -13495,7 +13499,13 @@
       "includes/bootstrap/class-lifecycle.php",
       "includes/bootstrap/class-service-loader.php",
       "includes/bootstrap/lifecycle-callbacks.php",
-      "includes/compatibility/legacy-main-callbacks.php"
-    ]
+      "includes/compatibility/legacy-main-callbacks.php",
+      "includes/participants/class-participant-import-service.php",
+      "includes/participants/class-participant-password-service.php",
+      "includes/participants/class-participant-registration-service.php",
+      "includes/participants/class-participant-repository.php",
+      "includes/participants/class-participant-state-service.php"
+    ],
+    "m2_includes": "Auth/Participants definition-only owners, originals keep their relative order; M2 policy equivalence checked independently."
   }
 }

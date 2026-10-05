@@ -3263,7 +3263,7 @@ function eipsi_save_consent_decision_handler() {
         
         error_log("[EIPSI-CONSENT-DEBUG] Validation SQL: " . $validate_query);
         
-        $existing_participant = $wpdb->get_var($validate_query);
+        $existing_participant = EIPSI_Participant_Repository::get_id_in_study($participant_id, $study_id);
 
         if (!$existing_participant) {
             error_log(sprintf('[EIPSI-CONSENT-ERROR] Participant %s not found for Study %s', $participant_id, $study_id));
@@ -3273,14 +3273,7 @@ function eipsi_save_consent_decision_handler() {
 
         $data['status'] = ($decision === 'declined') ? 'consent_declined' : 'active';
 
-        $result = $wpdb->update(
-            $table,
-            $data,
-            array(
-                'id' => $participant_id,
-                'survey_id' => $study_id,
-            )
-        );
+        $result = EIPSI_Participant_State_Service::save_consent($participant_id, $study_id, $data);
 
         if ($result === false) {
             wp_send_json_error(array('message' => __('Could not save consent decision', 'eipsi-forms')));
@@ -4090,10 +4083,7 @@ function eipsi_get_error_message($error_code) {
  * @return bool
  */
 function eipsi_check_login_rate_limit($email, $survey_id) {
-    $key = 'eipsi_login_attempts_' . md5($email . $survey_id);
-    $attempts = get_transient($key);
-    
-    return !($attempts && $attempts >= 5);
+    return EIPSI_Authentication_Service::check_login_rate_limit($email, $survey_id);
 }
 
 /**
@@ -4103,9 +4093,7 @@ function eipsi_check_login_rate_limit($email, $survey_id) {
  * @param int $survey_id
  */
 function eipsi_record_failed_login($email, $survey_id) {
-    $key = 'eipsi_login_attempts_' . md5($email . $survey_id);
-    $attempts = (int) get_transient($key);
-    set_transient($key, $attempts + 1, 15 * MINUTE_IN_SECONDS);
+    return EIPSI_Authentication_Service::record_failed_login($email, $survey_id);
 }
 
 /**
@@ -4115,8 +4103,7 @@ function eipsi_record_failed_login($email, $survey_id) {
  * @param int $survey_id
  */
 function eipsi_clear_login_rate_limit($email, $survey_id) {
-    $key = 'eipsi_login_attempts_' . md5($email . $survey_id);
-    delete_transient($key);
+    return EIPSI_Authentication_Service::clear_login_rate_limit($email, $survey_id);
 }
 
 
@@ -4410,42 +4397,11 @@ function eipsi_add_participants_bulk_handler() {
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-participant-service.php';
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-email-service.php';
     
-    $success_count = 0;
-    $failed_count = 0;
-    $errors = array();
-    
-    foreach ($emails_array as $email) {
-        $email = sanitize_email($email);
-        
-        if (!is_email($email)) {
-            $errors[] = "$email - Email inválido";
-            $failed_count++;
-            continue;
-        }
-        
-        // Generar password automático
-        $password = wp_generate_password(16, true, true);
-        
-        // Crear participante
-        $result = EIPSI_Participant_Service::create_participant($study_id, $email, $password, array(
-            'first_name' => '',
-            'last_name' => ''
-        ));
-        
-        if ($result['success']) {
-            // Enviar welcome email con Magic Link
-            EIPSI_Email_Service::send_welcome_email($study_id, $result['participant_id']);
-            $success_count++;
-        } else {
-            if ($result['error'] === 'email_exists') {
-                $errors[] = "$email - Ya registrado";
-            } else {
-                $errors[] = "$email - Error al crear";
-            }
-            $failed_count++;
-        }
-    }
-    
+    $import = EIPSI_Participant_Import_Service::add_emails($study_id, $emails_array);
+    $success_count = $import['success_count'];
+    $failed_count = $import['failed_count'];
+    $errors = $import['errors'];
+
     wp_send_json_success(array(
         'message' => "Proceso completado: $success_count agregados, $failed_count fallaron",
         'success_count' => $success_count,

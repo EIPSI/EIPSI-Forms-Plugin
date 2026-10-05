@@ -2,13 +2,13 @@
 
 ## Bootstrap y dominios
 
-[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; los módulos funcionales M2–M8 siguen pendientes.
+[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants. Forms/Submit y los módulos M3–M8 siguen pendientes.
 
 Los dominios existentes son formularios/respuestas, estudios/waves, participantes/sesiones, Pools/asignación, correo/cron y administración/exportación. No son módulos aislados: comparten bootstrap, tablas y callbacks. El inventario ejecutable de [M0](../tests/m0/README.md) permite observar registros efectivos y declaraciones por perfil admin/frontend.
 
 ## Contratos estabilizados
 
-Emergencia devuelve éxito solo tras persistencia confirmada y comunica el destino real. Diagnóstico parcial exige capability administrativa y nonce. Retiro y REST `/pool-assign` derivan identidad de la sesión y comprueban el contexto del estudio. Las pruebas P0/P1/M0/M1 documentan los contratos y sus límites en [tests/README.md](../tests/README.md).
+Emergencia devuelve éxito solo tras persistencia confirmada y comunica el destino real. Diagnóstico parcial exige capability administrativa y nonce. Retiro y REST `/pool-assign` derivan identidad de la sesión y comprueban el contexto del estudio. Las pruebas P0/P1/M0/M1/M2 documentan los contratos y sus límites en [tests/README.md](../tests/README.md).
 
 ## Deuda activa para fases posteriores
 
@@ -22,7 +22,7 @@ Coexisten recordatorios legacy y actuales. El chequeo de salud puede reprogramar
 
 [T1 y fechas persistidas](T1-ANCHOR-SYSTEM.md) explica columnas y anclaje necesarios para interpretar estudios existentes. [Registros históricos de correo](../FIX-EMAIL-LOOP-DEPLOYMENT.md) explica tipos vacíos y metadatos de deduplicación. Los formatos JSON heredados siguen documentados en [templates](../templates/README.md).
 
-La futura separación por dominios debe preservar estos contratos antes de reorganizar servicios. M1 no modifica esos dominios ni ejecuta M2.
+La futura separación por dominios debe preservar estos contratos antes de reorganizar servicios. M2 conserva la política P1-A y los contratos de los dominios que todavía no se modularizaron.
 
 ## Componentes M1
 
@@ -40,3 +40,27 @@ Los requires se ejecutan en el mismo alcance del archivo de entrada. No se envol
 La desactivación usa `wp_unschedule_hook` para todas las variantes de argumentos de los hooks conocidos, incluidos jobs por estudio y eventos únicos de nudges/disponibilidad. No limpia por prefijo arbitrario, no borra tablas/opciones/datos y no cambia cron de terceros. Rewrites y transients mantienen el comportamiento previo. La activación conserva trece eventos periódicos; otros se programan contextualmente por sus owners existentes. El worker y los pipelines legacy/actuales no se consolidaron.
 
 El fixture [baseline M1](../tests/m1/baseline.json) limita diferencias permitidas a archivos de extracción enumerados, ubicaciones de callbacks, identidad del archivo para traducciones, timestamps de petición ya existentes y limpieza de cron autorizada. Los registros públicos y 44 implementaciones globales se verifican automáticamente. La capa de compatibilidad sigue siendo grande; su separación funcional pertenece a fases posteriores.
+
+## Auth y Participants: ownership M2
+
+| Responsabilidad | Owner | Adapter/API conservada |
+| --- | --- | --- |
+| Decisión longitudinal P1-A e identidad canónica | [AuthorizationPolicy](../includes/auth/class-authorization-policy.php) | `EIPSI_Auth_Service::authorize_*` |
+| Password/passwordless y transients de rate limit | [AuthenticationService](../includes/auth/class-authentication-service.php) | `EIPSI_Auth_Service::authenticate*`, helpers globales de rate limit |
+| Creación, lookup, expiración, revocación, cookie y cleanup de sesiones | [SessionService](../includes/auth/class-session-service.php) | Métodos de sesión de `EIPSI_Auth_Service` |
+| Generación/hash, validación, vencimiento y single-use de magic links | [MagicLinkService](../includes/auth/class-magic-link-service.php) | `EIPSI_MagicLinksService` |
+| Lecturas/escrituras de participantes | [ParticipantRepository](../includes/participants/class-participant-repository.php) | `EIPSI_Participant_Service` |
+| Creación, passwordless y coordinación de confirmación | [RegistrationService](../includes/participants/class-participant-registration-service.php) | AJAX de registro y facade Participant |
+| Verificación/cambio de contraseña | [PasswordService](../includes/participants/class-participant-password-service.php) | Facade Participant |
+| Activación, desactivación y persistencia de consentimiento | [StateService](../includes/participants/class-participant-state-service.php) | Consent AJAX, confirmación HTTP y facade Participant |
+| Bulk/import y coordinación de notificaciones | [ImportService](../includes/participants/class-participant-import-service.php) | Adapters admin bulk y CSV |
+
+La decisión autoritativa exige participante existente, pertenencia al estudio, ausencia de withdrawn/declined, `is_active=1` y consentimiento vacío/NULL o accepted. El consentimiento aún no decidido permite entrar para decidir. El literal `pending` conserva su rechazo. Las identidades del cliente deben concordar con la sesión; un fingerprint de formulario no autentica. Login, magic link, lectura de sesión, acceso, consentimiento, submit y Pools llegan a este mismo owner mediante las facades existentes. Las consultas de waves necesarias para autorizar conservan su implementación P1-A; no se modularizó Forms/Submit.
+
+`survey_sessions.token` y `survey_magic_links.token_hash` almacenan SHA-256; el token claro solo se entrega al consumidor/cookie. Cookie `eipsi_session_token`, path `/`, HttpOnly, SameSite Lax y Secure según HTTPS. Sesión normal: 168 horas; sesión de `/survey-access/`: una hora; magic link: 48 horas. El auto-login `eipsi_magic` del shortcode conserva el TTL por defecto de siete días; el handler legacy conserva su parámetro remember. Se revalida estado al leer identidad y se revoca la sesión inválida. Desactivar/reactivar el plugin conserva sesiones persistidas. No hay migración de schema.
+
+El login passwordless conserva la autenticación email-only del endpoint activo. M2 no añade verificación de control del email ni rediseña ese contrato.
+
+Los adapters conservan actions, nonces, capabilities, JSON, códigos HTTP y redirects. Los nuevos owners se cargan desde los archivos de facade, en el orden de bootstrap existente. Las 37 firmas públicas de Auth/MagicLinks/Participant siguen disponibles. `EIPSI_Participant_Auth_Handler` se conserva: su action magic-link continúa activa, y sus métodos públicos no registrados pueden ser consumidos por extensiones. `generate_and_create_page`, lecturas de waves/historial, `has_active_session` y hard-delete continúan como interfaces de compatibilidad; no se absorbieron asignaciones, Pools, exportación ni eliminación P1-C.
+
+`eipsi_check_consent_blocked` no tiene caller interno demostrado y permanece como helper legacy de información, no como autorización activa. Los métodos históricos de metadata/extensión de sesión conservan su contrato; no deben sustituir `get_current_session` para autorizar. Cleanup de magic links conserva su predicado heredado de igualdad de fecha: requiere revisión posterior. La purga M2 retira solo implementaciones sustituidas y el helper privado de diagnóstico de la facade MagicLinks, trasladado al owner; no elimina APIs públicas ni assets legacy.

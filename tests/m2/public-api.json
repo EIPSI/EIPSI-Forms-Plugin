@@ -1,0 +1,330 @@
+{
+  "EIPSI_Auth_Service": {
+    "authorize_participant": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "survey_id",
+        "optional": false
+      }
+    ],
+    "get_current_session": [],
+    "authorize_session_context": [
+      {
+        "name": "request",
+        "optional": true,
+        "default": []
+      }
+    ],
+    "get_form_template_ids": [
+      {
+        "name": "form_name",
+        "optional": false
+      }
+    ],
+    "authorize_form_operation": [
+      {
+        "name": "form_name",
+        "optional": false
+      },
+      {
+        "name": "request",
+        "optional": true,
+        "default": []
+      },
+      {
+        "name": "query",
+        "optional": true,
+        "default": []
+      },
+      {
+        "name": "operation",
+        "optional": true,
+        "default": "submit"
+      }
+    ],
+    "authenticate": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "email",
+        "optional": false
+      },
+      {
+        "name": "password",
+        "optional": false
+      }
+    ],
+    "authenticate_passwordless": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "email",
+        "optional": false
+      }
+    ],
+    "create_session": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "ttl_hours",
+        "optional": true,
+        "default": 168
+      }
+    ],
+    "get_current_participant": [],
+    "get_current_survey": [],
+    "destroy_session": [],
+    "is_authenticated": [],
+    "cleanup_expired_sessions": [],
+    "get_current_session_info": [],
+    "get_session_remaining_time": [],
+    "extend_session": [
+      {
+        "name": "ttl_hours",
+        "optional": true,
+        "default": 168
+      }
+    ]
+  },
+  "EIPSI_MagicLinksService": {
+    "generate_magic_link": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "participant_id",
+        "optional": false
+      }
+    ],
+    "validate_magic_link": [
+      {
+        "name": "token_plain",
+        "optional": false
+      }
+    ],
+    "mark_magic_link_used": [
+      {
+        "name": "ml_id",
+        "optional": false
+      }
+    ],
+    "get_magic_link_by_token": [
+      {
+        "name": "token_hash",
+        "optional": false
+      }
+    ],
+    "cleanup_expired_magic_links": [],
+    "generate_and_create_page": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "study_code",
+        "optional": false
+      },
+      {
+        "name": "study_name",
+        "optional": true,
+        "default": ""
+      }
+    ]
+  },
+  "EIPSI_Participant_Service": {
+    "create_participant": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "email",
+        "optional": false
+      },
+      {
+        "name": "password",
+        "optional": true,
+        "default": null
+      },
+      {
+        "name": "metadata",
+        "optional": true,
+        "default": []
+      }
+    ],
+    "create_participant_with_status": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "email",
+        "optional": false
+      },
+      {
+        "name": "password",
+        "optional": true,
+        "default": null
+      },
+      {
+        "name": "metadata",
+        "optional": true,
+        "default": []
+      },
+      {
+        "name": "is_active",
+        "optional": true,
+        "default": true
+      }
+    ],
+    "get_by_email": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "email",
+        "optional": false
+      }
+    ],
+    "get_by_id": [
+      {
+        "name": "participant_id",
+        "optional": false
+      }
+    ],
+    "verify_password": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "plain_password",
+        "optional": false
+      }
+    ],
+    "update_last_login": [
+      {
+        "name": "participant_id",
+        "optional": false
+      }
+    ],
+    "set_active": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "is_active",
+        "optional": false
+      }
+    ],
+    "change_password": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "password_old",
+        "optional": false
+      },
+      {
+        "name": "password_new",
+        "optional": false
+      }
+    ],
+    "list_participants": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "page",
+        "optional": true,
+        "default": 1
+      },
+      {
+        "name": "per_page",
+        "optional": true,
+        "default": 50
+      },
+      {
+        "name": "filters",
+        "optional": true,
+        "default": []
+      }
+    ],
+    "get_wave_completions": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "study_id",
+        "optional": false
+      }
+    ],
+    "get_magic_link_history": [
+      {
+        "name": "participant_id",
+        "optional": false
+      }
+    ],
+    "has_active_session": [
+      {
+        "name": "participant_id",
+        "optional": false
+      }
+    ],
+    "deactivate": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "reason",
+        "optional": true,
+        "default": ""
+      }
+    ],
+    "hard_delete": [
+      {
+        "name": "participant_id",
+        "optional": false
+      },
+      {
+        "name": "reason",
+        "optional": true,
+        "default": ""
+      }
+    ],
+    "create_or_get_for_magic_link": [
+      {
+        "name": "survey_id",
+        "optional": false
+      },
+      {
+        "name": "email",
+        "optional": false
+      }
+    ]
+  }
+}

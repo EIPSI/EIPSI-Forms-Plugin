@@ -65,30 +65,10 @@ function eipsi_participant_register_handler() {
         require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-auth-service.php';
     }
     
-    // v1.5.7 - Load study config to check double opt-in setting
-    global $wpdb;
-    $study = $wpdb->get_row($wpdb->prepare(
-        "SELECT id, config FROM {$wpdb->prefix}survey_studies WHERE id = %d",
-        $survey_id
-    ));
-    
-    $study_config = ($study && !empty($study->config)) ? json_decode($study->config, true) : array();
-    // FIX: double_opt_in defaults to TRUE when config is NULL or not set
-    $double_opt_in = !isset($study_config['double_opt_in']) || $study_config['double_opt_in'] === true;
-    
-    // Create participant (passwordless - no password, no names)
-    // If double_opt_in is true, participant is created with is_active = 0
-    $result = EIPSI_Participant_Service::create_participant_with_status(
-        $survey_id,
-        $email,
-        null, // No password for passwordless flow
-        array(
-            'first_name' => '',
-            'last_name' => ''
-        ),
-        !$double_opt_in // is_active = false if double_opt_in required
-    );
-    
+    $registration = EIPSI_Participant_Registration_Service::register_passwordless($survey_id, $email);
+    $double_opt_in = $registration['double_opt_in'];
+    $result = $registration['result'];
+
     if (!$result['success']) {
         // Special handling for email_exists - provide friendly options
         if ($result['error'] === 'email_exists') {
@@ -146,37 +126,8 @@ function eipsi_participant_register_handler() {
     
     // v1.5.7 - Handle double opt-in flow
     if ($double_opt_in) {
-        // Load confirmation service
-        if (!class_exists('EIPSI_Email_Confirmation_Service')) {
-            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-email-confirmation-service.php';
-        }
-        if (!class_exists('EIPSI_Email_Service')) {
-            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-email-service.php';
-        }
-        
-        // Generate confirmation token
-        $token_result = EIPSI_Email_Confirmation_Service::generate_confirmation_token(
-            $survey_id,
-            $result['participant_id'],
-            $email
-        );
-        
-        if (!$token_result['success']) {
-            // Token generation failed - log but still return success to user
-            error_log('[EIPSI] Failed to generate confirmation token for participant ' . $result['participant_id']);
-        } else {
-            // Send confirmation email
-            $email_sent = EIPSI_Email_Service::send_confirmation_email(
-                $survey_id,
-                $result['participant_id'],
-                $token_result['token']
-            );
-            
-            if (!$email_sent) {
-                error_log('[EIPSI] Failed to send confirmation email to ' . $email);
-            }
-        }
-        
+        EIPSI_Participant_Registration_Service::send_confirmation($survey_id, $result['participant_id'], $email);
+
         // Return response indicating confirmation is required (no session created)
         wp_send_json_success(array(
             'message' => __('Revisá tu bandeja de entrada para confirmar tu email.', 'eipsi-forms'),

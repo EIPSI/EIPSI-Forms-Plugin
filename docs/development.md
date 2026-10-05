@@ -32,7 +32,7 @@ Propuesta pendiente de adopción: usar una única versión de distribución del 
 
 ## Alcance actual
 
-Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M1 incorporó la capa `includes/bootstrap/`; M2–M8 siguen pendientes. No hay CI/E2E completo. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
+Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M1 incorporó `includes/bootstrap/`; M2 incorporó `includes/auth/` y `includes/participants/`. M3–M8 siguen pendientes. No hay CI/E2E completo. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
 
 ## Cambiar el bootstrap
 
@@ -41,3 +41,11 @@ Mantener el manifest de ServiceLoader en orden y ejecutar sus requires desde la 
 Registrar mediante el owner adecuado y preservar callback, prioridad, accepted args y orden respecto de otros registros. Las funciones globales de compatibilidad no deben retirarse por existir una clase. Lifecycle usa `EIPSI_FORMS_PLUGIN_FILE` para conservar la identidad de los hooks de activación y la ruta de traducciones.
 
 Los cron por estudio/asignación continúan programándose en sus recorridos de dominio. Actualizar el catálogo explícito de CronRegistry cuando se demuestre un nuevo hook propietario; no limpiar todos los nombres con prefijo `eipsi_`. [Pruebas de contratos y ciclo de vida](testing.md).
+
+## Cambiar Auth/Participants
+
+La semántica P1-A vive en `EIPSI_Authorization_Policy`. No agregar decisiones alternativas en handlers, shortcodes o servicios: usar sus facades de autorización y derivar participante/estudio de la sesión. Los owners Auth gestionan exclusivamente autenticación, sesiones y magic links; ParticipantRepository está limitado a participantes y consultas de contexto específicas, no es un repositorio universal.
+
+Mantener las facades en `admin/services/`: sus firmas forman API compatible, incluso cuando no aparece un caller interno. Los adapters WP siguen validando request/nonce/capability y formando respuestas; Registration/Import/State ejecutan operaciones del dominio. Los servicios de correo, asignaciones, anonimización y Pools continúan siendo dependencias externas. No cambiar durations, cookies, tablas, columnas, action names o redirects incidentalmente.
+
+Ejecutar las 214 regresiones anteriores y la suite M2 real descrita en [testing](testing.md). El baseline de APIs M2 procede de `develop` en `2775faa`; no regenerarlo desde el resultado de un cambio para ocultar una regresión. La allowlist M1 añade únicamente los nueve includes M2 enumerados; no excluye hooks/REST/AJAX de la comparación.

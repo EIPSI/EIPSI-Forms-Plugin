@@ -99,16 +99,7 @@ class EIPSI_Survey_Access_Handler {
         $survey_id      = $validation_result['survey_id'];
         $email          = $validation_result['email']; // comes from the DB record, not the URL
 
-        $wpdb->update(
-            $wpdb->prefix . 'survey_participants',
-            array(
-                'is_active'  => 1,
-                'updated_at' => current_time( 'mysql' ),
-            ),
-            array( 'id' => $participant_id ),
-            array( '%d', '%s' ),
-            array( '%d' )
-        );
+        EIPSI_Participant_State_Service::confirm_email($participant_id);
 
         // v2.1.5 - Send welcome email FIRST, then create assignments (to ensure correct order)
         // Load email service

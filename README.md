@@ -2,7 +2,7 @@
 
 ## Estado del proyecto
 
-Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene la estabilización P0/P1, la caracterización M0 y la extracción del bootstrap M1. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
+Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene la estabilización P0/P1, la caracterización M0 y la extracción del bootstrap M1 y Auth/Participants M2. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
 
 ## Qué es
 
@@ -20,7 +20,9 @@ Plugin de WordPress para construir formularios con Gutenberg y administrar estud
 
 ## Arquitectura
 
-`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 es estructural; la modularización funcional M2–M8 sigue pendiente. Véase [arquitectura actual](docs/architecture.md).
+`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 separó el bootstrap y M2 asignó ownership a Auth/Participants; la modularización M3–M8 sigue pendiente. Véase [arquitectura actual](docs/architecture.md).
+
+La composición está en `includes/bootstrap/`; Auth y Participants tienen owners en `includes/auth/` e `includes/participants/`, con facades compatibles en `admin/services/`.
 
 ## Requisitos
 
@@ -54,7 +56,8 @@ El proceso ejecuta `wp-scripts` y corrige referencias CSS de los metadatos. Debe
 | P1-C | 45 |
 | M0 | 36 |
 | M1 | 31 |
-| Total | 214 |
+| M2 | 54 |
+| Total | 268 |
 
 Comandos y límites en [testing](docs/testing.md). Nueve pruebas M0 caracterizan discrepancias UI→handler: pasar esas pruebas no demuestra que esas acciones funcionen.
 
@@ -80,4 +83,4 @@ GPL-2.0-or-later según los metadatos del proyecto. Se conserva la [licencia GPL
 
 ## Estado de madurez
 
-P0/P1, M0, PURGA 1, purga documental y M1 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M2–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.
+P0/P1, M0, PURGA 1, purga documental, M1 y M2 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M3–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.

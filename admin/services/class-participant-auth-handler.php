@@ -409,10 +409,7 @@ class EIPSI_Participant_Auth_Handler {
         // Get survey_id from study_code if provided
         if (!empty($study_code) && empty($survey_id)) {
             global $wpdb;
-            $study = $wpdb->get_row($wpdb->prepare(
-                "SELECT id FROM {$wpdb->prefix}survey_studies WHERE study_code = %s",
-                $study_code
-            ));
+            $study = EIPSI_Participant_Repository::study_by_code($study_code);
             if ($study) {
                 $survey_id = (int) $study->id;
             }
