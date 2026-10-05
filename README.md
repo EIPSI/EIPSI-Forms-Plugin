@@ -85,4 +85,6 @@ GPL-2.0-or-later según los metadatos del proyecto. Se conserva la [licencia GPL
 
 ## Estado de madurez
 
-P0/P1, M0, PURGA 1, purga documental, M1, M2, M3 y M4 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M5–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.
+P0/P1, M0, PURGA 1, purga documental, M1, M2, M3, M4 y M5 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M6–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.
+
+Notifications tiene owners en `includes/notifications/` para policy, scheduling, queue/worker, email/templates/logs y reminders; las APIs históricas delegan conservando firmas. [Arquitectura](docs/architecture.md) y [pruebas M5](tests/m5/README.md).

@@ -503,4 +503,34 @@ public static function skip_locked($a) {
             }
     return false;
 }
+public static function eipsi_expire_t1_assignment($assignment) {
+    global $wpdb;
+
+    // Update assignment status
+    $updated = $wpdb->update(
+        $wpdb->prefix . 'survey_assignments',
+        array('status' => 'expired'),
+        array('id' => $assignment->assignment_id),
+        array('%s'),
+        array('%d')
+    );
+
+    if ($updated === false) {
+        error_log("[EIPSI Weekly T1] Failed to expire assignment {$assignment->assignment_id}");
+        return;
+    }
+
+    // Cancel pending nudges
+    if (class_exists('EIPSI_Nudge_Event_Scheduler')) {
+        EIPSI_Nudge_Event_Scheduler::cancel_nudges_for_assignment($assignment->assignment_id);
+    }
+
+    // TODO: Send expiration notification email (optional)
+    // Could use a template like 'study-expired.php'
+
+    error_log(sprintf(
+        '[EIPSI Weekly T1] Expired assignment %d for participant %d',
+        $assignment->assignment_id, $assignment->participant_id
+    ));
+}
 }

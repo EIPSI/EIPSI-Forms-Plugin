@@ -16,3 +16,4 @@ require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/longitudinal/studies/class-study
 require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/longitudinal/studies/class-study-dashboard-service.php';
 require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/longitudinal/studies/class-study-config-service.php';
 require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/longitudinal/assignments/class-assignment-deadline-service.php';
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/longitudinal/assignments/class-notification-context-service.php';

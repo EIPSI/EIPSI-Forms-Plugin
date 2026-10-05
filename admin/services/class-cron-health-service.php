@@ -23,13 +23,13 @@ class EIPSI_Cron_Health_Service {
     const CRON_JOBS = array(
         'eipsi_send_wave_reminders_hourly' => array(
             'name' => 'Recordatorios de Ondas',
-            'interval' => 3600, // 1 hour
+            'interval' => 60, // Declared every_minute cadence
             'description' => 'Envía recordatorios automáticos a participantes con ondas pendientes',
             'critical' => true
         ),
         'eipsi_send_dropout_recovery_hourly' => array(
             'name' => 'Recuperación de Abandono',
-            'interval' => 3600, // 1 hour
+            'interval' => 60, // Declared every_minute cadence
             'description' => 'Envía emails de recuperación a participantes que abandonaron',
             'critical' => true
         ),
@@ -342,24 +342,21 @@ class EIPSI_Cron_Health_Service {
             );
         }
 
-        // Clear existing schedule
-        wp_clear_scheduled_hook($hook);
-
-        // Reschedule
-        $config = self::CRON_JOBS[$hook];
-        $result = wp_schedule_event(time(), 'hourly', $hook);
-
-        if ($result !== false) {
-            return array(
-                'success' => true,
-                'message' => 'Trabajo reprogramado exitosamente'
-            );
-        } else {
-            return array(
-                'success' => false,
-                'message' => 'Error al reprogramar el trabajo'
-            );
+        $defaults=array('eipsi_send_wave_reminders_hourly'=>'every_minute','eipsi_send_dropout_recovery_hourly'=>'every_minute','eipsi_purge_access_logs_daily'=>'daily');
+        $events=array();
+        foreach(_get_cron_array() as $rows){foreach(($rows[$hook]??array()) as $event){$events[md5(serialize($event['args']))]=$event;}}
+        if(!$events){
+            if(!isset($defaults[$hook])){return array('success'=>false,'message'=>'El cron de estudio requiere una programación con argumentos existente.');}
+            $events[]=array('args'=>array(),'schedule'=>$defaults[$hook]);
         }
+        $success=true;
+        foreach($events as $event){
+            $schedule=$defaults[$hook]??$event['schedule'];
+            wp_clear_scheduled_hook($hook,$event['args']);
+            $result=wp_schedule_event(time(),$schedule,$hook,$event['args']);
+            if($result===false || is_wp_error($result)){$success=false;}
+        }
+        return array('success'=>$success,'message'=>$success?'Trabajo reprogramado exitosamente':'Error al reprogramar el trabajo');
     }
 
     /**

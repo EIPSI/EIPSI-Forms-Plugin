@@ -70,3 +70,11 @@ Mantener índices base uno y fechas/offsets/window en minutos. No convertir los 
 No mover Notifications ni Pools a este dominio. El puente de entrega conservado en Wave_Service es compatibilidad temporal para M5. No restaurar UI de recalculation sin definir previamente un contrato. Mantener las 348 regresiones previas y ejecutar las 55 M4, incluidas conexiones MariaDB concurrentes; ejecutar suites secuencialmente en M0.
 
 La purga asociada elimina exclusivamente siete métodos privados A trasladados; las facades C siguen siendo API compatible aunque un caller interno desaparezca. No reutilizar esa clasificación para eliminar métodos o archivos adicionales. Los baselines de contratos proceden del HEAD anterior `7eabedf`; las cuatro excepciones M3 están registradas y conservan hashes históricos.
+
+## Desarrollo de Notifications (M5)
+
+Modificar política en `includes/notifications/nudges/class-nudge-policy-service.php`; scheduler en `class-nudge-schedule-service.php`; persistencia en Queue; consumo en Worker; transporte y logs en `email/`. Las facades históricas siguen siendo contratos públicos. El estado temporal clínico se modifica únicamente mediante owners Longitudinal. No agregar SQL de schema ni trasladar Pools/Storage/Privacy/Export a Notifications.
+
+Los templates se mantienen intactos; cambios de contenido deben ser una tarea explícita. No eliminar pipelines por su nombre legacy: posts/meta aún pueden activar envíos. Las purgas M5 se documentan en `tests/m5/purge-manifest.json`, con hash y prueba de sustitución. La migración de hashes M3 usa una allowlist explícita y conserva sus hashes previos; no regenerar baselines históricos desde el código modificado.
+
+Los fixtures M5 solo admiten la DB descartable M0, correo interceptado y cron automático deshabilitado. Los workers concurrentes declaran DOING_CRON para impedir que el wake-up de visitas consuma el job antes de la barrera. El runner restaura cron, elimina IDs propios y no usa la base del workspace.

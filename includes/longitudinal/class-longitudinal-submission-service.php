@@ -207,62 +207,9 @@ public static function handle_submission($context) {
 
                 error_log(sprintf('[EIPSI-DIAG] Prepared next_wave_data: %s', json_encode($next_wave_data)));
 
-                // v2.2.2 - TRIGGER INMEDIATO: Enviar Nudge 0 ahora si la siguiente toma YA está disponible
-                // (evita esperar al cron hourly cuando interval=0 o el tiempo ya pasó)
-                $available_timestamp = intval($available_at);
-                $current_timestamp = current_time('timestamp');
-                if ($available_timestamp <= $current_timestamp) {
-                    error_log(sprintf('[EIPSI-DIAG] NEXT WAVE AVAILABLE NOW: wave_id=%d, available_at=%s, current=%s - Triggering immediate Nudge 0 email',
-                        $next_wave['wave_id'], date('Y-m-d H:i:s', $available_timestamp), date('Y-m-d H:i:s', $current_timestamp)));
+                $notification=EIPSI_Notification_Longitudinal_Adapter::notify_next_wave($next_wave,$study_id,$longitudinal_participant_id,$available_at);
+                $nudge_0_sent=$notification['nudge_0_sent'];$nudge_0_message=$notification['nudge_0_message'];
 
-                    // Asegurar que la clase esté cargada
-                    if (!class_exists('EIPSI_Wave_Availability_Email_Service')) {
-                        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-wave-availability-email-service.php';
-                    }
-
-                    if (class_exists('EIPSI_Wave_Availability_Email_Service')) {
-                        // Cargar dependencias necesarias para obtener los objetos (v2.2.3 Fix)
-                        if (!class_exists('EIPSI_Wave_Service')) {
-                            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-wave-service.php';
-                        }
-                        if (!class_exists('EIPSI_Participant_Service')) {
-                            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-participant-service.php';
-                        }
-
-                        // Obtener objetos requeridos por el servicio
-                        global $wpdb;
-                        $assignment_obj = $wpdb->get_row($wpdb->prepare(
-                            "SELECT * FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND participant_id = %d",
-                            $next_wave['wave_id'],
-                            $longitudinal_participant_id
-                        ), OBJECT);
-
-                        $wave_obj = EIPSI_Wave_Service::get_wave($next_wave['wave_id']);
-                        $participant_obj = EIPSI_Participant_Service::get_by_id($longitudinal_participant_id);
-
-                        // Solo proceder si tenemos todos los datos necesarios
-                        if ($assignment_obj && $wave_obj && $participant_obj) {
-                            $email_result = EIPSI_Wave_Availability_Email_Service::ensure_wave_availability_email_sent(
-                                $assignment_obj,
-                                $wave_obj,
-                                $participant_obj,
-                                $study_id
-                            );
-                            error_log(sprintf('[EIPSI-DIAG] Immediate Nudge 0 email result: %s', json_encode($email_result)));
-
-                            // Guardar para agregar al success_response después
-                            if ($email_result['success'] && $email_result['sent']) {
-                                $nudge_0_sent = true;
-                                $nudge_0_message = __('Email de siguiente toma enviado inmediatamente', 'eipsi-forms');
-                            }
-                        } else {
-                            error_log(sprintf('[EIPSI-DIAG] Could not trigger immediate Nudge 0: Missing objects. Assignment: %s, Wave: %s, Participant: %s',
-                                $assignment_obj ? 'OK' : 'MISSING',
-                                $wave_obj ? 'OK' : 'MISSING',
-                                $participant_obj ? 'OK' : 'MISSING'));
-                        }
-                    }
-                }
             }
         } else {
             error_log('[EIPSI-DIAG] CONDICIÓN NO CUMPLIDA - No se procesa assignment. Faltan: ' .

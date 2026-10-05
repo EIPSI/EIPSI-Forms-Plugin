@@ -1,0 +1,224 @@
+{
+  "head": "e715155",
+  "removed": [
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_study_code",
+      "classification": "A",
+      "before_sha256": "1fd8ec3a3bb26a0c033837fd09ce5c40c3f2e2657e3fb2bd16c0f33de60f5aa7",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_participant",
+      "classification": "A",
+      "before_sha256": "7416270d73aac7cc1748070d6c687fe7604877760369f5d43ea538a58aa2c85c",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_study_name",
+      "classification": "A",
+      "before_sha256": "12b35bbd9078f1714cd3896eafa7d958267e64f30558a8f66684ef7a3343a995",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_pool_page_url_fallback",
+      "classification": "A",
+      "before_sha256": "2b3e3802d814205874a49daa32f9d346993a191cc0ff9b8d6a9ec0cb5ea29a0b",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_latest_magic_link_url",
+      "classification": "A",
+      "before_sha256": "9a690414c335ce8f6f922c615718df7620cc9aa4c2759b0729164a9d2d6dccc8",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_latest_magic_link_record",
+      "classification": "A",
+      "before_sha256": "26e6f8ce989d9851e5a37ec7e2d776e7d8ad3e11db43ea969db32cf9893bc1d7",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "render_template",
+      "classification": "A",
+      "before_sha256": "d062c784104762de2d90ba95375ac9b827bf4ca21806cdfcab12311215fcc530",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_participant_email",
+      "classification": "A",
+      "before_sha256": "ee1e4f7e11dbd78aa15cff1a63986e5b5423ff0a5d6498ada9519f3e886512ad",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "send_manual_reminder_email",
+      "classification": "A",
+      "before_sha256": "f6e75bb58c4c4d18d11148ffad83098b52de64bc302c3af48ff377ffc1ec9f4d",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_wave",
+      "classification": "A",
+      "before_sha256": "06ae8f8dee14897910a1a5705027c85169b2752cd15c7c034d93bd9b67dc45c0",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_current_wave_for_participant",
+      "classification": "A",
+      "before_sha256": "9e2b5385b0bfa4a32fc298561175df3e97887daa398955f3b26df68000efa43a",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-email-service.php",
+      "method": "get_email_method_label",
+      "classification": "A",
+      "before_sha256": "9524ec657fac7103774e8406abdce843935d342b11d6f2f28c44c5a3432a4384",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-wave-availability-email-service.php",
+      "method": "is_wave_available",
+      "classification": "A",
+      "before_sha256": "ec2eb6bcdd8c877df88678a77ca553131f28f5b9b0a88ab743f709be7aa0fbc8",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-wave-availability-email-service.php",
+      "method": "was_nudge_zero_already_sent",
+      "classification": "A",
+      "before_sha256": "7efa1a5b7831de7cc8b6dd44b4c7f6eac4de2ce52c2de147060b123baba1395b",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-wave-availability-email-service.php",
+      "method": "get_retry_status",
+      "classification": "A",
+      "before_sha256": "abed751bbe63ee634ea745387633ec6a49bf0bfeb06319c4cf106bc7bb1af7cc",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-wave-availability-email-service.php",
+      "method": "record_failed_attempt",
+      "classification": "A",
+      "before_sha256": "eebc381183eab0260bbb965ac1751375119c1769e904a67de983580004490c5f",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-wave-availability-email-service.php",
+      "method": "mark_nudge_zero_sent",
+      "classification": "A",
+      "before_sha256": "b546d8b0d24048a34d1b606bf2c61615940cdec07178114a5e3c1eb50b941032",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-wave-availability-email-service.php",
+      "method": "send_wave_availability_email_with_retry",
+      "classification": "A",
+      "before_sha256": "86f6ec595ff3a19f68ff5a31f0ea0890481e63dd7e1e42d1d4f1e50ed5b62a71",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-wave-availability-email-service.php",
+      "method": "log_email_success",
+      "classification": "A",
+      "before_sha256": "7cbfbed61e90e579dabdf13081c90268e1119b4c29ca076d4b006059c3620afc",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "admin/services/class-wave-availability-email-service.php",
+      "method": "schedule_followup_nudges_after_nudge_zero",
+      "classification": "A",
+      "before_sha256": "451ff0dc60acd04a6e188b7069dbe695d517b42186c886359700f6c443c0cde1",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-event-scheduler.php",
+      "method": "send_nudge_direct",
+      "classification": "A",
+      "before_sha256": "deddab92f08fc7be5e30c2195aebe66dedb80bb0f16b9556b63ccafa305a33cb",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-event-scheduler.php",
+      "method": "get_event_key",
+      "classification": "A",
+      "before_sha256": "c0161754d94eed30fbccad491f06578d473ae9c5cbdd4acd6fc701b242378c30",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-event-scheduler.php",
+      "method": "convert_to_seconds",
+      "classification": "A",
+      "before_sha256": "1fb35037601fc0b9a18ddc45e0ee11dcdb7bf610850cdb573ba266660af7de61",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-event-scheduler.php",
+      "method": "format_delay",
+      "classification": "A",
+      "before_sha256": "d66e4c2c988f7c12ed3fef7dcd7ccdf343450f43e9fac286e89777f4bb22822c",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-job-queue.php",
+      "method": "get_table_name",
+      "classification": "A",
+      "before_sha256": "7ebe7a4b6a7109ccf59ca587f87168423624baa03e08198a922a06c0e415f592",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-job-queue.php",
+      "method": "execute_job",
+      "classification": "A",
+      "before_sha256": "f9f6b7939afc02c66300eb54a614a1eb30ae710c14a6a353e87d7f00d9196d41",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-cache.php",
+      "method": "calculate_trigger_timestamp",
+      "classification": "A",
+      "before_sha256": "a55b269c22ec29b7cb6345e1822d7581009cdfde2cbb4b5a1dde57960d8c450f",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-cache.php",
+      "method": "get_cache_key",
+      "classification": "A",
+      "before_sha256": "e35b6a8af4dab1f457a1f7b471cde9ede92400768a7cd7ab31316102b9a4eb4a",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    },
+    {
+      "file": "includes/services/class-nudge-cache.php",
+      "method": "convert_to_seconds",
+      "classification": "A",
+      "before_sha256": "a0f4c99dd59b831fee6c1b7669f69c87c058c00e3b52e6686b3e23052a802d2e",
+      "reason": "Private duplicate unreachable after public APIs delegate; implementation retained by explicit Notifications owner (availability rules by Longitudinal context)."
+    }
+  ],
+  "retained": {
+    "C": [
+      "all public facades",
+      "scheduler init and hook registrations",
+      "deprecated daily/weekly log callbacks",
+      "private Wave facade used by public notify"
+    ],
+    "B": [
+      "legacy posts/meta pipelines",
+      "legacy cancellation table contracts",
+      "legacy polling timing profile"
+    ],
+    "E": [
+      "templates without proven production consumer"
+    ]
+  }
+}

@@ -102,34 +102,7 @@ public static function process_expirations() {
         return $results;
     }
 
-public static function cancel_pending_nudges($participant_id, $wave_id) {
-        global $wpdb;
-
-        // Check if nudge jobs table exists
-        $table_name = $wpdb->prefix . 'survey_nudge_jobs';
-        if ($wpdb->get_var("SHOW TABLES LIKE '{$table_name}'") !== $table_name) {
-            return 0;
-        }
-
-        // Cancel all pending nudges for this participant + wave
-        $cancelled = $wpdb->update(
-            $table_name,
-            array(
-                'status' => 'cancelled',
-                'cancelled_reason' => 'wave_expired',
-                'updated_at' => current_time('mysql'),
-            ),
-            array(
-                'participant_id' => $participant_id,
-                'wave_id' => $wave_id,
-                'status' => 'pending',
-            ),
-            array('%s', '%s', '%s'),
-            array('%d', '%d', '%s')
-        );
-
-        return $cancelled !== false ? $cancelled : 0;
-    }
+public static function cancel_pending_nudges($participant_id,$wave_id) { return EIPSI_Notification_Nudge_Queue_Service::cancel_pending_nudges($participant_id,$wave_id); }
 
 private static function log_expiration($assignment) {
         global $wpdb;

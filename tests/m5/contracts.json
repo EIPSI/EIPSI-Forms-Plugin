@@ -1,0 +1,208 @@
+{
+  "head": "e715155",
+  "public_signatures": {
+    "admin/services/class-email-service.php": [
+      "public static function generate_magic_link_url($survey_id, $participant_id)",
+      "public static function send_magic_link_email($survey_id, $participant_id, $custom_message = '')",
+      "public static function get_magic_link_preview($survey_id, $participant_id)",
+      "public static function extend_magic_link_expiry($survey_id, $participant_id, $hours = 48)",
+      "public static function send_welcome_email($survey_id, $participant_id)",
+      "public static function send_confirmation_email($survey_id, $participant_id, $confirmation_token)",
+      "public static function get_confirmation_email_preview($survey_id, $participant_id)",
+      "public static function send_welcome_after_confirmation($survey_id, $participant_id)",
+      "public static function send_wave_reminder_email($survey_id, $participant_id, $wave, $nudge_stage = 0)",
+      "public static function send_wave_confirmation_email($survey_id, $participant_id, $wave, $next_wave = null)",
+      "public static function send_dropout_recovery_email($survey_id, $participant_id, $wave)",
+      "public static function send_email($survey_id, $participant_id, $to, $type, $subject, $content, $metadata = array())",
+      "public static function log_email($survey_id, $participant_id, $type, $status, $error_message = null, $subject = '', $metadata = array())",
+      "public static function get_email_history($survey_id, $limit = 100)",
+      "public static function get_email_log_entries($survey_id = 0, $filters = array(), $limit = 20, $offset = 0)",
+      "public static function get_email_details($email_log_id)",
+      "public static function resend_email($email_log_id)",
+      "public static function send_manual_reminders($survey_id, $participant_ids, $wave_id = null, $custom_message = null)",
+      "public static function resend_participant_email($participant_id, $email_type, $survey_id = 0, $wave_id = null)",
+      "public static function get_pending_participants($survey_id, $wave_id)",
+      "public static function send_test_email($to = null)",
+      "public static function diagnose_email_system()",
+      "public static function get_email_deliverability_stats()",
+      "public static function get_wave_email_preview($survey_id, $wave_id, $participant_id, $email_type = 'reminder')",
+      "public static function get_sample_email_preview($survey_id, $wave_id, $email_type = 'reminder')"
+    ],
+    "admin/services/class-wave-availability-email-service.php": [
+      "public static function ensure_wave_availability_email_sent($assignment, $wave, $participant, $study_id)",
+      "public static function force_send_nudge_zero($assignment, $wave, $participant, $study_id)"
+    ],
+    "includes/services/class-nudge-service.php": [
+      "public static function save_wave_configuration($wave_id, $config, $window_supplied = false, $window_minutes = null)",
+      "public static function get_nudge_config($stage, $has_due_date = false)",
+      "public static function get_all_nudge_configs($has_due_date = false)",
+      "public static function get_timeline_preview($has_due_date = false)",
+      "public static function convert_to_seconds($value, $unit = 'days')",
+      "public static function should_send_nudge($assignment, $wave, $current_stage, $custom_config = null)",
+      "public static function get_next_stage($current_stage)",
+      "public static function get_stage_description($stage, $has_due_date = false)"
+    ],
+    "includes/services/class-nudge-job-queue.php": [
+      "public static function cancel_follow_up_jobs($assignment_id)",
+      "public static function enqueue($job_type, $payload, $priority = 10, $scheduled_at = null)",
+      "public static function count_pending_urgent()",
+      "public static function get_pending_jobs($limit = 10)",
+      "public static function mark_processing($job_id)",
+      "public static function mark_completed($job_id, $result = null)",
+      "public static function mark_for_retry($job_id, $error)",
+      "public static function process_batch($limit = 10)",
+      "public static function execute_nudge_0($payload)",
+      "public static function execute_nudge_followup($payload, $stage)",
+      "public static function get_stats()",
+      "public static function cancel_jobs_for_assignment($assignment_id)"
+    ],
+    "includes/services/class-nudge-event-scheduler.php": [
+      "public static function refresh_wave_follow_ups($wave_id, $assignment_id = null)",
+      "public static function init()",
+      "public static function schedule_nudge_sequence($assignment_id)",
+      "public static function execute_scheduled_nudge($args)",
+      "public static function cancel_scheduled_nudges($assignment_id)",
+      "public static function reschedule_nudges_for_deadline($assignment_id)",
+      "public static function reschedule_all_nudges_for_participant($study_id, $participant_id)",
+      "public static function get_scheduled_events()",
+      "public static function cancel_nudges_for_assignment($assignment_id)",
+      "public static function reschedule_nudges_for_assignment($assignment_id)",
+      "public static function schedule_follow_up_nudges_only($assignment)"
+    ],
+    "includes/services/class-nudge-cache.php": [
+      "public static function get_trigger_timestamp($assignment_id, $stage, $assignment = null, $wave = null)",
+      "public static function is_nudge_sent($assignment_id, $stage)",
+      "public static function mark_nudge_sent($assignment_id, $stage)",
+      "public static function cache_should_send($assignment_id, $stage, $result, $ttl = self::SHORT_TTL)",
+      "public static function get_cached_should_send($assignment_id, $stage)",
+      "public static function invalidate_assignment_cache($assignment_id)",
+      "public static function get_stats()",
+      "public static function clear_all_cache()"
+    ],
+    "admin/cron-handlers.php": [
+      "function eipsi_process_daily_reminders()",
+      "function eipsi_process_weekly_reminders()",
+      "function eipsi_process_reminders($frequency)",
+      "function eipsi_get_pending_takes($form_id)",
+      "function eipsi_send_take_reminder($form_id, $take)",
+      "function eipsi_reminder_sent_today($form_id, $email)",
+      "function eipsi_is_unsubscribed($form_id, $email)",
+      "function eipsi_send_manual_reminder_handler($email, $reminder_link)",
+      "function eipsi_run_send_wave_reminders()",
+      "function eipsi_run_send_dropout_recovery()",
+      "function eipsi_send_investigator_alert($survey_id, $stats)",
+      "function eipsi_run_study_cron_job($study_id)",
+      "function eipsi_run_cleanup_unconfirmed_participants()",
+      "function eipsi_cron_action_send_reminders($study_id)",
+      "function eipsi_cron_action_sync_data($study_id)",
+      "function eipsi_cron_action_generate_reports($study_id)",
+      "function eipsi_run_process_assignment_expirations()",
+      "function eipsi_auto_skip_expired_waves()",
+      "function eipsi_run_process_wave_availability()",
+      "function eipsi_run_cleanup_pool_email_logs()",
+      "function eipsi_run_wave_expiration_check()"
+    ],
+    "admin/cron-reminders-handler.php": [
+      "function eipsi_send_wave_reminders_hourly($specific_study_id = null)",
+      "function eipsi_send_dropout_recovery_hourly()",
+      "function eipsi_send_take_reminders_daily()",
+      "function eipsi_send_take_reminders_weekly()",
+      "function eipsi_ajax_save_cron_reminders_config()",
+      "function eipsi_run_reminders_cron_handler()",
+      "function eipsi_clear_rate_limits_handler()",
+      "function eipsi_process_nudge_jobs_worker()",
+      "function eipsi_schedule_job_worker()",
+      "function eipsi_ajax_time_travel()",
+      "function eipsi_ajax_trigger_cron()",
+      "function eipsi_ajax_get_time_travel_status()"
+    ],
+    "admin/cron-weekly-reminders.php": [
+      "function eipsi_weekly_t1_reminders()",
+      "function eipsi_send_weekly_t1_reminder($assignment, $reminder_number)",
+      "function eipsi_expire_t1_assignment($assignment)",
+      "function eipsi_schedule_weekly_t1_reminders_cron()",
+      "function eipsi_unschedule_weekly_t1_reminders_cron()"
+    ],
+    "admin/services/class-cron-health-service.php": [
+      "public static function get_cron_health()",
+      "public static function record_execution($hook, $metadata = array())",
+      "public static function get_execution_history($hook = '', $limit = 20)",
+      "public static function force_run_cron($hook)",
+      "public static function reschedule_cron($hook)",
+      "public static function get_dashboard_widget_data()",
+      "public static function needs_attention()"
+    ],
+    "includes/services/Wave_Service.php": [
+      "public static function notify_submission($participant_id,$study_id,$wave_id)",
+      "public static function get_next_pending_wave($participant_id, $study_id)",
+      "public static function get_participant_waves($participant_id, $study_id)",
+      "public static function mark_assignment_submitted($participant_id, $study_id, $wave_id)",
+      "public static function assignment_exists($participant_id, $study_id, $wave_id)",
+      "public static function get_assignment_status($participant_id, $study_id, $wave_id)",
+      "public static function normalize_time_unit($raw_value)",
+      "public static function validate_wave_time_unit($wave_data)"
+    ],
+    "includes/longitudinal/class-longitudinal-submission-service.php": [
+      "public static function handle_submission($context)"
+    ],
+    "includes/longitudinal/assignments/class-assignment-transition-service.php": [
+      "public static function update_assignment_status($wave_id, $participant_id, $status)",
+      "public static function extend_wave_deadline($assignment_id, $days = 7)",
+      "public static function mark_wave_completed($assignment_id)",
+      "public static function mark_assignment_submitted($participant_id, $study_id, $wave_id)",
+      "public static function change_snapshot($assignment_id, $old_status, $new_status, $extra = array())",
+      "public static function expire_snapshot($assignment, $timestamp = false)",
+      "public static function force_t1_submitted($wave_id,$participant_id,$timestamp)",
+      "public static function submit_locked($longitudinal_participant_id,$study_id,$wave_id)",
+      "public static function failure($data,$status)",
+      "public static function manual_expire($assignment_id)",
+      "public static function skip_locked($a)"
+    ]
+  },
+  "templates": {
+    "includes/emails/dropout-recovery.php": "92714cd2a5f18eacbbd0bc92cf64dc6d700838dd9a90875e59a133b84b7cc8dd",
+    "includes/emails/manual-reminder.php": "f08f2a6dc48bcd9d3e1ef35f2fc2ca7115c7d02d5a251109b1fd99a79ff9efc7",
+    "includes/emails/dropout-recovery-empathetic.php": "64fccd10446c98300b13cb02b543dd461e3eef3ac8b3f548a6524b8d9e9b6416",
+    "includes/emails/wave-confirmation.php": "beca3f66fc28827de5389fc47d301260ce29de23daaa585b6f7c3ac3c3e3c387",
+    "includes/emails/weekly-t1-reminder.php": "0793e9b509d0c2f873a4b2053fef6fb38939414914501bd6fd67cda3761d5070",
+    "includes/emails/magic-link.php": "b00f2f34af216093b54ba4d947b37d474d404713a6b6ce749579c7e6bf6af70c",
+    "includes/emails/wave-nudge-4.php": "806019b6beea1bb11fc2a37ae38d26cd8d4e9d17d68788eefe1beaea5196b803",
+    "includes/emails/welcome.php": "51e4b6c800f0ed6a38835f11026987926989886cade2c33b60411b3bb56b79a9",
+    "includes/emails/wave-nudge-2.php": "1ed5976a12ea9ccdc51b094769231a6780aa99e714d04b2d95eeb7cc7894d414",
+    "includes/emails/wave-nudge-0.php": "b7e4c5bb39dcb1329ec285094e102accafefead4152f42914e840137285034ab",
+    "includes/emails/wave-reminder.php": "067bd72186cb88f13edfa74f818ea19f03d86249609af52aa954b7504e7da32a",
+    "includes/emails/wave-nudge-3.php": "7a07ecead3374543169b12c7af1660d2405f66153a7a38bddd95adc3477938a9",
+    "includes/emails/gentle-reminder.php": "ebca4817a00160d2a17ae05b3421be5775b7386e6272ffc3b3b079b9405b70d3",
+    "includes/emails/wave-nudge-1.php": "3eaf67917d9ab28514b732b58463f80ce4879e09926621051a35fe52abbc889b",
+    "includes/emails/email-confirmation.php": "93abcedbd1e118977db20475521caf1ee8a58c944553aca95121d9b0e700a795",
+    "includes/emails/reminder-take.php": "0ba36e8b76a67aff250f657abb20bfa4206c8eed03e781740ab87b92bf27ac18",
+    "includes/templates/emails/wave-available.php": "5ab4780ce22878b705eb3c8dfaceefdb66793eabaf828e6ca3b74260c8ba2dd5"
+  },
+  "critical_bodies": [
+    {
+      "class": "EIPSI_Notification_Nudge_Queue_Service",
+      "method": "mark_processing",
+      "source": "public static function mark_processing($job_id) {\n        global $wpdb;\n        \n        $result = $wpdb->update(\n            self::get_table_name(),\n            array(\n                'status' => 'processing',\n                'processed_at' => current_time('mysql')\n            ),\n            array('id' => $job_id, 'status' => 'pending'),\n            array('%s', '%s'),\n            array('%d', '%s')\n        );\n        \n        return $result > 0;\n    }"
+    },
+    {
+      "class": "EIPSI_Notification_Nudge_Queue_Service",
+      "method": "mark_for_retry",
+      "source": "public static function mark_for_retry($job_id, $error) {\n        global $wpdb;\n        \n        $job = $wpdb->get_row($wpdb->prepare(\n            \"SELECT retries FROM \" . self::get_table_name() . \" WHERE id = %d\",\n            $job_id\n        ));\n        \n        if (!$job) {\n            return false;\n        }\n        \n        // v2.5.3 - Errores irrecuperables: no reintentar, marcar como failed inmediatamente\n        $irrecoverable_errors = [\n            'Assignment not found',\n            'Participant not found',\n            'Wave not found',\n            'Invalid payload JSON',\n            'Invalid assignment ID',\n            'Invalid participant ID'\n        ];\n        \n        foreach ($irrecoverable_errors as $irrecoverable) {\n            if (stripos($error, $irrecoverable) !== false) {\n                // Marcar como failed permanentemente sin reintentar\n                $wpdb->update(\n                    self::get_table_name(),\n                    array(\n                        'status' => 'failed',\n                        'error' => sanitize_text_field($error . ' [IRRECOVERABLE]'),\n                        'retries' => intval($job->retries),\n                        'failed_at' => current_time('mysql')\n                    ),\n                    array('id' => $job_id),\n                    array('%s', '%s', '%d', '%s'),\n                    array('%d')\n                );\n                \n                error_log(sprintf(\n                    '[EIPSI JobQueue] Job #%d marked as PERMANENTLY FAILED (irrecoverable error): %s',\n                    $job_id,\n                    $error\n                ));\n                \n                return false;\n            }\n        }\n        \n        $retries = intval($job->retries) + 1;\n        \n        if ($retries >= 5) {\n            // Máximo de reintentos alcanzado\n            $wpdb->update(\n                self::get_table_name(),\n                array(\n                    'status' => 'failed',\n                    'error' => sanitize_text_field($error),\n                    'retries' => $retries,\n                    'failed_at' => current_time('mysql')\n                ),\n                array('id' => $job_id),\n                array('%s', '%s', '%d', '%s'),\n                array('%d')\n            );\n            \n            error_log(sprintf(\n                '[EIPSI JobQueue] Job #%d failed permanently after %d retries: %s',\n                $job_id,\n                $retries,\n                $error\n            ));\n            \n            return false;\n        }\n        \n        // Backoff exponencial: 5min, 15min, 45min, 2h, 6h\n        $backoff_minutes = [5, 15, 45, 120, 360];\n        $delay = $backoff_minutes[min($retries - 1, count($backoff_minutes) - 1)];\n        $new_scheduled = date('Y-m-d H:i:s', strtotime(\"+{$delay} minutes\"));\n        \n        $wpdb->update(\n            self::get_table_name(),\n            array(\n                'status' => 'pending',\n                'retries' => $retries,\n                'error' => sanitize_text_field($error),\n                'scheduled_at' => $new_scheduled\n            ),\n            array('id' => $job_id),\n            array('%s', '%d', '%s', '%s'),\n            array('%d')\n        );\n        \n        if (defined('WP_DEBUG') && WP_DEBUG) {\n            error_log(sprintf(\n                '[EIPSI JobQueue] Job #%d scheduled for retry #%d at %s',\n                $job_id,\n                $retries,\n                $new_scheduled\n            ));\n        }\n        \n        return true;\n    }"
+    },
+    {
+      "class": "EIPSI_Notification_Nudge_Queue_Service",
+      "method": "enqueue",
+      "source": "public static function enqueue($job_type, $payload, $priority = 10, $scheduled_at = null) {\n        global $wpdb;\n        \n        if (!$scheduled_at) {\n            $scheduled_at = current_time('mysql');\n        }\n        \n        $result = $wpdb->insert(\n            self::get_table_name(),\n            array(\n                'job_type' => sanitize_text_field($job_type),\n                'payload' => wp_json_encode($payload),\n                'priority' => intval($priority),\n                'scheduled_at' => $scheduled_at,\n                'status' => 'pending',\n                'retries' => 0,\n                'created_at' => current_time('mysql')\n            ),\n            array('%s', '%s', '%d', '%s', '%s', '%d', '%s')\n        );\n        \n        if ($result === false) {\n            error_log('[EIPSI JobQueue] ERROR: Failed to enqueue job: ' . $wpdb->last_error);\n            return false;\n        }\n        \n        $job_id = $wpdb->insert_id;\n        \n        if (defined('WP_DEBUG') && WP_DEBUG) {\n            error_log(sprintf(\n                '[EIPSI JobQueue] Enqueued job #%d: type=%s, priority=%d, scheduled=%s',\n                $job_id,\n                $job_type,\n                $priority,\n                $scheduled_at\n            ));\n        }\n        \n        return $job_id;\n    }"
+    },
+    {
+      "class": "EIPSI_Notification_Nudge_Queue_Service",
+      "method": "get_pending_jobs",
+      "source": "public static function get_pending_jobs($limit = 10) {\n        global $wpdb;\n        \n        // SKIP LOCKED requiere MySQL 8.0+ o PostgreSQL\n        // Para WordPress/MySQL 5.7, usamos status='pending' + update atómico\n        $table = self::get_table_name();\n        $now = current_time('mysql');\n        \n        $jobs = $wpdb->get_results($wpdb->prepare(\n            \"SELECT * FROM {$table} \n             WHERE status = 'pending' \n             AND scheduled_at <= %s \n             AND retries < 5\n             ORDER BY priority ASC, scheduled_at ASC \n             LIMIT %d\",\n            $now,\n            intval($limit)\n        ));\n        \n        return $jobs;\n    }"
+    },
+    {
+      "class": "EIPSI_Longitudinal_Assignment_Deadline_Service",
+      "method": "save_wave_configuration",
+      "source": "public static function save_wave_configuration($wave_id, $config, $window_supplied = false, $window_minutes = null) {\n        global $wpdb;\n        $wave = $wpdb->get_row($wpdb->prepare(\"SELECT * FROM {$wpdb->prefix}survey_waves WHERE id = %d\", $wave_id));\n        if (!$wave || !is_array($config)) { return new WP_Error('invalid_wave_config', 'Wave o configuración inválida.'); }\n        if ($window_supplied && $window_minutes !== null &&\n            (!is_scalar($window_minutes) || !ctype_digit((string) $window_minutes) || (int) $window_minutes < 1)) {\n            return new WP_Error('invalid_window', 'La ventana debe ser positiva, en minutos.');\n        }\n        $enabled = false;\n        $clean = array();\n        foreach (array('nudge_1', 'nudge_2', 'nudge_3', 'nudge_4') as $key) {\n            $item = $config[$key] ?? array('enabled' => false, 'value' => 24, 'unit' => 'hours');\n            if (!is_array($item) || !isset($item['value'], $item['unit']) || !is_numeric($item['value']) ||\n                !is_finite((float) $item['value']) || (float) $item['value'] <= 0 ||\n                !in_array($item['unit'], array('minutes', 'hours', 'days'), true)) {\n                return new WP_Error('invalid_nudge', 'Offset o unidad inválida: ' . $key);\n            }\n            $on = filter_var($item['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);\n            $clean[$key] = array('enabled' => $on, 'value' => (float) $item['value'], 'unit' => $item['unit']);\n            if (isset($item['subject'])) { $clean[$key]['subject'] = sanitize_text_field($item['subject']); }\n            $enabled = $enabled || $on;\n        }\n        // Preserve deadline metadata used by the existing extend/remove flows.\n        $stored = json_decode($wave->nudge_config ?? '', true);\n        foreach (array('manual_deadline', 'original_nudges', 'original_window_minutes', 'redistributed') as $key) {\n            if (isset($stored[$key])) { $clean[$key] = $stored[$key]; }\n        }\n        $update = array('nudge_config' => wp_json_encode($clean), 'follow_up_reminders_enabled' => $enabled ? 1 : 0);\n        if ($window_supplied) { $update['window_minutes'] = $window_minutes === null ? null : (int) $window_minutes; }\n        if ($wpdb->query('START TRANSACTION') === false) { return new WP_Error('db_error', 'No se pudo iniciar el guardado.'); }\n        $result = $wpdb->update($wpdb->prefix . 'survey_waves', $update, array('id' => $wave_id));\n        if ($result === false) { $wpdb->query('ROLLBACK'); return new WP_Error('db_error', 'No se pudo guardar configuración.'); }\n        if ($window_supplied && (string) $wave->window_minutes !== (string) $window_minutes) {\n            $assignments = $wpdb->get_results($wpdb->prepare(\n                \"SELECT id, available_at FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND status IN ('pending','in_progress')\", $wave_id\n            ));\n            foreach ($assignments as $assignment) {\n                // Without an anchor leave the unanchored assignment intact.\n                if (!$assignment->available_at) { continue; }\n                if ($window_minutes !== null) {\n                    $due_at = date('Y-m-d H:i:s', strtotime($assignment->available_at) + ((int) $window_minutes * 60));\n                } else {\n                    // NULL restores the existing inferred-window convention.\n                    $next_offset = $wpdb->get_var($wpdb->prepare(\n                        \"SELECT offset_minutes FROM {$wpdb->prefix}survey_waves WHERE study_id = %d AND wave_index > %d ORDER BY wave_index LIMIT 1\",\n                        $wave->study_id, $wave->wave_index\n                    ));\n                    if ($next_offset === null) {\n                        $next_offset = $wpdb->get_var($wpdb->prepare(\"SELECT study_end_offset_minutes FROM {$wpdb->prefix}survey_studies WHERE id = %d\", $wave->study_id));\n                    }\n                    $window = (int) $next_offset - (int) $wave->offset_minutes;\n                    $due_at = $window > 0 ? date('Y-m-d H:i:s', strtotime($assignment->available_at) + $window * 60) : null;\n                }\n                if ($wpdb->update($wpdb->prefix . 'survey_assignments', array('due_at' => $due_at), array('id' => $assignment->id)) === false) {\n                    $wpdb->query('ROLLBACK'); return new WP_Error('db_error', 'No se pudo actualizar el plazo.');\n                }\n            }\n        }\n        if ($wpdb->query('COMMIT') === false) { $wpdb->query('ROLLBACK'); return new WP_Error('db_error', 'No se pudo confirmar configuración.'); }\n        require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-event-scheduler.php';\n        $scheduled = EIPSI_Nudge_Event_Scheduler::refresh_wave_follow_ups($wave_id);\n        if (is_wp_error($scheduled)) { return $scheduled; }\n        return array('nudge_config' => $clean, 'follow_up_reminders_enabled' => $enabled, 'rows_updated' => $result,\n            'window_minutes' => $window_supplied ? $window_minutes : $wave->window_minutes, 'events_scheduled' => $scheduled);\n    }"
+    }
+  ]
+}

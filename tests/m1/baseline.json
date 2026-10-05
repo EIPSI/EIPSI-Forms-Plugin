@@ -13530,10 +13530,29 @@
       "includes/longitudinal/studies/class-study-dashboard-service.php",
       "includes/longitudinal/bootstrap.php",
       "includes/longitudinal/studies/class-study-config-service.php",
-      "includes/longitudinal/assignments/class-assignment-deadline-service.php"
+      "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "includes/notifications/email/class-email-message-service.php",
+      "includes/notifications/email/class-email-delivery-service.php",
+      "includes/notifications/email/class-email-log-service.php",
+      "includes/notifications/email/class-email-template-service.php",
+      "includes/notifications/email/class-wave-availability-service.php",
+      "includes/notifications/nudges/class-nudge-policy-service.php",
+      "includes/notifications/nudges/class-nudge-queue-service.php",
+      "includes/notifications/nudges/class-nudge-worker-service.php",
+      "includes/notifications/nudges/class-nudge-cache-service.php",
+      "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "includes/notifications/reminders/class-reminder-service.php",
+      "includes/notifications/reminders/class-dropout-recovery-service.php",
+      "includes/notifications/reminders/class-weekly-t1-reminder-service.php",
+      "includes/notifications/adapters/class-notification-cron-adapters.php",
+      "includes/notifications/bootstrap.php",
+      "includes/longitudinal/assignments/class-notification-context-service.php",
+      "includes/notifications/adapters/class-longitudinal-notification-adapter.php"
     ],
     "m2_includes": "Auth/Participants definition-only owners, originals keep their relative order; M2 policy equivalence checked independently.",
     "m3_includes": "Explicit Forms owners/adapters; all external records remain compared.",
-    "m4_includes": "Longitudinal definition owners only; registration, callback identity, order, nonce and payload remain compared."
+    "m4_includes": "Longitudinal definition owners only; registration, callback identity, order, nonce and payload remain compared.",
+    "m5_includes": "Notifications definition owners only; registrations, callbacks, cadence, args and public contracts still compared."
   }
 }

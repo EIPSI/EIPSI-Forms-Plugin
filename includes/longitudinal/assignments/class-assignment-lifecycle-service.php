@@ -176,30 +176,7 @@ public static function eipsi_auto_skip_expired_waves() {
                 $item->next_available_wave_index
             ));
 
-            if ($next_assignment && $next_assignment->status === 'pending' && $next_assignment->reminder_count == 0) {
-                $available_at = strtotime($next_assignment->available_at);
-                $now_ts = current_time('timestamp');
-
-                if ($available_at <= $now_ts) {
-                    // Wave disponible AHORA - trigger inmediato
-                    error_log(sprintf(
-                        '[EIPSI Auto-Skip] Triggering eipsi_wave_available for assignment %d (T%d now available)',
-                        $next_assignment->id,
-                        $item->next_available_wave_index
-                    ));
-                    do_action('eipsi_wave_available', $next_assignment->id);
-                } else {
-                    // Wave disponible en el FUTURO - programar evento
-                    error_log(sprintf(
-                        '[EIPSI Auto-Skip] Scheduling eipsi_wave_available for assignment %d (T%d available at %s)',
-                        $next_assignment->id,
-                        $item->next_available_wave_index,
-                        date('Y-m-d H:i:s', $available_at)
-                    ));
-                    wp_clear_scheduled_hook('eipsi_wave_available', array($next_assignment->id));
-                    wp_schedule_single_event($available_at, 'eipsi_wave_available', array($next_assignment->id));
-                }
-            }
+            EIPSI_Notification_Longitudinal_Adapter::after_auto_skip($next_assignment,$item->next_available_wave_index);
         }
     }
 

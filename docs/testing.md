@@ -104,3 +104,16 @@ Se conservan las 39 pruebas PHP y 41 JS M3. El caso que documentaba el bug Pool 
 Los runners P0/P1-C requieren una copia escribible del código dentro del contenedor por sus exports temporales. Se puede copiar con tar excluyendo `.git`, `node_modules` y `build`; no cambiar el mount read-only del plugin activo. M0/M1/M2/M3/M4 se ejecutan contra el plugin montado. Las suites son secuenciales; M4 limpia fixtures propios y restaura el cron previo.
 
 No inferir atomicidad de Storage+Assignment ni exactly-once de mail/audit/jobs a partir de la concurrencia de estados. El rollback inyecta un error SQL únicamente en una escritura T1 del fixture descartable; el schema no se altera.
+
+## M5 — Notifications
+
+Total M5: **507 pruebas** = 403 previas + 104 nuevas. Las 403 pruebas anteriores siguen siendo obligatorias. Ejecutar secuencialmente, después de preparar el Docker descartable M0:
+
+```sh
+docker exec eipsi-m0-wordpress php /var/www/html/wp-content/plugins/EIPSI-Forms-Plugin/tests/run-m5.php
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work node:22-bookworm node --test tests/m3/source-contracts.js tests/m3/runtime-dom.js
+```
+
+[Fixtures y cobertura M5](../tests/m5/README.md). Los casos usan WordPress/MariaDB/WP-Cron reales y verifican absolute offsets, pasado/deadline/stages enviados, refresh/cancelación, failure después de persistencia, nudge0/cooldown, retry/backoff, entrega/logs/headers, weekly T1, dropout, manual, legacy, cadencias CronHealth, lifecycle y orden transaccional. Templates y firmas se comparan con contratos congelados antes de M5; cuerpos de claim/retry/config se verifican por tokens.
+
+Concurrencia: dos procesos sobre un job, claim SQL 1/0, dos schedulers por assignment, configs concurrentes con lectura fresca y dos jobs de stages diferentes que convergen con retry. No prueba exactly-once entre jobs diferentes del mismo stage ni entrega SMTP externa. La purga se ejecuta únicamente después de obtener todas las regresiones verdes y se verifica otra vez con la instalación limpia.

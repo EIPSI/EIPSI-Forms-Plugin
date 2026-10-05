@@ -453,4 +453,69 @@ public static function wp_ajax_eipsi_remove_wave_deadline_handler($request,$quer
         ), 500);
     }
 }
+public static function save_wave_configuration($wave_id, $config, $window_supplied = false, $window_minutes = null) {
+        global $wpdb;
+        $wave = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}survey_waves WHERE id = %d", $wave_id));
+        if (!$wave || !is_array($config)) { return new WP_Error('invalid_wave_config', 'Wave o configuración inválida.'); }
+        if ($window_supplied && $window_minutes !== null &&
+            (!is_scalar($window_minutes) || !ctype_digit((string) $window_minutes) || (int) $window_minutes < 1)) {
+            return new WP_Error('invalid_window', 'La ventana debe ser positiva, en minutos.');
+        }
+        $enabled = false;
+        $clean = array();
+        foreach (array('nudge_1', 'nudge_2', 'nudge_3', 'nudge_4') as $key) {
+            $item = $config[$key] ?? array('enabled' => false, 'value' => 24, 'unit' => 'hours');
+            if (!is_array($item) || !isset($item['value'], $item['unit']) || !is_numeric($item['value']) ||
+                !is_finite((float) $item['value']) || (float) $item['value'] <= 0 ||
+                !in_array($item['unit'], array('minutes', 'hours', 'days'), true)) {
+                return new WP_Error('invalid_nudge', 'Offset o unidad inválida: ' . $key);
+            }
+            $on = filter_var($item['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $clean[$key] = array('enabled' => $on, 'value' => (float) $item['value'], 'unit' => $item['unit']);
+            if (isset($item['subject'])) { $clean[$key]['subject'] = sanitize_text_field($item['subject']); }
+            $enabled = $enabled || $on;
+        }
+        // Preserve deadline metadata used by the existing extend/remove flows.
+        $stored = json_decode($wave->nudge_config ?? '', true);
+        foreach (array('manual_deadline', 'original_nudges', 'original_window_minutes', 'redistributed') as $key) {
+            if (isset($stored[$key])) { $clean[$key] = $stored[$key]; }
+        }
+        $update = array('nudge_config' => wp_json_encode($clean), 'follow_up_reminders_enabled' => $enabled ? 1 : 0);
+        if ($window_supplied) { $update['window_minutes'] = $window_minutes === null ? null : (int) $window_minutes; }
+        if ($wpdb->query('START TRANSACTION') === false) { return new WP_Error('db_error', 'No se pudo iniciar el guardado.'); }
+        $result = $wpdb->update($wpdb->prefix . 'survey_waves', $update, array('id' => $wave_id));
+        if ($result === false) { $wpdb->query('ROLLBACK'); return new WP_Error('db_error', 'No se pudo guardar configuración.'); }
+        if ($window_supplied && (string) $wave->window_minutes !== (string) $window_minutes) {
+            $assignments = $wpdb->get_results($wpdb->prepare(
+                "SELECT id, available_at FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND status IN ('pending','in_progress')", $wave_id
+            ));
+            foreach ($assignments as $assignment) {
+                // Without an anchor leave the unanchored assignment intact.
+                if (!$assignment->available_at) { continue; }
+                if ($window_minutes !== null) {
+                    $due_at = date('Y-m-d H:i:s', strtotime($assignment->available_at) + ((int) $window_minutes * 60));
+                } else {
+                    // NULL restores the existing inferred-window convention.
+                    $next_offset = $wpdb->get_var($wpdb->prepare(
+                        "SELECT offset_minutes FROM {$wpdb->prefix}survey_waves WHERE study_id = %d AND wave_index > %d ORDER BY wave_index LIMIT 1",
+                        $wave->study_id, $wave->wave_index
+                    ));
+                    if ($next_offset === null) {
+                        $next_offset = $wpdb->get_var($wpdb->prepare("SELECT study_end_offset_minutes FROM {$wpdb->prefix}survey_studies WHERE id = %d", $wave->study_id));
+                    }
+                    $window = (int) $next_offset - (int) $wave->offset_minutes;
+                    $due_at = $window > 0 ? date('Y-m-d H:i:s', strtotime($assignment->available_at) + $window * 60) : null;
+                }
+                if ($wpdb->update($wpdb->prefix . 'survey_assignments', array('due_at' => $due_at), array('id' => $assignment->id)) === false) {
+                    $wpdb->query('ROLLBACK'); return new WP_Error('db_error', 'No se pudo actualizar el plazo.');
+                }
+            }
+        }
+        if ($wpdb->query('COMMIT') === false) { $wpdb->query('ROLLBACK'); return new WP_Error('db_error', 'No se pudo confirmar configuración.'); }
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-event-scheduler.php';
+        $scheduled = EIPSI_Nudge_Event_Scheduler::refresh_wave_follow_ups($wave_id);
+        if (is_wp_error($scheduled)) { return $scheduled; }
+        return array('nudge_config' => $clean, 'follow_up_reminders_enabled' => $enabled, 'rows_updated' => $result,
+            'window_minutes' => $window_supplied ? $window_minutes : $wave->window_minutes, 'events_scheduled' => $scheduled);
+    }
 }
