@@ -3631,15 +3631,15 @@ function eipsi_check_and_mark_pool_completion($participant_id, $study_id, $form_
         return false;
     }
 
-    // Find all pool assignments for this participant (matching by email pattern)
+    // Match the canonical participant ID; pool assignments use BIGINT identity.
     $pool_assignments_table = $wpdb->prefix . 'eipsi_pool_assignments';
     $pool_assignment = $wpdb->get_row(
         $wpdb->prepare(
             "SELECT id, pool_id, completed FROM {$pool_assignments_table} 
-             WHERE study_id = %d AND participant_id LIKE %s AND completed = 0
+             WHERE study_id = %d AND participant_id = %d AND completed = 0
              ORDER BY assigned_at DESC LIMIT 1",
             $study_id,
-            '%' . $wpdb->esc_like($participant['email']) . '%'
+            $participant_id
         ),
         ARRAY_A
     );

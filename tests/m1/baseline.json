@@ -13515,9 +13515,25 @@
       "includes/forms/class-form-response.php",
       "includes/forms/class-partial-response-service.php",
       "includes/forms/class-form-renderer.php",
-      "admin/services/class-form-longitudinal-submit-adapter.php"
+      "admin/services/class-form-longitudinal-submit-adapter.php",
+      "includes/longitudinal/waves/class-wave-definition-service.php",
+      "includes/longitudinal/assignments/class-assignment-repository.php",
+      "includes/longitudinal/assignments/class-assignment-service.php",
+      "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "includes/longitudinal/class-longitudinal-submission-service.php",
+      "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "includes/longitudinal/assignments/class-assignment-expiration-service.php",
+      "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "includes/longitudinal/studies/class-study-repository.php",
+      "includes/longitudinal/studies/class-study-service.php",
+      "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "includes/longitudinal/bootstrap.php",
+      "includes/longitudinal/studies/class-study-config-service.php",
+      "includes/longitudinal/assignments/class-assignment-deadline-service.php"
     ],
     "m2_includes": "Auth/Participants definition-only owners, originals keep their relative order; M2 policy equivalence checked independently.",
-    "m3_includes": "Explicit Forms owners/adapters; all external records remain compared."
+    "m3_includes": "Explicit Forms owners/adapters; all external records remain compared.",
+    "m4_includes": "Longitudinal definition owners only; registration, callback identity, order, nonce and payload remain compared."
   }
 }

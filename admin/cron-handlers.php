@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/longitudinal/bootstrap.php';
+
 // === LEGACY CRON HOOKS (v1.3.0) ===
 add_action('eipsi_send_take_reminders_daily', 'eipsi_process_daily_reminders');
 add_action('eipsi_send_take_reminders_weekly', 'eipsi_process_weekly_reminders');
@@ -1009,95 +1011,8 @@ add_action('eipsi_process_assignment_expirations', 'eipsi_run_process_assignment
  * @since 2.6.0
  */
 function eipsi_run_process_assignment_expirations() {
-    global $wpdb;
-
-    error_log('[EIPSI Cron] Assignment expiration processor started at ' . current_time('mysql'));
-
-    $now = current_time('mysql');
-    $assignments_table = $wpdb->prefix . 'survey_assignments';
-    $audit_table = $wpdb->prefix . 'survey_audit_log';
-
-    // Find assignments that are past due and not yet expired or submitted
-    $expired_assignments = $wpdb->get_results($wpdb->prepare(
-        "SELECT a.id, a.participant_id, a.wave_id, a.study_id, a.due_at, a.status,
-                w.wave_index, w.name as wave_name
-         FROM {$assignments_table} a
-         JOIN {$wpdb->prefix}survey_waves w ON a.wave_id = w.id
-         WHERE a.due_at IS NOT NULL
-         AND a.due_at < %s
-         AND a.status NOT IN ('submitted', 'expired', 'skipped')
-         LIMIT 500",
-        $now
-    ));
-
-    if (empty($expired_assignments)) {
-        error_log('[EIPSI Cron] No assignments to expire.');
-        return;
+        return EIPSI_Longitudinal_Assignment_Lifecycle_Service::eipsi_run_process_assignment_expirations();
     }
-
-    $expired_count = 0;
-    $audit_entries = array();
-
-    foreach ($expired_assignments as $assignment) {
-        // Update status to expired
-        $updated = $wpdb->update(
-            $assignments_table,
-            array('status' => 'expired'),
-            array('id' => $assignment->id),
-            array('%s'),
-            array('%d')
-        );
-
-        if ($updated !== false) {
-            $expired_count++;
-
-            // Prepare audit entry
-            $audit_entries[] = array(
-                'survey_id' => $assignment->study_id,
-                'participant_id' => $assignment->participant_id,
-                'action' => 'wave_expired',
-                'actor_type' => 'system',
-                'metadata' => wp_json_encode(array(
-                    'wave_id' => $assignment->wave_id,
-                    'wave_index' => $assignment->wave_index,
-                    'wave_name' => $assignment->wave_name,
-                    'due_at' => $assignment->due_at,
-                    'expired_at' => $now,
-                    'previous_status' => $assignment->status,
-                )),
-                'created_at' => $now,
-            );
-
-            // Trigger hook for extensibility (notifications, etc.)
-            do_action('eipsi_assignment_expired', array(
-                'assignment_id' => $assignment->id,
-                'participant_id' => $assignment->participant_id,
-                'wave_id' => $assignment->wave_id,
-                'study_id' => $assignment->study_id,
-                'wave_index' => $assignment->wave_index,
-            ));
-        }
-    }
-
-    // Batch insert audit entries
-    if (!empty($audit_entries) && $wpdb->get_var("SHOW TABLES LIKE '{$audit_table}'")) {
-        foreach ($audit_entries as $entry) {
-            $wpdb->insert(
-                $audit_table,
-                $entry,
-                array('%d', '%d', '%s', '%s', '%s', '%s')
-            );
-        }
-    }
-
-    error_log(sprintf(
-        '[EIPSI Cron] Assignment expiration processor completed. Expired: %d assignments.',
-        $expired_count
-    ));
-    
-    // Auto-skip expired waves when a later wave is available
-    eipsi_auto_skip_expired_waves();
-}
 
 /**
  * Auto-skip expired waves when a later wave is available.
@@ -1108,133 +1023,8 @@ function eipsi_run_process_assignment_expirations() {
  * @since 2.6.1
  */
 function eipsi_auto_skip_expired_waves() {
-    global $wpdb;
-    
-    $assignments_table = $wpdb->prefix . 'survey_assignments';
-    $waves_table = $wpdb->prefix . 'survey_waves';
-    $now = current_time('mysql');
-    
-    // Find participants with expired waves that have a later available wave
-    $expired_to_skip = $wpdb->get_results("
-        SELECT a1.id as expired_assignment_id, 
-               a1.participant_id, 
-               a1.wave_id as expired_wave_id,
-               a1.study_id,
-               w1.wave_index as expired_wave_index,
-               w1.name as expired_wave_name,
-               MIN(w2.wave_index) as next_available_wave_index
-        FROM {$assignments_table} a1
-        JOIN {$waves_table} w1 ON a1.wave_id = w1.id
-        JOIN {$waves_table} w2 ON w2.study_id = w1.study_id AND w2.wave_index > w1.wave_index
-        LEFT JOIN {$assignments_table} a2 ON a2.participant_id = a1.participant_id 
-                                          AND a2.wave_id = w2.id
-        WHERE a1.status = 'expired'
-        AND (a2.status IN ('pending', 'in_progress') 
-             OR (a2.available_at IS NOT NULL AND a2.available_at <= '{$now}'))
-        GROUP BY a1.id, a1.participant_id, a1.wave_id, a1.study_id, w1.wave_index, w1.name
-        LIMIT 100
-    ");
-    
-    if (empty($expired_to_skip)) {
-        return;
+        return EIPSI_Longitudinal_Assignment_Lifecycle_Service::eipsi_auto_skip_expired_waves();
     }
-    
-    $skipped_count = 0;
-    
-    foreach ($expired_to_skip as $item) {
-        // Update expired assignment to skipped
-        $updated = $wpdb->update(
-            $assignments_table,
-            array('status' => 'skipped'),
-            array('id' => $item->expired_assignment_id),
-            array('%s'),
-            array('%d')
-        );
-        
-        if ($updated !== false) {
-            $skipped_count++;
-            
-            // Log to audit
-            $audit_table = $wpdb->prefix . 'survey_audit_log';
-            if ($wpdb->get_var("SHOW TABLES LIKE '{$audit_table}'")) {
-                $wpdb->insert(
-                    $audit_table,
-                    array(
-                        'survey_id' => $item->study_id,
-                        'participant_id' => $item->participant_id,
-                        'action' => 'wave_auto_skipped',
-                        'actor_type' => 'system',
-                        'metadata' => wp_json_encode(array(
-                            'wave_id' => $item->expired_wave_id,
-                            'wave_index' => $item->expired_wave_index,
-                            'wave_name' => $item->expired_wave_name,
-                            'reason' => 'expired_with_later_wave_available',
-                            'next_wave_index' => $item->next_available_wave_index,
-                            'skipped_at' => $now,
-                        )),
-                        'created_at' => $now,
-                    ),
-                    array('%d', '%d', '%s', '%s', '%s', '%s')
-                );
-            }
-            
-            error_log(sprintf(
-                '[EIPSI Auto-Skip] Skipped expired wave T%d for participant %d (next available: T%d)',
-                $item->expired_wave_index,
-                $item->participant_id,
-                $item->next_available_wave_index
-            ));
-            
-            // ========================================
-            // FIX: Trigger event-driven system for next available wave
-            // ========================================
-            $next_assignment = $wpdb->get_row($wpdb->prepare(
-                "SELECT a.id, a.available_at, a.status, a.reminder_count
-                 FROM {$assignments_table} a
-                 JOIN {$waves_table} w ON a.wave_id = w.id
-                 WHERE a.participant_id = %d 
-                 AND a.study_id = %d
-                 AND w.wave_index = %d
-                 LIMIT 1",
-                $item->participant_id,
-                $item->study_id,
-                $item->next_available_wave_index
-            ));
-            
-            if ($next_assignment && $next_assignment->status === 'pending' && $next_assignment->reminder_count == 0) {
-                $available_at = strtotime($next_assignment->available_at);
-                $now_ts = current_time('timestamp');
-                
-                if ($available_at <= $now_ts) {
-                    // Wave disponible AHORA - trigger inmediato
-                    error_log(sprintf(
-                        '[EIPSI Auto-Skip] Triggering eipsi_wave_available for assignment %d (T%d now available)',
-                        $next_assignment->id,
-                        $item->next_available_wave_index
-                    ));
-                    do_action('eipsi_wave_available', $next_assignment->id);
-                } else {
-                    // Wave disponible en el FUTURO - programar evento
-                    error_log(sprintf(
-                        '[EIPSI Auto-Skip] Scheduling eipsi_wave_available for assignment %d (T%d available at %s)',
-                        $next_assignment->id,
-                        $item->next_available_wave_index,
-                        date('Y-m-d H:i:s', $available_at)
-                    ));
-                    wp_clear_scheduled_hook('eipsi_wave_available', array($next_assignment->id));
-                    wp_schedule_single_event($available_at, 'eipsi_wave_available', array($next_assignment->id));
-                }
-            }
-        }
-    }
-    
-    if ($skipped_count > 0) {
-        error_log(sprintf(
-            '[EIPSI Auto-Skip] Auto-skipped %d expired waves with later waves available.',
-            $skipped_count
-        ));
-    }
-}
 
 /**
  * Process assignments that are now available based on available_at.
@@ -1255,20 +1045,7 @@ function eipsi_run_process_wave_availability() {
     $assignments_table = $wpdb->prefix . 'survey_assignments';
 
     // Find assignments that just became available (available_at <= NOW, status = pending, no email sent yet)
-    $newly_available = $wpdb->get_results($wpdb->prepare(
-        "SELECT a.id, a.participant_id, a.wave_id, a.study_id, a.available_at,
-                w.wave_index, w.name as wave_name
-         FROM {$assignments_table} a
-         JOIN {$wpdb->prefix}survey_waves w ON a.wave_id = w.id
-         WHERE a.available_at IS NOT NULL
-         AND a.available_at <= %s
-         AND a.status = 'pending'
-         AND a.wave_id IN (
-             SELECT id FROM {$wpdb->prefix}survey_waves WHERE wave_index > 1
-         )
-         LIMIT 100",
-        $now
-    ));
+    $newly_available=EIPSI_Longitudinal_Assignment_Repository::get_newly_available($now);
 
     if (empty($newly_available)) {
         error_log('[EIPSI Cron] No waves newly available.');

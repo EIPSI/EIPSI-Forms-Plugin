@@ -87,3 +87,20 @@ La suite DOM usa jsdom ya presente en el lockfile, con fixtures de layout y red 
 El caso de Pools es caracterización explícita de deuda (`p.name`/`pool_name` y búsqueda legacy por email), no prueba de completion exitoso. Las reglas backend frontend-only y las limitaciones de verificación de Storage están documentadas en arquitectura. Las 15 comprobaciones de fuente congelan archivos de frontera y el artifact clásico; no sustituyen las pruebas HTTP.
 
 Para ejecutar P0/P1 en M0 con el plugin montado read-only, copiar la fuente exacta dentro del contenedor a `/tmp/eipsi-m3-source` (excluyendo `.git`, `node_modules`, `build`) y ejecutar allí esos cuatro runners: P1-C crea un destino de exportación de prueba. M0/M1/M2/M3 se ejecutan sobre el plugin activo montado. Para instalación realmente limpia recrear exclusivamente el proyecto `eipsi-m0` según `tests/m0/README.md`, construir y ejecutar nuevamente todas las suites.
+
+
+## M4: Longitudinal y concurrencia
+
+Total tras M4: **403 pruebas** = 348 previas + 55 nuevas. Preparar M0 con volúmenes nuevos para validar clean install y ejecutar:
+
+```sh
+docker exec eipsi-m0-wordpress php /var/www/html/wp-content/plugins/EIPSI-Forms-Plugin/tests/run-m4.php
+```
+
+[Detalle de fixtures, contratos y límites M4](../tests/m4/README.md). Incluye Studies, Wave CRUD/restricciones, Assignments/retry, T1, recalculation en minutos, payloads, rollback real, deadlines HTTP, expiration/skipping, hooks, Pools y tres pruebas concurrentes. Dos workers PHP usan conexiones independientes: un solo submit gana, compare-and-set devuelve 1/0 y FOR UPDATE bloquea finalización hasta COMMIT del padre.
+
+Se conservan las 39 pruebas PHP y 41 JS M3. El caso que documentaba el bug Pool ahora exige completion real; cuatro hashes de facades/límite Pools tienen migración M4 explícita, manteniendo sus hashes históricos y cobertura independiente de firmas/cuerpos críticos. La allowlist M1 añade solamente quince includes de definición enumerados.
+
+Los runners P0/P1-C requieren una copia escribible del código dentro del contenedor por sus exports temporales. Se puede copiar con tar excluyendo `.git`, `node_modules` y `build`; no cambiar el mount read-only del plugin activo. M0/M1/M2/M3/M4 se ejecutan contra el plugin montado. Las suites son secuenciales; M4 limpia fixtures propios y restaura el cron previo.
+
+No inferir atomicidad de Storage+Assignment ni exactly-once de mail/audit/jobs a partir de la concurrencia de estados. El rollback inyecta un error SQL únicamente en una escritura T1 del fixture descartable; el schema no se altera.

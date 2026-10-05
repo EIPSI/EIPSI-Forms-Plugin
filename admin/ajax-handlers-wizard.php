@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/longitudinal/bootstrap.php';
+
 // === Handlers del Setup Wizard (v1.5.1) ===
 add_action('wp_ajax_eipsi_save_wizard_step', 'eipsi_save_wizard_step_handler');
 add_action('wp_ajax_eipsi_auto_save_wizard_step', 'eipsi_auto_save_wizard_step_handler');
@@ -287,13 +289,7 @@ function eipsi_pause_study_handler() {
     }
     
     global $wpdb;
-    $result = $wpdb->update(
-        $wpdb->prefix . 'survey_studies',
-        array('status' => 'paused'),
-        array('id' => $study_id),
-        array('%s'),
-        array('%d')
-    );
+    $result = EIPSI_Longitudinal_Study_Service::set_status($study_id,'paused');
     
     if ($result !== false) {
         error_log("[EIPSI] Study {$study_id} paused by user " . get_current_user_id());
@@ -322,13 +318,7 @@ function eipsi_resume_study_handler() {
     }
     
     global $wpdb;
-    $result = $wpdb->update(
-        $wpdb->prefix . 'survey_studies',
-        array('status' => 'active'),
-        array('id' => $study_id),
-        array('%s'),
-        array('%d')
-    );
+    $result = EIPSI_Longitudinal_Study_Service::set_status($study_id,'active');
     
     if ($result !== false) {
         error_log("[EIPSI] Study {$study_id} resumed by user " . get_current_user_id());

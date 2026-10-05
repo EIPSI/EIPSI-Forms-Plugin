@@ -2,7 +2,7 @@
 
 ## Bootstrap y dominios
 
-[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants y M3 separó Forms/Submit. Los módulos M4–M8 siguen pendientes.
+[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants y M3 separó Forms/Submit. Los módulos M5–M8 siguen pendientes.
 
 Los dominios existentes son formularios/respuestas, estudios/waves, participantes/sesiones, Pools/asignación, correo/cron y administración/exportación. No son módulos aislados: comparten bootstrap, tablas y callbacks. El inventario ejecutable de [M0](../tests/m0/README.md) permite observar registros efectivos y declaraciones por perfil admin/frontend.
 
@@ -82,7 +82,7 @@ Los adapters conservan actions, nonces, capabilities, JSON, códigos HTTP y redi
 
 Submit sigue la secuencia autorización → Capture/privacy → Data Safety → verificación/device data → partial completed → actualización longitudinal → resultado/completion hook → JSON. En emergency confirmado, el retorno anticipado histórico no ejecuta el bloque longitudinal ni `eipsi_form_submitted`. Ese contrato se conserva, no se rediseña en M3. Para envíos longitudinales normales el hook sucede después del commit assignment/T1 y mantiene identidad canónica y wave_index de base uno.
 
-Frontera Auth: `authorize_form_operation` decide participante/estudio/wave/assignment. Forms no duplica reglas ni identifica por email o metadata. Frontera Storage: `validate`, `save`, `verify` delegan a funciones Data Safety sin modificar destinos ni políticas. Frontera Longitudinal: el adapter contiene el bloque legacy previamente inline; sus reglas siguen invocando Wave_Service, Assignment Service, Wave Recalculator, Nudge y el helper de Pools. No es un nuevo motor longitudinal ni se movieron implementaciones de esos servicios.
+Frontera Auth: `authorize_form_operation` decide participante/estudio/wave/assignment. Forms no duplica reglas ni identifica por email o metadata. Frontera Storage: `validate`, `save`, `verify` delegan a funciones Data Safety sin modificar destinos ni políticas. Frontera Longitudinal: el adapter M3 de seis argumentos delega en el comando M4. Longitudinal posee transacciones, SQL, recalculation y next-wave; Forms conserva su autorización, persistencia y contrato de respuesta.
 
 Frontend: 18 fuentes internas ordenadas comparten el closure original: capture, conditional-logic, timing, runtime, branching-events, tracking, device-capture, consent-navigation, navigation-init, fields, navigation, validation, submit-client, messages, navigation-compatibility, completion, consent y bootstrap. El artifact público se genera en el build. Navigation gobierna páginas/next/back y campos deshabilitados; ConditionalNavigator evalúa branching, historial y páginas visitadas. Validation conserva required y reglas de text/textarea/select/radio/checkbox/VAS/email. Tracking delega en el cliente independiente activo de `assets/js/eipsi-tracking.js`; save/continue conserva el cliente independiente de `assets/js/eipsi-save-continue.js`.
 
@@ -90,4 +90,38 @@ La visibilidad caracterizada es la de páginas y su required-state; no se agreg�
 
 Purga M3: únicamente `src/frontend/eipsi-save-continue.js`, copia alternativa sin requires/imports/entrada webpack. El cliente activo permanece idéntico. Facades render/helpers/partial y métodos JS públicos son compatibilidad C. Randomization/Pools, dashboard, servicios longitudinales y notificaciones quedan B para fases posteriores.
 
-Deuda demostrada y conservada: completion de Pools consulta `p.name` aunque el schema actual tiene `pool_name`; el helper antiguo busca email en `participant_id` BIGINT. El hook sigue registrado/disparado, pero esto no acredita completion funcional del Pool. Load/discard de parciales mantienen su contrato legacy por claves, sin agregar nonce/session auth en M3. La verificación genérica de Data Safety no reconoce todos los nombres de destino emergency/external aunque el guardado emergency confirma su INSERT. Required permanece frontend-only; ninguna de estas deudas se ocultó como funcionalidad nueva.
+M3 caracterizó dos bugs de completion de Pools. M4 corrige únicamente esa frontera: el callback consulta `pool_name` y el helper compara el participant_id numérico; las regresiones ahora exigen completion funcional. Pools conserva su owner y contratos. Load/discard de parciales mantienen su contrato legacy por claves, sin agregar nonce/session auth en M3. La verificación genérica de Data Safety no reconoce todos los nombres de destino emergency/external aunque el guardado emergency confirma su INSERT. Required permanece frontend-only; ninguna de estas deudas se ocultó como funcionalidad nueva.
+
+
+## Longitudinal: ownership M4
+
+La composición de definiciones se carga en [bootstrap longitudinal](../includes/longitudinal/bootstrap.php), desde los adapters existentes; no registra hooks ni reordena el bootstrap WP.
+
+| Responsabilidad | Owner bajo `includes/longitudinal/` | Compatibilidad |
+|---|---|---|
+| Lectura/persistencia, creación y estado de Studies | `studies/StudyRepository`, `StudyService` | Wizard y pause/resume |
+| Overview y cierre | `studies/StudyDashboardService` | AJAX con nonce/capability originales |
+| Settings y cron config | `studies/StudyConfigService` | Tab y programación originales |
+| Definición Waves, CRUD, restricciones P1-B y unidades | `waves/WaveDefinitionService` | `EIPSI_Wave_Service`, normalización de `Wave_Service` |
+| Lookup, creación individual, next-wave y selector de availability | `assignments/AssignmentRepository` | Facades públicas array/object conservadas |
+| Creación masiva y primer evento availability | `assignments/AssignmentService` | Helper global/facade Assignment |
+| Escrituras de estado, timestamps, submit/skip con locks | `assignments/AssignmentTransitionService` | Facades y comandos longitudinales |
+| Selectores de expiration/skipping y sus efectos existentes | `AssignmentExpirationService`, `AssignmentLifecycleService` | Adapters cron conservados |
+| Deadline manual y restauración de fechas | `assignments/AssignmentDeadlineService` | AJAX dashboard P1-B |
+| T1 anchor, timeline y completed_at | `t1/T1AnchorService` | Callback original prioridad 5, status listener prioridad 10 |
+| Recalculation T1, single wave y variante legacy | `t1/T1RecalculationService` | Ambos contratos históricos conservados |
+| Coordinación después de persistir y next-wave payload | `LongitudinalSubmissionService` | Adapter M3 de seis argumentos |
+
+Los nombres abreviados de la tabla corresponden a clases `EIPSI_Longitudinal_*` y archivos `class-*.php`. Las definiciones Waves tienen un único owner. `Wave_Service` continúa entregando next-wave array; `EIPSI_Wave_Service` conserva su objeto. No unificar esas respuestas incidentalmente.
+
+Transition Service contiene START TRANSACTION, SELECT FOR UPDATE, revalidación pending/in_progress, escritura submitted y T1 assignment timestamp, COMMIT/ROLLBACK y el error 500 anterior. El skip con lock también vive allí. Expiration y auto-skip aplican compare-and-set al status leído: un snapshot obsoleto afecta cero filas y no ejecuta los efectos de una transición ganada. Los selectores temporales anteriores permanecen distintos: expiration service incluye pending/available con `<= NOW()`, cron incluye estados no terminales con `< current_time`; skipping protege T1 pero auto-skip expired mantiene su criterio previo.
+
+Storage ya persistió antes de entrar al comando. Esa respuesta y Assignment **no son atómicos**; un error longitudinal puede dejar una respuesta guardada. Recalculation, Pool completion y next-wave se ejecutan post-COMMIT. Las llamadas de notificaciones que ya ocurrían dentro del lock conservan su posición; correo/jobs/audit y post-commit no tienen exactly-once global. Generic update, manual completion/expiration y forced anchor mantienen sus contratos administrativos, sin prometer la idempotencia del submit bloqueado.
+
+Longitudinal decide available_at/due_at, offsets/window en minutos e índices T1=1/T2=2/T3=3. Consume Notifications mediante sus APIs existentes; no posee scheduler, queue, worker, templates ni weekly T1 delivery. `Wave_Service::maybe_send_immediate_wave_reminder` permanece intacto, accesible mediante el puente de compatibilidad `notify_submission`.
+
+Eventos: se preservan emisores y orden existentes de `eipsi_wave_available`, `eipsi_t1_anchored`, `eipsi_wave_expired`, `eipsi_assignment_expired` y `eipsi_form_submitted`. `eipsi_assignment_status_changed` ya tenía un listener T1; el update genérico no lo emitía y M4 no inventa esa emisión. Los actions manuales M0 de recalculation sin handler siguen pendientes.
+
+Purga M4: siete métodos privados duplicados, sin callers restantes en facades, documentados en [manifest](../tests/m4/purge-manifest.json). Las facades públicas son C; notificaciones son B; helpers fuera de la extracción sin prueba concluyente permanecen E.
+
+Deuda conservada: `study_end_at` se escribe en el recalculador cuando hay un offset de cierre, pero no figura en el schema actual; la disponibilidad legacy busca `wave_index` en assignments aunque está en Waves. Settings usa el nombre legacy `name` en un recorrido, mientras schema define `study_name`. No se cambió schema ni se repararon estos contratos fuera del alcance M4. Revisión específica en fases posteriores; un test verde no acredita esos recorridos completos.

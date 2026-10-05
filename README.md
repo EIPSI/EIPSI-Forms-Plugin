@@ -20,9 +20,9 @@ Plugin de WordPress para construir formularios con Gutenberg y administrar estud
 
 ## Arquitectura
 
-`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 separó el bootstrap y M2 asignó ownership a Auth/Participants; M3 separó Forms/Submit y el runtime; M4–M8 siguen pendientes. Véase [arquitectura actual](docs/architecture.md).
+`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 separó el bootstrap y M2 asignó ownership a Auth/Participants; M3 separó Forms/Submit y el runtime; M4 asignó ownership a Longitudinal; M5–M8 siguen pendientes. Véase [arquitectura actual](docs/architecture.md).
 
-La composición está en `includes/bootstrap/`; Auth y Participants tienen owners en `includes/auth/` e `includes/participants/`, con facades compatibles en `admin/services/`. Forms tiene owners en `includes/forms/`; el runtime clásico se compone desde `src/frontend/forms/manifest.json` durante `npm run build`, manteniendo `assets/js/eipsi-forms.js` como URL pública.
+La composición está en `includes/bootstrap/`; Auth y Participants tienen owners en `includes/auth/` e `includes/participants/`, con facades compatibles en `admin/services/`. Forms tiene owners en `includes/forms/`; el runtime clásico se compone desde `src/frontend/forms/manifest.json` durante `npm run build`, manteniendo `assets/js/eipsi-forms.js` como URL pública. Longitudinal tiene owners en `includes/longitudinal/`, con facades compatibles y un comando de submit; Notifications conserva sus servicios anteriores.
 
 ## Requisitos
 
@@ -58,7 +58,8 @@ El proceso ejecuta `wp-scripts`, corrige referencias CSS de los metadatos y comp
 | M1 | 31 |
 | M2 | 54 |
 | M3 | 80 |
-| Total | 348 |
+| M4 | 55 |
+| Total | 403 |
 
 Comandos y límites en [testing](docs/testing.md). Nueve pruebas M0 caracterizan discrepancias UI→handler: pasar esas pruebas no demuestra que esas acciones funcionen.
 
@@ -84,4 +85,4 @@ GPL-2.0-or-later según los metadatos del proyecto. Se conserva la [licencia GPL
 
 ## Estado de madurez
 
-P0/P1, M0, PURGA 1, purga documental, M1, M2 y M3 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M4–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.
+P0/P1, M0, PURGA 1, purga documental, M1, M2, M3 y M4 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M5–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.

@@ -40,7 +40,7 @@ function eipsi_check_pool_completion_on_submit($data) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
     $pool_assignments = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT pa.*, p.config, p.name as pool_name
+            "SELECT pa.*, p.config, p.pool_name as pool_name
              FROM {$wpdb->prefix}eipsi_pool_assignments pa
              JOIN {$wpdb->prefix}eipsi_longitudinal_pools p ON p.id = pa.pool_id
              WHERE pa.study_id = %d

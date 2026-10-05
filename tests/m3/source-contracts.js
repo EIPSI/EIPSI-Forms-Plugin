@@ -4,9 +4,12 @@ const crypto=require('crypto');
 const assert=require('assert/strict');
 const root=path.resolve(__dirname,'../..');
 const contracts=require('./contracts.json');
+const migrations=require('../m4/m3-boundary-migrations.json');
 let count=0;
 for(const [file,expected] of Object.entries(contracts.unchanged_files)) {
-    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),expected,'Unrelated boundary changed: '+file);
+    const migration=migrations[file];
+    if (migration) assert.equal(migration.m3_sha256,expected,'Original M3 baseline must remain recorded');
+    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),migration ? migration.m4_sha256 : expected,'Boundary changed beyond explicit M4 migration: '+file);
     console.log('PASS unchanged boundary '+file); count++;
 }
 const manifest=require('../../src/frontend/forms/manifest.json');

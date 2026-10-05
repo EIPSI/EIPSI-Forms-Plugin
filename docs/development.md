@@ -32,7 +32,7 @@ Propuesta pendiente de adopción: usar una única versión de distribución del 
 
 ## Alcance actual
 
-Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M1 incorporó `includes/bootstrap/`; M2 incorporó `includes/auth/` y `includes/participants/`. M3 incorporó `includes/forms/` y `src/frontend/forms/`; M4–M8 siguen pendientes. No hay CI/E2E completo. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
+Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M1 incorporó `includes/bootstrap/`; M2 incorporó `includes/auth/` y `includes/participants/`. M3 incorporó `includes/forms/` y `src/frontend/forms/`; M5–M8 siguen pendientes. No hay CI/E2E completo. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
 
 ## Cambiar el bootstrap
 
@@ -54,8 +54,19 @@ Ejecutar las 214 regresiones anteriores y la suite M2 real descrita en [testing]
 
 El adapter AJAX conserva nonce y request de WordPress (incluido su slashing). `EIPSI_Submit_Service::submit($request, $query, $server)` devuelve un resultado interno; `EIPSI_Form_Response::emit` conserva los JSON/status públicos. Capture mantiene filtros P1-C antes de persistir. El servicio no vuelve a inferir identidad: delega en la facade Auth y su Policy; el flujo anónimo mantiene identidad longitudinal cero.
 
-El adapter Storage llama las tres funciones originales de Data Safety. El adapter longitudinal en `admin/services/` encapsula el bloque legacy extraído sin cambiar reglas, transacciones, SQL, notificaciones ni próximos eventos. No extender ese bloque en Forms; sus reglas pertenecen a M4. No borrar facades globales ni `EIPSI_Partial_Responses` por no encontrar callers internos.
+El adapter Storage llama las tres funciones originales de Data Safety. El adapter longitudinal en `admin/services/` delega los seis argumentos históricos a un contexto del comando M4. No extender reglas ni SQL longitudinal en Forms. No borrar facades globales ni `EIPSI_Partial_Responses` por no encontrar callers internos.
 
 Editar las fuentes ordenadas en [manifest.json](../src/frontend/forms/manifest.json), no el artifact generado. Los archivos `.js.inc` son fragmentos del mismo closure clásico; algunos contienen métodos de un objeto compartido y no son scripts independientes. No cambiar orden, globals, nombres, selectores ni convertir a imports sin caracterización adicional. El build usa terser con `compress:false` y `mangle:false`; conserva la URL/handle y localizations existentes. `npm run start` sigue siendo el watcher histórico de Gutenberg: después de editar Forms ejecutar `node scripts/build-form-runtime.js` o `npm run build`.
 
 La fixture `tests/m3/runtime-baseline.js` es exclusivamente de pruebas; no restaurarla como fuente de producto. La composición M3 debe reproducir su hash hasta que se autorice un cambio funcional. Las pruebas comparan DOM anterior/generado y congelan límites críticos. Actualizar baselines requiere explicar qué contrato cambia; no regenerarlos para hacer pasar una regresión.
+
+
+## Cambiar Longitudinal
+
+M4 incorpora `includes/longitudinal/`: Studies, Wave definitions, Assignments, T1 y el comando de submit. Consultar el mapa de owners en [arquitectura](architecture.md). Los adapters WP validan nonce/capability; facades públicas mantienen firmas y formatos. Definition bootstrap carga solo clases, sin nuevas programaciones.
+
+Mantener índices base uno y fechas/offsets/window en minutos. No convertir los distintos selectores cron en una nueva regla clínica. Usar AssignmentTransitionService para status/timestamps y locks; los cron seleccionan candidatos y delegan. Si un compare-and-set pierde, no ejecutar efectos como si hubiera ganado. Preservar el límite Storage ya confirmado → transacción Assignment → trabajo post-commit.
+
+No mover Notifications ni Pools a este dominio. El puente de entrega conservado en Wave_Service es compatibilidad temporal para M5. No restaurar UI de recalculation sin definir previamente un contrato. Mantener las 348 regresiones previas y ejecutar las 55 M4, incluidas conexiones MariaDB concurrentes; ejecutar suites secuencialmente en M0.
+
+La purga asociada elimina exclusivamente siete métodos privados A trasladados; las facades C siguen siendo API compatible aunque un caller interno desaparezca. No reutilizar esa clasificación para eliminar métodos o archivos adicionales. Los baselines de contratos proceden del HEAD anterior `7eabedf`; las cuatro excepciones M3 están registradas y conservan hashes históricos.
