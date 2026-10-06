@@ -62,30 +62,6 @@ class EIPSI_Database_Schema_Manager {
 
     /**
 
-     * Get creation order for tables based on dependencies
-
-     *
-
-     * Level 0: Roots
-
-     * Level 1: Primary dependents
-
-     * Level 2: Secondary dependents
-
-     *
-
-     * @since 1.6.0
-
-     * @return array
-
-     */
-
-    private static function get_table_creation_order() { return EIPSI_Schema_Registry::get_table_creation_order(); }
-
-
-
-    /**
-
      * Generate dbDelta-compliant CREATE TABLE SQL
 
      *
@@ -190,16 +166,6 @@ class EIPSI_Database_Schema_Manager {
 
     /**
 
-     * Check if table exists in local database
-
-     */
-
-    private static function local_table_exists( $table_name ) { return EIPSI_Schema_Inspector::local_table_exists($table_name); }
-
-
-
-    /**
-
      * Periodic verification hook
 
      */
@@ -289,14 +255,6 @@ class EIPSI_Database_Schema_Manager {
 
     public static function fix_collations() { return EIPSI_Schema_Repair_Service::fix_collations(); }
 
-
-    /**
-
-     * Phase 2: Add foreign keys after all tables exist
-
-     */
-
-    private static function add_foreign_keys_phase2() { return EIPSI_Schema_Installer::add_foreign_keys_phase2(); }
 
 public static function check_collation_issues() { return EIPSI_Schema_Inspector::check_collation_issues(); }
 

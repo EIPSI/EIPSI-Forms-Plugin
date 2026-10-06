@@ -1,0 +1,37 @@
+[
+  {
+    "classification": "A",
+    "file": "helpers.txt",
+    "symbol": null,
+    "before_sha256": "d6e5c97a1be9103ec4367eabd2828f45e6bea7c09ee1e792ef6bfef32f425015",
+    "consumer_evidence": "Sin referencias en fuentes/docs/tests/scripts versionados; no runtime include en ambos perfiles; fragmentos private sin apertura PHP/clase ni instrucciones operativas.",
+    "replacement": "Registry/Inspector/Repair"
+  },
+  {
+    "classification": "A",
+    "file": "admin/database-schema-manager.php",
+    "symbol": "EIPSI_Database_Schema_Manager::get_table_creation_order",
+    "before_sha256": "e645a32ddc47b0bf7eda5e607ceed7f2e7f18c1d760a2341f881f11c78d2038d",
+    "file_before_sha256": "3bac1014834c6fdfad39fd3b5eafb1d9283a5a2e9a6ff0089a1faf3747ff04c3",
+    "consumer_evidence": "Privado sin self:: callers; sin callback/symbol público; owner canónico implementa función. Reflection pública y registraciones antes congeladas.",
+    "replacement": "EIPSI_Schema_Registry"
+  },
+  {
+    "classification": "A",
+    "file": "admin/database-schema-manager.php",
+    "symbol": "EIPSI_Database_Schema_Manager::local_table_exists",
+    "before_sha256": "3ac4597ba42fb304a5137a809e2ac439f7e134ceaa79da2a0ab32755176e7190",
+    "file_before_sha256": "3bac1014834c6fdfad39fd3b5eafb1d9283a5a2e9a6ff0089a1faf3747ff04c3",
+    "consumer_evidence": "Privado sin self:: callers; sin callback/symbol público; owner canónico implementa función. Reflection pública y registraciones antes congeladas.",
+    "replacement": "EIPSI_Schema_Inspector"
+  },
+  {
+    "classification": "A",
+    "file": "admin/database-schema-manager.php",
+    "symbol": "EIPSI_Database_Schema_Manager::add_foreign_keys_phase2",
+    "before_sha256": "4745eda97d9108b984d2e4b0fedfef7fe6e9bbffa9c8c0d9e5eadaeaa67628a2",
+    "file_before_sha256": "3bac1014834c6fdfad39fd3b5eafb1d9283a5a2e9a6ff0089a1faf3747ff04c3",
+    "consumer_evidence": "Privado sin self:: callers; sin callback/symbol público; owner canónico implementa función. Reflection pública y registraciones antes congeladas.",
+    "replacement": "EIPSI_Schema_Installer"
+  }
+]

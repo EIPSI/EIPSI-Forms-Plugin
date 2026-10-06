@@ -1,0 +1,7 @@
+{
+  "admin/database-schema-manager.php": {
+    "before_purga_sha256": "3bac1014834c6fdfad39fd3b5eafb1d9283a5a2e9a6ff0089a1faf3747ff04c3",
+    "purga_sha256": "7aabef638861a543f6c8f47d15e7ead50bdf33577552fad713d0b6abc2be54ab",
+    "reason": "Only three private unused wrappers A removed; public API preserved"
+  }
+}

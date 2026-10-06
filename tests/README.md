@@ -159,3 +159,7 @@ P1-C corrige ahora su limpieza local y la comprobación de resultados.
 ## M0: caracterización post-estabilización
 
 [M0 sobre WordPress real](m0/README.md) documenta el entorno Docker aislado, el build limpio, la suite de 36 casos, el inventario ejecutable y el manifiesto de PURGA 1. Conserva los 147 casos anteriores: total **183**. Las nueve pruebas de deuda UI caracterizan handlers ausentes; no equivalen a flujos funcionales restaurados.
+
+## PURGA FINAL post M1–M8
+
+[Fixtures, comandos y contratos congelados](purga-final/README.md). Conserva 739 casos previos y añade 15 regresiones de purga: **754** únicos. Clean install y upgrade histórico separados; 401 verificaciones repetidas sobre upgrade no inflan el total. No se implementan features ni se hace release.

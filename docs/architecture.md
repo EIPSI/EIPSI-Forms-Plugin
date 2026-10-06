@@ -233,3 +233,7 @@ The old anonymous email-only Pool login/join interface can no longer grant acces
 Registry → Installer define/crea el estado actual; MigrationRunner conserva v1–v9 y converge en v10; Inspector lee y Repair solo añade estructura segura. ExternalSchemaAdapter tiene ownership separado. SchemaManager y los creadores públicos anteriores permanecen facades. Ver [contratos, versiones, DDL residual y límites](schema.md).
 
 Se preservan uniques, datos dinámicos, collation histórica y callbacks. Las verificaciones periódicas no mutan estructura. Una instalación desde cero evita migraciones históricas; versiones históricas admitidas requieren precondiciones demostradas y checkpoints confirmados. El mapa previo y el informe M8 en informes institucionales documentan inventario completo y matriz global B/C/E para PURGA FINAL.
+
+## PURGA FINAL post M1–M8
+
+La [clasificación definitiva de compatibilidad](legacy-compatibility.md) distingue APIs públicas C, recorridos históricos B, herramientas manuales D, consumidores indeterminados E y deuda funcional F. Se retiraron únicamente fragmentos sin consumer y tres wrappers privados sin caller; los contratos públicos, owners y migraciones se conservaron. Las [15 nuevas regresiones](../tests/purga-final/README.md) amplían el baseline de 739 a 754 casos. La matriz original de 70 filas se conserva con decisiones renovadas; la deuda UI/Auth adicional está documentada por action.
