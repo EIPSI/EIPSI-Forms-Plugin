@@ -80,7 +80,7 @@ function p1_fixture($callback) {
             p0_assert($db->insert($prefix . 'survey_waves', array('id' => $id, 'study_id' => $config[0], 'wave_index' => 2, 'name' => 'Wave fixture', 'form_id' => $config[1], 'status' => 'active')) !== false, 'Wave fixture failed');
         }
         foreach (array(7, 8) as $participant_id) {
-            p0_assert($db->insert($prefix . 'survey_assignments', array('study_id' => 3, 'wave_id' => 21, 'participant_id' => $participant_id, 'status' => 'pending')) !== false, 'Assignment fixture failed');
+            p0_assert($db->insert($prefix . 'survey_assignments', array('study_id' => 3, 'wave_id' => 21, 'participant_id' => $participant_id, 'status' => 'pending', 'available_at' => $now)) !== false, 'Assignment fixture failed');
         }
         $db->observed_queries = array();
         $callback($db);

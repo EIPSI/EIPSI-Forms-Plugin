@@ -23,6 +23,13 @@ class EIPSI_Submit_Service {
     $authenticated_participant_id = $submission_context['participant_id'];
     $authenticated_study_id = $submission_context['study_id'];
 
+    if (!empty($submission_context['longitudinal'])) {
+        $temporal = EIPSI_Longitudinal_Assignment_Transition_Service::precheck_submission(
+            $authenticated_participant_id, $authenticated_study_id, $submission_context['wave_id']
+        );
+        if (!$temporal['success']) { return $temporal; }
+    }
+
     // Ética clínica: si el estudio está cerrado, no aceptamos nuevos envíos
     if (eipsi_get_study_status_for_form_name($form_name) === 'closed') {
         return EIPSI_Form_Response::error(array(

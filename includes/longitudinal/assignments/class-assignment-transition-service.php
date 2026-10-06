@@ -3,6 +3,47 @@
 if (!defined('ABSPATH')) { exit; }
 
 class EIPSI_Longitudinal_Assignment_Transition_Service {
+/** Canonical submit eligibility. Dates use the existing longitudinal writer clock.
+ * Pure evaluation: never expires or skips; an explicit clock supports boundary tests.
+ */
+public static function evaluate_temporal($assignment, $now = null) {
+    $a = (array) $assignment;
+    $now = $now ?? current_time('mysql');
+    $code = null;
+    if (!in_array($a['status'] ?? '', array('pending', 'in_progress'), true) ||
+        !in_array($a['study_status'] ?? '', array('active', 'paused'), true)) {
+        $code = 'invalid_assignment_state';
+    } elseif (empty($a['available_at']) && (int) ($a['wave_index'] ?? 0) !== 1) {
+        $code = 'not_yet_available';
+    } elseif (!empty($a['available_at']) && $a['available_at'] > $now) {
+        $code = 'not_yet_available';
+    } elseif (!empty($a['due_at']) && $a['due_at'] <= $now) {
+        $code = 'deadline_passed';
+    }
+    if ($code === null) { return array('success' => true); }
+    $messages = array(
+        'not_yet_available' => __('Esta toma todavía no está disponible.', 'eipsi-forms'),
+        'deadline_passed' => __('El plazo para responder esta toma ya pasó.', 'eipsi-forms'),
+        'invalid_assignment_state' => __('Esta toma no admite nuevos envíos.', 'eipsi-forms'),
+    );
+    return self::failure(array('message' => $messages[$code], 'code' => $code, 'error' => $code),
+        $code === 'invalid_assignment_state' && !in_array($a['status'] ?? '', array('pending','in_progress'), true) ? 500 : 403);
+}
+
+/** Advisory precheck before Storage/render. submit_locked rechecks authoritatively. */
+public static function precheck_submission($participant_id, $study_id, $wave_id) {
+    global $wpdb;
+    $a = $wpdb->get_row($wpdb->prepare(
+        "SELECT a.*, w.wave_index, w.status AS wave_status, s.status AS study_status
+         FROM {$wpdb->prefix}survey_assignments a
+         JOIN {$wpdb->prefix}survey_waves w ON w.id=a.wave_id AND w.study_id=a.study_id
+         JOIN {$wpdb->prefix}survey_studies s ON s.id=a.study_id
+         WHERE a.participant_id=%d AND a.study_id=%d AND a.wave_id=%d",
+        $participant_id, $study_id, $wave_id
+    ));
+    return self::evaluate_temporal($a ?: array());
+}
+
 public static function update_assignment_status($wave_id, $participant_id, $status) {
         global $wpdb;
 
@@ -160,6 +201,7 @@ public static function mark_wave_completed($assignment_id) {
         return true;
     }
 
+/** Low-level writer used after submit_locked eligibility. Participant callers must use submit_locked. */
 public static function mark_assignment_submitted($participant_id, $study_id, $wave_id) {
         global $wpdb;
 
@@ -279,8 +321,23 @@ public static function change_snapshot($assignment_id, $old_status, $new_status,
         array_fill(0,count($data),'%s'),array('%d','%s'));
 }
 public static function expire_snapshot($assignment, $timestamp = false) {
-    return self::change_snapshot($assignment->id,$assignment->status,'expired',
+    global $wpdb;
+    if ($wpdb->query('START TRANSACTION') === false) { return false; }
+    $locked = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM {$wpdb->prefix}survey_assignments WHERE id=%d FOR UPDATE", $assignment->id
+    ));
+    if (!$locked || $locked->status !== $assignment->status ||
+        !in_array($locked->status, array('pending','in_progress'), true) ||
+        empty($locked->due_at) || $locked->due_at > current_time('mysql')) {
+        $wpdb->query('ROLLBACK');
+        return 0; // Deadline/status may have changed since the cron snapshot.
+    }
+    $result = self::change_snapshot($locked->id, $locked->status, 'expired',
         $timestamp ? array('updated_at'=>current_time('mysql')) : array());
+    if ($result === false || $wpdb->query('COMMIT') === false) {
+        $wpdb->query('ROLLBACK'); return false;
+    }
+    return $result;
 }
 public static function force_t1_submitted($wave_id,$participant_id,$timestamp) {
     global $wpdb;
@@ -292,12 +349,14 @@ public static function submit_locked($longitudinal_participant_id,$study_id,$wav
     global $wpdb;
             $is_t1 = false; // Inicializar antes del try para scope externo
 
-            $wpdb->query('START TRANSACTION');
+            if ($wpdb->query('START TRANSACTION') === false) {
+                return self::failure(array('message' => __('No se pudo iniciar el envío.', 'eipsi-forms'), 'code' => 'db_error'), 500);
+            }
 
             try {
                 // 1. LOCK y verificar status del assignment (prevenir race condition con wave skipping)
                 $assignment = $wpdb->get_row($wpdb->prepare(
-                    "SELECT id, status FROM {$wpdb->prefix}survey_assignments
+                    "SELECT * FROM {$wpdb->prefix}survey_assignments
                      WHERE participant_id = %d AND study_id = %d AND wave_id = %d
                      FOR UPDATE",
                     $longitudinal_participant_id, $study_id, $wave_id
@@ -307,10 +366,22 @@ public static function submit_locked($longitudinal_participant_id,$study_id,$wav
                     throw new Exception('Assignment not found');
                 }
 
-                // Validar que el status permita submit
-                $allowed_statuses = array('pending', 'in_progress');
-                if (!in_array($assignment->status, $allowed_statuses)) {
-                    throw new Exception("Cannot submit assignment with status '{$assignment->status}'. This wave may have been skipped or expired.");
+                // Lock the assignment first. A joined FOR UPDATE can lock related rows
+                // before waiting on this row, unnecessarily blocking deadline writers.
+                $state = $wpdb->get_row($wpdb->prepare(
+                    "SELECT w.wave_index, w.status AS wave_status, s.status AS study_status
+                     FROM {$wpdb->prefix}survey_waves w
+                     JOIN {$wpdb->prefix}survey_studies s ON s.id=w.study_id
+                     WHERE w.id=%d AND w.study_id=%d LOCK IN SHARE MODE", $wave_id, $study_id
+                ));
+                if (!$state) { throw new Exception('Wave context unavailable'); }
+                $assignment->wave_index = $state->wave_index;
+                $assignment->study_status = $state->study_status;
+                // Re-read dates/state under the transition lock; never trust a precheck snapshot.
+                $eligibility = self::evaluate_temporal($assignment);
+                if (!$eligibility['success']) {
+                    $wpdb->query('ROLLBACK');
+                    return $eligibility;
                 }
 
                 error_log("[EIPSI-DIAG] Assignment status validated: {$assignment->status} (allowed for submit)");
@@ -354,7 +425,7 @@ public static function submit_locked($longitudinal_participant_id,$study_id,$wav
                 }
 
                 // COMMIT: submit + t1_completed_at están guardados atómicamente
-                $wpdb->query('COMMIT');
+                if ($wpdb->query('COMMIT') === false) { throw new Exception('Failed to commit submission'); }
                 error_log('[EIPSI T1-Anchor] Transaction committed successfully');
 
             } catch (Exception $e) {
@@ -408,14 +479,16 @@ public static function manual_expire($assignment_id) {
                 'status' => 'expired',
                 'updated_at' => current_time('mysql'),
             ),
-            array('id' => $assignment_id),
+            array('id' => $assignment_id, 'status' => $assignment->status),
             array('%s', '%s'),
-            array('%d')
+            array('%d', '%s')
         );
 
         if ($updated === false) {
             return new WP_Error('db_error', 'Failed to update assignment: ' . $wpdb->last_error);
         }
+
+        if ($updated === 0) { return new WP_Error('invalid_assignment_state', 'Assignment state changed'); }
 
         // Cancel nudges
         EIPSI_Longitudinal_Assignment_Expiration_Service::cancel_pending_nudges($assignment->participant_id, $assignment->wave_id);

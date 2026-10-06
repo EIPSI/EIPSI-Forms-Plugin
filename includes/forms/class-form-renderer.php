@@ -91,6 +91,15 @@ class EIPSI_Form_Renderer {
             }
         }
 
+        if ($is_longitudinal) {
+            $temporal_context = EIPSI_Auth_Service::authorize_form_operation((string) $template_id, $options, $_GET, 'render');
+            if (!$temporal_context['success']) { return eipsi_render_form_notice(__('Esta toma no está disponible.', 'eipsi-forms'), 'error'); }
+            $temporal = EIPSI_Longitudinal_Assignment_Transition_Service::precheck_submission(
+                $temporal_context['participant_id'], $temporal_context['study_id'], $temporal_context['wave_id']
+            );
+            if (!$temporal['success']) { return eipsi_render_form_notice($temporal['data']['message'], 'error'); }
+        }
+
         // Ensure frontend assets are loaded
         eipsi_forms_enqueue_frontend_assets();
 

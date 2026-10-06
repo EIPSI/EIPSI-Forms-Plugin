@@ -260,6 +260,7 @@ $tests['Nudges offsets fuera de deadline no se programan ni se sobrescriben'] = 
     p0_assert(json_decode(EIPSI_Wave_Service::get_wave(21)->nudge_config,true)['nudge_1']['value']==120,'Offset silently redistributed');
 };
 $tests['Nudges ventana no modifica assignments submitted ni sin anchor'] = function ($db) {
+    $db->update($db->prefix.'survey_assignments',array('available_at'=>null),array('participant_id'=>8));
     p1b_ready($db); $db->update($db->prefix.'survey_assignments',array('status'=>'submitted','due_at'=>'2026-10-21 12:00:00'),array('participant_id'=>7));
     EIPSI_Nudge_Service::save_wave_configuration(21,p1b_config(),true,90);
     p0_assert($db->get_var("SELECT due_at FROM {$db->prefix}survey_assignments WHERE participant_id=7")==='2026-10-21 12:00:00','Submitted deadline changed');

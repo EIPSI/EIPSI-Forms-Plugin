@@ -120,3 +120,10 @@ Clinical publica nonce y strings en `eipsiFormTools`, aunque el binding privado 
 Se conservan facades, nombres de actions, nonce y envelopes seguros. `authenticate_passwordless(survey_id,email)` deja explícitamente de autenticar: devuelve `success=false`, `participant_id=null`, `error=proof_required`. Los callers públicos sin password ahora solicitan el magic link existente con respuesta genérica, sin sesión. Registro sin double opt-in tampoco hace auto-login; confirmación sigue activando sin login. Las extensiones que asumían email como credencial deben adoptar password o consumo de magic token.
 
 El delta es revisable en [security-contracts.json](../tests/s0/security-contracts.json) y [boundary-migrations.json](../tests/s0/boundary-migrations.json), sin reemplazar baselines anteriores. SessionService conserva su API, con precondición documentada de prueba de posesión ya validada por el caller. Pools continúa exigiendo sesión canónica: no se habilita el antiguo login/join por email. Las otras deudas B/C/D/E/F permanecen.
+
+
+## S1: excepción de integridad temporal
+
+Los submits participantes con pending ya no asumen disponibilidad: posteriores a T1 necesitan available_at y nunca pueden enviar antes de ella; due_at <= reloj ya venció. Se conserva T1 inmediata sin anchor, deadline NULL y estudio paused permitido. La regla canónica es Longitudinal, consumida por Storage/render y revalidada bajo lock al transicionar.
+
+Las firmas y acciones existentes permanecen; dos métodos del owner y deltas de shortcode/deadline se documentan en tests/s1 sin reemplazar snapshots. Los fixtures que asumían T2/T3 NULL submitable declaran ahora ventana válida para sus pruebas de negocio. Operaciones administrativas confiables de completion/backfill no se reinterpretan como envío participante. No se inventa semántica uniforme para estados/fechas wave visuales ni se resuelven deudas Notifications/F.

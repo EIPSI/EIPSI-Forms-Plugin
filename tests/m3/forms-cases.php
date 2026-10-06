@@ -62,7 +62,7 @@ foreach(array(2,3) as $index){$tests['HTTP longitudinal T'.$index.' retains wave
     $form=wp_insert_post(array('post_type'=>'eipsi_form_template','post_status'=>'publish','post_title'=>'M3 T'.$index,'post_content'=>'<!-- wp:eipsi/form-container {"formName":"m3-t'.$index.'"} --><form><input name="answer"></form><!-- /wp:eipsi/form-container -->'));$posts[]=$form;update_post_meta($form,'_eipsi_form_name','m3-t'.$index);
     $wave=992220+$index;$assignment=992230+$index;
     m0_assert($wpdb->insert($wpdb->prefix.'survey_waves',array('id'=>$wave,'study_id'=>992203,'wave_index'=>$index,'name'=>'M3 T'.$index,'form_id'=>$form,'status'=>'active'))!==false,'Wave fixture failed');
-    m0_assert($wpdb->insert($wpdb->prefix.'survey_assignments',array('id'=>$assignment,'study_id'=>992203,'wave_id'=>$wave,'participant_id'=>992207,'status'=>'pending'))!==false,'Assignment fixture failed');
+    m0_assert($wpdb->insert($wpdb->prefix.'survey_assignments',array('id'=>$assignment,'study_id'=>992203,'wave_id'=>$wave,'participant_id'=>992207,'status'=>'pending','available_at'=>current_time('mysql')))!==false,'Assignment fixture failed');
     $session=m3_session();$j=m3_json(m3_submit(array('form_id'=>'m3-t'.$index,'wave_id'=>$wave,'participant_id'=>'m2-browser'),$session));m0_assert($j['success'],'T'.$index.' submit failed');
     $row=$wpdb->get_row("SELECT * FROM {$wpdb->prefix}vas_form_results WHERE participant_id='992207' ORDER BY id DESC LIMIT 1");m0_assert((int)$row->wave_index===$index && (int)$row->survey_id===992203,'T'.$index.' index changed');
     m0_assert($wpdb->get_var($wpdb->prepare("SELECT status FROM {$wpdb->prefix}survey_assignments WHERE id=%d",$assignment))==='submitted','T'.$index.' assignment pending');

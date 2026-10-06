@@ -1,0 +1,7 @@
+{
+  "EIPSI_Longitudinal_Assignment_Deadline_Service::save_wave_configuration": {
+    "before_s1_tokens_sha256": "e4b9713484637bfc4fa75fec76bff8ce93af4f61a4de425f8ac9d3cf3d5f546b",
+    "s1_tokens_sha256": "2aade64b07e43440d9bc15c09292351eb5818a8d43720d70e8456337983f5b6c",
+    "reason": "S1 deadline update preserves terminal status after waiting on assignment lock"
+  }
+}

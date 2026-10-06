@@ -1,0 +1,49 @@
+{
+  "reason": "Explicit S1 integrity contract delta; prior snapshots remain frozen",
+  "added_public_methods": {
+    "EIPSI_Longitudinal_Assignment_Transition_Service": {
+      "evaluate_temporal": {
+        "static": true,
+        "parameters": [
+          {
+            "name": "assignment",
+            "optional": false,
+            "default": null,
+            "type": null
+          },
+          {
+            "name": "now",
+            "optional": true,
+            "default": null,
+            "type": null
+          }
+        ],
+        "owner": "EIPSI_Longitudinal_Assignment_Transition_Service"
+      },
+      "precheck_submission": {
+        "static": true,
+        "parameters": [
+          {
+            "name": "participant_id",
+            "optional": false,
+            "default": null,
+            "type": null
+          },
+          {
+            "name": "study_id",
+            "optional": false,
+            "default": null,
+            "type": null
+          },
+          {
+            "name": "wave_id",
+            "optional": false,
+            "default": null,
+            "type": null
+          }
+        ],
+        "owner": "EIPSI_Longitudinal_Assignment_Transition_Service"
+      }
+    }
+  }
+}

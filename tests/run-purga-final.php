@@ -3,14 +3,15 @@ require __DIR__.'/m0/bootstrap.php';
 $root=EIPSI_FORMS_PLUGIN_DIR;
 $baseline=json_decode(file_get_contents(__DIR__.'/purga-final/public-contracts-before.json'),true);
 $s0=json_decode(file_get_contents(__DIR__.'/s0/security-contracts.json'),true);
+$s1=json_decode(file_get_contents(__DIR__.'/s1/security-contracts.json'),true);
 $matrix=json_decode(file_get_contents(__DIR__.'/m8/global-retained-matrix.json'),true);
 $tests=array();
 $tests['A: archivo y tres wrappers privados ausentes']=function()use($root){
  m0_assert(!file_exists($root.'helpers.txt'),'Orphan remains');$r=new ReflectionClass('EIPSI_Database_Schema_Manager');foreach(array('get_table_creation_order','local_table_exists','add_foreign_keys_phase2')as$m)m0_assert(!$r->hasMethod($m),'Private wrapper remains: '.$m);
 };
-$tests['Firmas públicas de clases incluidas las heredadas preservadas']=function()use($baseline,$s0){
+$tests['Firmas públicas de clases incluidas las heredadas preservadas']=function()use($baseline,$s0,$s1){
  foreach(array('includes/services/class-nudge-service.php','includes/services/Wave_Service.php','includes/shortcodes/class-pool-join-shortcode.php','admin/services/class-email-confirmation-service.php','admin/services/class-device-data-service.php','admin/services/class-wave-eligibility-service.php','admin/services/class-participant-data-cleanup.php')as$file)require_once EIPSI_FORMS_PLUGIN_DIR.$file;
- foreach($baseline['classes']as$name=>$expected){m0_assert(class_exists($name),'Class absent: '.$name);$r=new ReflectionClass($name);$actual=array();foreach($r->getMethods(ReflectionMethod::IS_PUBLIC)as$m){$params=array();foreach($m->getParameters()as$p)$params[]=array('name'=>$p->getName(),'optional'=>$p->isOptional(),'default'=>$p->isDefaultValueAvailable()?$p->getDefaultValue():null,'type'=>$p->hasType()?(string)$p->getType():null);$actual[$m->getName()]=array('static'=>$m->isStatic(),'parameters'=>$params,'owner'=>$m->getDeclaringClass()->getName());}m0_assert($actual==array_merge($expected['methods'],$s0['added_public_methods'][$name]??array()),'Public API changed: '.$name);}
+ foreach($baseline['classes']as$name=>$expected){m0_assert(class_exists($name),'Class absent: '.$name);$r=new ReflectionClass($name);$actual=array();foreach($r->getMethods(ReflectionMethod::IS_PUBLIC)as$m){$params=array();foreach($m->getParameters()as$p)$params[]=array('name'=>$p->getName(),'optional'=>$p->isOptional(),'default'=>$p->isDefaultValueAvailable()?$p->getDefaultValue():null,'type'=>$p->hasType()?(string)$p->getType():null);$actual[$m->getName()]=array('static'=>$m->isStatic(),'parameters'=>$params,'owner'=>$m->getDeclaringClass()->getName());}m0_assert($actual==array_merge($expected['methods'],$s0['added_public_methods'][$name]??array(),$s1['added_public_methods'][$name]??array()),'Public API changed: '.$name);}
 };
 $tests['Firmas globales y callbacks de compatibilidad preservados']=function()use($baseline){
  foreach($baseline['functions']as$name=>$expected){m0_assert(function_exists($name),'Global absent: '.$name);$params=array();foreach((new ReflectionFunction($name))->getParameters()as$p)$params[]=array('name'=>$p->getName(),'optional'=>$p->isOptional(),'default'=>$p->isDefaultValueAvailable()?$p->getDefaultValue():null);m0_assert($params==$expected['parameters'],'Global signature changed: '.$name);}

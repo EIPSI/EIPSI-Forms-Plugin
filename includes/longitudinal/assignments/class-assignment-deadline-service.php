@@ -487,7 +487,7 @@ public static function save_wave_configuration($wave_id, $config, $window_suppli
         if ($result === false) { $wpdb->query('ROLLBACK'); return new WP_Error('db_error', 'No se pudo guardar configuración.'); }
         if ($window_supplied && (string) $wave->window_minutes !== (string) $window_minutes) {
             $assignments = $wpdb->get_results($wpdb->prepare(
-                "SELECT id, available_at FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND status IN ('pending','in_progress')", $wave_id
+                "SELECT id, status, available_at FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND status IN ('pending','in_progress')", $wave_id
             ));
             foreach ($assignments as $assignment) {
                 // Without an anchor leave the unanchored assignment intact.
@@ -506,7 +506,7 @@ public static function save_wave_configuration($wave_id, $config, $window_suppli
                     $window = (int) $next_offset - (int) $wave->offset_minutes;
                     $due_at = $window > 0 ? date('Y-m-d H:i:s', strtotime($assignment->available_at) + $window * 60) : null;
                 }
-                if ($wpdb->update($wpdb->prefix . 'survey_assignments', array('due_at' => $due_at), array('id' => $assignment->id)) === false) {
+                if ($wpdb->update($wpdb->prefix . 'survey_assignments', array('due_at' => $due_at), array('id' => $assignment->id, 'status' => $assignment->status)) === false) {
                     $wpdb->query('ROLLBACK'); return new WP_Error('db_error', 'No se pudo actualizar el plazo.');
                 }
             }
