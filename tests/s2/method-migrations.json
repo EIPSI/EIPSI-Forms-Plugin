@@ -1,0 +1,22 @@
+{
+  "EIPSI_Notification_Nudge_Queue_Service::mark_processing": {
+    "before_s2_tokens_sha256": "8392808a9eef3bc5899d80d9f2cb1884ea389f16fafed5e5f6e993a1b6c35b64",
+    "s2_tokens_sha256": "0e332f92a563d43ffe95e77bbe1979561f1ff19e7027bed401c84bb0378b05a3",
+    "reason": "Pending CAS preserved; advisory ownership and due schedule/retries prevent stale worker backoff bypass"
+  },
+  "EIPSI_Notification_Nudge_Queue_Service::mark_for_retry": {
+    "before_s2_tokens_sha256": "59261502ef3dac359aa1703bfce38c0f737bd05367ae1f95f3f7c39661200a4b",
+    "s2_tokens_sha256": "0efab0d653e379451f16a411ea8e67301194d3878b9073eb399a86be26d9e06a",
+    "reason": "Owned persistence outcome separated from historical retry-only boolean"
+  },
+  "EIPSI_Notification_Nudge_Queue_Service::enqueue": {
+    "before_s2_tokens_sha256": "9b0a436278fd2fbd5d1886220dff3ab2a1b9556b4b83cf26926c4d888e246a97",
+    "s2_tokens_sha256": "3ae1b0f801fa64621b2c475acfb82b4c865ad93725f312ca8fc0fda8ec09bc3e",
+    "reason": "Confirm one inserted row and omit raw database errors from logs"
+  },
+  "EIPSI_Notification_Nudge_Queue_Service::get_pending_jobs": {
+    "before_s2_tokens_sha256": "21399051fd29aa639fbcb2500a19c39b9b499cd1ed0ebe71a80a62c680135d8b",
+    "s2_tokens_sha256": "31904caa7d0c46c206761758267992b0433a167f48f795bfdc9491b279347d1a",
+    "reason": "Bounded recovery before unchanged pending selection; fail closed on recovery SQL error"
+  }
+}

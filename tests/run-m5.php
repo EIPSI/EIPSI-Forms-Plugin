@@ -56,6 +56,11 @@ try {
     m0_assert(!file_exists($mu),'Existing isolation file would be overwritten');wp_mkdir_p(dirname($mu));m0_assert(copy(__DIR__.'/m5/mail-isolation.php',$mu),'Cannot isolate HTTP mail');$owned=true;
     foreach(array(992203,992204) as $id){m0_assert(!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}survey_studies WHERE id=%d",$id)),'Fixture collision');m0_assert($wpdb->insert($wpdb->prefix.'survey_studies',array('id'=>$id,'study_code'=>'m2-'.$id,'study_name'=>'M2 fixture','created_at'=>current_time('mysql'),'updated_at'=>current_time('mysql'),'config'=>$id===992203?'{"double_opt_in":false}':'{}'))!==false,$wpdb->last_error);}
     foreach(array(992207=>992203,992208=>992203,992209=>992204) as $id=>$study){m0_assert($wpdb->insert($wpdb->prefix.'survey_participants',array('id'=>$id,'survey_id'=>$study,'email'=>$id===992207?'m2-a@example.invalid':'m2-'.$id.'@example.invalid','first_name'=>'M2','password_hash'=>wp_hash_password('m2-valid-password'),'is_active'=>1,'consent_decision'=>'accepted','status'=>'active','created_at'=>current_time('mysql')))!==false,$wpdb->last_error);}
+    // Explicit URL fixture: isolated suites must not depend on pages left by M2.
+    if (!get_page_by_path('estudio-m2-992203')) {
+        $study_page=wp_insert_post(array('post_type'=>'page','post_status'=>'publish','post_name'=>'estudio-m2-992203','post_title'=>'M2 owned study fixture','post_content'=>'[eipsi_longitudinal_study id="992203"]'));
+        m0_assert($study_page>0,'Study page fixture failed');$posts[]=$study_page;
+    }
     $form=wp_insert_post(array('post_type'=>'eipsi_form_template','post_status'=>'publish','post_title'=>'M2 longitudinal','post_content'=>'<!-- wp:eipsi/form-container {"formName":"m2-long-form"} --><form class="eipsi-form"><input name="m2-answer"></form><!-- /wp:eipsi/form-container -->'));$posts[]=$form;update_post_meta($form,'_eipsi_form_name','m2-long-form');
     $wpdb->insert($wpdb->prefix.'survey_waves',array('id'=>992221,'study_id'=>992203,'wave_index'=>1,'name'=>'M2 T1','form_id'=>$form,'status'=>'active'));
     $wpdb->insert($wpdb->prefix.'survey_assignments',array('id'=>992231,'study_id'=>992203,'wave_id'=>992221,'participant_id'=>992207,'status'=>'pending'));

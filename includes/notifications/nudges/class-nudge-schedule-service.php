@@ -283,28 +283,16 @@ private static function convert_to_seconds($value,$unit) { return EIPSI_Notifica
 
 private static function cancel_nudges_for_assignment_unlocked($assignment_id) {
         global $wpdb;
-
-        error_log("[EIPSI EventScheduler] Cancelling all pending nudges for assignment {$assignment_id}");
-
-        $cancelled = $wpdb->update(
-            $wpdb->prefix . 'survey_job_queue',
-            array('status' => 'cancelled'),
-            array(
-                'assignment_id' => $assignment_id,
-                'status' => 'pending'
-            ),
-            array('%s'),
-            array('%d', '%s')
-        );
-
-        if ($cancelled === false) {
-            error_log("[EIPSI EventScheduler] Error cancelling nudges: " . $wpdb->last_error);
-            return 0;
-        }
-
-        error_log("[EIPSI EventScheduler] Cancelled {$cancelled} pending nudges for assignment {$assignment_id}");
-
-        return $cancelled;
+        $modern=EIPSI_Notification_Nudge_Queue_Service::cancel_jobs_for_assignment($assignment_id);
+        if ($modern===false) { return false; }
+        // Preserve optional historical storage; no current producer/schema creates it.
+        $legacy=$wpdb->prefix.'survey_job_queue';
+        $exists=$wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s',$wpdb->esc_like($legacy)));
+        if ($wpdb->last_error) { return false; }
+        if ($exists!==$legacy) { return $modern; }
+        $cancelled=$wpdb->update($legacy,array('status'=>'cancelled'),array('assignment_id'=>$assignment_id,'status'=>'pending'),array('%s'),array('%d','%s'));
+        if ($cancelled===false) { error_log('[EIPSI EventScheduler] persistence_sql_error operation=legacy_cancel'); return false; }
+        return $modern+intval($cancelled);
     }
 
 private static function reschedule_nudges_for_assignment_unlocked($assignment_id) {
@@ -318,6 +306,7 @@ private static function reschedule_nudges_for_assignment_unlocked($assignment_id
 
         // 1. Cancelar nudges pendientes
         $cancelled = self::cancel_nudges_for_assignment($assignment_id);
+        if ($cancelled === false) { return false; }
         error_log("[EIPSI EventScheduler] Cancelled {$cancelled} pending nudges before rescheduling");
 
         // 2. Re-programar desde cero (lee available_at actualizado de la DB)

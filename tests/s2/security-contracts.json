@@ -1,0 +1,10 @@
+{
+  "reason": "Explicit S2 integrity additions; original snapshots and S0/S1 deltas retained",
+  "added_public_methods": {
+    "EIPSI_Notification_Nudge_Queue_Service": {
+      "release_processing": {"static":true,"parameters":[{"name":"job_id","optional":false,"default":null,"type":null}],"owner":"EIPSI_Notification_Nudge_Queue_Service"},
+      "recover_stale_processing": {"static":true,"parameters":[{"name":"limit","optional":true,"default":10,"type":null}],"owner":"EIPSI_Notification_Nudge_Queue_Service"},
+      "persist_retry_outcome": {"static":true,"parameters":[{"name":"job_id","optional":false,"default":null,"type":null},{"name":"error","optional":false,"default":null,"type":null}],"owner":"EIPSI_Notification_Nudge_Queue_Service"}
+    }
+  }
+}

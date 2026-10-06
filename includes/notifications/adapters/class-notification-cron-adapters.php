@@ -106,6 +106,7 @@ public static function eipsi_process_nudge_jobs_worker() {
     // before the database reflects the updated reminder_count
     $stats = EIPSI_Nudge_Job_Queue::process_batch(1); // Only 1 job at a time
 
+    if (!empty($stats['persistence_failed'])) { error_log('[EIPSI JobWorker] persistence_failed=' . intval($stats['persistence_failed'])); }
     // Log result
     if ($stats['processed'] > 0) {
         error_log(sprintf(

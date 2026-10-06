@@ -9,7 +9,8 @@ public static function process_batch($limit = 10) {
             'processed' => 0,
             'completed' => 0,
             'failed' => 0,
-            'retried' => 0
+            'retried' => 0,
+            'persistence_failed' => 0
         );
 
         $jobs = EIPSI_Notification_Nudge_Queue_Service::get_pending_jobs($limit);
@@ -598,30 +599,25 @@ private static function send_nudge_direct($assignment, $stage) {
         return $result;
     }
 public static function process_job($job) {
-    $stats=array('processed'=>0,'completed'=>0,'failed'=>0,'retried'=>0);
-
-            $stats['processed']++;
-
-            // Intentar bloquear el job
-            if (!EIPSI_Notification_Nudge_Queue_Service::mark_processing($job->id)) {
-                // Otro worker lo agarró
-                return $stats;
-            }
-
-            $result = self::execute_job($job);
-
-            if ($result['success']) {
-                EIPSI_Notification_Nudge_Queue_Service::mark_completed($job->id, $result['message']);
-                $stats['completed']++;
-            } else {
-                $retry_scheduled = EIPSI_Notification_Nudge_Queue_Service::mark_for_retry($job->id, $result['error']);
-                if ($retry_scheduled) {
-                    $stats['retried']++;
-                } else {
-                    $stats['failed']++;
-                }
-            }
-        
-    return $stats;
+    $stats=array('processed'=>0,'completed'=>0,'failed'=>0,'retried'=>0,'persistence_failed'=>0);
+    if (!EIPSI_Notification_Nudge_Queue_Service::mark_processing($job->id)) { return $stats; }
+    $stats['processed']=1;
+    try {
+        global $wpdb;
+        $current=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}survey_nudge_jobs WHERE id=%d AND status='processing'",$job->id));
+        if (!$current) { $stats['persistence_failed']=1; return $stats; }
+        $result=self::execute_job($current);
+        if ($result['success']) {
+            if (EIPSI_Notification_Nudge_Queue_Service::mark_completed($job->id,$result['message']??null)) { $stats['completed']=1; }
+            else { $stats['persistence_failed']=1; }
+        } else {
+            $outcome=EIPSI_Notification_Nudge_Queue_Service::persist_retry_outcome($job->id,$result['error']);
+            if ($outcome==='pending') { $stats['retried']=1; }
+            elseif ($outcome==='failed') { $stats['failed']=1; }
+            else { $stats['persistence_failed']=1; }
+        }
+        if ($stats['persistence_failed']) { error_log('[EIPSI JobWorker] terminal_persistence_uncertain job='.intval($job->id)); }
+        return $stats;
+    } finally { EIPSI_Notification_Nudge_Queue_Service::release_processing($job->id); }
 }
 }
