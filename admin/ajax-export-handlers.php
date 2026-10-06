@@ -72,7 +72,7 @@ function eipsi_export_to_excel_handler() {
     $data           = $export_service->export_longitudinal_data($survey_id, $filters);
     $filename       = $export_service->export_to_excel($data, $survey_id);
 
-    wp_send_json_success(array('filename' => $filename));
+    wp_send_json_success(array('filename' => $filename, 'download_url' => EIPSI_Download_Authorization_Service::admin_url($filename)));
     } catch (Throwable $error) {
         wp_send_json_error(array('message' => $error->getMessage()), 500);
     }
@@ -106,7 +106,7 @@ function eipsi_export_to_csv_handler() {
     $data           = $export_service->export_longitudinal_data($survey_id, $filters);
     $filename       = $export_service->export_to_csv($data, $survey_id);
 
-    wp_send_json_success(array('filename' => $filename));
+    wp_send_json_success(array('filename' => $filename, 'download_url' => EIPSI_Download_Authorization_Service::admin_url($filename)));
     } catch (Throwable $error) {
         wp_send_json_error(array('message' => $error->getMessage()), 500);
     }
@@ -250,7 +250,7 @@ function eipsi_export_participants_wide_excel_handler() {
     $svc      = new EIPSI_Export_Service();
     $filename = $svc->export_participants_wide_excel($study_id, $filters);
 
-    wp_send_json_success(array('filename' => $filename));
+    wp_send_json_success(array('filename' => $filename, 'download_url' => EIPSI_Download_Authorization_Service::admin_url($filename)));
     } catch (Throwable $error) {
         wp_send_json_error(array('message' => $error->getMessage()), 500);
     }
@@ -278,8 +278,11 @@ function eipsi_export_participants_wide_csv_handler() {
         wp_send_json_error(array('message' => 'Invalid study ID'));
     }
 
+    try {
     $filename   = 'participantes-wide-' . $study_id . '-' . date('Y-m-d_H-i-s') . '.csv';
-    $export_dir = EIPSI_FORMS_PLUGIN_DIR . 'exports';
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/export/bootstrap.php';
+    $export_dir = EIPSI_Export_File_Service::directory();
+    $filename = EIPSI_Export_File_Service::reserve_filename($filename);
     if (!file_exists($export_dir)) {
         wp_mkdir_p($export_dir);
     }
@@ -290,13 +293,12 @@ function eipsi_export_participants_wide_csv_handler() {
         wp_send_json_error(array('message' => 'Could not create export file'));
     }
 
-    try {
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-export-service.php';
     $svc = new EIPSI_Export_Service();
     $svc->stream_participants_wide_csv($study_id, $filters, $output);
     if (!fclose($output) || !is_file($file_path) || !filesize($file_path)) { throw new RuntimeException('No se pudo confirmar el archivo CSV.'); }
 
-    wp_send_json_success(array('filename' => $filename));
+    wp_send_json_success(array('filename' => $filename, 'download_url' => EIPSI_Download_Authorization_Service::admin_url($filename)));
     } catch (Throwable $error) {
         wp_send_json_error(array('message' => $error->getMessage()), 500);
     }
@@ -334,3 +336,17 @@ function eipsi_get_participants_wide_preview_handler() {
 
     wp_send_json_success($preview);
 }
+
+/** M6: authenticated replacement for direct exports URLs. */
+function eipsi_download_admin_export_handler() {
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/export/bootstrap.php';
+    $result = EIPSI_Download_Authorization_Service::get_admin_download($_GET['filename'] ?? '', $_GET['nonce'] ?? '');
+    if (!$result['success']) { wp_die('No autorizado o archivo no disponible.', '', array('response' => 403)); }
+    header('Content-Type: ' . (substr($result['filename'], -4) === '.csv' ? 'text/csv; charset=UTF-8' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
+    header('Content-Disposition: attachment; filename="' . $result['filename'] . '"');
+    header('Cache-Control: private, no-store');
+    readfile($result['file_path']);
+    exit;
+}
+add_action('wp_ajax_eipsi_download_admin_export', 'eipsi_download_admin_export_handler');
+add_action('wp_ajax_nopriv_eipsi_download_admin_export', 'eipsi_download_admin_export_handler');

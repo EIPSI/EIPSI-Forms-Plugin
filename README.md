@@ -20,9 +20,9 @@ Plugin de WordPress para construir formularios con Gutenberg y administrar estud
 
 ## Arquitectura
 
-`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 separó el bootstrap y M2 asignó ownership a Auth/Participants; M3 separó Forms/Submit y el runtime; M4 asignó ownership a Longitudinal; M5–M8 siguen pendientes. Véase [arquitectura actual](docs/architecture.md).
+`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 separó el bootstrap y M2 asignó ownership a Auth/Participants; M3 separó Forms/Submit y el runtime; M4 asignó ownership a Longitudinal; M5 y M6 asignan ownership a Notifications y Storage/Privacy/Export; M7–M8 siguen pendientes. Véase [arquitectura actual](docs/architecture.md).
 
-La composición está en `includes/bootstrap/`; Auth y Participants tienen owners en `includes/auth/` e `includes/participants/`, con facades compatibles en `admin/services/`. Forms tiene owners en `includes/forms/`; el runtime clásico se compone desde `src/frontend/forms/manifest.json` durante `npm run build`, manteniendo `assets/js/eipsi-forms.js` como URL pública. Longitudinal tiene owners en `includes/longitudinal/`, con facades compatibles y un comando de submit; Notifications conserva sus servicios anteriores.
+La composición está en `includes/bootstrap/`; Auth y Participants tienen owners en `includes/auth/` e `includes/participants/`, con facades compatibles en `admin/services/`. Forms tiene owners en `includes/forms/`; el runtime clásico se compone desde `src/frontend/forms/manifest.json` durante `npm run build`, manteniendo `assets/js/eipsi-forms.js` como URL pública. Longitudinal tiene owners en `includes/longitudinal/`, con facades compatibles y un comando de submit; Notifications tiene owners en `includes/notifications/`; Storage, Privacy y Export tienen owners en `includes/storage/`, `includes/privacy/` e `includes/export/`.
 
 ## Requisitos
 
@@ -85,6 +85,8 @@ GPL-2.0-or-later según los metadatos del proyecto. Se conserva la [licencia GPL
 
 ## Estado de madurez
 
-P0/P1, M0, PURGA 1, purga documental, M1, M2, M3, M4 y M5 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M6–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.
+P0/P1, M0, PURGA 1, purga documental, M1, M2, M3, M4, M5 y M6 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Faltan modularización funcional M7–M8, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.
 
 Notifications tiene owners en `includes/notifications/` para policy, scheduling, queue/worker, email/templates/logs y reminders; las APIs históricas delegan conservando firmas. [Arquitectura](docs/architecture.md) y [pruebas M5](tests/m5/README.md).
+
+M6 separa persistencia, CapturePolicy/cleanup y datasets/files/download, manteniendo facades y cobertura local incompleta. Véanse [pruebas M6](tests/m6/README.md) y [arquitectura](docs/architecture.md).

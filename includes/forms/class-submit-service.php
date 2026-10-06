@@ -59,9 +59,9 @@ class EIPSI_Submit_Service {
         $used_fallback = $safety_result['fallback_used'] ?? false;
 
         // ✅ DATA SAFETY: Verificación post-submit
-        $verified = EIPSI_Form_Storage_Adapter::verify($insert_id, $storage_type, $data);
+        $verified = $safety_result['verified'] ?? EIPSI_Form_Storage_Adapter::verify($insert_id, $storage_type, $data);
 
-        if (!$verified && !$emergency_mode) {
+        if (!$verified && !$emergency_mode && ($safety_result['verification_supported'] ?? true)) {
             error_log(sprintf('[EIPSI SAFETY] Post-submit verification failed for ID: %s', $insert_id));
         }
 
@@ -119,7 +119,7 @@ class EIPSI_Submit_Service {
             // Fallback succeeded - inform user with warning
             $success_response['fallback_used'] = true;
             $success_response['warning'] = __('Form was saved to local database (external database temporarily unavailable).', 'eipsi-forms');
-            $success_response['error_code'] = $error_info['error_code'];
+            $success_response['error_code'] = ($safety_result['primary_error_code'] ?? 'EXTERNAL_DB_UNAVAILABLE');
         }
 
         // v2.2.2 - Agregar info de email Nudge 0 si se envió inmediatamente

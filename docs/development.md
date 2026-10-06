@@ -78,3 +78,18 @@ Modificar política en `includes/notifications/nudges/class-nudge-policy-service
 Los templates se mantienen intactos; cambios de contenido deben ser una tarea explícita. No eliminar pipelines por su nombre legacy: posts/meta aún pueden activar envíos. Las purgas M5 se documentan en `tests/m5/purge-manifest.json`, con hash y prueba de sustitución. La migración de hashes M3 usa una allowlist explícita y conserva sus hashes previos; no regenerar baselines históricos desde el código modificado.
 
 Los fixtures M5 solo admiten la DB descartable M0, correo interceptado y cron automático deshabilitado. Los workers concurrentes declaran DOING_CRON para impedir que el wake-up de visitas consuma el job antes de la barrera. El runner restaura cron, elimina IDs propios y no usa la base del workspace.
+
+
+## Desarrollo M6
+
+Las APIs anteriores conservan firmas y registros. Nuevas reglas de persistencia van en `includes/storage/`; CapturePolicy/cleanup/coverage en `includes/privacy/`; datasets y archivos/download en `includes/export/`. Forms conserva identidad/autorización y comandos Longitudinal. No enlazar device local mediante un ID externo ni añadir SELECT * al dataset personal.
+
+Storage success significa INSERT confirmado; leer `verification_status` para distinguir unsupported de not_verified. Un fallback local conserva destino real y código primario; no hacer dual-write. Los helpers DDL y schema actuales permanecen sin cambios. La creación legacy de una tabla externa vacía omite columnas utilizadas por INSERT (browser/os/screen_width); se caracteriza como deuda previa y puede caer a local. La fixture externa viable se prepara con el schema ya estabilizado, sin migración de producción.
+
+No inferir cobertura global del success de cleanup. Backups, servidor, email entregado, exports históricos, externo, enlaces ambiguos y texto libre requieren políticas futuras. Una solicitud delete usa anonymize y retiene respuestas; B2 sí elimina respuestas vinculables. Approval aplica CAS; no promete exactly-once frente a fallos de proceso después de reclamar processing.
+
+Nuevos archivos admin bajo exports requieren deny HTTP. Apache usa los archivos de control versionados; configurar deny equivalente en Nginx. La UI consume download_url autenticada, manteniendo filename. Los archivos históricos no se borran. Personal sigue fuera del webroot, 0600 y sin expiración inventada.
+
+Para cambios posteriores usar los comandos y guardas de [pruebas M6](../tests/m6/README.md). No alterar snapshots históricos M3/M4/M5 para ocultar cambios: `boundary-migrations.json` registra la transición M6 explícita y M1 solo permite owners de definición, dos nuevos hooks y la migración de path XLSX.
+
+M6 también corrige la lectura de credenciales externas cuando el IV binario contiene `::` o termina en `:`. Se lee su longitud fija de 16 bytes; el formato almacenado, cifrado y API no cambian. Dos regresiones deterministas cubren el defecto previo.

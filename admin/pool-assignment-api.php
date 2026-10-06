@@ -813,56 +813,9 @@ function eipsi_ajax_export_pool_assignments() {
         wp_die(__('ID de pool inválido.', 'eipsi-forms'));
     }
 
-    global $wpdb;
-    $assignments_table = $wpdb->prefix . 'eipsi_pool_assignments';
-    $participants_table = $wpdb->prefix . 'survey_participants';
-    $studies_table = $wpdb->prefix . 'survey_studies';
-
-    $pool_name = $wpdb->get_var($wpdb->prepare(
-        "SELECT pool_name FROM {$wpdb->prefix}eipsi_longitudinal_pools WHERE id = %d",
-        $pool_id
-    ));
-
-    $assignments = $wpdb->get_results($wpdb->prepare(
-        "SELECT a.*, p.email, CONCAT(COALESCE(p.first_name,''), ' ', COALESCE(p.last_name,'')) as participant_name, s.study_name
-         FROM {$assignments_table} a
-         LEFT JOIN {$participants_table} p ON a.participant_id = p.id
-         LEFT JOIN {$studies_table} s ON a.study_id = s.id
-         WHERE a.pool_id = %d
-         ORDER BY a.assigned_at DESC",
-        $pool_id
-    ), ARRAY_A);
-
-    $filename = sanitize_file_name('pool-' . $pool_name . '-assignments-' . date('Y-m-d') . '.csv');
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    header('Pragma: no-cache');
-    header('Expires: 0');
-
-    $output = fopen('php://output', 'w');
-    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-
-    fputcsv($output, array(
-        'participant_id', 'email', 'participant_name', 'study_id', 'study_name',
-        'assigned_at', 'last_access', 'access_count', 'completed', 'completed_at'
-    ));
-
-    foreach ($assignments as $row) {
-        fputcsv($output, array(
-            $row['participant_id'],
-            $row['email'],
-            $row['participant_name'],
-            $row['study_id'],
-            $row['study_name'],
-            $row['assigned_at'],
-            $row['last_access'],
-            $row['access_count'],
-            $row['completed'] ? '1' : '0',
-            $row['completed_at']
-        ));
-    }
-
-    fclose($output);
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/export/bootstrap.php';
+    $dataset=EIPSI_Export_Query_Service::pool_roster_hub($pool_id);
+    EIPSI_Export_File_Service::stream_pool_roster_hub($pool_id, $dataset);
     exit;
 }
 add_action('wp_ajax_eipsi_export_pool_assignments', 'eipsi_export_pool_assignments_dispatch');

@@ -6,6 +6,7 @@ const root=path.resolve(__dirname,'../..');
 const contracts=require('./contracts.json');
 const migrations=require('../m4/m3-boundary-migrations.json');
 const m5Migrations=require('../m5/boundary-migrations.json');
+const m6Migrations=require('../m6/boundary-migrations.json');
 let count=0;
 for(const [file,expected] of Object.entries(contracts.unchanged_files)) {
     const migration=migrations[file];
@@ -13,7 +14,10 @@ for(const [file,expected] of Object.entries(contracts.unchanged_files)) {
     const m4Expected=migration ? migration.m4_sha256 : expected;
     const m5Migration=m5Migrations[file];
     if (m5Migration) assert.equal(m5Migration.before_m5_sha256,m4Expected,'M4 boundary history must remain recorded');
-    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),m5Migration ? m5Migration.m5_sha256 : m4Expected,'Boundary changed beyond explicit M4 migration: '+file);
+    const beforeM6=m5Migration ? m5Migration.m5_sha256 : m4Expected;
+    const m6Migration=m6Migrations[file];
+    if(m6Migration) assert.equal(m6Migration.before_m6_sha256,beforeM6,'M5 history preserved');
+    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),m6Migration ? m6Migration.m6_sha256 : beforeM6,'Boundary changed beyond explicit M4 migration: '+file);
     console.log('PASS unchanged boundary '+file); count++;
 }
 const manifest=require('../../src/frontend/forms/manifest.json');

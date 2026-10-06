@@ -139,3 +139,74 @@ Longitudinal conserva disponibilidad, offsets clínicos, due_at, configuración 
 CronHealth repara wave/dropout con every_minute, la cadencia real de activación; purge conserva daily. Los jobs por estudio conservan argumentos y frecuencia existente; no se fabrica un job sin study_id. Sus observers de prioridad 999 siguen activos.
 
 Se mantiene el envío dentro de START TRANSACTION/FOR UPDATE/COMMIT del nudge programado: rollback SQL no deshace un email. Submit y recalculation conservan sus efectos post-COMMIT y su manejo de errores. No se introduce outbox. El lock del scheduler protege un assignment, no todos los escritores del option cron ni el transporte SMTP. Permanecen la política legacy polling (incluida cuantización/cache e intervalo mínimo), la incompatibilidad legacy available/pending al reconstruir desde T1, helpers de cancelación que usan tablas/columnas antiguas y el handler individual ausente. Estas deudas requieren fases posteriores.
+
+
+## M6 — Storage, Privacy y Export
+
+`includes/storage/`, `includes/privacy/` e `includes/export/` contienen los owners de estas responsabilidades. Sus bootstraps cargan definiciones; los entry points, hooks, nonces y firmas públicas permanecen en las facades existentes. Forms conserva captura, identidad canónica y postcommit Longitudinal, y llama al StorageAdapter. No hay un Repository universal ni cambios de schema.
+
+| Responsabilidad | Entrada / owner anterior | Writer o reader M6 | Destino / datos | Consumidor |
+|---|---|---|---|---|
+| Persistencia normal / retry / fallback | `eipsi_safety_*`, FormStorageAdapter | SubmissionStorageService + LocalSubmissionStore / ExternalSubmissionStore | `vas_form_results`; respuestas, identidad y metadata filtrada | SubmitService |
+| Configuración/conexión externa | EIPSI_External_Database | Storage_External_Submission_Store; facade heredada | Options cifrados; conexión mysqli y tablas externas existentes | normal, emergency, events, raw export |
+| Emergency / alerta | `eipsi_safety_emergency_save` | EmergencySubmissionStore | `eipsi_emergency_submissions`; respuestas, POST real filtrado, diagnóstico | retry y respuesta de emergencia |
+| Verification | `eipsi_safety_verify_submission` | SubmissionVerificationService + StorageResult | local normal; ID y respuestas no vacías | Forms / diagnóstico |
+| Parciales | EIPSI_Partial_Responses → PartialResponseService | Storage_Partial_Response_Store | `eipsi_partial_responses`; interacción filtrada | save/load/mark_completed y cron original |
+| Events | FormTrackingService | Storage_Event_Store | `vas_form_events`, externo o local | tracking; envelope resiliente existente |
+| Device | EIPSI_Device_Data_Service | Storage_Device_Data_Store | `eipsi_device_data`; solo IDs locales | Forms y enriquecimiento local de export |
+| CapturePolicy | `eipsi_filter_capture_data` | Privacy_Capture_Policy | categorías y JSON reconocidos; no texto arbitrario | todos los writers, incluidos access logs |
+| Cleanup / anonymization | ParticipantDataCleanup / AnonymizeService | Privacy_Data_Cleanup_Service / Anonymization_Service | tablas locales vinculables; respuestas y logs según operación | Participants, B2, data requests y admin |
+| Data requests | ParticipantDataRequestService | Privacy_Data_Request_Service | `survey_data_requests`; claim pendiente → processing → completed/rejected | portal, aprobación y descarga personal |
+| Dataset personal | antiguo método privado de DataRequest | PersonalExportQueryService + PersonalExportService | allowlist local; JSON privado 0600 | request aprobado |
+| Downloads | handlers existentes + nuevo admin export | DownloadAuthorizationService | personal: ruta desde DB; admin: basename y realpath del directorio | participantes/admin autorizados |
+
+Storage devuelve `success`, `destination`, `submission_id`, `insert_confirmed`, `verified`, `verification_supported`, `verification_status`, `fallback_used`, `error` y `source`, conservando las claves anteriores `storage`, `insert_id` o `emergency_id`. `success` requiere INSERT confirmado e ID positivo. `verified=false` puede significar respuesta vacía o verificación genérica no soportada: se distingue explícitamente. Una escritura de emergencia confirmada no se convierte en fallo por esa limitación. El DTO no consulta tablas locales para verificar un ID externo.
+
+| Destino | Selección / confirmación | Verificación genérica | Fallback / cobertura |
+|---|---|---|---|
+| `external_db` | externo habilitado; execute, affected_rows=1, ID>0 | no soportada | no se duplica en local |
+| `wordpress_db` | local, o externo falló; INSERT=1, ID>0 | existencia y respuestas no vacías | `fallback_used=true` y código de error primario si corresponde |
+| `emergency_table_external` | agotados retries; emergency externo confirmado | no soportada | diagnóstico; no verifica por colisión de ID |
+| `emergency_table_wp` | emergency local confirmado | no soportada | destino real y diagnóstico; sin éxito si ambos INSERT fallan |
+
+El branch `fallback_used` anterior era latente: el fallback local no lo emitía, por lo que la referencia a `error_info` no se ejecutaba en ese recorrido. M6 informa el fallback real y usa un código primario seguro, con pruebas de fallback y emergencia. Se mantienen la selección de destino, retries y ausencia de dual-write.
+
+### Semánticas y cobertura Privacy
+
+| Operación | Owner / efecto local | Respuestas | Cobertura |
+|---|---|---|---|
+| deactivate / B1 | Participants/Auth y Consent existentes; desactivación/retiro | conservadas | no se presenta como eliminación |
+| anonymize | Cleanup + Anonymization | conservadas, PII reconocida depurada | `source=wordpress_db`, `complete=false` |
+| personal delete | DataRequest aprobado → anonymize | conservadas | informa explícitamente anonymize |
+| hard delete | Cleanup; elimina PK, relaciones seguras, tokens/jobs/parciales y desvincula resultados | conservadas con identidad depurada | local, incompleta |
+| B2 | Consent → Cleanup | eliminadas dentro de cobertura vinculable | participante retirado conservado; local incompleta |
+| personal export | Query allowlist y archivo privado | propias y enlazadas localmente | excluye externo y emergency |
+
+CoverageReport conserva `not_covered` P1-C y agrega `excluded`: DB externa, registros browser no enlazados con fiabilidad, exports históricos, backups, logs de servidor, correo ya entregado y texto libre identificatorio. No garantiza anonimización de texto libre ni borrado global. Identidades browser compartidas se excluyen antes de operar. Cleanup conserva la transacción local y rollback; un writer concurrente puede insertar después del snapshot/cleanup, por lo que no existe atomicidad global entre captura y eliminación. Las pruebas caracterizan ese límite.
+
+### Matriz de exports
+
+| Export | Reader / dataset | Generación | Fuente / autorización |
+|---|---|---|---|
+| raw | ExportQueryService::raw_responses; campos administrativos, distinta política de columnas | RawExportService; CSV/XLSX directo | externo configurado o fallback local; `X-EIPSI-Data-Source`; manage_options; GET legacy sin nonce específico |
+| longitudinal | ExportQueryService; participante × toma, joins locales | ExportFileService CSV/XLSX | WordPress local; AJAX admin + nonce; GET legacy solo capability |
+| participant / wide | QueryService::fetch_participants_data, waves/headers y respuestas canónicas | FileService; columnas por toma | WordPress local; no device enrichment de IDs externos |
+| pool context | QueryService::eipsi_export_responses_with_pool_context | RawExportService CSV | local; capability conservada; no cambia asignaciones |
+| pool roster dashboard | QueryService::pool_roster_dashboard | FileService::stream_pool_roster_dashboard | local; nonce dashboard + capability originales; 9 columnas |
+| pool roster hub | QueryService::pool_roster_hub | FileService::stream_pool_roster_hub | local; nonces hub/admin; BOM y 10 columnas originales |
+| access logs | AccessLogExportQueryService; filtros por participante/study/fecha | AccessLogExportService CSV/XLSX o stream | local; handler autorizado existente |
+| personal | PersonalExportQueryService; allowlist de 5 datasets | PersonalExportService JSON aleatorio privado | local incompleta; sesión propia o admin + nonce; aprobación requerida |
+
+Las dos variantes de roster se mantienen distintas. No se rediseña Pools/Randomization. SQL fallido no se transforma en dataset vacío exitoso. El dataset personal no usa SELECT *, elimina hashes/tokens/secretos también en respuestas JSON y no agrega sesiones/magic links ni raw metadata.
+
+Los archivos administrativos conservan nombres/path bajo `exports/` y la respuesta `filename`, con `download_url` adicional. La UI usa el handler `eipsi_download_admin_export`: exige manage_options y nonce `eipsi_export_download`, extensión csv/xlsx, basename allowlist y realpath dentro del directorio. Se reserva el nombre con fopen(x); una colisión crea un sufijo aleatorio y preserva el archivo anterior. El directorio incluye `.htaccess` deny-all e index 403. En Apache se demostró antes HTTP 200 anónimo y después 403; download autenticado devuelve 200. Nginx u otros servidores requieren regla deny equivalente: `.htaccess` no aporta cobertura allí. No se eliminan exports históricos; su retención y copias fuera del directorio siguen fuera de coverage Privacy.
+
+Personal conserva ruta desde DB, archivo fuera de ABSPATH, nombre aleatorio y permisos 0600. No se inventa expiración. Approval usa compare-and-set del estado pending: dos administradores concurrentes no procesan simultáneamente la misma solicitud.
+
+LONG `eipsi_export_participants_long_excel/csv` conserva deuda: la UI activa las emite pero no hay handler. La etiqueta de formato LONG no define inequívocamente las columnas/filas esperadas frente a los datasets actuales; no se crea un alias a wide ni a raw. XLSX conserva una sola implementación canónica `lib/SimpleXLSXGen.php`; la copia de admin era idéntica y solo se purga después de validar los consumidores.
+
+Facades públicas y helpers usados continúan clasificados C; legacy/ambigüedades pasan a fases posteriores. Purga A y hashes históricos se documentan en `tests/m6/purge-manifest.json`, `contracts.json` y `baseline-hashes.json`. M7/M8 quedan fuera de esta fase.
+
+M6 también corrige la lectura de credenciales externas cuando el IV binario contiene `::` o termina en `:`. Se lee su longitud fija de 16 bytes; el formato almacenado, cifrado y API no cambian. Dos regresiones deterministas cubren el defecto previo.
+
+Deuda Export adicional conservada: el GET legacy `page=eipsi-results&action=export_participants_excel` invoca `export_participants_to_excel`, método inexistente de la facade; la UI AJAX wide utiliza el método válido. Los GET procedurales legacy conservan capability pero no nonce específico. M6 no crea equivalencias de dataset para reparar esos recorridos.

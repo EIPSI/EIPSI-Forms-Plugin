@@ -13548,11 +13548,40 @@
       "includes/notifications/adapters/class-notification-cron-adapters.php",
       "includes/notifications/bootstrap.php",
       "includes/longitudinal/assignments/class-notification-context-service.php",
-      "includes/notifications/adapters/class-longitudinal-notification-adapter.php"
+      "includes/notifications/adapters/class-longitudinal-notification-adapter.php",
+      "includes/storage/bootstrap.php",
+      "includes/storage/class-device-data-store.php",
+      "includes/storage/class-emergency-submission-store.php",
+      "includes/storage/class-event-store.php",
+      "includes/storage/class-external-submission-store.php",
+      "includes/storage/class-local-submission-store.php",
+      "includes/storage/class-partial-response-store.php",
+      "includes/storage/class-storage-result.php",
+      "includes/storage/class-submission-storage-service.php",
+      "includes/storage/class-submission-verification-service.php",
+      "includes/privacy/bootstrap.php",
+      "includes/privacy/class-anonymization-service.php",
+      "includes/privacy/class-capture-policy.php",
+      "includes/privacy/class-coverage-report.php",
+      "includes/privacy/class-data-cleanup-service.php",
+      "includes/privacy/class-data-request-service.php",
+      "includes/export/bootstrap.php",
+      "includes/export/class-access-log-export-query-service.php",
+      "includes/export/class-access-log-export-service.php",
+      "includes/export/class-download-authorization-service.php",
+      "includes/export/class-export-file-service.php",
+      "includes/export/class-export-query-service.php",
+      "includes/export/class-personal-export-query-service.php",
+      "includes/export/class-personal-export-service.php",
+      "includes/export/class-raw-export-service.php"
     ],
     "m2_includes": "Auth/Participants definition-only owners, originals keep their relative order; M2 policy equivalence checked independently.",
     "m3_includes": "Explicit Forms owners/adapters; all external records remain compared.",
     "m4_includes": "Longitudinal definition owners only; registration, callback identity, order, nonce and payload remain compared.",
-    "m5_includes": "Notifications definition owners only; registrations, callbacks, cadence, args and public contracts still compared."
+    "m5_includes": "Notifications definition owners only; registrations, callbacks, cadence, args and public contracts still compared.",
+    "m6_includes": "Storage/Privacy/Export definition owners; two authenticated administrative download hooks separately allowlisted.",
+    "include_path_migrations": {
+      "lib/SimpleXLSXGen.php": "admin/lib/SimpleXLSXGen.php"
+    }
   }
 }

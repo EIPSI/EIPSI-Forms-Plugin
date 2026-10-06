@@ -51,78 +51,9 @@ function eipsi_export_pool_assignments() {
         wp_die( esc_html__( 'Pool inválido.', 'eipsi-forms' ) );
     }
 
-    global $wpdb;
-
-    $assignments_table  = $wpdb->prefix . 'eipsi_pool_assignments';
-    $participants_table = $wpdb->prefix . 'survey_participants';
-    $studies_table      = $wpdb->prefix . 'survey_studies';
-    $pools_table        = $wpdb->prefix . 'eipsi_longitudinal_pools';
-
-    $pool_name = $wpdb->get_var(
-        $wpdb->prepare( "SELECT pool_name FROM {$pools_table} WHERE id = %d", $pool_id )
-    );
-
-    $rows = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT a.id AS assignment_id,
-                a.participant_id,
-                a.study_id as assigned_study_id,
-                a.completed,
-                a.assigned_at,
-                p.email,
-                p.first_name,
-                p.last_name,
-                s.study_name,
-                s.study_code
-            FROM {$assignments_table} a
-            LEFT JOIN {$participants_table} p ON a.participant_id = p.id
-            LEFT JOIN {$studies_table} s ON a.study_id = s.id
-            WHERE a.pool_id = %d
-            ORDER BY a.assigned_at DESC",
-            $pool_id
-        ),
-        ARRAY_A
-    );
-
-    $filename = sprintf( 'pool-%d-assignments.csv', $pool_id );
-
-    header( 'Content-Type: text/csv; charset=utf-8' );
-    header( 'Content-Disposition: attachment; filename=' . $filename );
-
-    $output = fopen( 'php://output', 'w' );
-
-    fputcsv( $output, array(
-        'Pool',
-        'Assignment ID',
-        'Participant ID',
-        'Participant Name',
-        'Participant Email',
-        'Study Name',
-        'Study Code',
-        'Status',
-        'Assigned At',
-    ) );
-
-    foreach ( $rows as $row ) {
-        $participant_name = trim( sprintf( '%s %s', $row['first_name'], $row['last_name'] ) );
-        if ( '' === $participant_name ) {
-            $participant_name = $row['email'];
-        }
-
-        fputcsv( $output, array(
-            $pool_name,
-            $row['assignment_id'],
-            $row['participant_id'],
-            $participant_name,
-            $row['email'],
-            $row['study_name'],
-            $row['study_code'],
-            $row['completed'] ? 'completed' : 'assigned',
-            $row['assigned_at'],
-        ) );
-    }
-
-    fclose( $output );
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/export/bootstrap.php';
+    $dataset=EIPSI_Export_Query_Service::pool_roster_dashboard($pool_id);
+    EIPSI_Export_File_Service::stream_pool_roster_dashboard($pool_id, $dataset);
     wp_die();
 }
 // Registration owned by the pool API's explicit contract dispatcher.

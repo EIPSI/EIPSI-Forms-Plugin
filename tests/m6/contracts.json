@@ -1,0 +1,651 @@
+{
+  "head": "832ee290606f527d579e971159acee8cef2178ca",
+  "functions": {
+    "eipsi_safety_validate_submission": {
+      "parameters": [
+        "data"
+      ],
+      "optional": 0
+    },
+    "eipsi_safety_save_with_retry": {
+      "parameters": [
+        "data",
+        "max_retries"
+      ],
+      "optional": 1
+    },
+    "eipsi_safety_attempt_save": {
+      "parameters": [
+        "data"
+      ],
+      "optional": 0
+    },
+    "eipsi_safety_emergency_save": {
+      "parameters": [
+        "data",
+        "original_error"
+      ],
+      "optional": 0
+    },
+    "eipsi_safety_alert_admin_critical": {
+      "parameters": [
+        "emergency_id",
+        "data",
+        "error",
+        "db_type"
+      ],
+      "optional": 1
+    },
+    "eipsi_safety_verify_submission": {
+      "parameters": [
+        "insert_id",
+        "storage_type",
+        "data"
+      ],
+      "optional": 0
+    },
+    "eipsi_auto_sync_participant_fields": {
+      "parameters": [
+        "data",
+        "insert_id"
+      ],
+      "optional": 0
+    },
+    "eipsi_ensure_participant_column_exists": {
+      "parameters": [
+        "column_name",
+        "data_type"
+      ],
+      "optional": 1
+    },
+    "eipsi_safety_get_health_status": {
+      "parameters": [],
+      "optional": 0
+    },
+    "eipsi_safety_health_check_ajax": {
+      "parameters": [],
+      "optional": 0
+    },
+    "eipsi_disable_block_validation": {
+      "parameters": [
+        "settings"
+      ],
+      "optional": 0
+    },
+    "get_privacy_defaults": {
+      "parameters": [],
+      "optional": 0
+    },
+    "get_global_privacy_defaults": {
+      "parameters": [],
+      "optional": 0
+    },
+    "save_global_privacy_defaults": {
+      "parameters": [
+        "config"
+      ],
+      "optional": 0
+    },
+    "get_privacy_config": {
+      "parameters": [
+        "form_id"
+      ],
+      "optional": 1
+    },
+    "save_privacy_config": {
+      "parameters": [
+        "form_id",
+        "config"
+      ],
+      "optional": 0
+    },
+    "eipsi_filter_capture_data": {
+      "parameters": [
+        "value",
+        "config"
+      ],
+      "optional": 0
+    },
+    "export_generate_stable_form_id": {
+      "parameters": [
+        "form_name"
+      ],
+      "optional": 0
+    },
+    "export_get_form_initials": {
+      "parameters": [
+        "form_name"
+      ],
+      "optional": 0
+    },
+    "export_generateStableFingerprint": {
+      "parameters": [
+        "user_data"
+      ],
+      "optional": 0
+    },
+    "export_normalizeName": {
+      "parameters": [
+        "name"
+      ],
+      "optional": 0
+    },
+    "eipsi_sanitize_export_value": {
+      "parameters": [
+        "val"
+      ],
+      "optional": 0
+    },
+    "eipsi_export_to_excel": {
+      "parameters": [],
+      "optional": 0
+    },
+    "eipsi_export_to_csv": {
+      "parameters": [],
+      "optional": 0
+    },
+    "eipsi_export_longitudinal_to_excel": {
+      "parameters": [],
+      "optional": 0
+    },
+    "eipsi_export_longitudinal_to_csv": {
+      "parameters": [],
+      "optional": 0
+    },
+    "eipsi_export_participants_to_excel": {
+      "parameters": [],
+      "optional": 0
+    },
+    "eipsi_export_participants_to_csv": {
+      "parameters": [],
+      "optional": 0
+    },
+    "eipsi_get_study_title": {
+      "parameters": [
+        "study_id"
+      ],
+      "optional": 0
+    },
+    "eipsi_get_pool_context_for_study": {
+      "parameters": [
+        "study_id"
+      ],
+      "optional": 0
+    },
+    "eipsi_export_responses_with_pool_context": {
+      "parameters": [
+        "form_id",
+        "study_id"
+      ],
+      "optional": 0
+    },
+    "eipsi_generate_pool_context_csv": {
+      "parameters": [
+        "form_id",
+        "study_id"
+      ],
+      "optional": 0
+    }
+  },
+  "classes": {
+    "EIPSI_External_Database": {
+      "save_credentials": {
+        "parameters": [
+          "host",
+          "user",
+          "password",
+          "db_name"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "get_credentials": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "test_connection": {
+        "parameters": [
+          "host",
+          "user",
+          "password",
+          "db_name"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "get_connection": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "get_record_count": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "insert_form_submission": {
+        "parameters": [
+          "data"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "record_error": {
+        "parameters": [
+          "error_message",
+          "error_code"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "clear_errors": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "disable": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "is_enabled": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "insert_form_event": {
+        "parameters": [
+          "data"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "check_table_status": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "get_local_table_status": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "get_status": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "delete_all_data": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      }
+    },
+    "EIPSI_Participant_Data_Cleanup": {
+      "columns": {
+        "parameters": [
+          "table"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "scrub": {
+        "parameters": [
+          "value",
+          "email"
+        ],
+        "optional": 1,
+        "static": true
+      },
+      "run": {
+        "parameters": [
+          "participant_id",
+          "mode",
+          "reason"
+        ],
+        "optional": 2,
+        "static": true
+      }
+    },
+    "EIPSI_Anonymize_Service": {
+      "anonymize_survey": {
+        "parameters": [
+          "survey_id",
+          "audit_reason"
+        ],
+        "optional": 1,
+        "static": true
+      },
+      "anonymize_participant": {
+        "parameters": [
+          "participant_id",
+          "audit_reason"
+        ],
+        "optional": 1,
+        "static": true
+      },
+      "delete_pii": {
+        "parameters": [
+          "participant_id"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "invalidate_magic_links": {
+        "parameters": [
+          "survey_id"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "invalidate_participant_magic_links": {
+        "parameters": [
+          "participant_id"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "audit_log": {
+        "parameters": [
+          "action",
+          "survey_id",
+          "participant_id",
+          "metadata"
+        ],
+        "optional": 2,
+        "static": true
+      },
+      "get_survey_audit_log": {
+        "parameters": [
+          "survey_id",
+          "limit"
+        ],
+        "optional": 1,
+        "static": true
+      },
+      "can_anonymize_survey": {
+        "parameters": [
+          "survey_id"
+        ],
+        "optional": 0,
+        "static": true
+      }
+    },
+    "EIPSI_Participant_Data_Request_Service": {
+      "submit_request": {
+        "parameters": [
+          "participant_id",
+          "request_type",
+          "reason"
+        ],
+        "optional": 1,
+        "static": true
+      },
+      "get_requests": {
+        "parameters": [
+          "filters",
+          "limit",
+          "offset"
+        ],
+        "optional": 3,
+        "static": true
+      },
+      "process_request": {
+        "parameters": [
+          "request_id",
+          "action",
+          "admin_notes"
+        ],
+        "optional": 1,
+        "static": true
+      },
+      "remove_secrets": {
+        "parameters": [
+          "data"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "get_download": {
+        "parameters": [
+          "request_id",
+          "nonce"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "get_request_counts": {
+        "parameters": [],
+        "optional": 0,
+        "static": true
+      },
+      "create_table": {
+        "parameters": [],
+        "optional": 0,
+        "static": true
+      }
+    },
+    "EIPSI_Export_Service": {
+      "strip_credentials": {
+        "parameters": [
+          "data"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "write_csv_row": {
+        "parameters": [
+          "stream",
+          "row"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "export_longitudinal_data": {
+        "parameters": [
+          "survey_id",
+          "filters"
+        ],
+        "optional": 1,
+        "static": false
+      },
+      "export_to_excel": {
+        "parameters": [
+          "data",
+          "survey_id"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "export_to_csv": {
+        "parameters": [
+          "data",
+          "survey_id"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "fetch_participants_data": {
+        "parameters": [
+          "study_id",
+          "filters"
+        ],
+        "optional": 1,
+        "static": false
+      },
+      "stream_participants_csv": {
+        "parameters": [
+          "study_id",
+          "filters",
+          "output"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "get_participants_preview": {
+        "parameters": [
+          "study_id",
+          "filters",
+          "limit"
+        ],
+        "optional": 2,
+        "static": false
+      },
+      "get_export_statistics": {
+        "parameters": [
+          "survey_id",
+          "filters"
+        ],
+        "optional": 1,
+        "static": false
+      },
+      "get_available_surveys": {
+        "parameters": [],
+        "optional": 0,
+        "static": false
+      },
+      "get_survey_waves": {
+        "parameters": [
+          "survey_id"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "export_participants_wide_excel": {
+        "parameters": [
+          "study_id",
+          "filters"
+        ],
+        "optional": 1,
+        "static": false
+      },
+      "stream_participants_wide_csv": {
+        "parameters": [
+          "study_id",
+          "filters",
+          "output"
+        ],
+        "optional": 0,
+        "static": false
+      },
+      "get_participants_wide_preview": {
+        "parameters": [
+          "study_id",
+          "filters",
+          "limit"
+        ],
+        "optional": 2,
+        "static": false
+      }
+    },
+    "EIPSI_Access_Log_Export_Service": {
+      "export_access_logs": {
+        "parameters": [
+          "filters",
+          "format"
+        ],
+        "optional": 2,
+        "static": true
+      },
+      "get_action_types": {
+        "parameters": [],
+        "optional": 0,
+        "static": true
+      },
+      "stream_access_logs_csv": {
+        "parameters": [
+          "filters"
+        ],
+        "optional": 1,
+        "static": true
+      }
+    },
+    "EIPSI_Device_Data_Service": {
+      "save_device_data": {
+        "parameters": [
+          "submission_id",
+          "device_data"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "get_device_data": {
+        "parameters": [
+          "submission_id"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "get_device_data_batch": {
+        "parameters": [
+          "submission_ids"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "get_export_columns": {
+        "parameters": [],
+        "optional": 0,
+        "static": true
+      },
+      "get_export_column_groups": {
+        "parameters": [],
+        "optional": 0,
+        "static": true
+      },
+      "delete_device_data": {
+        "parameters": [
+          "submission_id"
+        ],
+        "optional": 0,
+        "static": true
+      }
+    },
+    "EIPSI_Partial_Response_Service": {
+      "save": {
+        "parameters": [
+          "form_id",
+          "participant_id",
+          "session_id",
+          "page_index",
+          "responses"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "load": {
+        "parameters": [
+          "form_id",
+          "participant_id",
+          "session_id"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "mark_completed": {
+        "parameters": [
+          "form_id",
+          "participant_id",
+          "session_id"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "discard": {
+        "parameters": [
+          "form_id",
+          "participant_id",
+          "session_id"
+        ],
+        "optional": 0,
+        "static": true
+      },
+      "cleanup_old_responses": {
+        "parameters": [],
+        "optional": 0,
+        "static": true
+      }
+    }
+  }
+}

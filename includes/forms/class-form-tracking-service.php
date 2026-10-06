@@ -70,40 +70,11 @@ class EIPSI_Form_Tracking_Service {
     $config = get_privacy_config($form_id);
     $insert_data = eipsi_filter_capture_data($insert_data, $config);
 
-    // Check if external database is configured
-    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
-    $db_helper = new EIPSI_External_Database();
-    $external_db_enabled = $db_helper->is_enabled();
-    $used_fallback = false;
-
-    if ($external_db_enabled) {
-        // Try external database first
-        $result = $db_helper->insert_form_event($insert_data);
-
-        if ($result['success']) {
-            // External DB insert succeeded
-            return EIPSI_Form_Response::success(array(
-                'message' => __('Event tracked successfully.', 'eipsi-forms'),
-                'event_id' => $result['insert_id'],
-                'tracked' => true,
-                'external_db' => true
-            ));
-            return;
-        } else {
-            // External DB failed, fall back to WordPress DB
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('EIPSI Tracking: External DB insert failed, falling back to WordPress DB - ' . $result['error']);
-            }
-            $used_fallback = true;
-        }
-    }
-
-    // Use WordPress database (either as default or as fallback)
-    $table_name = $wpdb->prefix . 'vas_form_events';
-    $insert_formats = array('%s', '%s', '%s', '%d', '%s', '%s', '%s');
-
-    $wpdb_result = $wpdb->insert($table_name, $insert_data, $insert_formats);
-
+    require_once EIPSI_FORMS_PLUGIN_DIR.'includes/storage/bootstrap.php';
+    $stored=EIPSI_Storage_Event_Store::insert($insert_data);
+    $used_fallback=$stored['fallback_used'];
+    if($stored['success'] && $stored['storage']==='external_db'){return EIPSI_Form_Response::success(array('message'=>__('Event tracked successfully.','eipsi-forms'),'event_id'=>$stored['insert_id'],'tracked'=>true,'external_db'=>true));}
+    $wpdb_result=$stored['success']?1:false;
     // Check for database errors
     if ($wpdb_result === false) {
         // Log error but don't crash tracking

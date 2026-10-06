@@ -9,14 +9,16 @@ function m1_contracts($inventory) {
     $includes = array();
     foreach ($inventory['included'] as $row) {
         if (in_array($row['file'], $baseline['allowlist']['additional_includes'], true)) { continue; }
-        $includes[] = $row['file'];
+        $includes[] = $baseline['allowlist']['include_path_migrations'][$row['file']] ?? $row['file'];
     }
     $hooks = array();
     foreach ($inventory['hooks'] as $row) {
+        if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export'), true)) { continue; }
         $hooks[] = array_intersect_key($row, array_flip(array('hook','callback','priority','accepted_args','order_at_priority','callable')));
     }
     $hook_locations = array();
     foreach ($inventory['hooks'] as $row) {
+        if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export'), true)) { continue; }
         $hook_locations[] = array_intersect_key($row, array_flip(array('hook','callback','priority','order_at_priority','file')));
     }
     $shortcodes = array();

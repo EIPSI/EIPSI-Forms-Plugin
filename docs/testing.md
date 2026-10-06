@@ -117,3 +117,13 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work node:22-book
 [Fixtures y cobertura M5](../tests/m5/README.md). Los casos usan WordPress/MariaDB/WP-Cron reales y verifican absolute offsets, pasado/deadline/stages enviados, refresh/cancelación, failure después de persistencia, nudge0/cooldown, retry/backoff, entrega/logs/headers, weekly T1, dropout, manual, legacy, cadencias CronHealth, lifecycle y orden transaccional. Templates y firmas se comparan con contratos congelados antes de M5; cuerpos de claim/retry/config se verifican por tokens.
 
 Concurrencia: dos procesos sobre un job, claim SQL 1/0, dos schedulers por assignment, configs concurrentes con lectura fresca y dos jobs de stages diferentes que convergen con retry. No prueba exactly-once entre jobs diferentes del mismo stage ni entrega SMTP externa. La purga se ejecuta únicamente después de obtener todas las regresiones verdes y se verifica otra vez con la instalación limpia.
+
+## M6 — Storage / Privacy / Export
+
+Se mantienen las 507 pruebas anteriores y se agregan 82 casos del harness M6 y 8 casos WordPress real/HTTP/concurrencia: total 597. Véanse [comandos, guardas y límites](../tests/m6/README.md). El harness usa tablas MariaDB reales aisladas con stubs WP y una copia escribible; el runner live prueba autorización y workers contra WordPress completo. No ejecutar suites live en paralelo.
+
+Se cubren local/external/fallback/emergency, confirmación versus verification unsupported, CapturePolicy en writers, cleanup/B2/rollback, coverage local incompleta, aprobación/identidad/nonce/archivos privados, datasets separados, CSV/XLSX, SQL y generación fallida, autorización de downloads y deuda LONG. Firmas públicas se comparan con el snapshot M5 y los hashes históricos permanecen registrados. Hay dos regresiones deterministas del IV binario externo que conservan el formato cifrado existente.
+
+Las carreras prueban un ganador para approval, filenames sin overwrite, writers de fallback/emergency con IDs diferentes y cleanup concurrente sin afirmar atomicidad global. Anonymous HTTP directo al directorio exports devolvía 200 y ahora 403 en Apache; el download admin autorizado devuelve 200. Nginx necesita su propia regla deny; no inferir esa cobertura de .htaccess.
+
+La instalación limpia usa nuevos volúmenes Docker y valida activación/schema, 13 bloques, submit anónimo y Longitudinal, administración, shortcodes, assets y endpoints. Los tests M1 también cubren deactivate/reactivate y cron. Las pruebas no certifican borrado externo, eliminación de backups/exports históricos/correo entregado ni anonimización de texto libre.

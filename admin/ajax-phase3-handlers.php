@@ -24,9 +24,10 @@ function eipsi_ajax_download_access_log_export() {
     if (!current_user_can('manage_options')) { wp_die('No autorizado', '', array('response'=>403)); }
     $filename=isset($_GET['file']) ? sanitize_text_field(wp_unslash($_GET['file'])) : '';
     if (!preg_match('/^access-logs[a-zA-Z0-9_-]*\.(csv|xlsx)$/',$filename)) { wp_die('Archivo inválido'); }
-    $directory=realpath(EIPSI_FORMS_PLUGIN_DIR.'exports');
-    $path=realpath(EIPSI_FORMS_PLUGIN_DIR.'exports/'.$filename);
-    if (!$directory || !$path || dirname($path)!==$directory || !is_file($path) || !is_readable($path)) { wp_die('Archivo no disponible'); }
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/export/bootstrap.php';
+    $resolved=EIPSI_Download_Authorization_Service::resolve_admin_file($filename);
+    if (!$resolved['success']) { wp_die('Archivo no disponible'); }
+    $path=$resolved['file_path'];
     header('Content-Type: application/octet-stream');
     header('Content-Disposition: attachment; filename="'.$filename.'"');
     header('Cache-Control: no-store');
