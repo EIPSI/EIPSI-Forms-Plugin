@@ -127,3 +127,12 @@ Se cubren local/external/fallback/emergency, confirmación versus verification u
 Las carreras prueban un ganador para approval, filenames sin overwrite, writers de fallback/emergency con IDs diferentes y cleanup concurrente sin afirmar atomicidad global. Anonymous HTTP directo al directorio exports devolvía 200 y ahora 403 en Apache; el download admin autorizado devuelve 200. Nginx necesita su propia regla deny; no inferir esa cobertura de .htaccess.
 
 La instalación limpia usa nuevos volúmenes Docker y valida activación/schema, 13 bloques, submit anónimo y Longitudinal, administración, shortcodes, assets y endpoints. Los tests M1 también cubren deactivate/reactivate y cron. Las pruebas no certifican borrado externo, eliminación de backups/exports históricos/correo entregado ni anonimización de texto libre.
+
+
+## M7 — Pools / Randomization
+
+597 previous tests remain. `tests/run-m7.php` adds 62 real WordPress/MariaDB/HTTP tests, including four barrier-controlled two-process races; `tests/m7/frontend-load.js` adds three executable JS regressions. Total: 662. M0's existing form-loader debt characterization is explicitly updated to assert both restored hooks; no test is removed. M1 permits only new definition includes and three explicit new hooks, and M3 retains the complete hash history through the M7 completion-facade migration.
+
+Run only against the guarded disposable Docker described in [M7](../tests/m7/README.md). Fixtures use 994701/994703/994704/994707/994708, abort on collisions and delete only owned records/posts. `baseline-m7_baseline_*.php` captures pre-M7 algorithms from 8e36b1a; seeded fixtures compare actual outputs. Signature fixtures cover loaded callbacks and contextual UI definitions.
+
+The race tests cover one pool identity, one completion winner, stable random variant and concurrent first override/assignment. They do not cover worker death between persistence/analytics/event or guarantee global exactly-once. Saved institutional content is not present in these isolated databases; absence of records cannot justify legacy deletion.

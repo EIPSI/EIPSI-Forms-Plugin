@@ -49,7 +49,8 @@ $missing = array(
 foreach ($missing as $action=>$file) {
     $tests['Caracterización deuda conocida: ' . $action] = function () use ($action,$file) {
         m0_assert(strpos(file_get_contents(EIPSI_FORMS_PLUGIN_DIR.$file), $action) !== false, 'Emitter changed; update contract map');
-        m0_assert(has_action('wp_ajax_'.$action) === false && has_action('wp_ajax_nopriv_'.$action) === false, 'Handler restored; update characterization');
+        if ($action === 'eipsi_load_form') { m0_assert(has_action('wp_ajax_'.$action, 'eipsi_load_form_handler') === 10 && has_action('wp_ajax_nopriv_'.$action, 'eipsi_load_form_handler') === 10, 'M7 form loader absent'); }
+        else {        m0_assert(has_action('wp_ajax_'.$action) === false && has_action('wp_ajax_nopriv_'.$action) === false, 'Handler restored; update characterization'); }
     };
 }
 $tests['Cron: trece eventos de activación con callbacks ejecutables'] = function () {

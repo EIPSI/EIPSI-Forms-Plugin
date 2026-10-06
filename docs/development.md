@@ -93,3 +93,12 @@ Nuevos archivos admin bajo exports requieren deny HTTP. Apache usa los archivos 
 Para cambios posteriores usar los comandos y guardas de [pruebas M6](../tests/m6/README.md). No alterar snapshots históricos M3/M4/M5 para ocultar cambios: `boundary-migrations.json` registra la transición M6 explícita y M1 solo permite owners de definición, dos nuevos hooks y la migración de path XLSX.
 
 M6 también corrige la lectura de credenciales externas cuando el IV binario contiene `::` o termina en `:`. Se lee su longitud fija de 16 bytes; el formato almacenado, cifrado y API no cambian. Dos regresiones deterministas cubren el defecto previo.
+
+
+## M7 boundaries
+
+Implement pool domain rules in `includes/pools/`, random configuration/assignment/algorithm/override rules in `includes/randomization/`. Keep public callbacks in their historical files as compatibility facades; register them only there. Definition owners must not register copied hooks during require. REST and AJAX keep different DTO/status contracts. Configuration results are transport-neutral; the REST adapter constructs WP_REST_Response.
+
+Use Auth session identity for participant-facing pool mutations, never email/fingerprint/client participant_id. Administrative IDs require the existing capability and nonce. Use M3 FormRenderer for form loading and M6 export query/file owners for roster exports; do not migrate those services into M7. Preserve postmeta and old JS pending saved-content evidence. The purge manifest records four removed private/copy implementations; no legacy JS file was deleted.
+
+Do not change RNG bounds, fallback, seed source or weighting when extending tests. Existing assignment precedes late override; a first override precedes algorithm. Assignment locking has a five-second timeout and must release on errors. The current schema's unique pool participant key and lack of unique daily analytics key remain unchanged and require future policy decisions.

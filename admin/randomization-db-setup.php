@@ -13,6 +13,8 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/randomization/bootstrap.php';
+
 
 /**
  * Crear tabla de configuraciones de aleatorización
@@ -144,59 +146,7 @@ function eipsi_create_randomization_tables() {
  * @param array  $config Configuración completa
  * @return bool True si se guardó correctamente
  */
-function eipsi_save_randomization_config_to_db( $randomization_id, $config ) {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'eipsi_randomization_configs';
-
-    // Preparar datos
-    $data = array(
-        'randomization_id'   => $randomization_id,
-        'formularios'        => wp_json_encode( $config['formularios'] ?? array() ),
-        'probabilidades'     => wp_json_encode( $config['probabilidades'] ?? array() ),
-        'method'             => $config['method'] ?? 'seeded',
-        'manual_assignments' => wp_json_encode( $config['manualAssignments'] ?? array() ),
-        'show_instructions'  => ! empty( $config['showInstructions'] ) ? 1 : 0,
-        'updated_at'         => current_time( 'mysql' ),
-    );
-
-    // Verificar si ya existe
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $existing = $wpdb->get_row(
-        $wpdb->prepare(
-            "SELECT id FROM {$table_name} WHERE randomization_id = %s",
-            $randomization_id
-        )
-    );
-
-    if ( $existing ) {
-        // Actualizar
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $result = $wpdb->update(
-            $table_name,
-            $data,
-            array( 'randomization_id' => $randomization_id ),
-            array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' ),
-            array( '%s' )
-        );
-
-        error_log( "[EIPSI Forms] Config actualizada: {$randomization_id}" );
-        return $result !== false;
-    } else {
-        // Insertar nueva
-        $data['created_at'] = current_time( 'mysql' );
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-        $result = $wpdb->insert(
-            $table_name,
-            $data,
-            array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
-        );
-
-        error_log( "[EIPSI Forms] Config creada: {$randomization_id}" );
-        return $result !== false;
-    }
-}
+function eipsi_save_randomization_config_to_db( $randomization_id, $config ) { return EIPSI_Randomization_Repository::eipsi_save_randomization_config_to_db($randomization_id, $config); }
 
 /**
  * Obtener configuración de aleatorización desde DB
@@ -204,36 +154,7 @@ function eipsi_save_randomization_config_to_db( $randomization_id, $config ) {
  * @param string $randomization_id ID único
  * @return array|null Configuración o null si no existe
  */
-function eipsi_get_randomization_config_from_db( $randomization_id ) {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'eipsi_randomization_configs';
-
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $row = $wpdb->get_row(
-        $wpdb->prepare(
-            "SELECT * FROM {$table_name} WHERE randomization_id = %s",
-            $randomization_id
-        ),
-        ARRAY_A
-    );
-
-    if ( ! $row ) {
-        return null;
-    }
-
-    // Decodificar JSON fields
-    return array(
-        'randomizationId'    => $row['randomization_id'],
-        'formularios'        => json_decode( $row['formularios'], true ) ?? array(),
-        'probabilidades'     => json_decode( $row['probabilidades'], true ) ?? array(),
-        'method'             => $row['method'],
-        'manualAssignments'  => json_decode( $row['manual_assignments'], true ) ?? array(),
-        'showInstructions'   => (bool) $row['show_instructions'],
-        'created_at'         => $row['created_at'],
-        'updated_at'         => $row['updated_at'],
-    );
-}
+function eipsi_get_randomization_config_from_db( $randomization_id ) { return EIPSI_Randomization_Repository::eipsi_get_randomization_config_from_db($randomization_id); }
 
 /**
  * Obtener todas las asignaciones de un estudio
@@ -241,24 +162,7 @@ function eipsi_get_randomization_config_from_db( $randomization_id ) {
  * @param string $randomization_id ID único del estudio
  * @return array Lista de asignaciones
  */
-function eipsi_get_study_assignments( $randomization_id ) {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'eipsi_randomization_assignments';
-
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $results = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT * FROM {$table_name} 
-            WHERE randomization_id = %s 
-            ORDER BY assigned_at DESC",
-            $randomization_id
-        ),
-        ARRAY_A
-    );
-
-    return $results ?? array();
-}
+function eipsi_get_study_assignments( $randomization_id ) { return EIPSI_Randomization_Repository::eipsi_get_study_assignments($randomization_id); }
 
 /**
  * Obtener estadísticas de un estudio RCT (v1.5.5)
@@ -270,54 +174,7 @@ function eipsi_get_study_assignments( $randomization_id ) {
  * @param string $randomization_id ID único del estudio
  * @return array Estadísticas
  */
-function eipsi_get_study_stats( $randomization_id ) {
-    global $wpdb;
-
-    $results_table = $wpdb->prefix . 'vas_form_results';
-    $assignments_table = $wpdb->prefix . 'eipsi_randomization_assignments';
-
-    // v1.5.5: Total de submissions REALES (no pre-asignaciones)
-    // Esto muestra "Total Completados" en lugar de "Total Asignados"
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $total_completados = $wpdb->get_var(
-        $wpdb->prepare(
-            "SELECT COUNT(*) FROM {$results_table} 
-            WHERE rct_randomization_id = %s 
-            AND rct_assigned_variant IS NOT NULL",
-            $randomization_id
-        )
-    );
-
-    // v1.5.5: Distribución por variante desde submissions reales
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $distribution = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT rct_assigned_variant as assigned_form_id, COUNT(*) as count 
-            FROM {$results_table} 
-            WHERE rct_randomization_id = %s 
-            AND rct_assigned_variant IS NOT NULL
-            GROUP BY rct_assigned_variant",
-            $randomization_id
-        ),
-        ARRAY_A
-    );
-
-    // v1.5.5: Deprecated - total de pre-asignaciones (para compatibilidad hacia atrás)
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $total_asignados_legacy = $wpdb->get_var(
-        $wpdb->prepare(
-            "SELECT COUNT(*) FROM {$assignments_table} WHERE randomization_id = %s",
-            $randomization_id
-        )
-    );
-
-    return array(
-        'total_completados' => (int) $total_completados,
-        'total_asignados_legacy' => (int) $total_asignados_legacy,
-        'distribution'       => $distribution,
-        'method'            => 'submission_based',
-    );
-}
+function eipsi_get_study_stats( $randomization_id ) { return EIPSI_Randomization_Repository::eipsi_get_study_stats($randomization_id); }
 
 /**
  * Verificar si las tablas existen
@@ -379,59 +236,7 @@ add_action( 'rest_api_init', 'eipsi_register_randomization_rest_endpoint' );
  * @param WP_REST_Request $request Request object
  * @return WP_REST_Response
  */
-function eipsi_rest_save_randomization_config( $request ) {
-    $randomization_id   = $request->get_param( 'randomizationId' );
-    $formularios        = $request->get_param( 'formularios' );
-    $method             = $request->get_param( 'method' );
-    $manual_assignments = $request->get_param( 'manualAssignments' );
-    $show_instructions  = $request->get_param( 'showInstructions' );
-
-    if ( empty( $randomization_id ) || empty( $formularios ) ) {
-        return new WP_REST_Response(
-            array(
-                'success' => false,
-                'message' => 'Missing required parameters',
-            ),
-            400
-        );
-    }
-
-    // Construir array de probabilidades
-    $probabilidades = array();
-    foreach ( $formularios as $form ) {
-        if ( isset( $form['postId'] ) && isset( $form['porcentaje'] ) ) {
-            $probabilidades[ $form['postId'] ] = $form['porcentaje'];
-        }
-    }
-
-    $config = array(
-        'formularios'        => $formularios,
-        'probabilidades'     => $probabilidades,
-        'method'             => $method ?? 'seeded',
-        'manualAssignments'  => $manual_assignments ?? array(),
-        'showInstructions'   => $show_instructions ?? false,
-    );
-
-    $result = eipsi_save_randomization_config_to_db( $randomization_id, $config );
-
-    if ( $result ) {
-        return new WP_REST_Response(
-            array(
-                'success' => true,
-                'message' => 'Configuration saved successfully',
-            ),
-            200
-        );
-    } else {
-        return new WP_REST_Response(
-            array(
-                'success' => false,
-                'message' => 'Failed to save configuration',
-            ),
-            500
-        );
-    }
-}
+function eipsi_rest_save_randomization_config( $request ) { return EIPSI_Randomization_DB_Rest_Adapter::eipsi_rest_save_randomization_config($request); }
 
 /**
  * Calculate RCT assignment at form submission time (v1.5.5)
@@ -445,107 +250,7 @@ function eipsi_rest_save_randomization_config( $request ) {
  * @param int    $timestamp        Submission timestamp for seeding
  * @return array|null Assignment data or null if no RCT config found
  */
-function eipsi_calculate_submission_assignment( $user_fingerprint, $form_id, $timestamp ) {
-    // Get all RCT configs from post meta
-    $configs = eipsi_get_randomization_configs_from_post_meta();
-    
-    if ( empty( $configs ) ) {
-        return null;
-    }
-    
-    // Find RCT config associated with this form
-    $rct_config = null;
-    $config_id = null;
-    
-    foreach ( $configs as $config ) {
-        $formularios = $config['formularios'] ?? array();
-        foreach ( $formularios as $form ) {
-            $form_post_id = isset( $form['id'] ) ? intval( $form['id'] ) : 0;
-            if ( $form_post_id === intval( $form_id ) ) {
-                $rct_config = $config;
-                $config_id = $config['randomization_id'];
-                break 2;
-            }
-        }
-    }
-    
-    // No RCT config found for this form
-    if ( ! $rct_config || empty( $config_id ) ) {
-        return null;
-    }
-    
-    // Get formularios and probabilidades
-    $formularios = $rct_config['formularios'] ?? array();
-    $probabilidades = $rct_config['probabilidades'] ?? array();
-    $method = $rct_config['method'] ?? 'seeded';
-    $manual_assignments = $rct_config['manualAssignments'] ?? array();
-    
-    if ( empty( $formularios ) ) {
-        return null;
-    }
-    
-    // Check for manual assignment first
-    if ( ! empty( $manual_assignments ) && is_array( $manual_assignments ) ) {
-        // Manual assignments keyed by some identifier (email, etc)
-        // For now, we'll skip manual assignment at submission time
-        // as it requires more frontend context
-    }
-    
-    // Build weighted list for randomized assignment
-    $weighted_forms = array();
-    
-    foreach ( $formularios as $index => $form ) {
-        $form_post_id = isset( $form['id'] ) ? intval( $form['id'] ) : 0;
-        if ( $form_post_id <= 0 ) {
-            continue;
-        }
-        
-        // Get probability for this form
-        $weight = 1; // Default equal weight
-        
-        if ( isset( $probabilidades[ $form_post_id ] ) ) {
-            $weight = floatval( $probabilidades[ $form_post_id ] );
-        } elseif ( isset( $probabilidades[ $index ] ) ) {
-            $weight = floatval( $probabilidades[ $index ] );
-        }
-        
-        // Add form to weighted list (repeat based on weight)
-        // We use 100 as base to handle percentages
-        $weight_int = max( 1, round( $weight ) );
-        for ( $i = 0; $i < $weight_int; $i++ ) {
-            $weighted_forms[] = array(
-                'id' => $form_post_id,
-                'title' => get_the_title( $form_post_id ) ?? 'Form ' . $form_post_id,
-                'weight' => $weight
-            );
-        }
-    }
-    
-    if ( empty( $weighted_forms ) ) {
-        return null;
-    }
-    
-    // Generate seeded random index
-    // Seed: fingerprint + timestamp + config_id (for uniqueness)
-    $seed = $user_fingerprint . $config_id . $timestamp;
-    $hash = crc32( $seed );
-    
-    // Ensure positive value for modulo
-    $hash = abs( $hash );
-    $index = $hash % count( $weighted_forms );
-    
-    $selected = $weighted_forms[ $index ];
-    
-    return array(
-        'randomization_id' => $config_id,
-        'assigned_variant' => $selected['title'],
-        'assigned_form_id' => $selected['id'],
-        'method' => $method,
-        'seed' => $seed,
-        'formularios' => $formularios,
-        'probabilidades' => $probabilidades
-    );
-}
+function eipsi_calculate_submission_assignment( $user_fingerprint, $form_id, $timestamp ) { return EIPSI_Randomization_Submission_Algorithm_Service::eipsi_calculate_submission_assignment($user_fingerprint, $form_id, $timestamp); }
 
 /**
  * Get RCT assignment for a specific submission from results table (v1.5.5)
@@ -553,29 +258,7 @@ function eipsi_calculate_submission_assignment( $user_fingerprint, $form_id, $ti
  * @param int $result_id The submission result ID
  * @return array|null Assignment data or null
  */
-function eipsi_get_submission_rct_assignment( $result_id ) {
-    global $wpdb;
-    
-    $table_name = $wpdb->prefix . 'vas_form_results';
-    
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $row = $wpdb->get_row(
-        $wpdb->prepare(
-            "SELECT rct_assigned_variant, rct_randomization_id FROM {$table_name} WHERE id = %d",
-            $result_id
-        ),
-        ARRAY_A
-    );
-    
-    if ( ! $row || empty( $row['rct_assigned_variant'] ) ) {
-        return null;
-    }
-    
-    return array(
-        'assigned_variant' => $row['rct_assigned_variant'],
-        'randomization_id' => $row['rct_randomization_id']
-    );
-}
+function eipsi_get_submission_rct_assignment( $result_id ) { return EIPSI_Randomization_Repository::eipsi_get_submission_rct_assignment($result_id); }
 
 /**
  * Update existing submissions with RCT assignment data (v1.5.5)

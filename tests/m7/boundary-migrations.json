@@ -1,0 +1,6 @@
+{
+  "admin/pool-completion-hooks.php": {
+    "before_m7_sha256": "91f93e91d9fd60095b81e3bc6f403353416648049661ca6881032e466e8f8d9d",
+    "m7_sha256": "bcb2343f01fd9466562144b0e5e21d4394bfb7e91758f12dcff58967b0df9728"
+  }
+}

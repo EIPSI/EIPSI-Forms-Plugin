@@ -1,0 +1,80 @@
+{
+  "head": "8e36b1a",
+  "removed_private_implementations": [
+    {
+      "file": "includes/pools/class-pool-assignment-service.php",
+      "symbol": "create_or_get_participant_legacy",
+      "classification": "A",
+      "sha256": "33502672e723255977d0ee36543a10979d9c57b2997a8dbc289d7185354e785a",
+      "reason": "Private method has no consumer after migration"
+    },
+    {
+      "file": "includes/pools/adapters/class-block-adapter.php",
+      "symbol": "get_or_create_assignment",
+      "classification": "A",
+      "sha256": "772e7ab282b8adbb19c2d16fe0e2e475e97113ad747c7895577963eda6e9df17",
+      "reason": "Private method has no consumer after migration"
+    },
+    {
+      "file": "includes/pools/adapters/class-block-adapter.php",
+      "symbol": "init",
+      "classification": "A",
+      "sha256": "8e2025e37b332b4643f383d481ea9ed20504fdc2e188fbea636a2e3e3315bb56",
+      "reason": "No internal consumer after migration; old public registration remains in facade"
+    },
+    {
+      "file": "includes/pools/adapters/class-shortcode-adapter.php",
+      "symbol": "init",
+      "classification": "A",
+      "sha256": "a430344249c636e2137cd1e02b5943caa6498a2807757232bc5bfe3b836760e7",
+      "reason": "No internal consumer after migration; old public registration remains in facade"
+    }
+  ],
+  "retained": [
+    {
+      "file": "assets/js/eipsi-random.js",
+      "classification": "B",
+      "reason": "No institutional saved-content sample; no evidence sufficient for removal"
+    },
+    {
+      "file": "src/frontend/eipsi-random.js",
+      "classification": "B",
+      "reason": "Historical source/runtime compatibility not proven unnecessary"
+    },
+    {
+      "file": "assets/js/eipsi-randomization-shortcode.php",
+      "classification": "B",
+      "reason": "Legacy _eipsi_random_config consumer"
+    },
+    {
+      "file": "admin/pool-rest-api.php",
+      "classification": "C",
+      "reason": "Public REST registration and facade"
+    },
+    {
+      "file": "admin/pool-assignment-api.php",
+      "classification": "C",
+      "reason": "Public AJAX names and distinct contracts"
+    },
+    {
+      "file": "includes/helpers/pool-helpers.php",
+      "classification": "C",
+      "reason": "Public helper symbols and code-based historical paths"
+    },
+    {
+      "file": "admin/randomization-page.php",
+      "classification": "C",
+      "reason": "Admin page and saved shortcode configuration consumers"
+    },
+    {
+      "file": "admin/tabs/pool-hub-v2.php",
+      "classification": "C",
+      "reason": "Active admin UI"
+    },
+    {
+      "file": "admin/pool-hub/components/pool-sidebar.php",
+      "classification": "E",
+      "reason": "Contextual dynamic inclusion; insufficient removal evidence"
+    }
+  ]
+}

@@ -3675,25 +3675,8 @@ function eipsi_check_and_mark_pool_completion($participant_id, $study_id, $form_
 
     // If all waves are completed, mark the pool assignment as completed
     if ($completed_waves >= $total_waves) {
-        $result = $wpdb->update(
-            $pool_assignments_table,
-            array(
-                'completed' => 1,
-                'completed_at' => current_time('mysql'),
-                'completion_form_id' => $form_id,
-            ),
-            array('id' => $pool_assignment['id']),
-            array('%d', '%s', '%s'),
-            array('%d')
-        );
-
-        if ($result !== false) {
-            error_log(sprintf('[EIPSI-POOL-COMPLETION] Pool assignment %d marked as completed', $pool_assignment['id']));
-            return true;
-        } else {
-            error_log('[EIPSI-POOL-COMPLETION] Error updating pool assignment: ' . $wpdb->last_error);
-            return false;
-        }
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/pools/bootstrap.php';
+        return (new EIPSI_Pool_Completion_Service())->mark_completed($pool_assignment['pool_id'], $participant_id, $form_id);
     }
 
     error_log('[EIPSI-POOL-COMPLETION] Study not yet fully completed');

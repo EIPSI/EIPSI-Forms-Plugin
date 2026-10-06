@@ -13,12 +13,14 @@ function m1_contracts($inventory) {
     }
     $hooks = array();
     foreach ($inventory['hooks'] as $row) {
-        if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export'), true)) { continue; }
+        if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
+        if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
         $hooks[] = array_intersect_key($row, array_flip(array('hook','callback','priority','accepted_args','order_at_priority','callable')));
     }
     $hook_locations = array();
     foreach ($inventory['hooks'] as $row) {
-        if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export'), true)) { continue; }
+        if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
+        if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
         $hook_locations[] = array_intersect_key($row, array_flip(array('hook','callback','priority','order_at_priority','file')));
     }
     $shortcodes = array();

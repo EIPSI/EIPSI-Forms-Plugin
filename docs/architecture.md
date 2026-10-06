@@ -2,7 +2,7 @@
 
 ## Bootstrap y dominios
 
-[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants y M3 separó Forms/Submit. Los módulos M5–M8 siguen pendientes.
+[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants y M3 separó Forms/Submit. M4–M7 tienen owners explícitos. M8 sigue pendiente.
 
 Los dominios existentes son formularios/respuestas, estudios/waves, participantes/sesiones, Pools/asignación, correo/cron y administración/exportación. No son módulos aislados: comparten bootstrap, tablas y callbacks. El inventario ejecutable de [M0](../tests/m0/README.md) permite observar registros efectivos y declaraciones por perfil admin/frontend.
 
@@ -12,7 +12,7 @@ Emergencia devuelve éxito solo tras persistencia confirmada y comunica el desti
 
 ## Deuda activa para fases posteriores
 
-M0 caracteriza nueve emisores sin handler exacto: `eipsi_export_participants_long_excel`, `eipsi_export_participants_long_csv`, `eipsi_send_individual_reminder`, `eipsi_recalculate_preview`, `eipsi_recalculate_waves`, `eipsi_rollback_recalculation`, `eipsi_load_form`, `eipsi_create_from_clinical_template`, `eipsi_get_participant_dashboard`. Hay emisores activos y otros dormidos; los handlers parecidos no garantizan equivalencia de contrato. No se restauraron ni eliminaron esas UI.
+M0 caracterizó nueve emisores sin handler exacto: `eipsi_export_participants_long_excel`, `eipsi_export_participants_long_csv`, `eipsi_send_individual_reminder`, `eipsi_recalculate_preview`, `eipsi_recalculate_waves`, `eipsi_rollback_recalculation`, `eipsi_load_form`, `eipsi_create_from_clinical_template`, `eipsi_get_participant_dashboard`. Hay emisores activos y otros dormidos; los handlers parecidos no garantizan equivalencia de contrato. M7 restaura únicamente `eipsi_load_form`; las otras ocho discrepancias siguen pendientes.
 
 `SchemaManager::check_collation_issues` y `SchemaManager::execute_maintenance_sql` siguen ausentes: los recorridos identificados no demostraron un uso interno activo que justificara intervenir en M0. La reparación activa de tabla y el envío weekly T1 sí recibieron correcciones mínimas.
 
@@ -210,3 +210,20 @@ Facades públicas y helpers usados continúan clasificados C; legacy/ambigüedad
 M6 también corrige la lectura de credenciales externas cuando el IV binario contiene `::` o termina en `:`. Se lee su longitud fija de 16 bytes; el formato almacenado, cifrado y API no cambian. Dos regresiones deterministas cubren el defecto previo.
 
 Deuda Export adicional conservada: el GET legacy `page=eipsi-results&action=export_participants_excel` invoca `export_participants_to_excel`, método inexistente de la facade; la UI AJAX wide utiliza el método válido. Los GET procedurales legacy conservan capability pero no nonce específico. M6 no crea equivalencias de dataset para reparar esos recorridos.
+
+
+## M7 — Pools y Randomization
+
+`includes/pools/` owns pool configuration (`PoolService`), lookup/persistence (`PoolRepository`), assignment (`Pools_Assignment_Service`), algorithms (`PoolAlgorithmService`), completion (`PoolCompletionService`) and analytics aggregation (`PoolAnalyticsService`). Dashboard queries remain in `PoolDashboardQueryService`; adapters own AJAX/REST response formatting and shortcode/block rendering. Old admin files retain public callback names, registrations, priorities, nonces and signatures. The read adapter reads Longitudinal state; Longitudinal continues to own Studies/Waves/Assignments. M6 continues to own export queries/files, reached through existing read adapters.
+
+`includes/randomization/` owns DB configuration (`RandomizationRepository`), postmeta configuration (`RandomizationConfigService`), algorithms, stable assignment/persistence and manual overrides. Adapters retain admin checks, AJAX/REST formatting, frontend markup, legacy block scanning and browser tracking keys. `_randomization_config_{id}` remains the shortcode's first source, with saved-block fallback; `_eipsi_random_config` remains a separate historical contract. No schema or distribution policy changed. The distinct RCT, frontend, submission and Pools algorithms retain their original seeds, inclusive boundaries and fallbacks; do not collapse them into a single statistical method.
+
+Auth/session is the only authority for participant operations. Pool AJAX assignment/join/login reject anonymous or mismatched IDs/emails; email remains contact data. The service's historical email entry point requires a matching session and selects the participant ID from it. Registration is still a separate email-confirmation entry point, not proof of authentication. Existing numeric internal service entry points are trusted server calls, not public authorization boundaries. Randomization fingerprint is a browser tracking/config key; an authenticated session does not silently replace it. Fingerprints do not authorize longitudinal access.
+
+Completion's conditional update is owned by one command. The direct helper preserves its historical total-wave eligibility check; the submitted hook preserves its active-wave check. Both call the same mutation, update analytics only for its winner and emit `eipsi_pool_study_completed` once per successful transition. The historical zero-wave direct predicate and the two eligibility policies remain documented debt. No global exactly-once guarantee: process failure after updating and before emitting can lose the event.
+
+Pool assignment and Randomization resolve serialize read/select/insert using connection-scoped MariaDB `GET_LOCK`, released in `finally`; the existing unique keys remain the persistence constraint. Stable assignment takes precedence over a later override. Override creation and resolve use the same scoped lock. There is no global distributed transaction or new reassignment policy; the existing pool unique key may reject reassignment after completion.
+
+`eipsi_load_form` now validates nonce `eipsi_randomization_nonce`, a published non-password-protected `eipsi_form_template`, and Auth's form/study authorization. M3 FormRenderer supplies HTML; AJAX returns `success.data` as a string. Public templates remain public; longitudinal templates require their matching session and assignment. Frontend uses a public localized nonce, initializes `EIPSIForms` and catches normal-load failures. Legacy configuration/assignment AJAX actions in that old frontend are not reconstructed by guessing.
+
+The old anonymous email-only Pool login/join interface can no longer grant access. Authenticated self assignment/join works; public onboarding UI must adopt the existing Auth flow in a later phase before that interface is released. No new identity policy or Longitudinal membership migration was introduced.

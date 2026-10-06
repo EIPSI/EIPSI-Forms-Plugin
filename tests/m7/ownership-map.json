@@ -1,0 +1,668 @@
+[
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "generate_stable_form_id",
+    "owner": "EIPSI_Form_Context",
+    "method": "generate_stable_form_id"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "get_form_initials",
+    "owner": "EIPSI_Form_Context",
+    "method": "get_form_initials"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_get_study_status_for_form_name",
+    "owner": "EIPSI_Form_Context",
+    "method": "eipsi_get_study_status_for_form_name"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_detect_device_type",
+    "owner": "EIPSI_Form_Capture_Service",
+    "method": "eipsi_detect_device_type"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_detect_browser",
+    "owner": "EIPSI_Form_Capture_Service",
+    "method": "eipsi_detect_browser"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_detect_os",
+    "owner": "EIPSI_Form_Capture_Service",
+    "method": "eipsi_detect_os"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "generateStableFingerprint",
+    "owner": "EIPSI_Form_Capture_Service",
+    "method": "generateStableFingerprint"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "normalizeName",
+    "owner": "EIPSI_Form_Capture_Service",
+    "method": "normalizeName"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_get_research_context",
+    "owner": "EIPSI_Form_Capture_Service",
+    "method": "eipsi_get_research_context"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_get_time_context",
+    "owner": "EIPSI_Form_Capture_Service",
+    "method": "eipsi_get_time_context"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_get_platform_type",
+    "owner": "EIPSI_Form_Capture_Service",
+    "method": "eipsi_get_platform_type"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_check_login_rate_limit",
+    "owner": "EIPSI_Authentication_Service",
+    "method": "check_login_rate_limit"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_record_failed_login",
+    "owner": "EIPSI_Authentication_Service",
+    "method": "record_failed_login"
+  },
+  {
+    "file": "admin/ajax-handlers.php",
+    "entry_point": "eipsi_clear_login_rate_limit",
+    "owner": "EIPSI_Authentication_Service",
+    "method": "clear_login_rate_limit"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_join_pool",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_join_pool"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_pool_auth",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_pool_auth"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_get_pool_stats",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_get_pool_stats"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_get_all_pools_summary",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_get_all_pools_summary"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_get_pool_email_logs",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_get_pool_email_logs"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_resend_pool_confirmation",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_resend_pool_confirmation"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_toggle_pool_status",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_toggle_pool_status"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_get_pool_analytics",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_get_pool_analytics"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_get_pool_analytics_dispatch",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_get_pool_analytics_dispatch"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_export_pool_assignments",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_export_pool_assignments"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_export_pool_assignments_dispatch",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_export_pool_assignments_dispatch"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_participant_has_active_pool_study",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_participant_has_active_pool_study"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_generate_participant_magic_link",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_generate_participant_magic_link"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_generate_pool_dashboard_link",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_generate_pool_dashboard_link"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_send_pool_email_confirmation",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_send_pool_email_confirmation"
+  },
+  {
+    "file": "admin/pool-assignment-api.php",
+    "entry_point": "eipsi_ajax_request_pool_assignment",
+    "owner": "EIPSI_Pool_Ajax_Adapter",
+    "method": "eipsi_ajax_request_pool_assignment"
+  },
+  {
+    "file": "admin/pool-completion-hooks.php",
+    "entry_point": "eipsi_check_pool_completion_on_submit",
+    "owner": "EIPSI_Pool_Completion_Adapter",
+    "method": "eipsi_check_pool_completion_on_submit"
+  },
+  {
+    "file": "admin/pool-completion-hooks.php",
+    "entry_point": "eipsi_notify_researcher_on_pool_completion",
+    "owner": "EIPSI_Pool_Completion_Adapter",
+    "method": "eipsi_notify_researcher_on_pool_completion"
+  },
+  {
+    "file": "admin/pool-dashboard-api.php",
+    "entry_point": "eipsi_get_pool_analytics",
+    "owner": "EIPSI_Pool_Dashboard_Adapter",
+    "method": "eipsi_get_pool_analytics"
+  },
+  {
+    "file": "admin/pool-dashboard-api.php",
+    "entry_point": "eipsi_export_pool_assignments",
+    "owner": "EIPSI_Pool_Dashboard_Adapter",
+    "method": "eipsi_export_pool_assignments"
+  },
+  {
+    "file": "admin/pool-rest-api.php",
+    "entry_point": "eipsi_rest_pool_detect",
+    "owner": "EIPSI_Pool_Rest_Adapter",
+    "method": "eipsi_rest_pool_detect"
+  },
+  {
+    "file": "admin/pool-rest-api.php",
+    "entry_point": "eipsi_rest_pool_config",
+    "owner": "EIPSI_Pool_Rest_Adapter",
+    "method": "eipsi_rest_pool_config"
+  },
+  {
+    "file": "admin/pool-rest-api.php",
+    "entry_point": "eipsi_rest_pool_assign_permission",
+    "owner": "EIPSI_Pool_Rest_Adapter",
+    "method": "eipsi_rest_pool_assign_permission"
+  },
+  {
+    "file": "admin/pool-rest-api.php",
+    "entry_point": "eipsi_rest_pool_assign",
+    "owner": "EIPSI_Pool_Rest_Adapter",
+    "method": "eipsi_rest_pool_assign"
+  },
+  {
+    "file": "admin/pool-rest-api.php",
+    "entry_point": "eipsi_weighted_random_select",
+    "owner": "EIPSI_Pool_Algorithm_Service",
+    "method": "eipsi_weighted_random_select"
+  },
+  {
+    "file": "admin/pool-rest-api.php",
+    "entry_point": "eipsi_rest_pool_analytics",
+    "owner": "EIPSI_Pool_Rest_Adapter",
+    "method": "eipsi_rest_pool_analytics"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_check_config_exists",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_check_config_exists"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_normalize_randomization_config",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_normalize_randomization_config"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_get_randomization_configs_from_post_meta",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_get_randomization_configs_from_post_meta"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_get_randomization_assignment_stats",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_get_randomization_assignment_stats"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_get_randomizations",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_get_randomizations"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_get_randomization_details",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_get_randomization_details"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_get_randomization_users",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_get_randomization_users"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_get_distribution_stats",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_get_distribution_stats"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "calculate_health_score",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "calculate_health_score"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "generate_distribution_recommendation",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "generate_distribution_recommendation"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "calculate_margin_error",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "calculate_margin_error"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_get_manual_overrides",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_get_manual_overrides"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_create_manual_override",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_create_manual_override"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_revoke_manual_override",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_revoke_manual_override"
+  },
+  {
+    "file": "admin/randomization-api.php",
+    "entry_point": "eipsi_delete_manual_override",
+    "owner": "EIPSI_Randomization_Admin_Adapter",
+    "method": "eipsi_delete_manual_override"
+  },
+  {
+    "file": "admin/randomization-config-handler.php",
+    "entry_point": "eipsi_get_randomization_config_by_id",
+    "owner": "EIPSI_Randomization_Config_Service",
+    "method": "eipsi_get_randomization_config_by_id"
+  },
+  {
+    "file": "admin/randomization-config-handler.php",
+    "entry_point": "eipsi_save_randomization_config",
+    "owner": "EIPSI_Randomization_Config_Adapter",
+    "method": "eipsi_save_randomization_config"
+  },
+  {
+    "file": "admin/randomization-config-handler.php",
+    "entry_point": "eipsi_randomization_config_rest_handler",
+    "owner": "EIPSI_Randomization_Config_Adapter",
+    "method": "eipsi_randomization_config_rest_handler"
+  },
+  {
+    "file": "admin/randomization-config-handler.php",
+    "entry_point": "eipsi_randomization_detect_rest_handler",
+    "owner": "EIPSI_Randomization_Config_Adapter",
+    "method": "eipsi_randomization_detect_rest_handler"
+  },
+  {
+    "file": "admin/randomization-config-handler.php",
+    "entry_point": "eipsi_parse_shortcodes_input",
+    "owner": "EIPSI_Randomization_Config_Service",
+    "method": "eipsi_parse_shortcodes_input"
+  },
+  {
+    "file": "admin/randomization-config-handler.php",
+    "entry_point": "eipsi_get_randomization_config_from_post_meta",
+    "owner": "EIPSI_Randomization_Config_Service",
+    "method": "eipsi_get_randomization_config_from_post_meta"
+  },
+  {
+    "file": "admin/randomization-db-setup.php",
+    "entry_point": "eipsi_save_randomization_config_to_db",
+    "owner": "EIPSI_Randomization_Repository",
+    "method": "eipsi_save_randomization_config_to_db"
+  },
+  {
+    "file": "admin/randomization-db-setup.php",
+    "entry_point": "eipsi_get_randomization_config_from_db",
+    "owner": "EIPSI_Randomization_Repository",
+    "method": "eipsi_get_randomization_config_from_db"
+  },
+  {
+    "file": "admin/randomization-db-setup.php",
+    "entry_point": "eipsi_get_study_assignments",
+    "owner": "EIPSI_Randomization_Repository",
+    "method": "eipsi_get_study_assignments"
+  },
+  {
+    "file": "admin/randomization-db-setup.php",
+    "entry_point": "eipsi_get_study_stats",
+    "owner": "EIPSI_Randomization_Repository",
+    "method": "eipsi_get_study_stats"
+  },
+  {
+    "file": "admin/randomization-db-setup.php",
+    "entry_point": "eipsi_rest_save_randomization_config",
+    "owner": "EIPSI_Randomization_DB_Rest_Adapter",
+    "method": "eipsi_rest_save_randomization_config"
+  },
+  {
+    "file": "admin/randomization-db-setup.php",
+    "entry_point": "eipsi_calculate_submission_assignment",
+    "owner": "EIPSI_Randomization_Submission_Algorithm_Service",
+    "method": "eipsi_calculate_submission_assignment"
+  },
+  {
+    "file": "admin/randomization-db-setup.php",
+    "entry_point": "eipsi_get_submission_rct_assignment",
+    "owner": "EIPSI_Randomization_Repository",
+    "method": "eipsi_get_submission_rct_assignment"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_randomization_shortcode",
+    "owner": "EIPSI_Randomization_Shortcode_Adapter",
+    "method": "eipsi_randomization_shortcode"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_check_manual_override_db",
+    "owner": "EIPSI_Randomization_Override_Service",
+    "method": "eipsi_check_manual_override_db"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_get_randomization_config_post",
+    "owner": "EIPSI_Randomization_Legacy_Config_Adapter",
+    "method": "eipsi_get_randomization_config_post"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_extract_randomization_config",
+    "owner": "EIPSI_Randomization_Legacy_Config_Adapter",
+    "method": "eipsi_extract_randomization_config"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_get_user_fingerprint",
+    "owner": "EIPSI_Randomization_Tracking_Key_Adapter",
+    "method": "eipsi_get_user_fingerprint"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_generate_server_fingerprint",
+    "owner": "EIPSI_Randomization_Tracking_Key_Adapter",
+    "method": "eipsi_generate_server_fingerprint"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_calculate_rct_assignment",
+    "owner": "EIPSI_Randomization_Algorithm_Service",
+    "method": "eipsi_calculate_rct_assignment"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_update_assignment_full",
+    "owner": "EIPSI_Randomization_Assignment_Service",
+    "method": "eipsi_update_assignment_full"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_update_assignment_access",
+    "owner": "EIPSI_Randomization_Assignment_Service",
+    "method": "eipsi_update_assignment_access"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_randomization_error_notice",
+    "owner": "EIPSI_Randomization_Shortcode_Adapter",
+    "method": "eipsi_randomization_error_notice"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_handle_randomization_query_param",
+    "owner": "EIPSI_Randomization_Shortcode_Adapter",
+    "method": "eipsi_handle_randomization_query_param"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_get_existing_assignment",
+    "owner": "EIPSI_Randomization_Assignment_Service",
+    "method": "eipsi_get_existing_assignment"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_create_assignment",
+    "owner": "EIPSI_Randomization_Assignment_Service",
+    "method": "eipsi_create_assignment"
+  },
+  {
+    "file": "admin/randomization-shortcode-handler.php",
+    "entry_point": "eipsi_close_randomization_session",
+    "owner": "EIPSI_Randomization_Assignment_Service",
+    "method": "eipsi_close_randomization_session"
+  },
+  {
+    "file": "includes/class-pool-block-renderer.php",
+    "entry_point": "render_block",
+    "owner": "EIPSI_Pool_Block_Adapter",
+    "method": "render_block"
+  },
+  {
+    "file": "includes/class-pool-block-renderer.php",
+    "entry_point": "render_shortcode",
+    "owner": "EIPSI_Pool_Block_Adapter",
+    "method": "render_shortcode"
+  },
+  {
+    "file": "includes/class-pool-block-renderer.php",
+    "entry_point": "render_shortcode_compat",
+    "owner": "EIPSI_Pool_Block_Adapter",
+    "method": "render_shortcode_compat"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_detect_access_type",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_detect_access_type"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_get_valid_pool",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_get_valid_pool"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_get_pool_assignment",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_get_pool_assignment"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_get_pool_url",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_get_pool_url"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_get_study_url",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_get_study_url"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_get_participant_id",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_get_participant_id"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_set_participant_cookie",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_set_participant_cookie"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_render_pool_access_page",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_render_pool_access_page"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_pool_randomize",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_pool_randomize"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_save_pool_assignment",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_save_pool_assignment"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_increment_study_count",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_increment_study_count"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_render_pool_assigned_page",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_render_pool_assigned_page"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_get_pool_stats",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_get_pool_stats"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_export_pool_assignments_csv",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_export_pool_assignments_csv"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_change_pool_status",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_change_pool_status"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_pause_pool",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_pause_pool"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_close_pool",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_close_pool"
+  },
+  {
+    "file": "includes/helpers/pool-helpers.php",
+    "entry_point": "eipsi_activate_pool",
+    "owner": "EIPSI_Pool_Service",
+    "method": "eipsi_activate_pool"
+  },
+  {
+    "file": "includes/randomization-frontend.php",
+    "entry_point": "eipsi_calculate_frontend_assignment",
+    "owner": "EIPSI_Randomization_Frontend_Adapter",
+    "method": "eipsi_calculate_frontend_assignment"
+  },
+  {
+    "file": "includes/randomization-frontend.php",
+    "entry_point": "eipsi_randomization_frontend_scripts",
+    "owner": "EIPSI_Randomization_Frontend_Adapter",
+    "method": "eipsi_randomization_frontend_scripts"
+  },
+  {
+    "file": "includes/randomization-frontend.php",
+    "entry_point": "eipsi_randomization_inline_data",
+    "owner": "EIPSI_Randomization_Frontend_Adapter",
+    "method": "eipsi_randomization_inline_data"
+  },
+  {
+    "file": "includes/randomization-frontend.php",
+    "entry_point": "eipsi_handle_send_user_fingerprint",
+    "owner": "EIPSI_Randomization_Frontend_Adapter",
+    "method": "eipsi_handle_send_user_fingerprint"
+  },
+  {
+    "file": "includes/randomization-frontend.php",
+    "entry_point": "eipsi_randomization_log",
+    "owner": "EIPSI_Randomization_Frontend_Adapter",
+    "method": "eipsi_randomization_log"
+  },
+  {
+    "file": "includes/shortcodes/class-pool-join-shortcode.php",
+    "entry_point": "maybe_enqueue_assets",
+    "owner": "EIPSI_Pool_Shortcode_Adapter",
+    "method": "maybe_enqueue_assets"
+  },
+  {
+    "file": "includes/shortcodes/class-pool-join-shortcode.php",
+    "entry_point": "enqueue_assets",
+    "owner": "EIPSI_Pool_Shortcode_Adapter",
+    "method": "enqueue_assets"
+  },
+  {
+    "file": "includes/shortcodes/class-pool-join-shortcode.php",
+    "entry_point": "render",
+    "owner": "EIPSI_Pool_Shortcode_Adapter",
+    "method": "render"
+  }
+]

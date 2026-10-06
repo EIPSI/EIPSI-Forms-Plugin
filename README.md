@@ -90,3 +90,6 @@ P0/P1, M0, PURGA 1, purga documental, M1, M2, M3, M4, M5 y M6 completados. Persi
 Notifications tiene owners en `includes/notifications/` para policy, scheduling, queue/worker, email/templates/logs y reminders; las APIs históricas delegan conservando firmas. [Arquitectura](docs/architecture.md) y [pruebas M5](tests/m5/README.md).
 
 M6 separa persistencia, CapturePolicy/cleanup y datasets/files/download, manteniendo facades y cobertura local incompleta. Véanse [pruebas M6](tests/m6/README.md) y [arquitectura](docs/architecture.md).
+
+
+Pools and Randomization domain owners live in `includes/pools/` and `includes/randomization/`; historical callback files remain compatibility facades. See [architecture](docs/architecture.md) and [M7 tests](tests/m7/README.md).

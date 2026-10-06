@@ -168,7 +168,7 @@
 				}
 				return await response.json();
 			} catch ( error ) {
-				Logger.warn( `Attempt ${ i + 1 } failed:`, error );
+				console.warn( `Attempt ${ i + 1 } failed:`, error );
 				if ( i === attempts - 1 ) throw error;
 				await new Promise( ( resolve ) =>
 					setTimeout(
@@ -275,10 +275,10 @@
 		const formData = new FormData();
 		formData.append( 'action', 'eipsi_load_form' );
 		formData.append( 'form_id', formId );
-		formData.append( 'nonce', window.eipsiEditorData?.nonce || '' );
+		formData.append( 'nonce', window.eipsiRandomizationFormLoad?.nonce || window.eipsiRandomization?.nonce || '' );
 
 		const response = await retryAjax(
-			window.ajaxurl || '/wp-admin/admin-ajax.php',
+			window.eipsiRandomizationFormLoad?.ajaxUrl || window.ajaxurl || '/wp-admin/admin-ajax.php',
 			{
 				method: 'POST',
 				body: formData,
@@ -290,6 +290,7 @@
 		}
 
 		container.innerHTML = response.data;
+		if ( window.EIPSIForms && typeof window.EIPSIForms.init === 'function' ) window.EIPSIForms.init();
 		Logger.info( 'Form loaded successfully:', formId );
 	}
 
@@ -298,7 +299,7 @@
 	 */
 	function loadFormNormal( studyId, container ) {
 		Logger.info( 'Loading form normally (no randomization):', studyId );
-		loadFormInContainer( studyId, container );
+		return loadFormInContainer( studyId, container );
 	}
 
 	// === FUNCIÓN PRINCIPAL ===
@@ -327,7 +328,7 @@
 			// Si NO tiene ?eipsi_random=true → carga formulario base normal
 			if ( isRandomized !== 'true' ) {
 				Logger.info( 'Not in randomization mode, loading normal form' );
-				loadFormNormal( studyId, container );
+				await loadFormNormal( studyId, container );
 				return;
 			}
 
