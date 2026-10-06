@@ -1038,17 +1038,14 @@ function eipsi_longitudinal_study_shortcode($atts) {
         if (class_exists('EIPSI_MagicLinksService')) {
             $validation = EIPSI_MagicLinksService::validate_magic_link($magic_token);
             
-            if ($validation['valid']) {
-                // Create session for participant
+            if ($validation['valid'] && EIPSI_MagicLinksService::mark_magic_link_used($validation['ml_id'])) {
+                // Token possession and its single-use claim were verified before session creation.
                 $session_result = EIPSI_Auth_Service::create_session(
                     $validation['participant_id'],
                     $validation['survey_id']
                 );
                 
                 if ($session_result['success']) {
-                    // Mark magic link as used
-                    EIPSI_MagicLinksService::mark_magic_link_used($validation['ml_id']);
-                    
                     // Update authentication state
                     $is_participant_logged_in = true;
                     $current_participant_id = $validation['participant_id'];

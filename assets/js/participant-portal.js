@@ -408,7 +408,7 @@
     }
 
     /**
-     * Handle login form submission (passwordless - email only)
+     * Start passwordless access; email only requests a secret link
      */
     function handleLoginSubmit(e) {
         e.preventDefault();
@@ -447,6 +447,10 @@
             success: function(response) {
                 if (response.success) {
                     showSuccess(response.data.message);
+
+                    if (response.data.requires_email_link) {
+                        return; // Await the link: no authenticated state or redirect yet.
+                    }
 
                     // Redirect after short delay
                     setTimeout(function() {

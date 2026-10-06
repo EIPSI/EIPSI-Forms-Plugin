@@ -7,6 +7,8 @@ function m3_reset($data = array()) {
     $_COOKIE = array();
     $wpdb->update($wpdb->prefix.'survey_participants', array_merge(array('is_active'=>1,'consent_decision'=>'accepted','status'=>'active'), $data), array('id'=>992207));
     eipsi_clear_login_rate_limit('m2-a@example.invalid', 992203);
+    delete_transient('eipsi_auth_origin_'.md5('127.0.0.1'));
+    delete_transient('eipsi_auth_email_'.md5('m2-a@example.invalid:992203'));
 }
 function m3_session() {
     $result=EIPSI_Auth_Service::create_session(992207,992203);
@@ -33,7 +35,7 @@ function m3_json($response) {
 }
 function m3_pool($params,$session=null) { return m3_http('/?rest_route=/eipsi/v1/pool-assign',$params,$session); }
 function m3_login() {
-    $response=m3_ajax('eipsi_participant_login',array('survey_id'=>992203,'email'=>'m2-a@example.invalid'));
+    $response=m3_ajax('eipsi_participant_login',array('survey_id'=>992203,'email'=>'m2-a@example.invalid','password'=>'m2-valid-password'));
     $json=m3_json($response); m0_assert($json['success'],'HTTP login failed');
     return array($response,array('token'=>$json['data']['session_token'],'cookie_name'=>$json['data']['cookie_name']));
 }

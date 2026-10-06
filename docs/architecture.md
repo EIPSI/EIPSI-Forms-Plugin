@@ -46,7 +46,7 @@ El fixture [baseline M1](../tests/m1/baseline.json) limita diferencias permitida
 | Responsabilidad | Owner | Adapter/API conservada |
 | --- | --- | --- |
 | Decisión longitudinal P1-A e identidad canónica | [AuthorizationPolicy](../includes/auth/class-authorization-policy.php) | `EIPSI_Auth_Service::authorize_*` |
-| Password/passwordless y transients de rate limit | [AuthenticationService](../includes/auth/class-authentication-service.php) | `EIPSI_Auth_Service::authenticate*`, helpers globales de rate limit |
+| Password, inicio de magic link y transients de rate limit | [AuthenticationService](../includes/auth/class-authentication-service.php) | `EIPSI_Auth_Service::authenticate*`, helpers globales de rate limit |
 | Creación, lookup, expiración, revocación, cookie y cleanup de sesiones | [SessionService](../includes/auth/class-session-service.php) | Métodos de sesión de `EIPSI_Auth_Service` |
 | Generación/hash, validación, vencimiento y single-use de magic links | [MagicLinkService](../includes/auth/class-magic-link-service.php) | `EIPSI_MagicLinksService` |
 | Lecturas/escrituras de participantes | [ParticipantRepository](../includes/participants/class-participant-repository.php) | `EIPSI_Participant_Service` |
@@ -59,7 +59,7 @@ La decisión autoritativa exige participante existente, pertenencia al estudio, 
 
 `survey_sessions.token` y `survey_magic_links.token_hash` almacenan SHA-256; el token claro solo se entrega al consumidor/cookie. Cookie `eipsi_session_token`, path `/`, HttpOnly, SameSite Lax y Secure según HTTPS. Sesión normal: 168 horas; sesión de `/survey-access/`: una hora; magic link: 48 horas. El auto-login `eipsi_magic` del shortcode conserva el TTL por defecto de siete días; el handler legacy conserva su parámetro remember. Se revalida estado al leer identidad y se revoca la sesión inválida. Desactivar/reactivar el plugin conserva sesiones persistidas. No hay migración de schema.
 
-El login passwordless conserva la autenticación email-only del endpoint activo. M2 no añade verificación de control del email ni rediseña ese contrato.
+M2 conservó históricamente el login email-only. S0 cambia explícitamente ese contrato inseguro: conocer email + estudio solo inicia el envío de un enlace, nunca autentica. `authenticate_passwordless` conserva firma y envelope pero devuelve `proof_required`, sin identidad ni sesión. El nonce WordPress público protege el contrato de petición; no prueba identidad del participante.
 
 Los adapters conservan actions, nonces, capabilities, JSON, códigos HTTP y redirects. Los nuevos owners se cargan desde los archivos de facade, en el orden de bootstrap existente. Las 37 firmas públicas de Auth/MagicLinks/Participant siguen disponibles. `EIPSI_Participant_Auth_Handler` se conserva: su action magic-link continúa activa, y sus métodos públicos no registrados pueden ser consumidos por extensiones. `generate_and_create_page`, lecturas de waves/historial, `has_active_session` y hard-delete continúan como interfaces de compatibilidad; no se absorbieron asignaciones, Pools, exportación ni eliminación P1-C.
 
@@ -237,3 +237,28 @@ Se preservan uniques, datos dinámicos, collation histórica y callbacks. Las ve
 ## PURGA FINAL post M1–M8
 
 La [clasificación definitiva de compatibilidad](legacy-compatibility.md) distingue APIs públicas C, recorridos históricos B, herramientas manuales D, consumidores indeterminados E y deuda funcional F. Se retiraron únicamente fragmentos sin consumer y tres wrappers privados sin caller; los contratos públicos, owners y migraciones se conservaron. Las [15 nuevas regresiones](../tests/purga-final/README.md) amplían el baseline de 739 a 754 casos. La matriz original de 70 filas se conserva con decisiones renovadas; la deuda UI/Auth adicional está documentada por action.
+
+
+## S0: prueba de posesión antes de emitir sesión
+
+Los nombres de actions y nonce `eipsi_participant_auth` se mantienen. Login sin contraseña y ambas actions de magic-link devuelven el mismo inicio genérico para cuentas existentes, inexistentes, inactivas, declined, withdrawn y fallo de correo: `requires_email_link=true`, `auto_login=false`, sin ID, token ni cookie de sesión. La UI muestra el mensaje y espera el enlace; no dispara autenticación ni redirección. Password válido conserva el login inmediato y sus consumidores.
+
+| Entry point | Prueba exigida | Sesión/TTL | Consumidor |
+|---|---|---|---|
+| AJAX `eipsi_participant_login` con password | Password verificado + Policy | Sí, 168 h | Participant info, Forms, Pools |
+| Mismo AJAX sin password | Ninguna; solo inicia correo | No | UI de login |
+| Legacy `handle_login`, callable sin hook propio | Password verificado + Policy | Sí, 168/720 h según remember | Extensiones de compatibilidad |
+| `eipsi_request_magic_link` / `eipsi_participant_magic_link` | Ninguna al solicitar | No | Enlace entregado por correo |
+| Registro activo/legacy, sin double opt-in | Ninguna al registrar; solicita magic link | No | UI espera correo |
+| Registro con double opt-in | Ninguna antes de confirmar | No; crea participante inactivo | Confirmación |
+| `eipsi_confirm` | Token de confirmación secreto | No; activa, conserva welcome/asignaciones | Página de confirmación |
+| `/survey-access/?ml=` | Magic token + Policy + claim single-use exitoso | Sí, 1 h | Portal/Forms |
+| Página `[eipsi_longitudinal_study]` con `eipsi_magic` | Magic token + Policy + claim single-use exitoso | Sí, 168 h; antes de emitir HTML | Portal/Forms |
+| Fallback programático del mismo shortcode | Mismo token y claim | Sí, 168 h | Render de compatibilidad |
+| Extensión de sesión | Token de sesión existente, no expirado + Policy | Renueva identidad existente | AJAX `eipsi_extend_session` |
+| Pools login/join/REST | Sesión canónica; claims concordantes | No crea sesiones | Pools |
+| SessionService / facade PHP | Precondición: caller ya autenticó password o secret token | API interna confiable | Callers inventariados arriba |
+
+SessionService sigue siendo dueño del token/hash, cookie, expiry, lookup y revoke. Policy comprueba elegibilidad/pertenencia, no posesión: IDs y nonce no satisfacen la precondición de `create_session`. No se cambia schema ni se crea otro sistema de tokens. Se reutiliza EmailService → MagicLinkService: un token aleatorio, SHA-256 persistido, 48 h de validez y claim condicional de un solo uso antes de crear sesión. Si el claim o el INSERT de sesión falla, no se autentica; si el token ya se consumió y falla la sesión, se requiere pedir otro enlace.
+
+Cada inicio público reserva límites por `REMOTE_ADDR` (20/15 minutos) y email normalizado + estudio (5/15 minutos), incluyendo intentos exitosos. Headers forwarding del cliente no eligen el origen. Son transients heredados, sin atomicidad entre peticiones concurrentes; proxy/NAT requiere evaluación operativa posterior. Registro conserva sus errores históricos de email existente; la anti-enumeración de S0 aplica al inicio de login/magic link.

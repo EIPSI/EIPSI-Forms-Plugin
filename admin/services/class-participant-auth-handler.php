@@ -155,28 +155,17 @@ class EIPSI_Participant_Auth_Handler {
             wp_die();
         }
 
-        // Authenticate passwordless (email only)
-        $result = EIPSI_Auth_Service::authenticate_passwordless($survey_id, $email);
-
+        if (!EIPSI_Authentication_Service::allow_public_request($email, $survey_id)) {
+            wp_send_json_error(array('code' => 'rate_limited', 'message' => __('Demasiados intentos. Intentá nuevamente en 15 minutos.', 'eipsi-forms')));
+        }
+        $password = isset($_POST['password']) && is_string($_POST['password']) ? wp_unslash($_POST['password']) : '';
+        if ($password === '') {
+            wp_send_json_success(EIPSI_Authentication_Service::request_magic_link($survey_id, $email));
+        }
+        $result = EIPSI_Auth_Service::authenticate($survey_id, $email, $password);
         if (!$result['success']) {
-            // Log failed login attempt
-            EIPSI_Participant_Access_Log_Service::log(0, $survey_id, 'login_failed', array(
-                'email' => $email,
-                'reason' => $result['error']
-            ));
-
-            // Map error codes to user-friendly messages
-            $error_messages = array(
-                'user_not_found' => __('No encontramos una cuenta con ese email en este estudio.', 'eipsi-forms'),
-                'user_inactive' => __('Tu cuenta está desactivada. Contactá al investigador.', 'eipsi-forms'),
-                'study_withdrawn' => __('Abandonaste este estudio y no podés volver a participar. Si tenés dudas, contactá al investigador.', 'eipsi-forms')
-            );
-
-            wp_send_json_error(array(
-                'code' => $result['error'],
-                'message' => $error_messages[$result['error']] ?? __('Error de autenticación.', 'eipsi-forms')
-            ));
-            wp_die();
+            EIPSI_Participant_Access_Log_Service::log(0, $survey_id, 'login_failed', array('reason' => $result['error']));
+            wp_send_json_error(array('code' => 'invalid_credentials', 'message' => __('Credenciales inválidas.', 'eipsi-forms')));
         }
 
         // Create session
@@ -294,7 +283,11 @@ class EIPSI_Participant_Auth_Handler {
         }
 
         $study_config   = ( $study && ! empty( $study->config ) ) ? json_decode( $study->config, true ) : array();
-        $double_opt_in  = ! empty( $study_config['double_opt_in'] ); // true = email confirmation required
+        $double_opt_in  = !isset($study_config['double_opt_in']) || $study_config['double_opt_in'] === true;
+
+        if (!EIPSI_Authentication_Service::allow_public_request($email, $survey_id)) {
+            wp_send_json_error(array('code' => 'rate_limited', 'message' => __('Demasiados intentos. Intentá nuevamente en 15 minutos.', 'eipsi-forms')));
+        }
 
         // Check if email already exists for this study
         $existing_participant = EIPSI_Participant_Service::get_by_email($survey_id, $email);
@@ -313,14 +306,15 @@ class EIPSI_Participant_Auth_Handler {
         }
 
         // Create participant (passwordless - no password, no names)
-        $result = EIPSI_Participant_Service::create_participant(
+        $result = EIPSI_Participant_Service::create_participant_with_status(
             $survey_id,
             $email,
             null, // No password for passwordless flow
             array(
                 'first_name' => '',
                 'last_name'  => ''
-            )
+            ),
+            !$double_opt_in
         );
 
         if (!$result['success']) {
@@ -345,6 +339,7 @@ class EIPSI_Participant_Auth_Handler {
         // FIX (v2.1.0): Only auto-login if double opt-in is NOT required.
         // If double opt-in is enabled, the participant must confirm their email first.
         if ( $double_opt_in ) {
+            EIPSI_Participant_Registration_Service::send_confirmation($survey_id, $result['participant_id'], $email);
             wp_send_json_success( array(
                 'message'        => __( '¡Registro exitoso! Revisá tu email para confirmar tu cuenta.', 'eipsi-forms' ),
                 'requires_confirmation' => true,
@@ -353,27 +348,7 @@ class EIPSI_Participant_Auth_Handler {
             wp_die();
         }
 
-        // Create session (auto-login after registration — no double opt-in)
-        $session_result = EIPSI_Auth_Service::create_session($result['participant_id'], $survey_id, 168);
-
-        if (!$session_result['success']) {
-            // Registration succeeded but session creation failed - still return success
-            wp_send_json_success(array(
-                'message'        => __('¡Cuenta creada! Por favor, iniciá sesión.', 'eipsi-forms'),
-                'requires_login' => true,
-                'redirect_url'   => ''
-            ));
-            wp_die();
-        }
-
-        // FIX (v2.1.0): use centralized redirect resolver
-        $redirect_url = self::resolve_redirect_url( $survey_id );
-
-        wp_send_json_success(array(
-            'message'      => __('¡Cuenta creada exitosamente! Redirigiendo...', 'eipsi-forms'),
-            'redirect_url' => $redirect_url
-        ));
-
+        wp_send_json_success(EIPSI_Authentication_Service::request_magic_link($survey_id, $email));
         wp_die();
     }
     
@@ -415,38 +390,11 @@ class EIPSI_Participant_Auth_Handler {
             }
         }
         
-        // Find participant
-        $participant = EIPSI_Participant_Service::get_by_email($survey_id, $email);
-        
-        // Always return success to prevent email enumeration
-        // But only send email if participant exists
-        if ($participant) {
-            // Generate magic link
-            $token = EIPSI_MagicLinksService::generate_magic_link($survey_id, $participant->id);
-            
-            if ($token) {
-                // Send magic link email
-                $email_sent = EIPSI_Email_Service::send_magic_link_email($survey_id, $participant->id, $token);
-                
-                // Log magic link request
-                EIPSI_Participant_Access_Log_Service::log($participant->id, $survey_id, 'magic_link_sent', array(
-                    'email'      => $email,
-                    'email_sent' => $email_sent
-                ));
-            }
-        } else {
-            // Log failed magic link request (email not found)
-            EIPSI_Participant_Access_Log_Service::log(0, $survey_id, 'magic_link_sent', array(
-                'email'  => $email,
-                'status' => 'not_found'
-            ));
+        if (!EIPSI_Authentication_Service::allow_public_request($email, $survey_id)) {
+            wp_send_json_error(array('code' => 'rate_limited', 'message' => __('Demasiados intentos. Intentá nuevamente en 15 minutos.', 'eipsi-forms')));
         }
-        
-        // Always return same message to prevent email enumeration
-        wp_send_json_success(array(
-            'message' => __('Si el email está registrado, recibirás un link mágico en breve.', 'eipsi-forms')
-        ));
-        
+        wp_send_json_success(EIPSI_Authentication_Service::request_magic_link($survey_id, $email));
+
         wp_die();
     }
     

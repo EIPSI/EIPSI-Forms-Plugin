@@ -1,0 +1,7 @@
+{
+  "includes/shortcodes.php": {
+    "before_s0_sha256": "2fcfb9c47c7602c4edba4195a643bcf25837a7292076c6e92e57d4d7d6a2899a",
+    "s0_sha256": "42bc471df9bebdfe513c5f43afe9b8d57a9055bc2d9d9652fdc3f068ccefd65f",
+    "reason": "S0 secret-token claim must succeed before shortcode session issuance"
+  }
+}

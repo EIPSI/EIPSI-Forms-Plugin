@@ -14,6 +14,8 @@ function m5_reset($data = array()) {
         $wpdb->update($wpdb->prefix.'survey_waves',array('name'=>'M5 T'.($i+1),'offset_minutes'=>$i*60,'window_minutes'=>30,'due_date'=>null,'nudge_config'=>'{}','status'=>'active'),array('id'=>$wave));
     }
     eipsi_clear_login_rate_limit('m2-a@example.invalid', 992203);
+    delete_transient('eipsi_auth_origin_'.md5('127.0.0.1'));
+    delete_transient('eipsi_auth_email_'.md5('m2-a@example.invalid:992203'));
     m5_notification_reset();
 }
 function m5_session() {
@@ -41,7 +43,7 @@ function m5_json($response) {
 }
 function m5_pool($params,$session=null) { return m5_http('/?rest_route=/eipsi/v1/pool-assign',$params,$session); }
 function m5_login() {
-    $response=m5_ajax('eipsi_participant_login',array('survey_id'=>992203,'email'=>'m2-a@example.invalid'));
+    $response=m5_ajax('eipsi_participant_login',array('survey_id'=>992203,'email'=>'m2-a@example.invalid','password'=>'m2-valid-password'));
     $json=m5_json($response); m0_assert($json['success'],'HTTP login failed');
     return array($response,array('token'=>$json['data']['session_token'],'cookie_name'=>$json['data']['cookie_name']));
 }

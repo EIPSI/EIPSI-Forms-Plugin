@@ -118,6 +118,10 @@
                         // Registro exitoso
                         window.EIPSIParticipantAuth.showSuccess($form, response.data.message || 'Registro exitoso!');
                         
+                        if (response.data.requires_email_link || response.data.requires_confirmation) {
+                            return; // No reload or authentication event before proof of possession.
+                        }
+
                         // Limpiar formulario
                         $form[0].reset();
                         
@@ -183,7 +187,7 @@
             };
             
             // Validación básica frontend
-            if (!formData.email || !formData.password || !formData.survey_id) {
+            if (!formData.email || !formData.survey_id) {
                 window.EIPSIParticipantAuth.showError($form, 'Campos requeridos faltantes');
                 if ($btnText.length) {
                     $btnText.text(originalText);
@@ -206,6 +210,10 @@
                         // Login exitoso
                         window.EIPSIParticipantAuth.showSuccess($form, response.data.message || 'Login exitoso!');
                         
+                        if (response.data.requires_email_link) {
+                            return; // Initiation is not participant_logged_in.
+                        }
+
                         // Limpiar formulario
                         $form[0].reset();
                         

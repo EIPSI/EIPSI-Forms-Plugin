@@ -388,6 +388,25 @@ class EIPSI_Survey_Access_Handler {
      * Handle magic link access request.
      */
     public function handle_request() {
+        // Mailed shortcode links must establish the HttpOnly cookie before template output.
+        // Retain the existing token format and 7-day shortcode TTL.
+        $shortcode_token = isset($_GET['eipsi_magic']) && is_string($_GET['eipsi_magic']) ? sanitize_text_field($_GET['eipsi_magic']) : '';
+        $post = get_post();
+        if ($shortcode_token !== '' && is_singular() && $post && has_shortcode($post->post_content, 'eipsi_longitudinal_study')) {
+            $validation = EIPSI_MagicLinksService::validate_magic_link($shortcode_token);
+            if ($validation['valid'] && EIPSI_MagicLinksService::mark_magic_link_used($validation['ml_id'])) {
+                nocache_headers();
+                $session = EIPSI_Auth_Service::create_session($validation['participant_id'], $validation['survey_id']);
+                if (empty($session['success'])) {
+                    $this->render_error('Acceso no autorizado', 'Solicitá un nuevo enlace para volver a intentar.');
+                    return;
+                }
+                wp_safe_redirect(remove_query_arg('eipsi_magic'));
+                exit;
+            }
+            return; // Invalid/used links may render the public login, never create a session.
+        }
+
         // Method 1: Rewrite rule.
         if ( get_query_var( 'eipsi_route' ) === 'survey_access' ) {
             $is_endpoint = true;
@@ -436,6 +455,11 @@ class EIPSI_Survey_Access_Handler {
             return;
         }
 
+        if (!EIPSI_MagicLinksService::mark_magic_link_used($result['ml_id'])) {
+            $this->render_error('Acceso no autorizado', 'El enlace ya fue utilizado o no se pudo validar.');
+            return;
+        }
+
         // FIX (v2.1.0): create session via EIPSI_Auth_Service, not raw $_SESSION.
         $session_result = $this->setup_session( $result, $wave_info );
         if ( empty( $session_result['success'] ) ) {
@@ -443,8 +467,6 @@ class EIPSI_Survey_Access_Handler {
             return;
         }
 
-        // Mark token as used.
-        EIPSI_MagicLinksService::mark_magic_link_used( $result['ml_id'] );
 
         // Redirect to participant portal.
         $participant_portal_url = apply_filters(

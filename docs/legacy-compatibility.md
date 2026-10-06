@@ -113,3 +113,10 @@ Recovery DDL de emergencia, T* dinámicos, schema externo y reparación manual s
 Clinical publica nonce y strings en `eipsiFormTools`, aunque el binding privado no tiene productor DOM interno demostrado. Sidebar PHP admite inclusión por path con contexto de variables; rollback está en un panel sin caller interno probado. No se dispone del inventario de themes/extensiones institucionales para excluir esos consumidores externos. Maintenance SQL conserva action autorizada y respuesta fail-closed 501; ningún ejecutor genérico se habilitó.
 
 [Matriz definitiva](../tests/m8/global-retained-matrix.json) y [comandos de verificación](../tests/purga-final/README.md).
+
+
+## Excepción de seguridad S0: autenticación email-only
+
+Se conservan facades, nombres de actions, nonce y envelopes seguros. `authenticate_passwordless(survey_id,email)` deja explícitamente de autenticar: devuelve `success=false`, `participant_id=null`, `error=proof_required`. Los callers públicos sin password ahora solicitan el magic link existente con respuesta genérica, sin sesión. Registro sin double opt-in tampoco hace auto-login; confirmación sigue activando sin login. Las extensiones que asumían email como credencial deben adoptar password o consumo de magic token.
+
+El delta es revisable en [security-contracts.json](../tests/s0/security-contracts.json) y [boundary-migrations.json](../tests/s0/boundary-migrations.json), sin reemplazar baselines anteriores. SessionService conserva su API, con precondición documentada de prueba de posesión ya validada por el caller. Pools continúa exigiendo sesión canónica: no se habilita el antiguo login/join por email. Las otras deudas B/C/D/E/F permanecen.

@@ -72,10 +72,10 @@ class EIPSI_Auth_Service {
     }
 
     /**
-     * Authenticate participant (passwordless - email only).
+     * Compatibility API: email-only authentication is disabled.
      *
-     * Valida email y estado activo sin verificar contraseña.
-     * Usado para flujo de autenticación sin contraseña.
+     * Returns proof_required without resolving identity. Passwordless access requires
+     * a valid secret magic-link token, never a public nonce or an email lookup.
      *
      * @param int    $survey_id ID del survey.
      * @param string $email Email del participante.
@@ -88,7 +88,7 @@ class EIPSI_Auth_Service {
     }
     
     /**
-     * Create session token and cookie.
+     * Create session token and cookie AFTER the trusted caller has authenticated.
      *
      * La sesión se almacena en:
      * 1. Cookie HTTP-only: EIPSI_SESSION_COOKIE_NAME

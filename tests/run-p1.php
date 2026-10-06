@@ -3,9 +3,9 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 /** Auth services, real wpdb and disposable schema from the actual schema manager. */
 require __DIR__ . '/bootstrap-p1.php';
 $tests = array();
-$tests['Activo consentido: contraseña y passwordless permitidos'] = function ($db) {
+$tests['Activo consentido: contraseña permitida, email-only requiere prueba'] = function ($db) {
     p0_assert(EIPSI_Auth_Service::authenticate(3, 'p7@example.invalid', 'test-password')['success'], 'Password login rejected');
-    p0_assert(EIPSI_Auth_Service::authenticate_passwordless(3, 'p7@example.invalid')['success'], 'Passwordless rejected');
+    p0_assert(!EIPSI_Auth_Service::authenticate_passwordless(3, 'p7@example.invalid')['success'], 'Email-only authenticated');
 };
 foreach (array('inactive' => array('is_active' => 0), 'declined' => array('consent_decision' => 'declined'), 'withdrawn' => array('consent_decision' => 'withdrawn')) as $state => $change) {
     $tests['Login y passwordless rechazan ' . $state] = function ($db) use ($change) {
@@ -30,7 +30,7 @@ foreach (array('inactive' => array('is_active' => 0), 'declined' => array('conse
 }
 $tests['Consentimiento pendiente permite entrar y decidir'] = function ($db) {
     $db->update($db->prefix . 'survey_participants', array('consent_decision' => null), array('id' => 7));
-    p0_assert(EIPSI_Auth_Service::authenticate_passwordless(3, 'p7@example.invalid')['success'], 'Pending consent cannot log in');
+    p0_assert(EIPSI_Auth_Service::authenticate(3, 'p7@example.invalid', 'test-password')['success'], 'Pending consent cannot log in with a verified password');
     p1_session();
     $_POST = array('form_id' => 'long-form', 'participant_id' => '7', 'decision' => 'accepted', 'nonce' => 'valid:eipsi_forms_nonce');
     p0_assert(p0_ajax('eipsi_save_consent_decision_handler')->success, 'Pending participant cannot accept');

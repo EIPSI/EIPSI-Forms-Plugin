@@ -26,6 +26,10 @@ class EIPSI_Session_Service {
         return $session;
     }
 
+    /** Trusted PHP API: caller MUST authenticate first (password or claimed secret token).
+     * Authorization below checks eligibility, not proof of possession. IDs/email/nonce
+     * alone may never reach this method from a public request.
+     */
     public static function create_session($participant_id, $survey_id, $ttl_hours = 168) {
         global $wpdb;
 
@@ -300,6 +304,12 @@ class EIPSI_Session_Service {
                 'new_expires_at' => null,
                 'error' => 'session_expired'
             );
+        }
+
+        $access = EIPSI_Authorization_Policy::authorize_participant($session->participant_id, $session->survey_id);
+        if (!$access['success']) {
+            self::destroy_session();
+            return array('success' => false, 'new_expires_at' => null, 'error' => 'session_not_found');
         }
 
         // Calculate new expiration time

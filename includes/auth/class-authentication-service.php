@@ -45,33 +45,47 @@ class EIPSI_Authentication_Service {
         );
     }
 
+    /** Compatibility only: email lookup is never proof of identity. Use a token flow. */
     public static function authenticate_passwordless($survey_id, $email) {
-        // Sanitizar email
-        $email = sanitize_email($email);
+        return array('success' => false, 'participant_id' => null, 'error' => 'proof_required');
+    }
 
-        // Obtener participante
-        $participant = EIPSI_Participant_Service::get_by_email($survey_id, $email);
-
-        if (!$participant) {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'user_not_found'
-            );
+    /** Reserve every public auth/email attempt, including successful requests.
+     * REMOTE_ADDR is server supplied; client forwarding headers cannot select the key.
+     */
+    public static function allow_public_request($email, $survey_id) {
+        $origin = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : 'unknown';
+        $keys = array(
+            'eipsi_auth_origin_' . md5($origin) => 20,
+            'eipsi_auth_email_' . md5(strtolower($email) . ':' . (int) $survey_id) => 5,
+        );
+        foreach ($keys as $key => $limit) {
+            if ((int) get_transient($key) >= $limit) { return false; }
         }
-
-        $access = EIPSI_Authorization_Policy::authorize_participant($participant->id, $survey_id);
-        if (!$access['success']) {
-            return array('success' => false, 'participant_id' => null, 'error' => $access['error']);
+        foreach ($keys as $key => $limit) {
+            set_transient($key, (int) get_transient($key) + 1, 15 * MINUTE_IN_SECONDS);
         }
+        return true;
+    }
 
-        // Actualizar último login
-        EIPSI_Participant_Service::update_last_login($participant->id);
-
+    /** Initiate access, not authentication. Public callers must reserve a rate-limit slot.
+     * Existing/missing/ineligible accounts and delivery failures share the public result.
+     */
+    public static function request_magic_link($survey_id, $email) {
+        $participant = EIPSI_Participant_Service::get_by_email($survey_id, sanitize_email($email));
+        if ($participant && EIPSI_Authorization_Policy::authorize_participant($participant->id, $survey_id)['success']) {
+            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-magic-links-service.php';
+            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-email-service.php';
+            // Existing mail service generates and sends exactly one MagicLinkService token.
+            $delivery = EIPSI_Email_Service::send_magic_link_email($survey_id, $participant->id);
+            if (empty($delivery['success'])) {
+                error_log('[EIPSI Auth] Access-link delivery failed; study=' . (int) $survey_id);
+            }
+        }
         return array(
-            'success' => true,
-            'participant_id' => $participant->id,
-            'error' => null
+            'message' => __('Si el email puede acceder a este estudio, recibirás un enlace de acceso.', 'eipsi-forms'),
+            'requires_email_link' => true,
+            'auto_login' => false,
         );
     }
 
