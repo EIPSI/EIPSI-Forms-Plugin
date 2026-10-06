@@ -13603,7 +13603,16 @@
       "includes/randomization/adapters/class-admin-adapter.php",
       "includes/randomization/adapters/class-db-rest-adapter.php",
       "includes/pools/adapters/class-block-adapter.php",
-      "includes/pools/adapters/class-shortcode-adapter.php"
+      "includes/pools/adapters/class-shortcode-adapter.php",
+      "includes/schema/class-schema-repair-service.php",
+      "includes/schema/bootstrap.php",
+      "includes/schema/class-schema-installer.php",
+      "includes/schema/class-schema-registry.php",
+      "includes/schema/class-schema-version-service.php",
+      "includes/schema/class-schema-lock.php",
+      "includes/schema/class-schema-inspector.php",
+      "includes/migrations/class-migration-runner.php",
+      "includes/storage/external/class-external-schema-adapter.php"
     ],
     "m2_includes": "Auth/Participants definition-only owners, originals keep their relative order; M2 policy equivalence checked independently.",
     "m3_includes": "Explicit Forms owners/adapters; all external records remain compared.",

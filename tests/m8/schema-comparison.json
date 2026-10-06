@@ -1,0 +1,31 @@
+{
+  "missing_tables": [],
+  "column_differences": [],
+  "index_differences": [],
+  "collation_differences": [
+    "eipsi_device_data",
+    "eipsi_emergency_submissions",
+    "eipsi_longitudinal_pools",
+    "eipsi_partial_responses",
+    "eipsi_pool_assignments",
+    "eipsi_pool_email_log",
+    "eipsi_randomization_assignments",
+    "eipsi_randomization_configs",
+    "survey_assignments",
+    "survey_audit_log",
+    "survey_cron_log",
+    "survey_data_requests",
+    "survey_email_confirmations",
+    "survey_email_log",
+    "survey_magic_links",
+    "survey_nudge_jobs",
+    "survey_participant_access_log",
+    "survey_participants",
+    "survey_sessions",
+    "survey_studies",
+    "survey_waves",
+    "vas_form_events",
+    "vas_form_results"
+  ],
+  "foreign_key_differences": []
+}

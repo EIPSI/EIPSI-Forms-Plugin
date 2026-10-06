@@ -17,31 +17,8 @@ class EIPSI_Partial_Responses {
      * Create partial responses table
      */
     public static function create_table() {
-        global $wpdb;
-        
-        $table_name = $wpdb->prefix . 'eipsi_partial_responses';
-        $charset_collate = $wpdb->get_charset_collate();
-        
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            form_id varchar(64) NOT NULL,
-            participant_id varchar(255) NOT NULL,
-            session_id varchar(255) NOT NULL,
-            page_index int(11) DEFAULT 1,
-            responses_json longtext DEFAULT NULL,
-            completed tinyint(1) DEFAULT 0,
-            created_at datetime NOT NULL,
-            updated_at datetime NOT NULL,
-            PRIMARY KEY (id),
-            UNIQUE KEY unique_session (form_id, participant_id, session_id),
-            KEY updated_at (updated_at),
-            KEY completed (completed)
-        ) $charset_collate;";
-        
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta($sql);
-        
-        return $wpdb->last_error === '';
+        require_once EIPSI_FORMS_PLUGIN_DIR.'includes/schema/bootstrap.php';
+        return EIPSI_Schema_Repair_Service::sync_local_table('eipsi_partial_responses')['success'];
     }
     
     /**

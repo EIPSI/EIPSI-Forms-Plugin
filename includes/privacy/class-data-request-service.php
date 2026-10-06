@@ -321,35 +321,7 @@ public static function get_request_counts() {
         return $result;
     }
 
-public static function create_table() {
-        global $wpdb;
-
-        $table_name = $wpdb->prefix . 'survey_data_requests';
-        $charset_collate = $wpdb->get_charset_collate();
-
-        $sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
-            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-            participant_id BIGINT(20) UNSIGNED NOT NULL,
-            survey_id BIGINT(20) UNSIGNED NOT NULL,
-            request_type VARCHAR(20) NOT NULL,
-            reason TEXT,
-            status VARCHAR(20) NOT NULL DEFAULT 'pending',
-            admin_id BIGINT(20) UNSIGNED,
-            admin_notes TEXT,
-            result_data TEXT,
-            created_at DATETIME NOT NULL,
-            started_processing_at DATETIME,
-            processed_at DATETIME,
-            PRIMARY KEY (id),
-            KEY participant_id (participant_id),
-            KEY survey_id (survey_id),
-            KEY status (status),
-            KEY created_at (created_at)
-        ) {$charset_collate};";
-
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta($sql);
-    }
+public static function create_table() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/schema/bootstrap.php'; $result = EIPSI_Schema_Repair_Service::sync_local_table('survey_data_requests');  }
 
 private static function notify_admin_new_request($request_id, $participant, $request_type) {
         $admin_email = get_option('eipsi_investigator_email', get_option('admin_email'));

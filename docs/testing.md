@@ -136,3 +136,11 @@ La instalación limpia usa nuevos volúmenes Docker y valida activación/schema,
 Run only against the guarded disposable Docker described in [M7](../tests/m7/README.md). Fixtures use 994701/994703/994704/994707/994708, abort on collisions and delete only owned records/posts. `baseline-m7_baseline_*.php` captures pre-M7 algorithms from 8e36b1a; seeded fixtures compare actual outputs. Signature fixtures cover loaded callbacks and contextual UI definitions.
 
 The race tests cover one pool identity, one completion winner, stable random variant and concurrent first override/assignment. They do not cover worker death between persistence/analytics/event or guarantee global exactly-once. Saved institutional content is not present in these isolated databases; absence of records cannot justify legacy deletion.
+
+## M8 — Schema y upgrades
+
+662 tests previos se mantienen y M8 añade 77 casos PHP reales: total 739 (695 PHP y 44 JS). Las ejecuciones repetidas de clean/upgrade no suman casos. Incluye 26 estructuras, tres estados históricos soportados, datos/relaciones preservados, drift aditivo, firmas públicas, JSON alias, settings legacy, study_end_at, SQL fallido/reintento, proceso interrumpido, permisos reales sin ALTER, dos carreras entre procesos y external create/insert/existing/unavailable.
+
+Se usa un prefijo aleatorio con copia aislada de options; limpieza exclusivamente de tablas del fixture. Las FK físicas del fixture de prefijo no se fuerzan ante colisiones globales de nombres; su equivalencia se verifica en los Docker completos independientes. El upgrade separado recrea el schema capturado de HEAD 8b91fe1 antes de activar el plugin, conserva una fila histórica por cada uno de 26 dominios y ejecuta suites funcionales representativas.
+
+[Comandos y guardas](../tests/m8/README.md). La comparación clean/upgrade exige tablas, tipos, nullability, defaults, índices y FK equivalentes; reporta collation histórica sin convertirla automáticamente. No representa cobertura de cualquier instalación arbitraria ni matriz MySQL/MariaDB completa.

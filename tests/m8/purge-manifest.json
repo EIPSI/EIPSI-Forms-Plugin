@@ -1,0 +1,177 @@
+{
+  "baseline_head": "8b91fe1",
+  "removed_implementations": [
+    {
+      "file": "admin/database-schema-manager.php",
+      "symbol": "get_schema_map",
+      "classification": "A",
+      "original_implementation_sha256": "eb7a1c3265ee58e120dd3571d62a0f743ccad849a6735ec3f4d117d24beb2445",
+      "owner": "Schema owners",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "symbol": "get_table_sql",
+      "classification": "A",
+      "original_implementation_sha256": "647b4f6e7961db9e67a050b3971c2235c487fd80a6701e1630bf1abcbf6ab8f0",
+      "owner": "Schema owners",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "symbol": "sync_local_table",
+      "classification": "A",
+      "original_implementation_sha256": "ec0f52a1f266c7286e30213c729e0ea08aca9b3763d6dfdfcf9517cbc48c04c6",
+      "owner": "Schema owners",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "symbol": "repair_local_schema",
+      "classification": "A",
+      "original_implementation_sha256": "cb6220cfba8d191c72e3036287efe45806ee79272b5a1c34a5fc72196588f4ca",
+      "owner": "Schema owners",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "symbol": "sync_external_schema",
+      "classification": "A",
+      "original_implementation_sha256": "905928d4527a60067364dfdf37476adf88d461bb4aa68296e56c4ba35f0abdd8",
+      "owner": "Schema owners",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "symbol": "get_all_tables_status",
+      "classification": "A",
+      "original_implementation_sha256": "e39306e2ff883a53b8cb615a958452b848b06e58fbf35e8ebab6470494918253",
+      "owner": "Schema owners",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "symbol": "get_detailed_table_status",
+      "classification": "A",
+      "original_implementation_sha256": "2ba5231fd6f0181eb120d05ee5303f6e0dfed4587b38fd9a4725d40e9f750851",
+      "owner": "Schema owners",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "symbol": "fix_collations",
+      "classification": "A",
+      "original_implementation_sha256": "9e1d68885cf9995b34f5dc6b638618d47d0af8996e8b840a8ceb71d6159a73d9",
+      "owner": "Schema owners",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/manual-overrides-table.php",
+      "symbol": "eipsi_create_manual_overrides_table",
+      "classification": "A",
+      "original_implementation_sha256": "37e6cbcc3bf86496a506db10a950182966bc760152d020e3bf19159d8088c9a4",
+      "owner": "EIPSI_Schema_Repair_Service",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "symbol": "eipsi_create_randomization_configs_table",
+      "classification": "A",
+      "original_implementation_sha256": "c6ccbf5c1b65f019e3ab2fce56501b8f9047f3bf3232d5659343185d370c3ee5",
+      "owner": "EIPSI_Schema_Repair_Service",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "symbol": "eipsi_create_randomization_assignments_table",
+      "classification": "A",
+      "original_implementation_sha256": "29e614b3d02a9fc9f41cec8d41e0d09cc296a1165b95ff0974be029e9dfd43ab",
+      "owner": "EIPSI_Schema_Repair_Service",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/partial-responses.php",
+      "symbol": "create_table",
+      "classification": "A",
+      "original_implementation_sha256": "82970f75a4fb0c7e1751a7c337c09d0ad19ad8b1b3aca917ae600fb538cafae0",
+      "owner": "EIPSI_Schema_Repair_Service",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "symbol": "create_table",
+      "classification": "A",
+      "original_implementation_sha256": "fe00528134ab76932f26f826c05886f514bf986bcfb50961969087dae6960976",
+      "owner": "EIPSI_Schema_Repair_Service",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "admin/services/class-cron-health-service.php",
+      "symbol": "create_cron_log_table",
+      "classification": "A",
+      "original_implementation_sha256": "63217a0ff963c838a55add47f6ce2afb4b99022e199a430eef33f3b347bcde0e",
+      "owner": "EIPSI_Schema_Repair_Service",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "symbol": "create_table_if_missing",
+      "classification": "A",
+      "original_implementation_sha256": "45a85413c40f4a92cc0f8150426936c9c51093d5c962dabf623994629af4849c",
+      "owner": "EIPSI_External_Schema_Adapter",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "symbol": "ensure_required_columns",
+      "classification": "A",
+      "original_implementation_sha256": "92cc6b7992ed54bf6a8040acc362d34ec891c32051120a0dffb90befa70b3673",
+      "owner": "EIPSI_External_Schema_Adapter",
+      "proof": "Only implementation removed; signature retained as facade. Canonical schema verified by 75 M8 cases; all prior PHP suites passed. Differences are additive/runtime-proven, repair fail-closed, external three missing INSERT fields and readonly collation."
+    }
+  ],
+  "retained": [
+    {
+      "file": "includes/class-eipsi-migration-runner.php",
+      "classification": "C",
+      "reason": "Historical class API inherited from explicit owner",
+      "consumers": "ServiceLoader and integrations"
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "classification": "B",
+      "reason": "v1-v9 required by historical upgrades; v10 convergence",
+      "consumers": "admin initialization, explicit upgrades"
+    },
+    {
+      "file": "scripts/migration-add-offset-columns.php",
+      "classification": "D",
+      "reason": "Historic operational recovery script, not proven unused externally",
+      "consumers": "manual operators"
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "classification": "B",
+      "reason": "Malformed historic indices and manual authorized repair",
+      "consumers": "eipsi_before_dbdelta, admin_init manual trigger"
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "classification": "B",
+      "reason": "T* dynamic-column writer used by submissions; history preserved",
+      "consumers": "submission longitudinal synchronization"
+    },
+    {
+      "file": "includes/storage/class-emergency-submission-store.php",
+      "classification": "B",
+      "reason": "Emergency fallback DDL retained until arbitrary installations guaranteed converged",
+      "consumers": "submission emergency fallback"
+    },
+    {
+      "file": "admin/ajax-handlers.php::eipsi_execute_maintenance_sql_handler",
+      "classification": "E",
+      "reason": "No proven safe SQL maintenance contract, fail-closed 501; public action retained",
+      "consumers": "registered administrative AJAX, external consumer unknown"
+    }
+  ]
+}

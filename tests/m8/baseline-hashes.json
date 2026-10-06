@@ -1,0 +1,23 @@
+{
+  "head": "8b91fe1",
+  "files": {
+    "admin/data-safety-system.php": "63158ca344ba94a574810376af78422c3f15d986f4abe6b31bfc0ca60b5eec78",
+    "admin/database-schema-manager.php": "5fd8b044dd220899f3d570c4c4278e7d5591d1589eb5b1ea1b0e2c5fa402eb47",
+    "admin/database-schema-repair.php": "45f46afe44c13fb4a209cf0adaf6109bc8b29a861dd5f9df90ba9d3d03006616",
+    "admin/database.php": "24674dbde1a51777e5ab72cf2e43747a2305f9dab747ca45cccbce01fc86ae5d",
+    "admin/manual-overrides-table.php": "a6160c9fc81116cdf7add5db949ba2aa2bb969a91ea64987e89ffbdb9533347d",
+    "admin/partial-responses.php": "8b88f91a160745614ea2dba6815b272c4836930cd9e42852503cbaa82ca1d118",
+    "admin/randomization-db-setup.php": "fd996228509823f82443d9242c6902edf697d3b5b32c044cac01b6e911bea34f",
+    "admin/services/class-cron-health-service.php": "f9d62e7924641082fc02b604641a8fe0e617e7ff66927262f2628c09f5d2ace2",
+    "includes/bootstrap/class-service-loader.php": "e2814d402fb664cd5916d5a260406b3472644325d86ebee3fc9edae67df98cca",
+    "includes/class-eipsi-migration-runner.php": "4a2508d07df1a193f18411a41de47517b1428c8d80df8a9997773c8f29cb69f2",
+    "includes/privacy/class-data-request-service.php": "6257826db6aeeb9ee43f0b5be669cc80540659ea6b800257f24551c0585c1976",
+    "includes/storage/class-emergency-submission-store.php": "2f1396f807d028a0b1bc75fa88c0478f92a19a524f48c874ce03f39a8261dbb4",
+    "includes/storage/class-external-submission-store.php": "4723f966eca87c1878189e2f55a518427e0f1131b66e521923c737ce7ff345db",
+    "scripts/migration-add-offset-columns.php": "259f61070c887404555fcc808810e1c630c0e0a2305a08bf45d64882adf51b43",
+    "includes/bootstrap/class-lifecycle.php": "005ff4cd0bce6e3e6a479067648ff5fb13a69a4a2f59921325a3973c17e70a1d",
+    "includes/longitudinal/studies/class-study-config-service.php": "65791adae483c771a873e4a3371318cd4b2d10c938c60c3b2474f4d8524e04a1",
+    "includes/longitudinal/t1/class-t1-recalculation-service.php": "a193af18ab3f38d6ac2e72b52f9dc074bd741ac0766095f75ef6f624405e28b6",
+    "admin/ajax-handlers.php": "3a2ea3c56cdcc58eb480975faf4af56c8f9fb5332a520ead6acb56023c9e6138"
+  }
+}

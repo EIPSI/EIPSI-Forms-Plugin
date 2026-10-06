@@ -3419,8 +3419,7 @@ function eipsi_execute_maintenance_sql_handler() {
     // Load database schema manager if not already loaded
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database-schema-manager.php';
     
-    $result = EIPSI_Database_Schema_Manager::execute_maintenance_sql($sanitized_statements);
-    wp_send_json_success($result);
+    wp_send_json_error(array('message'=>'Generic SQL maintenance is unsupported. Use explicit schema inspection/repair.'), 501);
 }
 
 /**

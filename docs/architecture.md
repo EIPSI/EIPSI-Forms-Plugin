@@ -2,7 +2,7 @@
 
 ## Bootstrap y dominios
 
-[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants y M3 separó Forms/Submit. M4–M7 tienen owners explícitos. M8 sigue pendiente.
+[eipsi-forms.php](../eipsi-forms.php) conserva header/constantes y carga [bootstrap.php](../includes/bootstrap/bootstrap.php). `admin/` concentra pantallas, handlers y servicios; `includes/` contiene shortcodes, renderizado y recorridos del participante; `src/blocks/` genera `build/blocks/`. M1 separó composición y registros; M2 separó Auth/Participants y M3 separó Forms/Submit. M4–M7 tienen owners explícitos. M8 separa Schema/Migrations.
 
 Los dominios existentes son formularios/respuestas, estudios/waves, participantes/sesiones, Pools/asignación, correo/cron y administración/exportación. No son módulos aislados: comparten bootstrap, tablas y callbacks. El inventario ejecutable de [M0](../tests/m0/README.md) permite observar registros efectivos y declaraciones por perfil admin/frontend.
 
@@ -14,7 +14,7 @@ Emergencia devuelve éxito solo tras persistencia confirmada y comunica el desti
 
 M0 caracterizó nueve emisores sin handler exacto: `eipsi_export_participants_long_excel`, `eipsi_export_participants_long_csv`, `eipsi_send_individual_reminder`, `eipsi_recalculate_preview`, `eipsi_recalculate_waves`, `eipsi_rollback_recalculation`, `eipsi_load_form`, `eipsi_create_from_clinical_template`, `eipsi_get_participant_dashboard`. Hay emisores activos y otros dormidos; los handlers parecidos no garantizan equivalencia de contrato. M7 restaura únicamente `eipsi_load_form`; las otras ocho discrepancias siguen pendientes.
 
-`SchemaManager::check_collation_issues` y `SchemaManager::execute_maintenance_sql` siguen ausentes: los recorridos identificados no demostraron un uso interno activo que justificara intervenir en M0. La reparación activa de tabla y el envío weekly T1 sí recibieron correcciones mínimas.
+`SchemaManager::check_collation_issues` delega ahora en Inspector read-only. `execute_maintenance_sql` sigue sin ejecutor genérico: su action administrativa responde 501 tras autorización; no hay un contrato seguro demostrado. La reparación activa de tabla y el envío weekly T1 sí recibieron correcciones mínimas.
 
 Coexisten recordatorios legacy y actuales. El chequeo de salud puede reprogramar tareas con frecuencia horaria; M1 corrige la desactivación para retirar las variantes de argumentos de los 19 cron cuya propiedad está demostrada. Algunas exportaciones administrativas todavía generan archivos bajo el plugin. Estos riesgos pasan a fases posteriores; no se consideran resueltos por tests verdes.
 
@@ -227,3 +227,9 @@ Pool assignment and Randomization resolve serialize read/select/insert using con
 `eipsi_load_form` now validates nonce `eipsi_randomization_nonce`, a published non-password-protected `eipsi_form_template`, and Auth's form/study authorization. M3 FormRenderer supplies HTML; AJAX returns `success.data` as a string. Public templates remain public; longitudinal templates require their matching session and assignment. Frontend uses a public localized nonce, initializes `EIPSIForms` and catches normal-load failures. Legacy configuration/assignment AJAX actions in that old frontend are not reconstructed by guessing.
 
 The old anonymous email-only Pool login/join interface can no longer grant access. Authenticated self assignment/join works; public onboarding UI must adopt the existing Auth flow in a later phase before that interface is released. No new identity policy or Longitudinal membership migration was introduced.
+
+## M8 — Schema y migraciones
+
+Registry → Installer define/crea el estado actual; MigrationRunner conserva v1–v9 y converge en v10; Inspector lee y Repair solo añade estructura segura. ExternalSchemaAdapter tiene ownership separado. SchemaManager y los creadores públicos anteriores permanecen facades. Ver [contratos, versiones, DDL residual y límites](schema.md).
+
+Se preservan uniques, datos dinámicos, collation histórica y callbacks. Las verificaciones periódicas no mutan estructura. Una instalación desde cero evita migraciones históricas; versiones históricas admitidas requieren precondiciones demostradas y checkpoints confirmados. El mapa previo y el informe M8 en informes institucionales documentan inventario completo y matriz global B/C/E para PURGA FINAL.

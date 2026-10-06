@@ -1,0 +1,566 @@
+{
+  "baseline_head": "8b91fe1",
+  "scope": "M1-M8 retained elements; no automatic deletion",
+  "rows": [
+    {
+      "element": "Funciones globales de bootstrap",
+      "phase": "M1",
+      "original_reason": "Callbacks/APIs compatibles",
+      "current_consumers": "HookRegistry, AssetsRegistry, WP hooks",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Doble enqueue frontend activo",
+      "phase": "M1",
+      "original_reason": "Ambos registros activos; deduplicación fuera de fase",
+      "current_consumers": "Asset callbacks, Forms y partial clients",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Scheduling contextual/guardas init legacy",
+      "phase": "M1",
+      "original_reason": "Owners funcionales, esperar M5",
+      "current_consumers": "CronRegistry y Notifications adapters",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "MigrationRunner/creators/ExternalDatabase/schema legacy",
+      "phase": "M1",
+      "original_reason": "Esperar M8",
+      "current_consumers": "ServiceLoader, Schema facades, Installer/MigrationRunner",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "helpers.txt",
+      "phase": "M1",
+      "original_reason": "No evidencia suficiente",
+      "current_consumers": "Sin consumer interno inequívoco; uso operativo externo desconocido",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "AuthService/MagicLinksService/ParticipantService APIs",
+      "phase": "M2",
+      "original_reason": "Numerosos consumers activos",
+      "current_consumers": "Auth/Participants adapters, Forms, Pools, Notifications",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "EIPSI_Participant_Auth_Handler",
+      "phase": "M2",
+      "original_reason": "Action magic-link activa y APIs externas posibles",
+      "current_consumers": "wp_ajax_eipsi_participant_magic_link + nopriv",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Helpers globales rate-limit",
+      "phase": "M2",
+      "original_reason": "API pública",
+      "current_consumers": "Login/register/magic-link callers",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Export/cleanup/anonymize/delete, assignments y Pools",
+      "phase": "M2",
+      "original_reason": "Fuera de M2; esperar ownership",
+      "current_consumers": "M4/M6/M7 owners y facades",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Render/helpers/Partial facades",
+      "phase": "M3",
+      "original_reason": "API pública y consumers reales",
+      "current_consumers": "Shortcodes, blocks, AJAX, Forms owners",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "navigation-compatibility/window.EIPSIForms",
+      "phase": "M3",
+      "original_reason": "Contrato JS público",
+      "current_consumers": "Classic navigator y scripts integrados",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "save/continue/tracking/login assets",
+      "phase": "M3",
+      "original_reason": "Enqueues observados",
+      "current_consumers": "Forms UI y AssetRegistry",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "randomization/Pools y src/frontend/eipsi-random.js",
+      "phase": "M3",
+      "original_reason": "Esperar M7 y contenido histórico",
+      "current_consumers": "Owners M7; JS histórico sin muestra institucional",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Bloque longitudinal legacy y servicios de correo",
+      "phase": "M3",
+      "original_reason": "Esperar M4/M5",
+      "current_consumers": "Forms submit adapter, Longitudinal/Notifications facades",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "clinical template sin botón actual",
+      "phase": "M3",
+      "original_reason": "Emisor existente, activación externa no descartable",
+      "current_consumers": "form-library-tools.js delegado; productor interno de botón no demostrado",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Wave_Service",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como C",
+      "current_consumers": "Owners y adapters de M4",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "EIPSI_Wave_Service",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como C",
+      "current_consumers": "Owners y adapters de M4",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "EIPSI_Assignment_Service",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como C",
+      "current_consumers": "Owners y adapters de M4",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "EIPSI_T1_Anchor_Service",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como C",
+      "current_consumers": "Owners y adapters de M4",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "EIPSI_Wave_Recalculator",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como C",
+      "current_consumers": "Owners y adapters de M4",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "EIPSI_Wave_Expiration_Service",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como C",
+      "current_consumers": "Owners y adapters de M4",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "EIPSI_Form_Longitudinal_Submit_Adapter",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como C",
+      "current_consumers": "Owners y adapters de M4",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "AJAX/global cron adapters",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como C",
+      "current_consumers": "Owners y adapters de M4",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Wave_Service::maybe_send_immediate_wave_reminder",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como B",
+      "current_consumers": "Longitudinal notification context / M5 Notifications / M7 Pools con facades",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Notifications scheduler/queue/templates/weekly delivery",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como B",
+      "current_consumers": "Longitudinal notification context / M5 Notifications / M7 Pools con facades",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Pools ownership",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como B",
+      "current_consumers": "Longitudinal notification context / M5 Notifications / M7 Pools con facades",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "unproven progression/old backend helpers outside relocated methods",
+      "phase": "M4",
+      "original_reason": "Conservado en manifest M4 como E",
+      "current_consumers": "No inequívoco o externo/contextual; no inferir inexistencia",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "all public facades",
+      "phase": "M5",
+      "original_reason": "Conservado en manifest M5 como C",
+      "current_consumers": "Owners y adapters de M5",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "scheduler init and hook registrations",
+      "phase": "M5",
+      "original_reason": "Conservado en manifest M5 como C",
+      "current_consumers": "Owners y adapters de M5",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "deprecated daily/weekly log callbacks",
+      "phase": "M5",
+      "original_reason": "Conservado en manifest M5 como C",
+      "current_consumers": "Owners y adapters de M5",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "private Wave facade used by public notify",
+      "phase": "M5",
+      "original_reason": "Conservado en manifest M5 como C",
+      "current_consumers": "Owners y adapters de M5",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "legacy posts/meta pipelines",
+      "phase": "M5",
+      "original_reason": "Conservado en manifest M5 como B",
+      "current_consumers": "Owners y adapters de M5",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "legacy cancellation table contracts",
+      "phase": "M5",
+      "original_reason": "Conservado en manifest M5 como B",
+      "current_consumers": "Owners y adapters de M5",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "legacy polling timing profile",
+      "phase": "M5",
+      "original_reason": "Conservado en manifest M5 como B",
+      "current_consumers": "Owners y adapters de M5",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "templates without proven production consumer",
+      "phase": "M5",
+      "original_reason": "Conservado en manifest M5 como E",
+      "current_consumers": "No inequívoco o externo/contextual; no inferir inexistencia",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "all public Safety/Privacy/Export facades",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como C",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "inherited ExternalDatabase and Device APIs",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como C",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Forms partial interaction facade",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como C",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "personal/access download handlers",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como C",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "CapturePolicy config helpers",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como C",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "canonical participant auto-sync helpers",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como C",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "Pool export entry points and dispatcher",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como C",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "legacy external table creator missing browser/os/screen_width",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como B",
+      "current_consumers": "ExternalSchemaAdapter::create_results + ExternalDatabase facade",
+      "final_classification": "C",
+      "recommended_action": "Defecto reparado en M8; cuerpo duplicado A retirado, facade C conservada"
+    },
+    {
+      "element": "legacy raw storage truncation API",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como B",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "non-A exports legacy routines",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como B",
+      "current_consumers": "Owners y adapters de M6",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "LONG actions dataset contract; buttons still have no handler",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como E",
+      "current_consumers": "No inequívoco o externo/contextual; no inferir inexistencia",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "coverage of external deployed servers and historical export copies",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como E",
+      "current_consumers": "No inequívoco o externo/contextual; no inferir inexistencia",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "GET legacy participant XLSX calls missing export_participants_to_excel; dataset equivalence undefined",
+      "phase": "M6",
+      "original_reason": "Conservado en manifest M6 como E",
+      "current_consumers": "No inequívoco o externo/contextual; no inferir inexistencia",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "assets/js/eipsi-random.js",
+      "phase": "M7",
+      "original_reason": "No institutional saved-content sample; no evidence sufficient for removal",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "src/frontend/eipsi-random.js",
+      "phase": "M7",
+      "original_reason": "Historical source/runtime compatibility not proven unnecessary",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "assets/js/eipsi-randomization-shortcode.php",
+      "phase": "M7",
+      "original_reason": "Legacy _eipsi_random_config consumer",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "admin/pool-rest-api.php",
+      "phase": "M7",
+      "original_reason": "Public REST registration and facade",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "admin/pool-assignment-api.php",
+      "phase": "M7",
+      "original_reason": "Public AJAX names and distinct contracts",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "includes/helpers/pool-helpers.php",
+      "phase": "M7",
+      "original_reason": "Public helper symbols and code-based historical paths",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "admin/randomization-page.php",
+      "phase": "M7",
+      "original_reason": "Admin page and saved shortcode configuration consumers",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "admin/tabs/pool-hub-v2.php",
+      "phase": "M7",
+      "original_reason": "Active admin UI",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "admin/pool-hub/components/pool-sidebar.php",
+      "phase": "M7",
+      "original_reason": "Contextual dynamic inclusion; insufficient removal evidence",
+      "current_consumers": "REST/AJAX/shortcode/JS o inclusión contextual según archivo",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "includes/class-eipsi-migration-runner.php",
+      "phase": "M8",
+      "original_reason": "Historical class API inherited from explicit owner",
+      "current_consumers": "ServiceLoader and integrations",
+      "final_classification": "C",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "includes/migrations/class-migration-runner.php",
+      "phase": "M8",
+      "original_reason": "v1-v9 required by historical upgrades; v10 convergence",
+      "current_consumers": "admin initialization, explicit upgrades",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "scripts/migration-add-offset-columns.php",
+      "phase": "M8",
+      "original_reason": "Historic operational recovery script, not proven unused externally",
+      "current_consumers": "manual operators",
+      "final_classification": "D",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "admin/database-schema-repair.php",
+      "phase": "M8",
+      "original_reason": "Malformed historic indices and manual authorized repair",
+      "current_consumers": "eipsi_before_dbdelta, admin_init manual trigger",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "admin/data-safety-system.php",
+      "phase": "M8",
+      "original_reason": "T* dynamic-column writer used by submissions; history preserved",
+      "current_consumers": "submission longitudinal synchronization",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "includes/storage/class-emergency-submission-store.php",
+      "phase": "M8",
+      "original_reason": "Emergency fallback DDL retained until arbitrary installations guaranteed converged",
+      "current_consumers": "submission emergency fallback",
+      "final_classification": "B",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "admin/ajax-handlers.php::eipsi_execute_maintenance_sql_handler",
+      "phase": "M8",
+      "original_reason": "No proven safe SQL maintenance contract, fail-closed 501; public action retained",
+      "current_consumers": "registered administrative AJAX, external consumer unknown",
+      "final_classification": "E",
+      "recommended_action": "Conservar; revisar compatibilidad antes de PURGA FINAL"
+    },
+    {
+      "element": "fix-email-loop-data-repair.sql",
+      "phase": "M8",
+      "original_reason": "Script operativo histórico; valor de diagnóstico/recuperación",
+      "current_consumers": "Operadores manuales; no integrado en bootstrap",
+      "final_classification": "D",
+      "recommended_action": "Conservar; no ejecutar automáticamente"
+    },
+    {
+      "element": "fix-email-loop-verification-tests.sql",
+      "phase": "M8",
+      "original_reason": "Script operativo histórico; valor de diagnóstico/recuperación",
+      "current_consumers": "Operadores manuales; no integrado en bootstrap",
+      "final_classification": "D",
+      "recommended_action": "Conservar; no ejecutar automáticamente"
+    },
+    {
+      "element": "diagnostic-queries.sql",
+      "phase": "M8",
+      "original_reason": "Script operativo histórico; valor de diagnóstico/recuperación",
+      "current_consumers": "Operadores manuales; no integrado en bootstrap",
+      "final_classification": "D",
+      "recommended_action": "Conservar; no ejecutar automáticamente"
+    },
+    {
+      "element": "Randomization histórico sin fingerprint",
+      "phase": "M8",
+      "original_reason": "Identidad incompatible, no inventar mapeo",
+      "current_consumers": "Migration v2/v10 bloquean y conservan datos",
+      "final_classification": "E",
+      "recommended_action": "Revisión de dataset antes de diseñar un upgrade específico"
+    },
+    {
+      "element": "Settings draft vs enum canónico",
+      "phase": "M8",
+      "original_reason": "Handler legacy exige estado ausente del enum actual",
+      "current_consumers": "StudyConfigService y UI settings",
+      "final_classification": "E",
+      "recommended_action": "Revisar contrato de estados en fase funcional posterior"
+    },
+    {
+      "element": "Collation histórica unicode_ci",
+      "phase": "M8",
+      "original_reason": "No conversión masiva automática autorizada",
+      "current_consumers": "Tablas históricas; Inspector informa drift",
+      "final_classification": "B",
+      "recommended_action": "Mantener; evaluación manual de conversión si corresponde"
+    }
+  ]
+}

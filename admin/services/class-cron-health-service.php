@@ -225,25 +225,7 @@ class EIPSI_Cron_Health_Service {
     /**
      * Create cron log table.
      */
-    private static function create_cron_log_table() {
-        global $wpdb;
-
-        $table_name = $wpdb->prefix . 'survey_cron_log';
-        $charset_collate = $wpdb->get_charset_collate();
-
-        $sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
-            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-            cron_hook VARCHAR(100) NOT NULL,
-            executed_at DATETIME NOT NULL,
-            metadata TEXT,
-            PRIMARY KEY (id),
-            KEY cron_hook (cron_hook),
-            KEY executed_at (executed_at)
-        ) {$charset_collate};";
-
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta($sql);
-    }
+    private static function create_cron_log_table() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/schema/bootstrap.php'; $result = EIPSI_Schema_Repair_Service::sync_local_table('survey_cron_log');  }
 
     /**
      * Get recent cron execution history.

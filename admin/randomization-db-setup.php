@@ -25,43 +25,7 @@ require_once EIPSI_FORMS_PLUGIN_DIR.'includes/randomization/bootstrap.php';
  * - Método (seeded vs pure-random)
  * - Asignaciones manuales
  */
-function eipsi_create_randomization_configs_table() {
-    global $wpdb;
-
-    $table_name      = $wpdb->prefix . 'eipsi_randomization_configs';
-    $charset_collate = $wpdb->get_charset_collate();
-
-    $sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
-        id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-        randomization_id VARCHAR(255) NOT NULL,
-        formularios LONGTEXT NOT NULL,
-        probabilidades LONGTEXT,
-        method VARCHAR(20) DEFAULT 'seeded',
-        manual_assignments LONGTEXT,
-        show_instructions TINYINT(1) DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY  (id),
-        UNIQUE KEY randomization_id (randomization_id),
-        KEY method (method),
-        KEY created_at (created_at)
-    ) {$charset_collate};";
-
-    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-    dbDelta( $sql );
-
-    // Verificar si se creó correctamente
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" );
-    
-    if ( $table_exists === $table_name ) {
-        error_log( '[EIPSI Forms] Tabla creada: ' . $table_name );
-        return true;
-    } else {
-        error_log( '[EIPSI Forms] ERROR: No se pudo crear tabla ' . $table_name );
-        return false;
-    }
-}
+function eipsi_create_randomization_configs_table() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/schema/bootstrap.php'; $result = EIPSI_Schema_Repair_Service::sync_local_table('eipsi_randomization_configs'); return $result['success']; }
 
 /**
  * Crear tabla de asignaciones de usuarios
@@ -72,45 +36,7 @@ function eipsi_create_randomization_configs_table() {
  * - assigned_form_id: Qué formulario le tocó
  * - Timestamps de acceso
  */
-function eipsi_create_randomization_assignments_table() {
-    global $wpdb;
-
-    $table_name      = $wpdb->prefix . 'eipsi_randomization_assignments';
-    $charset_collate = $wpdb->get_charset_collate();
-
-    $sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
-        id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-        randomization_id VARCHAR(255) NOT NULL,
-        config_id VARCHAR(255) NOT NULL,
-        user_fingerprint VARCHAR(255) NOT NULL,
-        assigned_form_id BIGINT(20) UNSIGNED NOT NULL,
-        assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        last_access DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        access_count INT(11) DEFAULT 1,
-        PRIMARY KEY  (id),
-        UNIQUE KEY unique_assignment (randomization_id, config_id, user_fingerprint),
-        KEY randomization_id (randomization_id),
-        KEY config_id (config_id),
-        KEY user_fingerprint (user_fingerprint),
-        KEY assigned_form_id (assigned_form_id),
-        KEY assigned_at (assigned_at)
-    ) {$charset_collate};";
-
-    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-    dbDelta( $sql );
-
-    // Verificar si se creó correctamente
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" );
-    
-    if ( $table_exists === $table_name ) {
-        error_log( '[EIPSI Forms] Tabla creada: ' . $table_name );
-        return true;
-    } else {
-        error_log( '[EIPSI Forms] ERROR: No se pudo crear tabla ' . $table_name );
-        return false;
-    }
-}
+function eipsi_create_randomization_assignments_table() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/schema/bootstrap.php'; $result = EIPSI_Schema_Repair_Service::sync_local_table('eipsi_randomization_assignments'); return $result['success']; }
 
 /**
  * Crear tabla de asignaciones manuales (overrides)

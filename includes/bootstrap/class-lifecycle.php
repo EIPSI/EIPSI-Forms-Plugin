@@ -14,7 +14,7 @@ final class EIPSI_Lifecycle {
 
                 $status = EIPSI_Database_Schema_Manager::get_verification_status();
                 if ( $status['needs_verification'] ) {
-                    EIPSI_Database_Schema_Manager::repair_local_schema();
+                    EIPSI_Schema_Inspector::periodic_inspection();
                 }
             }
         }, 5);
@@ -37,7 +37,10 @@ final class EIPSI_Lifecycle {
 
         // Initialize/Repair Database Schema
         if ( class_exists( 'EIPSI_Database_Schema_Manager' ) ) {
-            EIPSI_Database_Schema_Manager::repair_local_schema();
+            $had_tables = EIPSI_Schema_Inspector::local_table_exists($wpdb->prefix.'survey_studies');
+            $result = EIPSI_Schema_Installer::repair_local_schema();
+            if (!$result['success']) { throw new RuntimeException('Schema installation failed: '.wp_json_encode($result)); }
+            if (!$had_tables) { update_option('eipsi_migration_version', EIPSI_Schema_Migration_Runner::LATEST_VERSION); }
         }
 
         // Log activation

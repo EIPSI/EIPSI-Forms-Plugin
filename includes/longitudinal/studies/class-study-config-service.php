@@ -140,7 +140,7 @@ public static function wp_ajax_eipsi_save_study_settings_handler($study_id,$requ
 
     // Prepare update data
     $update_data = array(
-        'name' => $study_name,
+        'study_name' => $study_name,
         'description' => $study_description,
         'status' => 'draft'
     );

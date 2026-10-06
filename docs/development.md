@@ -102,3 +102,9 @@ Implement pool domain rules in `includes/pools/`, random configuration/assignmen
 Use Auth session identity for participant-facing pool mutations, never email/fingerprint/client participant_id. Administrative IDs require the existing capability and nonce. Use M3 FormRenderer for form loading and M6 export query/file owners for roster exports; do not migrate those services into M7. Preserve postmeta and old JS pending saved-content evidence. The purge manifest records four removed private/copy implementations; no legacy JS file was deleted.
 
 Do not change RNG bounds, fallback, seed source or weighting when extending tests. Existing assignment precedes late override; a first override precedes algorithm. Assignment locking has a five-second timeout and must release on errors. The current schema's unique pool participant key and lack of unique daily analytics key remain unchanged and require future policy decisions.
+
+## M8 — Cambios de schema
+
+Usar Registry para definición, Installer para creación, migrations para transformaciones conocidas y Repair para drift aditivo. No escribir otro schema map ni añadir DDL incidental al submit. No borrar fallbacks históricos antes de demostrar convergencia. Añadir migraciones con SQL comprobado y checkpoints por versión; instrucciones completas en [schema.md](schema.md).
+
+M8 no cambia policy de uniques, tipos de IDs, estados de estudios ni una versión pública. Una forma de identidad desconocida debe fallar explícitamente y conservar datos. GET_LOCK serializa exclusivamente la misma instancia DB/prefix. Los scripts históricos no son automáticamente descartables.
