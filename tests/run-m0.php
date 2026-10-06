@@ -50,6 +50,7 @@ foreach ($missing as $action=>$file) {
     $tests['Caracterización deuda conocida: ' . $action] = function () use ($action,$file) {
         m0_assert(strpos(file_get_contents(EIPSI_FORMS_PLUGIN_DIR.$file), $action) !== false, 'Emitter changed; update contract map');
         if ($action === 'eipsi_load_form') { m0_assert(has_action('wp_ajax_'.$action, 'eipsi_load_form_handler') === 10 && has_action('wp_ajax_nopriv_'.$action, 'eipsi_load_form_handler') === 10, 'M7 form loader absent'); }
+        elseif (in_array($action,array('eipsi_send_individual_reminder','eipsi_recalculate_preview','eipsi_recalculate_waves','eipsi_get_participant_dashboard'),true)) { m0_assert(has_action('wp_ajax_'.$action,$action.'_handler')===10,'S3 repaired handler absent'); m0_assert(has_action('wp_ajax_nopriv_'.$action,$action.'_handler')===($action==='eipsi_get_participant_dashboard'?10:false),'S3 nopriv boundary'); }
         else {        m0_assert(has_action('wp_ajax_'.$action) === false && has_action('wp_ajax_nopriv_'.$action) === false, 'Handler restored; update characterization'); }
     };
 }

@@ -667,3 +667,25 @@ if (!function_exists('eipsi_get_current_survey_id')) {
         return EIPSI_Auth_Service::get_current_survey();
     }
 }
+
+// Participant dashboard refresh: identity comes only from the existing session.
+add_action('wp_ajax_eipsi_get_participant_dashboard','eipsi_get_participant_dashboard_handler');
+add_action('wp_ajax_nopriv_eipsi_get_participant_dashboard','eipsi_get_participant_dashboard_handler');
+function eipsi_get_participant_dashboard_handler() {
+    if (!is_string($_POST['nonce']??null) || !wp_verify_nonce($_POST['nonce'],'eipsi_participant_dashboard')) {
+        wp_send_json_error(array('message'=>'Invalid nonce'),403);
+    }
+    $access=EIPSI_Authorization_Policy::authorize_session_context($_POST);
+    if (!$access['success']) { wp_send_json_error(array('message'=>'Not authenticated'),403); }
+    $record=EIPSI_Authorization_Policy::authorize_participant($access['participant_id'],$access['study_id']);
+    if (!$record['success']) { wp_send_json_error(array('message'=>'Not authenticated'),403); }
+    $data=EIPSI_Participant_Dashboard_Data::get_timeline_data($access['participant_id'],$access['study_id']);
+    $completed=0;$pending=0;
+    foreach($data['timeline'] as $wave) {
+        if($wave['db_status']==='submitted'){$completed++;}
+        if(in_array($wave['db_status'],array('pending','in_progress'),true)){$pending++;}
+    }
+    $data['completed_waves']=$completed;$data['pending_waves']=$pending;
+    $data['progress_percentage']=count($data['timeline'])?(int)round(100*$completed/count($data['timeline'])):0;
+    wp_send_json_success($data);
+}

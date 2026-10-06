@@ -13,12 +13,14 @@ function m1_contracts($inventory) {
     }
     $hooks = array();
     foreach ($inventory['hooks'] as $row) {
+        if (m1_s3_added_hook($row)) { continue; }
         if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
         if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
         $hooks[] = array_intersect_key($row, array_flip(array('hook','callback','priority','accepted_args','order_at_priority','callable')));
     }
     $hook_locations = array();
     foreach ($inventory['hooks'] as $row) {
+        if (m1_s3_added_hook($row)) { continue; }
         if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
         if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
         $hook_locations[] = array_intersect_key($row, array_flip(array('hook','callback','priority','order_at_priority','file')));
@@ -68,4 +70,16 @@ function m1_token_hash($function) {
         } else { $text .= $token; }
     }
     return hash('sha256', $text);
+}
+
+// Versioned S3 additions, checked in full; historical baseline stays unchanged.
+function m1_s3_added_hook($row) {
+    $s3=json_decode(file_get_contents(__DIR__.'/../s3/security-contracts.json'),true);
+    foreach($s3['added_hooks'] as $expected) {
+        if ($row['hook']===$expected['hook'] && $row['callback']===$expected['callback']) {
+            m0_assert(array_intersect_key($row,$expected)==$expected,'Unexpected S3 hook contract');
+            return true;
+        }
+    }
+    return false;
 }

@@ -12,7 +12,7 @@ Emergencia devuelve éxito solo tras persistencia confirmada y comunica el desti
 
 ## Deuda activa para fases posteriores
 
-M0 caracterizó nueve emisores sin handler exacto: `eipsi_export_participants_long_excel`, `eipsi_export_participants_long_csv`, `eipsi_send_individual_reminder`, `eipsi_recalculate_preview`, `eipsi_recalculate_waves`, `eipsi_rollback_recalculation`, `eipsi_load_form`, `eipsi_create_from_clinical_template`, `eipsi_get_participant_dashboard`. Hay emisores activos y otros dormidos; los handlers parecidos no garantizan equivalencia de contrato. M7 restaura únicamente `eipsi_load_form`; las otras ocho discrepancias siguen pendientes.
+M0 caracterizó nueve emisores sin handler exacto: `eipsi_export_participants_long_excel`, `eipsi_export_participants_long_csv`, `eipsi_send_individual_reminder`, `eipsi_recalculate_preview`, `eipsi_recalculate_waves`, `eipsi_rollback_recalculation`, `eipsi_load_form`, `eipsi_create_from_clinical_template`, `eipsi_get_participant_dashboard`. Hay emisores activos y otros dormidos; los handlers parecidos no garantizan equivalencia de contrato. M7 restaura `eipsi_load_form`. S3 repara reminder individual, preview/apply y dashboard participante; LONG sigue F sin dataset definido, rollback E/F dormido y clinical template E sin consumidor interno demostrado.
 
 `SchemaManager::check_collation_issues` delega ahora en Inspector read-only. `execute_maintenance_sql` sigue sin ejecutor genérico: su action administrativa responde 501 tras autorización; no hay un contrato seguro demostrado. La reparación activa de tabla y el envío weekly T1 sí recibieron correcciones mínimas.
 
@@ -138,7 +138,7 @@ Longitudinal conserva disponibilidad, offsets clínicos, due_at, configuración 
 
 CronHealth repara wave/dropout con every_minute, la cadencia real de activación; purge conserva daily. Los jobs por estudio conservan argumentos y frecuencia existente; no se fabrica un job sin study_id. Sus observers de prioridad 999 siguen activos.
 
-Se mantiene el envío dentro de START TRANSACTION/FOR UPDATE/COMMIT del nudge programado: rollback SQL no deshace un email. Submit y recalculation conservan sus efectos post-COMMIT y su manejo de errores. No se introduce outbox. El lock del scheduler protege un assignment, no todos los escritores del option cron ni el transporte SMTP. Permanecen la política legacy polling (incluida cuantización/cache e intervalo mínimo), la incompatibilidad legacy available/pending al reconstruir desde T1, helpers de cancelación que usan tablas/columnas antiguas y el handler individual ausente. Estas deudas requieren fases posteriores.
+Se mantiene el envío dentro de START TRANSACTION/FOR UPDATE/COMMIT del nudge programado: rollback SQL no deshace un email. Submit y recalculation conservan sus efectos post-COMMIT y su manejo de errores. No se introduce outbox. El lock del scheduler protege un assignment, no todos los escritores del option cron ni el transporte SMTP. Permanecen la política legacy polling (incluida cuantización/cache e intervalo mínimo), la incompatibilidad legacy available/pending al reconstruir desde T1, helpers de cancelación que usan tablas/columnas antiguas y las rutas legacy propias. El handler individual fue reparado en S3 mediante el owner manual. Estas deudas requieren fases posteriores.
 
 
 ## M6 — Storage, Privacy y Export
@@ -203,7 +203,7 @@ Los archivos administrativos conservan nombres/path bajo `exports/` y la respues
 
 Personal conserva ruta desde DB, archivo fuera de ABSPATH, nombre aleatorio y permisos 0600. No se inventa expiración. Approval usa compare-and-set del estado pending: dos administradores concurrentes no procesan simultáneamente la misma solicitud.
 
-LONG `eipsi_export_participants_long_excel/csv` conserva deuda: la UI activa las emite pero no hay handler. La etiqueta de formato LONG no define inequívocamente las columnas/filas esperadas frente a los datasets actuales; no se crea un alias a wide ni a raw. XLSX conserva una sola implementación canónica `lib/SimpleXLSXGen.php`; la copia de admin era idéntica y solo se purga después de validar los consumidores.
+LONG `eipsi_export_participants_long_excel/csv` conserva F: S3 confirma bindings JS, pero no botones LONG en el HTML actual ni handler; los botones renderizados son WIDE. La etiqueta de formato LONG no define inequívocamente las columnas/filas esperadas frente a los datasets actuales; no se crea un alias a wide ni a raw. XLSX conserva una sola implementación canónica `lib/SimpleXLSXGen.php`; la copia de admin era idéntica y solo se purga después de validar los consumidores.
 
 Facades públicas y helpers usados continúan clasificados C; legacy/ambigüedades pasan a fases posteriores. Purga A y hashes históricos se documentan en `tests/m6/purge-manifest.json`, `contracts.json` y `baseline-hashes.json`. M7/M8 quedan fuera de esta fase.
 
@@ -288,3 +288,13 @@ Worker separa delivery y persistencia: completed/failed/retried cuentan solo esc
 Cancelación moderna afecta solo pending mediante assignment o participant/wave del JSON; deja processing/completed intactos. Scheduler delega al owner moderno y conserva cancel pending separado si una instalación tiene survey_job_queue legacy. No se hallaron productores ni schema activos de esa tabla; no se fusionan pipelines.
 
 Entrega best-effort con retries acotados: crash después de mail o terminal SQL failure puede duplicar email al recuperar. Count/cache/logs existentes no son outbox ni dedupe global; exactly-once NO garantizado. API PHP de claim debe completar/reintentar/liberar en la misma conexión; el lock depende de una conexión directa estable al mismo servidor DB. Una pérdida de conexión invalida ownership; datasets/timestamps legacy inconsistentes requieren revisión separada.
+
+# S3 — Contratos funcionales P1 (2026.10.06)
+
+Wave state delega lookup a WaveDefinition; `survey_waves.name` se publica como `wave_name` sin schema nuevo. Sesión canónica y nonce `eipsi_auto_refresh` permiten polling únicamente en su estudio. Dashboard refresh deriva identidad de Auth/Authorization y usa ParticipantDashboardData; añade los tres agregados que consume el JS, sin query duplicada ni identidad cliente.
+
+Reminder/preview/apply requieren `eipsi_user_can_manage_longitudinal()` y nonce `eipsi_study_dashboard_nonce`, sin nopriv. Reminder valida participant→study→wave→assignment y usa NotificationEmailMessage::send_manual_reminders. El modal recibe contexto real de StudyDashboard, wave id/name actuales y nonce localizado.
+
+T1Recalculation incorpora preview_study (solo SELECT) y recalculate_study (command por assignment). Reutiliza recalculate_single_wave para minutos, available_at/due_at y audit; estados terminales quedan intactos. La consulta FOR UPDATE sigue el mismo orden/index lookup que submit para evitar deadlock. Contexto y ancla se releen bloqueados; NULL window mantiene NULL deadline. Refresh Notifications ocurre después del COMMIT. Un error informa el número ya persistido; no garantiza batch atómico, refresh atómico ni exactly-once.
+
+GET XLSX legacy conserva query args/stream/formato, exige manage_options + `_wpnonce=eipsi_admin_nonce` y delega al dataset roster WIDE que ya usa su CSV/preview. Un callback exacto en admin_menu prioridad0 entra antes de que WordPress rechace el slug histórico; no registra una página ficticia. LONG no se vincula a ese dataset por nombre. Rollback carece consumidor interno y restauración inequívoca: no handler inventado. Settings draft y randomization sin fingerprint siguen F sin cambios.

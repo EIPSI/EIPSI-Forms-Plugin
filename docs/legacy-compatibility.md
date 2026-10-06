@@ -50,7 +50,7 @@ Owners M1–M8 son canónicos; los símbolos públicos anteriores siguen disponi
 | 43 | legacy external table creator missing browser/os/screen_width | C | ExternalSchemaAdapter | Creator corregido M8 añade browser/os/screen_width; facade pública vigente. Requiere decisión explícita de versionado público y auditoría de integraciones antes de retirar. |
 | 44 | legacy raw storage truncation API | C | ExternalSubmissionStore | Delete all data está expuesto en configuración y AJAX eipsi_delete_all_data con capability/nonce. Truncation API activa, no orphan. Requiere decisión explícita de versionado público y auditoría de integraciones antes de retirar. |
 | 45 | non-A exports legacy routines | F | RawExportService | Desglosar GET legacy: routings con API pública conservada, nonce ausente en routing y XLSX participant con método inexistente. No retirar ni restaurar por analogía. Decisión funcional o de producto posterior; no eliminar como basura. |
-| 46 | LONG actions dataset contract; buttons still have no handler | F | Export UI | LONG Excel/CSV son botones visibles con acciones no registradas; deuda funcional de dataset/contrato. Decisión funcional o de producto posterior; no eliminar como basura. |
+| 46 | LONG actions dataset contract; buttons still have no handler | F | Export UI | S3 confirma bindings LONG sin botones en el HTML actual ni acciones registradas; deuda funcional de dataset/contrato. Decisión funcional o de producto posterior; no eliminar como basura. |
 | 47 | coverage of external deployed servers and historical export copies | E | Privacy CoverageReport/Export | No acceso a servidores externos desplegados/copias históricas; fixture no demuestra ausencia institucional. Se necesita inventario institucional de extensiones, consumidores o datos para decidir. |
 | 48 | GET legacy participant XLSX calls missing export_participants_to_excel; dataset equivalence undefined | F | Export | GET participant XLSX llama export_participants_to_excel inexistente; intención dataset no definida. Contrato roto alcanzable. Decisión funcional o de producto posterior; no eliminar como basura. |
 | 49 | assets/js/eipsi-random.js | B | Randomization frontend legacy | JS legacy ligado a config/shortcode guardado; retiro condicionado a dataset institucional. Retiro condicionado a la evidencia de convergencia/datos indicada. |
@@ -84,19 +84,19 @@ Owners M1–M8 son canónicos; los símbolos públicos anteriores siguen disponi
 
 | Action | Clase | Situación |
 |---|---|---|
-| eipsi_export_participants_long_excel | F | Botón visible LONG Excel |
-| eipsi_export_participants_long_csv | F | Botón visible LONG CSV |
-| eipsi_send_individual_reminder | F | Modal incluido por longitudinal-studies-tab |
-| eipsi_recalculate_preview | F | Preview en modal activo |
-| eipsi_recalculate_waves | F | Aplicación en modal activo; recalculation-panel también emite |
+| eipsi_export_participants_long_excel | F unresolved | Binding sin botón actual; dataset requiere decisión de producto |
+| eipsi_export_participants_long_csv | F unresolved | Binding sin botón actual; dataset requiere decisión de producto |
+| eipsi_send_individual_reminder | FIX S3 | Modal activo → admin/nonce → Notifications manual, linkage validado |
+| eipsi_recalculate_preview | FIX S3 | Modal activo → T1Recalculation preview read-only |
+| eipsi_recalculate_waves | FIX S3 | Modal activo → T1Recalculation con locks y refresh postcommit; panel alternativo dormido no restaurado |
 | eipsi_rollback_recalculation | E | Panel sin include interno/runtime demostrado; contrato contextual no identificado |
 | eipsi_create_from_clinical_template | E | Binding privado delegado sin botón interno ni handler; nonce/strings se publican en eipsiFormTools. No se puede excluir productor DOM en extensión institucional sin inventario de extensiones. |
-| eipsi_get_participant_dashboard | F | Script registrado en survey login/dashboard; refresh apunta a endpoint ausente |
+| eipsi_get_participant_dashboard | FIX S3 | Refresh JSON → sesión canónica → ParticipantDashboardData |
 | eipsi_load_form | C | Resuelto M7: action/nopriv autenticadas y form load válido |
 
 Login/join Pools por email: **F**. El acceso histórico por email está bloqueado y requiere sesión; integrar con Auth antes de publicar. No reintroducir email como identidad.
 
-Cancelación legacy: el recorrido público escribe `survey_job_queue`; el owner de queue usa `survey_nudge_jobs`. Exports GET/LONG y estados `draft` conservan inconsistencias descritas; no se restauraron por analogía. Identidad sin fingerprint requiere datos institucionales antes de diseñar transición.
+Cancelación legacy: el recorrido público escribe `survey_job_queue`; el owner de queue usa `survey_nudge_jobs`. S3 repara GET participant XLSX por equivalencia explícita con roster WIDE; LONG y estados `draft` siguen F, sin alias por analogía. Identidad sin fingerprint requiere datos institucionales antes de diseñar transición.
 
 ## Notificaciones
 
@@ -136,3 +136,13 @@ Cancel jobs retorna affected rows o false SQL error, y cancela solo pending. Exp
 Lease15min/recovery no cambia schema ni cadencia; jobs stale reconsumen presupuesto y pueden reintentarse después del backoff. Deploy debe evitar mezclar workers antiguos sin mutex con nuevos durante una entrega activa. Timestamps WordPress actuales se conservan; fallback updated_at legacy depende de su convención histórica. Exactly-once email NO garantizado; delivery antes de terminal/crash puede ser duplicado. S1 Storage/Assignment no cambia.
 
 S2 hace explícita la página de estudio en fixtures M3/M5 aislados (sin cambiar código de envío/URL); evita dependencia de páginas que una suite anterior creó. P0 se ejecuta con --integration para mantener sus 22 casos.
+
+# S3 — Deltas de compatibilidad
+
+Fixed: wave state, reminder individual, recalc preview/apply, dashboard participante y GET participant XLSX. Disabled: ninguno; no se encontraron botones LONG actuales que deshabilitar. Unresolved: LONG CSV/XLSX (F, decisión funcional sobre filas/columnas); rollback (E/F, sin caller ni contrato de restauración); clinical template (E, integración externa indeterminada).
+
+Wave conserva sus nueve campos; missing wave conserva error string HTTP200. Denegaciones participant/admin responden403; AJAX admin sin login carece nopriv y WordPress responde400. Dashboard no ofrece acceso admin por ID sin sesión participante. GET XLSX incorpora nonce obligatorio; caller externo debe incluir `_wpnonce` de `eipsi_admin_nonce`. La ruta GET CSV legacy conserva su situación anterior y requiere revisión posterior de CSRF; no se amplía S3.
+
+Se conservan snapshots originales M0/M1/M5/PURGA FINAL y matriz histórica M8. security-contracts.json S3 registra únicamente las altas de hooks/métodos y el hash cambiado de study-dashboard.js. Settings draft, randomization histórico sin fingerprint, login/join S0, Storage↔Assignment y exactamente-un-email permanecen fuera de esta fase.
+
+S3 verifica el contrato publicado del modal individual mediante sus funciones JS y HTTP real. El renderer externo de participantes conserva su botón `.resend-reminder-btn` → `eipsi_resend_participant_email`; no se sustituyó esa ruta funcional. Los bindings inline alternativos de listados no se unificaron y mantienen deuda de nonce/contexto propia. No se certifica que todas las variantes UI abran el modal reparado.

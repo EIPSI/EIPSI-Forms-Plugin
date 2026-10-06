@@ -467,6 +467,8 @@
             
             // Update currentStudyId
             this.currentStudyId = studyId;
+            window.currentStudyId = studyId;
+            $('#action-recalculate-times').data('study-id', studyId);
 
             $.ajax({
                 url: eipsiStudyDash.ajaxUrl,
@@ -656,6 +658,7 @@
             const container = $('#waves-container');
             container.empty();
 
+            window.currentStudyWaves = waves || [];
             if (!waves || waves.length === 0) {
                 container.html('<p style="color:#666;padding:20px;">No hay tomas configuradas</p>');
                 return;

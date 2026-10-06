@@ -916,6 +916,8 @@ public static function eipsi_export_participants_to_excel() {
         wp_die(__('You do not have sufficient permissions.', 'eipsi-forms'));
     }
 
+    check_admin_referer('eipsi_admin_nonce');
+
     $study_id = isset($_GET['study_id']) ? absint($_GET['study_id']) : 0;
     if (!$study_id) {
         wp_die(__('Invalid study ID.', 'eipsi-forms'));
@@ -932,7 +934,12 @@ public static function eipsi_export_participants_to_excel() {
         'date_to'    => isset($_GET['date_to'])    ? sanitize_text_field($_GET['date_to'])    : null,
     );
 
-    $filename = $export_service->export_participants_to_excel($study_id, $filters);
+    if (!EIPSI_Longitudinal_Study_Repository::get($study_id)) {
+        wp_die(__('Invalid study ID.', 'eipsi-forms'), '', array('response'=>404));
+    }
+    // Legacy CSV/preview already use this exact roster + wave-progress dataset.
+    try { $filename = $export_service->export_participants_wide_excel($study_id, $filters); }
+    catch (Throwable $error) { wp_die(__('No se pudo generar el export.', 'eipsi-forms'), '', array('response'=>500)); }
 
     $export_dir = EIPSI_Export_File_Service::directory();
     $file_path  = $export_dir . '/' . $filename;

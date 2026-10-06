@@ -173,3 +173,13 @@ Clean install y upgrade se ejecutan en redes/volúmenes nuevos independientes; u
 Migración consciente M5: agotamiento de retry adquiere claim y habilita scheduled_at del fixture; stages concurrentes también habilita el retry explícito; cuatro hashes de métodos Queue tienen deltas S2 explícitos sin reemplazar snapshots. PURGA FINAL incorpora solo tres métodos públicos del owner; facades intactas. Los errores SQL terminales y 0filas nunca se cuentan como completed/failed confirmados. Los tests no prueban entrega externa SMTP ni exactly-once global.
 
 S2 hace explícita la página de estudio en fixtures M3/M5 aislados (sin cambiar código de envío/URL); evita dependencia de páginas que una suite anterior creó. P0 se ejecuta con --integration para mantener sus 22 casos.
+
+# S3 — Pruebas de contratos funcionales
+
+[Comandos, fixtures y migración explícita de expectativas](../tests/s3/README.md). Baseline conservado: 849 PHP +44 JS =893. S3 añade67 PHP y13 JS: total973 únicos (916 PHP +57 JS); repetir clean/upgrade/lifecycle no aumenta el count.
+
+Los consumidores reales se ejecutan en Node/VM con un DOM mínimo y generan requests sin credenciales; PHP los lleva por HTTP real a actions, handlers, owners y responses. Hay happy/auth/error, payload/render, polling y XLSX ZIP con columnas/filtros/headers. No es un E2E de navegador completo. Preview comprueba cero writes del owner, cero writes de dominio por HTTP y cron idéntico.
+
+MariaDB concurrente: bloqueo real con barrier, reread de terminal, dos apply y submit vs apply. UPDATE/audit fallidos revierten; refresh fallido después del commit informa persistencia parcial. El correo se intercepta solo para fixtures. Clean crea schema vigente, upgrade parte del schema pre-M8 y verifica26 dominios históricos; smoke y deactivate/reactivate se ejecutan en ambos.
+
+M0 cambia conscientemente cuatro expectativas de missing, M5 una. M1/PURGA FINAL admiten solo seis hooks S3 y dos métodos nuevos del owner, con hash de asset encadenado al anterior; no reemplazan snapshots.

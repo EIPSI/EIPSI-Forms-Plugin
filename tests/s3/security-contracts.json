@@ -1,0 +1,105 @@
+{
+  "reason": "S3 explicit functional repairs; original snapshots retained",
+  "added_public_methods": {
+    "EIPSI_Longitudinal_T1_Recalculation_Service": {
+      "preview_study": {
+        "static": true,
+        "parameters": [
+          {
+            "name": "study_id",
+            "optional": false,
+            "default": null,
+            "type": null
+          }
+        ],
+        "owner": "EIPSI_Longitudinal_T1_Recalculation_Service"
+      },
+      "recalculate_study": {
+        "static": true,
+        "parameters": [
+          {
+            "name": "study_id",
+            "optional": false,
+            "default": null,
+            "type": null
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "default": null,
+            "type": null
+          }
+        ],
+        "owner": "EIPSI_Longitudinal_T1_Recalculation_Service"
+      }
+    }
+  },
+  "added_hooks": [
+    {
+      "hook": "wp_ajax_eipsi_send_individual_reminder",
+      "callback": "eipsi_send_individual_reminder_handler",
+      "file": "admin/study-dashboard-api.php",
+      "priority": 10,
+      "order_at_priority": 1,
+      "accepted_args": 1,
+      "callable": true
+    },
+    {
+      "hook": "wp_ajax_eipsi_recalculate_preview",
+      "callback": "eipsi_recalculate_preview_handler",
+      "file": "admin/study-dashboard-api.php",
+      "priority": 10,
+      "order_at_priority": 1,
+      "accepted_args": 1,
+      "callable": true
+    },
+    {
+      "hook": "wp_ajax_eipsi_recalculate_waves",
+      "callback": "eipsi_recalculate_waves_handler",
+      "file": "admin/study-dashboard-api.php",
+      "priority": 10,
+      "order_at_priority": 1,
+      "accepted_args": 1,
+      "callable": true
+    },
+    {
+      "hook": "wp_ajax_eipsi_get_participant_dashboard",
+      "callback": "eipsi_get_participant_dashboard_handler",
+      "file": "admin/ajax-participant-handlers.php",
+      "priority": 10,
+      "order_at_priority": 1,
+      "accepted_args": 1,
+      "callable": true
+    },
+    {
+      "hook": "wp_ajax_nopriv_eipsi_get_participant_dashboard",
+      "callback": "eipsi_get_participant_dashboard_handler",
+      "file": "admin/ajax-participant-handlers.php",
+      "priority": 10,
+      "order_at_priority": 1,
+      "accepted_args": 1,
+      "callable": true
+    },
+    {
+      "hook": "admin_menu",
+      "callback": "eipsi_handle_legacy_participant_excel_request",
+      "file": "admin/export.php",
+      "priority": 0,
+      "order_at_priority": 1,
+      "accepted_args": 1,
+      "callable": true
+    }
+  ],
+  "repaired_actions": [
+    "eipsi_send_individual_reminder",
+    "eipsi_recalculate_preview",
+    "eipsi_recalculate_waves",
+    "eipsi_get_participant_dashboard"
+  ],
+  "assets": {
+    "assets/js/study-dashboard.js": {
+      "before_s3_sha256": "68e17c5701eeab54d032776784aed6b0ac69d895f7a1f6ac7a4b1aab187daeb1",
+      "s3_sha256": "0788946ee4c53edbf2c1faf85cd9544eb38a65c2db015f99ebc8f014881e8e7b"
+    }
+  }
+}

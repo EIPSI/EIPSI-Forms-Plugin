@@ -36,6 +36,16 @@ function eipsi_export_to_excel() { return EIPSI_Raw_Export_Service::eipsi_export
 
 function eipsi_export_to_csv() { return EIPSI_Raw_Export_Service::eipsi_export_to_csv(); }
 
+// WordPress checks menu-page access before admin_init. The historical results
+// slug is no longer a menu page; authenticate this exact file route first.
+function eipsi_handle_legacy_participant_excel_request() {
+    if (($_GET['page'] ?? '') === 'eipsi-results' &&
+        ($_GET['action'] ?? '') === 'export_participants_excel') {
+        eipsi_export_participants_to_excel();
+    }
+}
+add_action('admin_menu', 'eipsi_handle_legacy_participant_excel_request', 0);
+
 add_action('admin_init', function() {
     if (isset($_GET['page']) && $_GET['page'] === 'eipsi-results-experience') {
         if (isset($_GET['action']) && $_GET['action'] === 'export_excel') {

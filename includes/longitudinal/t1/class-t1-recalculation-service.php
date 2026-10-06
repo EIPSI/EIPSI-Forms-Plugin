@@ -3,6 +3,76 @@
 if (!defined('ABSPATH')) { exit; }
 
 class EIPSI_Longitudinal_T1_Recalculation_Service {
+/** Read-only candidates for the active admin modal, not legacy unguarded writes. */
+private static function study_candidates($study_id) {
+    global $wpdb;
+    if (!$study_id || !EIPSI_Longitudinal_Study_Repository::get($study_id)) {
+        return new WP_Error('invalid_study','Estudio no encontrado.');
+    }
+    $rows=$wpdb->get_results($wpdb->prepare("SELECT a.id,a.wave_id,a.participant_id,
+        COALESCE(p.t1_completed_at,(SELECT t.submitted_at FROM {$wpdb->prefix}survey_assignments t
+            JOIN {$wpdb->prefix}survey_waves tw ON tw.id=t.wave_id
+            WHERE t.participant_id=p.id AND t.study_id=p.survey_id AND tw.study_id=p.survey_id
+            AND tw.wave_index=1 AND t.status='submitted' LIMIT 1)) AS anchor
+        FROM {$wpdb->prefix}survey_assignments a
+        JOIN {$wpdb->prefix}survey_participants p ON p.id=a.participant_id AND p.survey_id=a.study_id
+        JOIN {$wpdb->prefix}survey_waves w ON w.id=a.wave_id AND w.study_id=a.study_id
+        WHERE a.study_id=%d AND p.is_active=1 AND a.status IN ('pending','in_progress') AND w.wave_index>1
+        ORDER BY a.id",$study_id));
+    if ($wpdb->last_error) { return new WP_Error('db_error','No se pudo leer el preview.'); }
+    return array_values(array_filter($rows,function($row){return $row->anchor && strtotime($row->anchor)!==false;}));
+}
+public static function preview_study($study_id) {
+    $rows=self::study_candidates($study_id);
+    if (is_wp_error($rows)) { return $rows; }
+    return array('affected_participants'=>count(array_unique(array_map(function($row){return $row->participant_id;},$rows))),
+        'waves_to_update'=>count($rows));
+}
+/** Per-assignment command; old arithmetic/audit owner is reused under its row lock. */
+public static function recalculate_study($study_id, $user_id) {
+    global $wpdb;
+    $rows=self::study_candidates($study_id);
+    if (is_wp_error($rows)) { return $rows; }
+    $updated=0;$participants=array();
+    foreach($rows as $candidate) {
+        if ($wpdb->query('START TRANSACTION')===false) { return new WP_Error('db_error','No se pudo iniciar el recálculo.',array('updated'=>$updated)); }
+        $committed=false;
+        try {
+            // Match submit's lookup/lock order, including its secondary index.
+            // A primary-key lock here can deadlock with submit's index lock.
+            $assignment=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}survey_assignments
+                WHERE participant_id=%d AND study_id=%d AND wave_id=%d FOR UPDATE",
+                $candidate->participant_id,$study_id,$candidate->wave_id));
+            if ($wpdb->last_error) { throw new RuntimeException('No se pudo bloquear la asignación.'); }
+            if (!$assignment || (int)$assignment->id!==(int)$candidate->id || !in_array($assignment->status,array('pending','in_progress'),true)) { continue; }
+            $context=$wpdb->get_row($wpdb->prepare("SELECT p.is_active,p.t1_completed_at,w.wave_index
+                FROM {$wpdb->prefix}survey_participants p JOIN {$wpdb->prefix}survey_waves w ON w.study_id=p.survey_id
+                WHERE p.id=%d AND p.survey_id=%d AND w.id=%d LOCK IN SHARE MODE",$assignment->participant_id,$study_id,$assignment->wave_id));
+            if ($wpdb->last_error) { throw new RuntimeException('No se pudo releer el contexto.'); }
+            if (!$context || !$context->is_active || (int)$context->wave_index<=1) { continue; }
+            $anchor=$context->t1_completed_at;
+            if (!$anchor) {
+                $anchor=$wpdb->get_var($wpdb->prepare("SELECT a.submitted_at FROM {$wpdb->prefix}survey_assignments a
+                    JOIN {$wpdb->prefix}survey_waves w ON w.id=a.wave_id
+                    WHERE a.participant_id=%d AND a.study_id=%d AND w.study_id=%d AND w.wave_index=1 AND a.status='submitted'
+                    LIMIT 1 LOCK IN SHARE MODE",$assignment->participant_id,$study_id,$study_id));
+            }
+            if ($wpdb->last_error) { throw new RuntimeException('No se pudo leer el ancla T1.'); }
+            if (!$anchor || strtotime($anchor)===false) { continue; }
+            $ok=self::recalculate_single_wave($assignment->participant_id,$assignment->wave_id,$anchor,'admin',$user_id);
+            if (!$ok || $wpdb->last_error) { throw new RuntimeException('No se pudo persistir el recálculo y su auditoría.'); }
+            if ($wpdb->query('COMMIT')===false) { throw new RuntimeException('No se pudo confirmar el recálculo.'); }
+            $committed=true;$updated++;$participants[$assignment->participant_id]=true;
+        } catch(Throwable $error) {
+            return new WP_Error('recalculation_failed',$error->getMessage(),array('updated'=>$updated));
+        } finally { if (!$committed) { $wpdb->query('ROLLBACK'); } }
+        // Dates committed before scheduling; notification failure cannot undo them.
+        $refresh=EIPSI_Notification_Nudge_Schedule_Service::refresh_wave_follow_ups($assignment->wave_id,$assignment->id);
+        if (is_wp_error($refresh)) { return new WP_Error('refresh_failed','Fechas guardadas; no se pudieron refrescar los recordatorios.',array('updated'=>$updated)); }
+    }
+    return array('message'=>sprintf('Recálculo completado: %d tomas.', $updated),'waves_to_update'=>$updated,'affected_participants'=>count($participants));
+}
+
 public static function recalculate_after_t1($participant_id, $study_id, $t1_completed_at, $triggered_by = 'system', $user_id = null) {
         global $wpdb;
 

@@ -2150,3 +2150,46 @@ function wp_ajax_eipsi_test_deadline_handler() {
     error_log('[EIPSI TEST] POST data: ' . print_r($_POST, true));
     wp_send_json_success(array('message' => 'Test handler works!'));
 }
+
+// S3: exact contracts emitted by the active study dashboard modal.
+add_action('wp_ajax_eipsi_send_individual_reminder', 'eipsi_send_individual_reminder_handler');
+add_action('wp_ajax_eipsi_recalculate_preview', 'eipsi_recalculate_preview_handler');
+add_action('wp_ajax_eipsi_recalculate_waves', 'eipsi_recalculate_waves_handler');
+function eipsi_s3_require_study_admin() {
+    if (!eipsi_user_can_manage_longitudinal()) { wp_send_json_error(array('message'=>'Unauthorized'),403); }
+    if (!is_string($_POST['nonce'] ?? null) || !wp_verify_nonce($_POST['nonce'],'eipsi_study_dashboard_nonce')) {
+        wp_send_json_error(array('message'=>'Invalid nonce'),403);
+    }
+}
+function eipsi_send_individual_reminder_handler() {
+    eipsi_s3_require_study_admin();
+    $id=absint($_POST['participant_id']??0);$wave_id=absint($_POST['wave_id']??0);
+    $participant=EIPSI_Participant_Service::get_by_id($id);
+    if (!$participant) { wp_send_json_error(array('message'=>'Participant not found'),404); }
+    $study_id=(int)$participant->survey_id;
+    if (isset($_POST['study_id']) && absint($_POST['study_id'])!==$study_id) { wp_send_json_error(array('message'=>'Study mismatch'),403); }
+    if (!EIPSI_Longitudinal_Study_Repository::get($study_id)) { wp_send_json_error(array('message'=>'Study not found'),404); }
+    if ($wave_id) {
+        $wave=EIPSI_Longitudinal_Wave_Definition_Service::get_wave($wave_id);
+        $assignment=EIPSI_Longitudinal_Assignment_Repository::get_assignment($wave_id,$id);
+        if (!$wave || (int)$wave->study_id!==$study_id || !$assignment || (int)$assignment['study_id']!==$study_id) {
+            wp_send_json_error(array('message'=>'Participant/wave mismatch'),403);
+        }
+    }
+    $result=EIPSI_Notification_Email_Message_Service::send_manual_reminders($study_id,array($id),$wave_id?:null);
+    $result['message']=$result['sent_count']===1?'Recordatorio enviado correctamente':'No se pudo enviar el recordatorio';
+    if ($result['sent_count']!==1) { wp_send_json_error($result); }
+    wp_send_json_success($result);
+}
+function eipsi_recalculate_preview_handler() {
+    eipsi_s3_require_study_admin();
+    $result=EIPSI_Longitudinal_T1_Recalculation_Service::preview_study(absint($_POST['study_id']??0));
+    if (is_wp_error($result)) { wp_send_json_error(array('message'=>$result->get_error_message()),400); }
+    wp_send_json_success($result);
+}
+function eipsi_recalculate_waves_handler() {
+    eipsi_s3_require_study_admin();
+    $result=EIPSI_Longitudinal_T1_Recalculation_Service::recalculate_study(absint($_POST['study_id']??0),get_current_user_id());
+    if (is_wp_error($result)) { wp_send_json_error(array('message'=>$result->get_error_message(),'details'=>$result->get_error_data()),400); }
+    wp_send_json_success($result);
+}
