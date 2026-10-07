@@ -1,0 +1,23 @@
+{
+  "images": {
+    "wordpress": "wordpress@sha256:4abf7a450ee477dde967584f8174d7e03221d224c4971a0c38d84e7254426e64",
+    "mariadb": "mariadb@sha256:6422478cb8e159f080fb1d8ccf65101e26fe51385787fde7d16c3b165a331f15",
+    "node": "node@sha256:363e1587494626837fa7f9a23bdb453d13b0ff3c67c705c2805cfc69c2d2fad7"
+  },
+  "versions": {"php": "8.3.35", "wordpress": "7.1.2", "mariadb": "11.8.9", "node": "22.23.3"},
+  "php": {
+    "p0": 22, "p1": 40, "p1b": 40, "p1c": 45,
+    "m0": 36, "m1": 29, "m2": 54, "m3": 39, "m4": 55,
+    "m5": 104, "m6": 82, "m6-live": 8, "m7": 62, "m8": 77,
+    "purga-final": 15, "s0": 31, "s1": 55, "s2": 53, "s3": 67,
+    "s4": 25, "s41": 22, "debug-off": 2
+  },
+  "js": {
+    "tests/m3/source-contracts.js": 15,
+    "tests/m3/runtime-dom.js": 26,
+    "tests/m7/frontend-load.js": 3,
+    "tests/s3/consumers.js": 13,
+    "tests/s4/consumers.js": 3,
+    "tests/s41/consumers.js": 8
+  }
+}

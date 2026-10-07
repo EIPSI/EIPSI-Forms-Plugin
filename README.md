@@ -2,7 +2,9 @@
 
 ## Estado del proyecto
 
-Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene la estabilización P0/P1, la caracterización M0 y la extracción del bootstrap M1 y Auth/Participants M2 y Forms/Submit M3. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
+Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene M0–M8 y la etapa de normalización S0–S4/S4.1 cerrada para nuevas features. T0 añade un gate CI básico; deploy institucional sigue condicionado. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
+
+Gate local: `./tests/ci/run.sh fast` o `./tests/ci/run.sh full` (modo por defecto). [Setup, versiones, 1031 tests anteriores + seis smoke nuevos, CI y límites](tests/ci/README.md).
 
 ## Qué es
 
@@ -85,7 +87,7 @@ GPL-2.0-or-later según los metadatos del proyecto. Se conserva la [licencia GPL
 
 ## Estado de madurez
 
-P0/P1, M0, PURGA 1, purga documental, M1, M2, M3, M4, M5, M6, M7 y M8 completados. Persisten deuda UI, recorridos legacy y límites de cron/exportación. Quedan PURGA FINAL, E2E completo, CI y un proceso de releases. Las pruebas actuales no certifican preparación para producción.
+P0/P1, M0–M8, PURGA FINAL y normalización S0–S4/S4.1 completados. T0 incorpora CI mínimo. Persisten deuda UI, recorridos legacy y límites de cron/exportación; E2E completo y un proceso de releases quedan fuera del gate diario. Las pruebas actuales no certifican preparación para producción institucional.
 
 Notifications tiene owners en `includes/notifications/` para policy, scheduling, queue/worker, email/templates/logs y reminders; las APIs históricas delegan conservando firmas. [Arquitectura](docs/architecture.md) y [pruebas M5](tests/m5/README.md).
 

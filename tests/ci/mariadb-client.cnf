@@ -1,0 +1,5 @@
+# Disposable fixture only: administrative clients use the local Unix socket.
+# Avoid a startup race with the image's freshly generated TLS certificate.
+# Server TLS configuration is unchanged; this is not a deployment configuration.
+[client]
+skip-ssl

@@ -1,5 +1,13 @@
 # Desarrollo
 
+## Gate local y CI T0
+
+Instalar Docker/Compose con acceso al daemon, Bash y Python 3.9+. Ejecutar `./tests/ci/run.sh fast` o `./tests/ci/run.sh full` desde el plugin; FULL es el modo por defecto. El wrapper usa imágenes fijadas, instala npm desde el lockfile si faltan dependencias y crea bases descartables independientes del WordPress de desarrollo. Tras modificar el lockfile, ejecutar nuevamente npm ci según [setup T0](../tests/ci/README.md).
+
+FAST mantiene 1031 tests (963 PHP + 68 JS), gate estricto RCT y build. FULL añade seis tests smoke sobre otra instalación nueva, con deactivate/reactivate: total único 1037. Los fallos muestran etapa/comando/exit code y guardan logs en `.cache/ci/`. GitHub ejecuta cuatro checks en PR/push a develop y cachea únicamente npm; no publica builds/releases ni necesita secretos institucionales. Requisitos y versiones canónicas, tiempos, checks recomendados y límites: [T0](../tests/ci/README.md).
+
+El gate no certifica SMTP, Nginx, datasets institucionales, E2E visual, performance, exactly-once ni atomicidad global. El upgrade histórico completo sigue siendo check manual/pre-release con los fixtures existentes.
+
 ## Instalación y build
 
 Desde la raíz del plugin, con Node compatible con el lockfile:
@@ -32,7 +40,7 @@ Propuesta pendiente de adopción: usar una única versión de distribución del 
 
 ## Alcance actual
 
-Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M1 incorporó `includes/bootstrap/`; M2 incorporó `includes/auth/` y `includes/participants/`. M3 incorporó `includes/forms/` y `src/frontend/forms/`; M5–M8 siguen pendientes. No hay CI/E2E completo. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
+Trabajar sobre `develop`; `origin/main` es la referencia de integración. `feature/*` es una convención propuesta, no una enumeración de ramas certificadas. M0–M8 y normalización S0–S4/S4.1 están completados en el alcance auditado. T0 añade CI mínimo; no hay E2E visual completo ni certificación institucional. Consultar [arquitectura](architecture.md) y [testing](testing.md) antes de modificar contratos.
 
 ## Cambiar el bootstrap
 

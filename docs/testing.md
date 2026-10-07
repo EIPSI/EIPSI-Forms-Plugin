@@ -1,5 +1,11 @@
 # Testing
 
+## T0 — Gate automático actual
+
+Desde la raíz del plugin: `./tests/ci/run.sh fast` (963 PHP + 68 JS, gate RCT y build) o `./tests/ci/run.sh full` (añade nueva instalación, seis smoke tests y deactivate/reactivate). FULL es el modo por defecto. Se mantienen los **1031 anteriores**; con los seis tests nuevos T0 el total es **1037 únicos: 969 PHP + 68 JS**. Repeticiones/lifecycle no suman casos.
+
+[Requisitos, versiones, suites, logs y límites](../tests/ci/README.md). GitHub Actions corre PHP tests, JS tests, Build y Clean smoke para PRs/pushes a `develop`; no sustituye el upgrade histórico manual/pre-release ni certifica deploy institucional. Los conteos siguientes conservan la historia de cada fase.
+
 La suite anterior a M3 tiene 268 pruebas: P0 22, P1-A 40, P1-B 40, P1-C 45, M0 36, M1 31 (29 contratos/lifecycle y 2 sin WP_DEBUG) y M2 54. Las 214 anteriores se mantienen.
 
 ## Ejecutar las regresiones

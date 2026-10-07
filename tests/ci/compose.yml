@@ -1,0 +1,46 @@
+# Only disposable M0 fixtures. No host port, institutional service or mutable cache.
+services:
+  db:
+    image: ${EIPSI_CI_DB_IMAGE:?Set by gate.py}
+    environment:
+      MARIADB_DATABASE: m0
+      MARIADB_USER: m0
+      MARIADB_PASSWORD: m0-isolated
+      MARIADB_ROOT_PASSWORD: m0-root-isolated
+    networks:
+      default:
+        aliases: [eipsi-m0-db]
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 2s
+      timeout: 5s
+      retries: 45
+    volumes:
+      - db:/var/lib/mysql
+      - ./mariadb-client.cnf:/etc/mysql/conf.d/zz-ci-client.cnf:ro
+  wordpress:
+    image: ${EIPSI_CI_WP_IMAGE:?Set by gate.py}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: eipsi-m0-db:3306
+      WORDPRESS_DB_NAME: m0
+      WORDPRESS_DB_USER: m0
+      WORDPRESS_DB_PASSWORD: m0-isolated
+      WORDPRESS_DEBUG: '1'
+      WORDPRESS_CONFIG_EXTRA: 'define("DISABLE_WP_CRON", true); define("WP_DEBUG_LOG", true); define("WP_DEBUG_DISPLAY", false);'
+    volumes:
+      - wordpress:/var/www/html
+      - ${EIPSI_CI_PLUGIN_ROOT:?Set by gate.py}:/var/www/html/wp-content/plugins/EIPSI-Forms-Plugin:ro
+      - exports:/var/www/html/wp-content/plugins/EIPSI-Forms-Plugin/exports
+volumes:
+  db:
+  wordpress:
+  exports:
+networks:
+  default:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${EIPSI_CI_SUBNET:-10.236.0.0/24}
