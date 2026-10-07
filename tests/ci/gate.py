@@ -32,10 +32,11 @@ class Gate:
         print(f'RUN {stage}: {shlex.join(command)}', flush=True)
         started = time.monotonic()
         log = self.logs / (stage + '.log')
+        stderr_log = self.logs / (stage + '.stderr.log')
         try:
-            with log.open('w') as output:
+            with log.open('w') as output, stderr_log.open('w') as errors:
                 result = subprocess.run(command, cwd=ROOT, env=env, stdout=output,
-                                        stderr=subprocess.STDOUT, timeout=timeout)
+                                        stderr=errors, timeout=timeout)
             code = result.returncode
         except subprocess.TimeoutExpired:
             code = 124
@@ -44,11 +45,13 @@ class Gate:
             code = 127
         self.results.append({'stage': stage, 'exit_code': code,
                              'seconds': round(time.monotonic() - started, 2),
-                             'command': command, 'log': str(log.relative_to(ROOT))})
+                             'command': command, 'log': str(log.relative_to(ROOT)),
+                             'stderr_log': str(stderr_log.relative_to(ROOT))})
         text = log.read_text(errors='replace')
         if code:
             print(f'FAIL {stage}: exit {code}; log {log}', file=sys.stderr)
-            print('\n'.join(text.splitlines()[-60:]), file=sys.stderr)
+            errors = stderr_log.read_text(errors='replace') if stderr_log.exists() else ''
+            print('\n'.join((text + '\n' + errors).splitlines()[-60:]), file=sys.stderr)
             raise Failure(code)
         print(f'PASS {stage} ({self.results[-1]["seconds"]}s)', flush=True)
         return text
@@ -72,8 +75,13 @@ class Gate:
         return self.run(stage, args + [CONFIG['images']['node']] + command)
 
     def dependencies(self):
-        version = self.node('node-version', ['node', '--version']).strip()
-        self.check('node-version', version == 'v' + CONFIG['versions']['node'], 'Unexpected Node version')
+        # Docker emits image-pull progress on stderr on a cold runner.
+        # Only stdout is the machine-readable output of node --version.
+        version = self.node('node-version-command', ['node', '--version']).strip()
+        expected = 'v' + CONFIG['versions']['node']
+        self.check('node-version', version == expected,
+                   f'Expected Node {expected}, observed {version!r}')
+        print(f'PASS node-version ({version})', flush=True)
         if not (ROOT / 'node_modules/.package-lock.json').is_file():
             self.node('npm-ci', ['npm', 'ci', '--no-audit', '--no-fund'], network=True)
 
@@ -175,6 +183,8 @@ def main():
     gate = Gate()
     code = 0
     try:
+        gate.run('harness-tests', ['python3', '-B', '-m', 'unittest', 'discover',
+                                  '-s', 'tests/ci', '-p', 'test_gate.py'])
         gate.run('docker', ['docker', 'info', '--format', '{{.ServerVersion}}'])
         gate.dependencies()
         if mode in ('fast', 'full', 'js'):
