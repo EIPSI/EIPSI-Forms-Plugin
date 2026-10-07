@@ -10333,7 +10333,7 @@
         "deps": [
           "jquery"
         ],
-        "version": 1791049644,
+        "version": "<filemtime:admin/js/privacy-dashboard.js>",
         "group": 1,
         "enqueued": true
       },

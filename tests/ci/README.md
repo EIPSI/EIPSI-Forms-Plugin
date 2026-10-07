@@ -45,6 +45,8 @@ La subred local por defecto es `10.236.0.0/24`, para no depender del pool autom�
 
 PHP, orden estable: P0 con `--integration`, P1, P1B, P1C, M0–M8 (M6-live después de M6), PURGA FINAL, S0, S1, S2, S3, S4, S4.1 y M1 debug-off. **963 PHP**. El gate estricto selecciona S4-03 del runner S4 y lo repite, sin agregar otro caso al conteo.
 
+M1 valida que la versión de `eipsi-privacy-dashboard` sea exactamente el `filemtime` de `admin/js/privacy-dashboard.js` en el checkout actual. Solo ese valor se representa con un marcador en el baseline: Git no preserva timestamps entre checkouts. Los demás campos del asset se comparan sin cambios.
+
 JS: M3 source-contracts 15, M3 runtime-dom 26, M7 frontend-load 3, S3 consumers 13, S4 consumers 3, S4.1 consumers 8. **68 JS**, todos con los runners existentes, sin reemplazarlos por lint.
 
 Build: `npm run build`, 13 bloques con archivos/refs válidos y runtime Forms equivalente a los 18 fragmentos del manifest. El verificador es infraestructura y no suma tests de dominio.

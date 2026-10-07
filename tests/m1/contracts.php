@@ -36,6 +36,11 @@ function m1_contracts($inventory) {
     usort($cron, function ($a, $b) { return strcmp($a['hook'], $b['hook']); });
     $assets = $inventory['assets'];
     foreach ($assets as &$row) {
+        if ($row['kind'] === 'script' && $row['handle'] === 'eipsi-privacy-dashboard') {
+            // Checkout timestamps vary; retain the actual filemtime cache-busting contract.
+            m0_assert($row['version'] === filemtime(EIPSI_FORMS_PLUGIN_DIR . 'admin/js/privacy-dashboard.js'), 'Unexpected privacy dashboard asset version contract');
+            $row['version'] = '<filemtime:admin/js/privacy-dashboard.js>';
+        }
         if ($row['handle'] === 'eipsi-forms-js') {
             m0_assert(preg_match('/^2\.6\.1\.\d{10}$/', (string)$row['version']) === 1, 'Unexpected forms asset version contract');
             $row['version'] = '2.6.1.<request-time>';
