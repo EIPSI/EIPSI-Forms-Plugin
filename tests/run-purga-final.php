@@ -27,7 +27,23 @@ function purga_hooks($rows){return array_map(function($h){return array_intersect
 $tests['Hooks admin/frontend preservan nombres prioridad orden y argumentos']=function()use($s3){foreach(array('frontend','admin')as$p){$before=json_decode(file_get_contents(__DIR__.'/purga-final/'.$p.'-before.json'),true);$after=purga_inventory($p);$actual=purga_hooks($after['hooks']);foreach($s3['added_hooks']as$h){m0_assert(in_array($h,$actual),'S3 hook absent: '.$h['hook']);$actual=array_values(array_filter($actual,function($r)use($h){return $r!=$h;}));}m0_assert(purga_hooks($before['hooks'])==$actual,'Hook boundary changed: '.$p);}};
 $tests['Todos los callbacks runtime son callable']=function(){foreach(array('frontend','admin')as$p){$i=purga_inventory($p);foreach($i['hooks']as$h)m0_assert($h['callable'],'Broken hook '.$h['hook']);foreach($i['rest']as$r)m0_assert($r['callback']['callable']&&$r['permission']['callable'],'REST callback broken');foreach($i['shortcodes']as$r)m0_assert($r['callable'],'Shortcode broken');}};
 $tests['Includes runtime existen y preservan lista de carga']=function()use($root){foreach(array('frontend','admin')as$p){$before=json_decode(file_get_contents(__DIR__.'/purga-final/'.$p.'-before.json'),true);$after=purga_inventory($p);$a=array_column($before['included'],'file');$b=array_column($after['included'],'file');m0_assert($a===$b,'Include list changed');foreach($b as$f)m0_assert(is_file($root.$f),'Dangling include: '.$f);}};
-$tests['Assets preservan handles URL dependencia y orden']=function(){foreach(array('frontend','admin')as$p){$before=json_decode(file_get_contents(__DIR__.'/purga-final/'.$p.'-before.json'),true);$after=purga_inventory($p);$normalize=function($rows){foreach($rows as&$r)if($r['handle']==='eipsi-forms-js')$r['version']=preg_replace('/\.\d+$/','',(string)$r['version']);unset($r);return$rows;};m0_assert($normalize($before['assets'])===$normalize($after['assets']),'Asset contract changed: '.$p);}};
+$tests['Assets preservan handles URL dependencia y orden']=function(){
+ foreach(array('frontend','admin')as$p){
+  $before=json_decode(file_get_contents(__DIR__.'/purga-final/'.$p.'-before.json'),true);
+  $after=purga_inventory($p);
+  $normalize=function($rows,$observed){
+   foreach($rows as&$r){
+    if($r['handle']==='eipsi-forms-js')$r['version']=preg_replace('/\.\d+$/','',(string)$r['version']);
+    if($r['kind']==='script'&&$r['handle']==='eipsi-privacy-dashboard'){
+     if($observed)m0_assert($r['version']===filemtime(EIPSI_FORMS_PLUGIN_DIR.'admin/js/privacy-dashboard.js'),'Unexpected privacy dashboard asset version contract');
+     $r['version']='<filemtime:admin/js/privacy-dashboard.js>';
+    }
+   }
+   unset($r);return$rows;
+  };
+  m0_assert($normalize($before['assets'],false)===$normalize($after['assets'],true),'Asset contract changed: '.$p);
+ }
+};
 $tests['Contenido de assets locales preservado tras build']=function()use($root,$s0,$s3,$s41_assets){$hashes=json_decode(file_get_contents(__DIR__.'/purga-final/asset-hashes-before.json'),true);foreach($hashes as$file=>$hash){if(isset($s0['assets'][$file])){m0_assert($s0['assets'][$file]['before_s0_sha256']===$hash,'Original asset baseline lost');$hash=$s0['assets'][$file]['s0_sha256'];}if(isset($s3['assets'][$file])){m0_assert($s3['assets'][$file]['before_s3_sha256']===$hash,'Original asset baseline lost');$hash=$s3['assets'][$file]['s3_sha256'];}if(isset($s41_assets[$file])){m0_assert($s41_assets[$file]['before_s41_sha256']===$hash,'Original S4 asset baseline lost');$hash=$s41_assets[$file]['s41_sha256'];}m0_assert(is_file($root.$file)&&hash_file('sha256',$root.$file)===$hash,'Asset body changed: '.$file);}};
 $tests['Dependencias de assets EIPSI registradas en WordPress']=function(){foreach(array('frontend','admin')as$p){$i=purga_inventory($p);m0_assert(!$i['missing_asset_dependencies'],'Dangling dependency: '.json_encode($i['missing_asset_dependencies']));}};
 $tests['Cron programado conserva frecuencia y callback']=function(){m0_assert(has_action('wp','eipsi_schedule_job_worker')===10,'Contextual scheduler absent');$request=m0_http('/');m0_assert(wp_remote_retrieve_response_code($request)===200,'Frontend lifecycle failed');foreach(array('frontend','admin')as$p){$i=purga_inventory($p,true);$b=json_decode(file_get_contents(__DIR__.'/purga-final/'.$p.'-before.json'),true);$shape=function($rows){$a=array();foreach($rows as$r)$a[]=array($r['hook'],$r['schedule'],$r['interval'],$r['args'],$r['callback_registered']);sort($a);return$a;};m0_assert($shape($i['cron'])===$shape($b['cron']),'Cron contract changed');foreach($i['cron']as$r)m0_assert($r['callback_registered'],'Cron orphan');}};

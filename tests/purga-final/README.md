@@ -37,7 +37,7 @@ docker exec eipsi-purga-final-upgrade-wordpress php /var/www/html/wp-content/plu
 python3 tests/m8/compare-schema.py /tmp/purga-clean-schema.json /tmp/purga-upgrade-schema.json
 ```
 
-Repeat smoke and inventories on upgrade. M0 exercises real HTTP admin/schema, basic form, unauthorized AJAX/REST and assets. Purga smoke additionally invokes all nine shortcodes and 13 blocks. New tests assert A absent, public class/global signatures, hook priority/order, active includes, asset dependencies/body hashes, cron shape and retained F/E characterization. Forms JS filemtime cache version is normalized while its bytes are independently frozen. The complete M3–M8 hash history is preserved through a new explicit boundary entry.
+Repeat smoke and inventories on upgrade. M0 exercises real HTTP admin/schema, basic form, unauthorized AJAX/REST and assets. Purga smoke additionally invokes all nine shortcodes and 13 blocks. New tests assert A absent, public class/global signatures, hook priority/order, active includes, asset dependencies/body hashes, cron shape and retained F/E characterization. Forms JS request-time cache version is normalized while its bytes are independently frozen. Privacy Dashboard cache version must equal the current checkout filemtime; only that timestamp is normalized when comparing against the historical inventory. The complete M3–M8 hash history is preserved through a new explicit boundary entry.
 
 Empty fixtures do not establish absence of institutional content, metadata, themes, integrations or external databases. Existing guarded historical fallback paths are not removed or repaired in this phase. See [retained compatibility](../../docs/legacy-compatibility.md).
 
