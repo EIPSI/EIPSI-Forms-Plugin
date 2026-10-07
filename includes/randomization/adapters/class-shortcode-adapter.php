@@ -83,11 +83,18 @@ public static function eipsi_randomization_shortcode( $atts ) {
         }
     }
 
+    // Personalized capability output must not be shared by a page cache.
+    if (!defined('DONOTCACHEPAGE')) { define('DONOTCACHEPAGE', true); }
+    if (!headers_sent()) { nocache_headers(); }
+
     // PASO 4: Renderizar el formulario asignado
     ob_start();
     ?>
     <div class="eipsi-randomization-container" 
          data-randomization-id="<?php echo esc_attr( $config_id ); ?>"
+         data-reset-assignment-id="<?php echo esc_attr($resolved['assignment_id']); ?>"
+         data-reset-fingerprint="<?php echo esc_attr($resolved['reset_fingerprint']); ?>"
+         data-reset-capability="<?php echo esc_attr($resolved['reset_capability']); ?>"
          data-assigned-form="<?php echo esc_attr( $assigned_form_id ); ?>"
          data-show-modal="<?php echo $is_new_assignment ? 'true' : 'false'; ?>">
         

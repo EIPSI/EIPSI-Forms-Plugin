@@ -183,3 +183,11 @@ Los consumidores reales se ejecutan en Node/VM con un DOM mínimo y generan requ
 MariaDB concurrente: bloqueo real con barrier, reread de terminal, dos apply y submit vs apply. UPDATE/audit fallidos revierten; refresh fallido después del commit informa persistencia parcial. El correo se intercepta solo para fixtures. Clean crea schema vigente, upgrade parte del schema pre-M8 y verifica26 dominios históricos; smoke y deactivate/reactivate se ejecutan en ambos.
 
 M0 cambia conscientemente cuatro expectativas de missing, M5 una. M1/PURGA FINAL admiten solo seis hooks S3 y dos métodos nuevos del owner, con hash de asset encadenado al anterior; no reemplazan snapshots.
+
+## S4 — Adversarial final (NO-GO)
+
+[Fixtures y comandos](../tests/s4/README.md). 973 anteriores +25 PHP +3 JS =1001 casos únicos (941 PHP,60 JS). No sumar repeticiones clean/upgrade/lifecycle. Los casos nuevos cubren IDOR/temporalidad de partials, SQL SELECT refresh false-success, revocación logout fallida, sesión/claims, consumer reminder real→HTTP, race apply/deadline y repeated apply/audit.
+
+La ejecución original S4 caracterizaba un P1 abierto. S4.1 convierte ese mismo caso en una invariante permanente de rechazo y conservación de filas; `EIPSI_S4_EXPECT_RCT_DENIAL=1` selecciona el gate estricto. Tres consumidores VM/DOM mínimo incluyen un ReferenceError inline P2 confirmado; no es E2E visual global. Pruebas RED preservadas en informe S4. Sin snapshots reemplazados ni schema modificado.
+
+S4.1 añade 22 PHP + 8 JS: **1031 casos únicos (963 PHP + 68 JS)**. [Contrato y comandos S4.1](../tests/s41/README.md). Clean/upgrade/lifecycle y gate estricto son repeticiones y no aumentan el total.

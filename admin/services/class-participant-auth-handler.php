@@ -423,7 +423,9 @@ class EIPSI_Participant_Auth_Handler {
         }
         
         // Destroy session
-        EIPSI_Auth_Service::destroy_session();
+        if (!EIPSI_Auth_Service::destroy_session()) {
+            wp_send_json_error(array('message' => __('No se pudo revocar la sesión. Reintentá cerrar sesión.', 'eipsi-forms')), 500);
+        }
         
         wp_send_json_success(array(
             'message'      => __('Sesión cerrada exitosamente.', 'eipsi-forms'),

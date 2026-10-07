@@ -12,6 +12,22 @@
 		return;
 	}
 
+	// A tracking fingerprint never substitutes for the row-bound reset credential.
+	function resetCapability(container, forget = false) {
+		if (!container) return '';
+		const config = container.getAttribute('data-randomization-id');
+		const row = container.getAttribute('data-reset-assignment-id');
+		if (!config || !row) return '';
+		const key = 'eipsi_rct_reset:' + JSON.stringify([config, row]);
+		let proof = container.getAttribute('data-reset-capability') || '';
+		try {
+			if (forget) { window.localStorage.removeItem(key); container.removeAttribute('data-reset-capability'); return ''; }
+			if (proof) window.localStorage.setItem(key, proof);
+			else proof = window.localStorage.getItem(key) || '';
+		} catch (error) { /* Storage unavailable: only a newly rendered credential survives. */ }
+		return proof;
+	}
+
 	const AUTOSAVE_INTERVAL = 30000; // 30 segundos
 	const INPUT_DEBOUNCE = 800; // ms
 	const IDB_NAME = 'eipsi_forms';
@@ -445,12 +461,17 @@
 
 			if ( restartButton ) {
 				restartButton.addEventListener( 'click', async () => {
+					const restartLabel = restartButton.textContent;
 					restartButton.disabled = true;
 					restartButton.textContent = 'Borrando...';
 
 					try {
 						// PASO 1: Cerrar sesión de aleatorización (si existe)
-						await this.closeRandomizationSession();
+						if (!(await this.closeRandomizationSession())) {
+							restartButton.disabled = false;
+							restartButton.textContent = restartLabel;
+							return;
+						}
 
 						// PASO 2: Descartar respuestas parciales
 						await this.discardPartial();
@@ -768,7 +789,9 @@
 		 */
 		async closeRandomizationSession() {
 			const randomizationId = this.getRandomizationId();
-			const userFingerprint = this.getUserFingerprint();
+			const container = this.form.closest('.eipsi-randomization-container');
+			const userFingerprint = container?.getAttribute('data-reset-fingerprint') || this.getUserFingerprint();
+			const proof = resetCapability(container);
 
 			// Si no hay aleatorización activa, no hacer nada (no es un error)
 			if ( ! randomizationId || ! userFingerprint ) {
@@ -790,6 +813,7 @@
 				return false;
 			}
 
+			if (!proof) return false;
 			try {
 				const formData = new URLSearchParams();
 				formData.append(
@@ -798,6 +822,7 @@
 				);
 				formData.append( 'randomization_id', randomizationId );
 				formData.append( 'user_fingerprint', userFingerprint );
+				formData.append( 'reset_capability', proof );
 
 				const response = await fetch( this.config.ajaxUrl, {
 					method: 'POST',
@@ -830,6 +855,7 @@
 					);
 				}
 
+				if (data.success) resetCapability(container, true);
 				return data.success || false;
 			} catch ( error ) {
 				if ( this.config?.settings?.debug && window.console?.error ) {
@@ -1564,6 +1590,7 @@
 	 * y cierra la sesión antes de recargar la página.
 	 */
 	document.addEventListener( 'DOMContentLoaded', () => {
+		document.querySelectorAll('.eipsi-randomization-container').forEach(container => resetCapability(container));
 		const restartButtons = document.querySelectorAll(
 			'.eipsi-randomization-container [data-action="restart"]'
 		);
@@ -1571,6 +1598,7 @@
 		restartButtons.forEach( ( button ) => {
 			button.addEventListener( 'click', async ( event ) => {
 				event.preventDefault();
+				const restartLabel = button.textContent;
 				button.disabled = true;
 				button.textContent = 'Reiniciando...';
 
@@ -1627,6 +1655,10 @@
 						}
 					}
 
+					userFingerprint = container?.getAttribute('data-reset-fingerprint') || userFingerprint;
+					const proof = resetCapability(container);
+					if (randomizationId && !proof) { button.disabled = false; button.textContent = restartLabel; return; }
+
 					// Si hay randomization_id y fingerprint, cerrar sesión
 					if (
 						randomizationId &&
@@ -1641,8 +1673,9 @@
 						);
 						formData.append( 'randomization_id', randomizationId );
 						formData.append( 'user_fingerprint', userFingerprint );
+						formData.append( 'reset_capability', proof );
 
-						await fetch( window.eipsiFormsConfig.ajaxUrl, {
+						const response = await fetch( window.eipsiFormsConfig.ajaxUrl, {
 							method: 'POST',
 							body: formData,
 							headers: {
@@ -1651,15 +1684,19 @@
 							},
 							credentials: 'same-origin',
 						} );
+						if (!response.ok || !(await response.json()).success) { button.disabled = false; button.textContent = restartLabel; return; }
+						resetCapability(container, true);
 					}
 				} catch ( error ) {
-					// Ignorar errores (continuar de todas formas)
+					button.disabled = false;
+					button.textContent = restartLabel;
 					if ( window.console && window.console.warn ) {
 						window.console.warn(
 							'[EIPSI Save & Continue] Error al cerrar sesión de aleatorización:',
 							error
 						);
 					}
+					return;
 				}
 
 				// Recargar la página (esto asignará un nuevo formulario en rotación)

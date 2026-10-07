@@ -12,6 +12,7 @@ const m8Migrations=require('../m8/boundary-migrations.json');
 const purgaMigrations=require('../purga-final/boundary-migrations.json');
 const s0Migrations=require('../s0/boundary-migrations.json');
 const s1Migrations=require('../s1/boundary-migrations.json');
+const s41Migrations=require('../s41/boundary-migrations.json');
 let count=0;
 for(const [file,expected] of Object.entries(contracts.unchanged_files)) {
     const migration=migrations[file];
@@ -37,7 +38,10 @@ for(const [file,expected] of Object.entries(contracts.unchanged_files)) {
     const beforeS1=s0Migration ? s0Migration.s0_sha256 : beforeS0;
     const s1Migration=s1Migrations[file];
     if(s1Migration) assert.equal(s1Migration.before_s1_sha256,beforeS1,'S0 history must remain recorded for S1 integrity change');
-    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),s1Migration ? s1Migration.s1_sha256 : beforeS1,'Boundary changed beyond explicit recorded migration: '+file);
+    const beforeS41=s1Migration ? s1Migration.s1_sha256 : beforeS1;
+    const s41Migration=s41Migrations[file];
+    if(s41Migration) assert.equal(s41Migration.before_s41_sha256,beforeS41,'S4 asset history preserved for ownership repair');
+    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),s41Migration ? s41Migration.s41_sha256 : beforeS41,'Boundary changed beyond explicit recorded migration: '+file);
     console.log('PASS unchanged boundary '+file); count++;
 }
 const manifest=require('../../src/frontend/forms/manifest.json');

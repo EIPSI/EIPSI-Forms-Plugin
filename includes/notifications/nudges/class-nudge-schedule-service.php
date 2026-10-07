@@ -12,10 +12,16 @@ public static function refresh_wave_follow_ups($wave_id, $assignment_id = null) 
              JOIN {$wpdb->prefix}survey_waves w ON w.id = a.wave_id
              WHERE a.wave_id = %d AND a.status IN ('pending','in_progress')" . $filter, $wave_id
         ));
+        if ($wpdb->last_error) {
+            return new WP_Error('reschedule_failed', 'No se pudieron leer las asignaciones para refrescar recordatorios.');
+        }
         $scheduled = 0;
         foreach ($assignments as $assignment) {
             $count=self::with_assignment_lock($assignment->id,function() use ($assignment,$wpdb) {
                 $assignment=$wpdb->get_row($wpdb->prepare("SELECT a.*, w.follow_up_reminders_enabled FROM {$wpdb->prefix}survey_assignments a JOIN {$wpdb->prefix}survey_waves w ON w.id=a.wave_id WHERE a.id=%d",$assignment->id));
+                if ($wpdb->last_error) {
+                    return new WP_Error('reschedule_failed', 'No se pudo releer la asignación para refrescar recordatorios.');
+                }
                 if(!$assignment){return 0;}
                 require_once EIPSI_FORMS_PLUGIN_DIR.'includes/services/class-nudge-job-queue.php';
                 if(EIPSI_Nudge_Job_Queue::cancel_follow_up_jobs($assignment->id)===false){return new WP_Error('reschedule_failed','Configuración guardada; no se pudieron cancelar los jobs anteriores. Reintentá.');}

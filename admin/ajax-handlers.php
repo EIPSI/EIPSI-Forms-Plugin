@@ -1748,6 +1748,28 @@ function eipsi_get_completion_config_handler() {
 /**
  * Save & Continue: Save partial response
  */
+/** Browser draft keys do not authorize a longitudinal participant identity. */
+function eipsi_authorize_partial_request($form_id, $participant_id, $writing = false) {
+    if (ctype_digit((string) $participant_id)) {
+        $session = EIPSI_Authorization_Policy::authorize_session_context($_POST);
+        if (!$session['success']) {
+            wp_send_json_error(array('message' => 'Not authorized'), 403);
+        }
+    }
+    $access = EIPSI_Authorization_Policy::authorize_form_operation($form_id, $_POST, $_GET, 'partial');
+    if (!$access['success']) {
+        wp_send_json_error(array('message' => 'Not authorized'), 403);
+    }
+    if ($writing && !empty($access['longitudinal'])) {
+        $eligible = EIPSI_Longitudinal_Assignment_Transition_Service::precheck_submission(
+            $access['participant_id'], $access['study_id'], $access['wave_id']
+        );
+        if (!$eligible['success']) {
+            wp_send_json_error($eligible['data'], $eligible['status']);
+        }
+    }
+}
+
 function eipsi_save_partial_response_handler() {
     // Nonce required even for nopriv. Prevents CSRF + drive-by writes.
     check_ajax_referer('eipsi_save_partial', 'nonce');
@@ -1834,6 +1856,7 @@ function eipsi_save_partial_response_handler() {
         ));
     }
     
+    eipsi_authorize_partial_request($form_id, $participant_id, true);
     $result = EIPSI_Partial_Responses::save($form_id, $participant_id, $session_id, $page_index, $responses);
     
     if ($result['success']) {
@@ -1878,6 +1901,7 @@ function eipsi_load_partial_response_handler() {
         ));
     }
     
+    eipsi_authorize_partial_request($form_id, $participant_id);
     $partial = EIPSI_Partial_Responses::load($form_id, $participant_id, $session_id);
     
     if ($partial) {
@@ -2260,6 +2284,7 @@ function eipsi_discard_partial_response_handler() {
         ));
     }
     
+    eipsi_authorize_partial_request($form_id, $participant_id);
     $success = EIPSI_Partial_Responses::discard($form_id, $participant_id, $session_id);
     
     if ($success) {
@@ -2825,12 +2850,7 @@ function eipsi_clear_login_rate_limit($email, $survey_id) {
  * @since 1.3.20
  */
 function eipsi_close_randomization_session_handler() {
-    // Validar nonce (aceptar POST)
-    $nonce = '';
-    if ( isset( $_POST['nonce'] ) ) {
-        $nonce = sanitize_text_field( wp_unslash( $_POST['nonce'] ) );
-    }
-
+    // Public nonce is not ownership; the owner requires an assignment capability.
     // Validar parámetros requeridos
     $randomization_id = isset( $_POST['randomization_id'] ) ? sanitize_text_field( wp_unslash( $_POST['randomization_id'] ) ) : '';
     $user_fingerprint = isset( $_POST['user_fingerprint'] ) ? sanitize_text_field( wp_unslash( $_POST['user_fingerprint'] ) ) : '';
@@ -2858,8 +2878,8 @@ function eipsi_close_randomization_session_handler() {
         ) );
     } else {
         wp_send_json_error( array(
-            'message' => __( 'Error al cerrar sesión de aleatorización', 'eipsi-forms' )
-        ), 500 );
+            'message' => __( 'Reset no autorizado o no disponible', 'eipsi-forms' )
+        ), 403 );
     }
 }
 

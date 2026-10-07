@@ -154,11 +154,14 @@ class EIPSI_Session_Service {
 
             // DELETE FROM sessions WHERE token_hash = hash(token)
             $table_name = $wpdb->prefix . 'survey_sessions';
-            $wpdb->delete(
+            $deleted = $wpdb->delete(
                 $table_name,
                 array('token' => $token_hash),
                 array('%s')
             );
+            if ($deleted === false) {
+                return false;
+            }
         }
 
         unset($_COOKIE[$cookie_name]);
@@ -180,7 +183,7 @@ class EIPSI_Session_Service {
             setcookie($cookie_name, '', $past_time, '/', '', is_ssl(), true);
         }
 
-        return true; // Siempre true si llegamos aquí
+        return true; // Confirmed deletion or already absent (idempotent logout).
     }
 
     public static function is_authenticated() {
