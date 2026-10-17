@@ -1,0 +1,93 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "04-diary-seven-days",
+  "scenarios": [
+    {
+      "id": "S_DIARY",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "EXECUTION_CREATED",
+            "data": {}
+          },
+          "expected": [
+            {
+              "kind": "ASSESSMENT_COUNT",
+              "node_id": "E_DIARY",
+              "count": 7
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_DIARY",
+              "at": "2026-10-12T23:00:00Z",
+              "slot": {
+                "day": 1,
+                "slot": 1
+              },
+              "responses": {
+                "Q_MOOD": 4
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_DIARY",
+              "slot": {
+                "day": 1,
+                "slot": 1
+              },
+              "state": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CLOCK_ADVANCED",
+            "data": {
+              "at": "2026-10-15T02:00:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_DIARY",
+              "slot": {
+                "day": 3,
+                "slot": 1
+              },
+              "state": "EXPIRED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CLOCK_ADVANCED",
+            "data": {
+              "at": "2026-10-16T00:00:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_DIARY",
+              "slot": {
+                "day": 4,
+                "slot": 1
+              },
+              "state": "AVAILABLE"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

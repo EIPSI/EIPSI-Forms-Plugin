@@ -1,0 +1,36 @@
+(function (B) {
+    'use strict';
+    B.copy = x => JSON.parse(JSON.stringify(x));
+    B.id = prefix => prefix + '_' + crypto.randomUUID().replace(/-/g, '');
+    B.children = (d, parent) => d.nodes.filter(n => n.parent_id === parent).sort((a, b) => a.position - b.position || a.id.localeCompare(b.id));
+    B.node = (d, id) => d.nodes.find(n => n.id === id);
+    B.label = n => n.metadata?.label || (n.content ? (() => { try { return JSON.parse(n.content.snapshot).label || n.id; } catch (_) { return n.id; } })() : n.id);
+    B.path = (d, id) => { const out = [], seen = new Set(); while (B.node(d, id) && !seen.has(id)) { seen.add(id); const n = B.node(d, id); out.unshift(B.label(n)); id = n.parent_id; } return out.join(' > '); };
+    B.allowed = (d, parent, child) => { const p = B.node(d, parent); if (!p) return parent === d.id && child.kind === 'BLOCK' && child.scope === 'MACRO'; return p.kind === 'BLOCK' && (p.scope === 'MACRO' ? child.kind === 'BLOCK' : child.scope !== 'MACRO'); };
+    B.descendants = (d, id) => { const result = []; const walk = p => B.children(d, p).forEach(n => { result.push(n.id); walk(n.id); }); walk(id); return result; };
+    B.reindex = d => { const parents = new Set(d.nodes.map(n => n.parent_id)); parents.forEach(p => B.children(d, p).forEach((n, i) => { n.position = i; })); d.root_block_ids = B.children(d, d.id).map(n => n.id); if (B.randomConfig) d.nodes.filter(n => n.randomization).forEach(n => { const old = n.randomization, fresh = B.randomConfig(d, n, n.children_strategy); n.randomization = { ...fresh, scope: old.scope, select_n: old.select_n, draw_count: old.draw_count, order: old.order, weights: fresh.strategy === 'WEIGHTED_RANDOM' ? Object.fromEntries(fresh.candidates.map(id => [id, old.weights[id] ?? 1])) : [] }; }); return d; };
+    B.move = (d, id, parent, position) => {
+        const out = B.copy(d), n = B.node(out, id); if (!n || !B.allowed(out, parent, n) || parent === id || B.descendants(out, id).includes(parent)) throw Error('El destino no admite este elemento.');
+        const refs = B.references(out, new Set([id, ...B.descendants(out, id)])); if (parent !== n.parent_id && refs.length) throw Error('El elemento tiene referencias. Revisalas antes de cambiarlo de padre.');
+        n.parent_id = parent; if (n.kind === 'BLOCK' && n.scope === 'MICRO') { const internal = B.node(out, parent).scope === 'MICRO'; n.completion_boundary = internal ? 'GROUP' : 'ASSESSMENT'; if (internal) n.schedule = null; else if (!n.schedule) n.schedule = B.schedule('BLOCK_AVAILABLE', parent); }
+        const peers = B.children(out, parent).filter(x => x.id !== id); peers.splice(Math.max(0, Math.min(position, peers.length)), 0, n); peers.forEach((x, i) => { x.position = i; }); return B.reindex(out);
+    };
+    B.references = (d, ids) => {
+        const hits = []; const scan = (x, owner) => { if (!x || typeof x !== 'object') return; Object.entries(x).forEach(([k, v]) => { if (['node_id', 'anchor_ref', 'assessment_id', 'question_id', 'target_id', 'randomization_id', 'candidate_id'].includes(k) && ids.has(v)) hits.push(owner); if (['candidates','candidate_ids'].includes(k) && v.some(id => ids.has(id))) hits.push(owner); if (typeof v === 'object') scan(v, owner); }); };
+        d.nodes.filter(n => !ids.has(n.id)).forEach(n => { scan(n.schedule, n.id); scan(n.randomization, n.id); }); d.condition_rules.forEach(r => scan(r, r.id)); (d.protocol_metadata?.trajectory_conditions||[]).forEach(r=>scan(r,r.id)); return [...new Set(hits)];
+    };
+    B.remove = (d, id) => { const ids = new Set([id, ...B.descendants(d, id)]), out=B.copy(d);out.nodes.filter(n=>!ids.has(n.id)&&n.randomization).forEach(n=>{const r=n.randomization;r.candidates=r.candidates.filter(candidate=>!ids.has(candidate));if(r.weights&&!Array.isArray(r.weights))Object.keys(r.weights).forEach(key=>{if(ids.has(key))delete r.weights[key];});if(r.segments)r.segments=r.segments.map(segment=>({...segment,candidates:segment.candidates.filter(candidate=>!ids.has(candidate))})).filter(segment=>segment.candidates.length);if(!r.candidates.length){n.randomization=null;n.children_strategy='PARALLEL_AVAILABLE';}});const refs = B.references(out, ids); if (refs.length) throw Error('Referencias pendientes: ' + refs.join(', ')); out.nodes = out.nodes.filter(n => !ids.has(n.id)); return B.reindex(out); };
+    B.duplicate = (d, id) => {
+        const out = B.copy(d), ids = [id, ...B.descendants(d, id)], map = Object.fromEntries(ids.map(x => [x, B.id('N')]));
+        const retarget = x => { if (Array.isArray(x)) return x.map(retarget); if (x && typeof x === 'object') { const r = {}; Object.entries(x).forEach(([k, v]) => { r[map[k] || k] = retarget(v); }); return r; } return map[x] || x; };
+        ids.forEach(old => { const n = retarget(B.copy(B.node(d, old))); if (n.kind === 'QUESTION') n.response_key = B.id('R'); if (old === id) n.position = B.children(out, n.parent_id).length; out.nodes.push(n); });
+        d.condition_rules.filter(r => ids.includes(r.source.node_id)).forEach(r => { const clone = retarget(B.copy(r)); clone.id = B.id('RULE'); if (B.references({ nodes: [], condition_rules: [clone] }, new Set(d.nodes.filter(n => !ids.includes(n.id)).map(n => n.id))).length) throw Error('La regla clonada referencia elementos externos; duplicá sin referencias cruzadas.'); out.condition_rules.push(clone); }); if(d.protocol_metadata?.trajectory_conditions){out.protocol_metadata.trajectory_conditions=[...d.protocol_metadata.trajectory_conditions,...d.protocol_metadata.trajectory_conditions.filter(r=>ids.includes(r.source.assessment_id)).map(r=>({...retarget(B.copy(r)),id:B.id('LC')}))];}return B.reindex(out);
+    };
+    B.schedule = (anchor = 'EXECUTION_CREATED', ref = null) => ({ anchor, anchor_ref: ref, occurrence_selector: ref ? { kind: 'SINGLE' } : null, temporal_rule: { kind: 'IMMEDIATE' }, timezone_policy: 'STUDY_TIMEZONE', window: { kind: 'NO_DEADLINE' }, recurrence: null, dst_policy: { gap: 'SHIFT_FORWARD_BY_GAP', fold: 'EARLIER_INSTANT' } });
+    B.add = (d, parent, type) => { const out = B.copy(d), p = B.node(out, parent), id = B.id(type === 'PAGE_BREAK' ? 'PB' : 'B'); let n;
+        if (type === 'PAGE_BREAK') n = { kind: 'DIRECTIVE', id, version_id: d.id, parent_id: parent, position: B.children(out, parent).length, directive_kind: 'PAGE_BREAK', target: null, resume_target: null, on_target_unavailable: null };
+        else { const internal = p?.scope === 'MICRO'; n = { kind: 'BLOCK', id, logical_id: id, version_id: d.id, parent_id: parent, position: B.children(out, parent).length, scope: type, completion_boundary: type === 'MACRO' ? 'NONE' : internal ? 'GROUP' : 'ASSESSMENT', children_strategy: 'SEQUENTIAL', randomization: null, schedule: internal ? null : B.schedule(parent === d.id ? 'EXECUTION_CREATED' : 'BLOCK_AVAILABLE', parent === d.id ? null : parent), metadata: { label: type === 'MACRO' ? 'Macro' : internal ? 'Grupo' : 'Evaluación' } }; }
+        if (!B.allowed(out, parent, n)) throw Error('Jerarquía inválida.'); out.nodes.push(n); return B.reindex(out);
+    };
+    B.serialize = d => { const out = B.copy(d); out.nodes.sort((a, b) => a.id.localeCompare(b.id)); out.condition_rules.sort((a, b) => a.id.localeCompare(b.id)); out.root_block_ids.sort(); return out; };
+})(window.EIPSIBuilder = window.EIPSIBuilder || {});

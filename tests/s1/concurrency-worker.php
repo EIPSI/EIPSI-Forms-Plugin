@@ -16,6 +16,9 @@ try{
  elseif($mode==='skip')$r=EIPSI_Longitudinal_Assignment_Transition_Service::skip_locked($old);
  elseif($mode==='deadline')$r=EIPSI_Longitudinal_Assignment_Deadline_Service::save_wave_configuration(997122,array(),true,1);
  else throw new RuntimeException('Unknown fixture mode');
- file_put_contents($dir.'/result'.$slot.'.json',wp_json_encode(array('mode'=>$mode,'result'=>is_wp_error($r)?array('error'=>$r->get_error_code()):$r)));
-}catch(Throwable$e){file_put_contents($dir.'/result'.$slot.'.json',wp_json_encode(array('exception'=>$e->getMessage())));}
+ $result=array('mode'=>$mode,'result'=>is_wp_error($r)?array('error'=>$r->get_error_code()):$r);
+}catch(Throwable$e){$result=array('exception'=>$e->getMessage());}
+// Publish only complete JSON: existence is the parent's completion signal.
+file_put_contents($dir.'/result'.$slot.'.tmp',wp_json_encode($result));
+rename($dir.'/result'.$slot.'.tmp',$dir.'/result'.$slot.'.json');
 ob_end_clean();

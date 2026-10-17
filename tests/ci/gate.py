@@ -95,12 +95,24 @@ class Gate:
         self.node('build', ['npm', 'run', 'build'])
         self.node('build-artifacts', ['node', 'tests/ci/check-build.js'])
 
+    def pure_php(self):
+        # Explicit CLI entrypoint: no WP install/bootstrap, database or network.
+        for script, count in CONFIG['pure_php'].items():
+            stage = 'pure-php-' + Path(script).stem
+            command = ['docker', 'run', '--rm', '--network', 'none',
+                       '--user', f'{os.getuid()}:{os.getgid()}', '--entrypoint', 'php',
+                       '-v', f'{ROOT}:/app:ro', '-w', '/app',
+                       CONFIG['images']['wordpress'], script]
+            self.count(stage, self.run(stage, command), count)
+        print(f'Pure PHP: {sum(CONFIG["pure_php"].values())} tests, 0 failures', flush=True)
+
     def wordpress(self, mode):
         # This unique project is the only target of teardown; never touch older fixtures.
         project = 'eipsi-t0-' + mode + '-' + uuid.uuid4().hex[:10]
         env = dict(os.environ, EIPSI_CI_PLUGIN_ROOT=str(ROOT),
                    EIPSI_CI_WP_IMAGE=CONFIG['images']['wordpress'],
                    EIPSI_CI_DB_IMAGE=CONFIG['images']['mariadb'])
+        env['EIPSI_CI_DEBUG_DISPLAY'] = 'true' if mode == 'smoke' else 'false'
         compose = ['docker', 'compose', '-p', project, '-f', str(ROOT / 'tests/ci/compose.yml')]
         def call(stage, args):
             return self.run(mode + '-' + stage, compose + args, env=env)
@@ -112,7 +124,11 @@ class Gate:
             # Apache may be running while the official entrypoint is still copying core.
             call('ready', ['exec', '-T', 'wordpress', 'sh', '-c',
                  'i=0; until test -f /var/www/html/wp-config.php && test -f /var/www/html/wp-includes/version.php; do i=$((i+1)); test "$i" -lt 60 || exit 1; sleep 1; done'])
-            php('install', PLUGIN + '/tests/m0/install.php')
+            if mode == 'smoke':
+                call('install', ['exec', '-T', 'wordpress', 'php', PLUGIN + '/tests/m0/install.php', '--install-only'])
+                self.count('activation-clean', php('activation-clean', PLUGIN + '/tests/ci/activation.php'), 1)
+            else:
+                php('install', PLUGIN + '/tests/m0/install.php')
             call('versions', ['exec', '-T', 'wordpress', 'php', '-r',
                  'require "/var/www/html/wp-includes/version.php";'
                  f'if(PHP_VERSION!=="{CONFIG["versions"]["php"]}"||$wp_version!=="{CONFIG["versions"]["wordpress"]}")exit(1);'
@@ -126,6 +142,8 @@ class Gate:
             else:
                 self.count('clean-smoke', php('checks', PLUGIN + '/tests/ci/smoke.php'), 6)
                 php('lifecycle', PLUGIN + '/tests/m7/lifecycle.php')
+                call('deactivate-for-cold-reactivation', ['exec', '-T', 'wordpress', 'php', PLUGIN + '/tests/ci/activation.php', 'deactivate'])
+                self.count('reactivation-clean', php('reactivation-clean', PLUGIN + '/tests/ci/activation.php'), 1)
                 # Same six assertions after reactivation; do not count them twice.
                 self.count('clean-smoke-after-lifecycle', php('checks-after-lifecycle', PLUGIN + '/tests/ci/smoke.php'), 6)
         except BaseException:
@@ -193,6 +211,7 @@ def main():
         if mode in ('fast', 'full', 'build', 'php', 'smoke'):
             gate.build()
         if mode in ('fast', 'full', 'php'):
+            gate.pure_php()
             gate.wordpress('php')
         if mode in ('full', 'smoke'):
             gate.wordpress('smoke')

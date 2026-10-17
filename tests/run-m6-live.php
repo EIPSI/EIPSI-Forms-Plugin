@@ -16,6 +16,24 @@ try{
  $tests['M6 cleanup concurrente con writer declara límite local']=function(){global$wpdb;$r=m6_concurrent('cleanup');m0_assert($r[0]['success']&&$r[1]['success']&&!$r[0]['coverage']['complete'],'Concurrency false claim');m0_assert((int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}vas_form_results WHERE form_name='m6-race'")===1,'Lost answer');};
  $tests['M6 fallback concurrente confirma dos IDs locales distintos']=function(){global$wpdb;$saved=array();foreach(array('host','user','password','name','enabled','last_updated')as$key){$saved[$key]=get_option('eipsi_external_db_'.$key,null);}try{$external=new EIPSI_External_Database();$external->save_credentials('eipsi-m0-db','m0','intentionally-wrong','m6_external');$r=m6_concurrent('fallback');m0_assert($r[0]['success']&&$r[1]['success']&&$r[0]['fallback_used']&&$r[1]['fallback_used']&&$r[0]['submission_id']!==$r[1]['submission_id'],'Fallback race');}finally{foreach($saved as$key=>$value){if($value===null){delete_option('eipsi_external_db_'.$key);}else{update_option('eipsi_external_db_'.$key,$value);}}}};
  $tests['M6 emergencia concurrente confirma dos IDs distintos']=function(){ $r=m6_concurrent('emergency');m0_assert($r[0]['success']&&$r[1]['success']&&$r[0]['destination']==='emergency_table_wp'&&$r[1]['destination']==='emergency_table_wp'&&$r[0]['submission_id']!==$r[1]['submission_id'],'Emergency race');};
+ foreach(array('initial','repeat') as $save_mode){
+  $tests['M6 HTTP storage config save '.$save_mode.' returns valid schema JSON']=function()use($save_mode){
+   $saved=array();foreach(array('host','user','password','name','enabled','last_updated')as$key){$saved['eipsi_external_db_'.$key]=get_option('eipsi_external_db_'.$key,null);}
+   foreach(array('eipsi_schema_last_verified','eipsi_schema_last_sync_result')as$key){$saved[$key]=get_option($key,null);}
+   try{
+    for($attempt=0;$attempt<($save_mode==='repeat'?2:1);$attempt++){
+     $r=m0_http('/wp-admin/admin-ajax.php',array('action'=>'eipsi_save_db_config','nonce'=>m0_admin_nonce('eipsi_admin_nonce'),'host'=>'eipsi-m0-db','user'=>'m0','password'=>'m0-isolated','db_name'=>'m6_external'),true);
+     $j=json_decode(wp_remote_retrieve_body($r),true);
+     m0_assert(wp_remote_retrieve_response_code($r)===200&&is_array($j)&&!empty($j['success']),'Storage save must return HTTP 200 and success JSON');
+     m0_assert($j['data']['schema_verified']===true&&$j['data']['status']['connected']===true,'Schema and saved connection must be verified');
+     foreach(array('results','events')as$table){m0_assert(is_bool($j['data']['tables_created'][$table])&&is_int($j['data']['columns_added'][$table]),'Missing schema metadata');if($attempt>0)m0_assert($j['data']['tables_created'][$table]===false&&$j['data']['columns_added'][$table]===0,'Repeated save must not claim schema changes');}
+    }
+    // The HTTP process persisted options; invalidate this CLI process's earlier snapshot.
+    wp_cache_delete('alloptions','options');wp_cache_delete('notoptions','options');foreach(array_keys($saved)as$key){wp_cache_delete($key,'options');}
+    $credentials=(new EIPSI_External_Database())->get_credentials();m0_assert($credentials['host']==='eipsi-m0-db'&&$credentials['name']==='m6_external'&&$credentials['password']==='m0-isolated','Credentials did not persist');
+   }finally{foreach($saved as$key=>$value){if($value===null){delete_option($key);}else{update_option($key,$value);}}}
+  };
+ }
  foreach($tests as$name=>$test){try{$test();echo"PASS $name\n";}catch(Throwable$e){$failed++;echo"FAIL $name: {$e->getMessage()}\n";}}
 }finally{
  if($created){foreach(array('eipsi_emergency_submissions'=>"form_id='m6-race'",'vas_form_results'=>"form_name='m6-race'",'survey_data_requests'=>'participant_id=993607','survey_participant_access_log'=>'participant_id=993607','survey_audit_log'=>'survey_id=993603','survey_sessions'=>'participant_id=993607','survey_participants'=>'id=993607','survey_studies'=>'id=993603')as$t=>$where){$wpdb->query("DELETE FROM {$wpdb->prefix}{$t} WHERE $where");}}

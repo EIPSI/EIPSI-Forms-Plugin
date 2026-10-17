@@ -231,6 +231,10 @@ public static function local_table_exists( $table_name ) {
                 $result['missing_indexes'][]=$definition;$result['issues'][]=array('kind'=>'missing_index','index'=>$name);
             }
         }
+        if (isset($map[$slug]['engine'])) {
+            $status=$wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS LIKE %s',$wpdb->esc_like($table)),ARRAY_A);
+            if (!$status || strcasecmp($status['Engine'],$map[$slug]['engine'])!==0) { $result['issues'][]=array('kind'=>'incompatible_engine');$result['incompatible_types'][]='ENGINE'; }
+        }
         return $result;
     }
     public static function check_collation_issues() {

@@ -1,0 +1,466 @@
+{
+  "contract": "EIPSI_ASSESSMENT_V1",
+  "id": "AE_AUTHORING",
+  "title": "Revisión de autoría",
+  "elements": [
+    {
+      "id": "EL_text",
+      "type": "text",
+      "response_key": "R_text",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>text</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "content_type": "free",
+        "display_mode": "single",
+        "placeholder": "Ejemplo text",
+        "max_length": 100,
+        "min_length": 2,
+        "label": "Pregunta text",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "variable_name": "pregunta_text"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_textarea",
+      "type": "textarea",
+      "response_key": "R_textarea",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>textarea</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "content_type": "free",
+        "display_mode": "multiline",
+        "placeholder": "Ejemplo textarea",
+        "max_length": 100,
+        "min_length": 2,
+        "rows": 8,
+        "label": "Pregunta textarea",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "variable_name": "pregunta_textarea"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_email",
+      "type": "email",
+      "response_key": "R_email",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>email</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "content_type": "email",
+        "display_mode": "single",
+        "placeholder": "Ejemplo email",
+        "max_length": 254,
+        "min_length": 2,
+        "label": "Pregunta email",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "variable_name": "pregunta_email"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_number",
+      "type": "number",
+      "response_key": "R_number",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>number</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "integer_only": false,
+        "placeholder": "Ejemplo number",
+        "min": -2.5,
+        "max": 7.5,
+        "step": 0.25,
+        "label": "Pregunta number",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "variable_name": "pregunta_number"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_tel",
+      "type": "tel",
+      "response_key": "R_tel",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>tel</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "content_type": "tel",
+        "display_mode": "single",
+        "placeholder": "Ejemplo tel",
+        "max_length": 100,
+        "min_length": 2,
+        "label": "Pregunta tel",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "variable_name": "pregunta_tel"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_date",
+      "type": "date",
+      "response_key": "R_date",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>date</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "label": "Pregunta date",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "variable_name": "pregunta_date"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_url",
+      "type": "url",
+      "response_key": "R_url",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>url</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "content_type": "url",
+        "display_mode": "single",
+        "placeholder": "Ejemplo url",
+        "max_length": 2048,
+        "min_length": 2,
+        "label": "Pregunta url",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "variable_name": "pregunta_url"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_single_choice",
+      "type": "single_choice",
+      "response_key": "R_single_choice",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>single_choice</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "columns": 3,
+        "label": "Pregunta single_choice",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "presentation": "vertical",
+        "variable_name": "pregunta_single_choice"
+      },
+      "options": [
+        {
+          "id": "O_single_choice_0",
+          "label": "Sí, a veces"
+        },
+        {
+          "id": "O_single_choice_1",
+          "label": "Dijo \"no\"; después"
+        },
+        {
+          "id": "O_single_choice_2",
+          "label": "Dos\nlíneas"
+        },
+        {
+          "id": "O_single_choice_3",
+          "label": "Duplicada"
+        },
+        {
+          "id": "O_single_choice_4",
+          "label": "Duplicada"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_multiple_choice",
+      "type": "multiple_choice",
+      "response_key": "R_multiple_choice",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>multiple_choice</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "columns": 2,
+        "min_selected": 2,
+        "max_selected": 3,
+        "label": "Pregunta multiple_choice",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "presentation": "horizontal",
+        "variable_name": "pregunta_multiple_choice"
+      },
+      "options": [
+        {
+          "id": "O_multiple_choice_0",
+          "label": "Sí, a veces"
+        },
+        {
+          "id": "O_multiple_choice_1",
+          "label": "Dijo \"no\"; después"
+        },
+        {
+          "id": "O_multiple_choice_2",
+          "label": "Dos\nlíneas"
+        },
+        {
+          "id": "O_multiple_choice_3",
+          "label": "Duplicada"
+        },
+        {
+          "id": "O_multiple_choice_4",
+          "label": "Duplicada"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_select",
+      "type": "select",
+      "response_key": "R_select",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>select</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "placeholder": "Ejemplo select",
+        "label": "Pregunta select",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "variable_name": "pregunta_select"
+      },
+      "options": [
+        {
+          "id": "O_select_0",
+          "label": "Sí, a veces"
+        },
+        {
+          "id": "O_select_1",
+          "label": "Dijo \"no\"; después"
+        },
+        {
+          "id": "O_select_2",
+          "label": "Dos\nlíneas"
+        },
+        {
+          "id": "O_select_3",
+          "label": "Duplicada"
+        },
+        {
+          "id": "O_select_4",
+          "label": "Duplicada"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_likert",
+      "type": "likert",
+      "response_key": "R_likert",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>likert</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "min": -3,
+        "preset": "custom",
+        "reversed": true,
+        "gradient": "improvement-left",
+        "gradient_start": "#112233",
+        "gradient_end": "#ddeeff",
+        "label": "Pregunta likert",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "presentation": "horizontal",
+        "variable_name": "pregunta_likert"
+      },
+      "options": [
+        {
+          "id": "O_likert_0",
+          "label": "Sí, a veces"
+        },
+        {
+          "id": "O_likert_1",
+          "label": "Dijo \"no\"; después"
+        },
+        {
+          "id": "O_likert_2",
+          "label": "Dos\nlíneas"
+        },
+        {
+          "id": "O_likert_3",
+          "label": "Duplicada"
+        },
+        {
+          "id": "O_likert_4",
+          "label": "Duplicada"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_vas",
+      "type": "vas",
+      "response_key": "R_vas",
+      "properties": {
+        "label_html": "<h3>Pregunta <strong>vas</strong></h3>",
+        "helper_html": "<p><em>Ayuda</em><br>Segunda línea</p><ul><li>Uno</li><li>Dos</li></ul>",
+        "footer_html": "<p><u>Crédito</u> <a href=\"https://example.test/\" target=\"_blank\" rel=\"noopener noreferrer\">Fuente</a></p><img src=\"https://example.test/test.png\" alt=\"Prueba\">",
+        "gradient": "custom",
+        "gradient_start": "#112233",
+        "gradient_end": "#ddeeff",
+        "labels": [
+          "Nada",
+          "Un\npoco",
+          "Moderado",
+          "Mucho",
+          "Extremo"
+        ],
+        "label_font_size": 36,
+        "value_font_size": 72,
+        "bold_labels": false,
+        "label_boxes": true,
+        "label_alignment": 35,
+        "value_position": "above",
+        "label": "Pregunta vas",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "min": -2.5,
+        "max": 7.5,
+        "step": 0.25,
+        "initial": 2.5,
+        "left_label": "Nada",
+        "right_label": "Mucho",
+        "show_value": true,
+        "variable_name": "pregunta_vas",
+        "label_settings": [
+          {
+            "id": "L_EL_vas_0",
+            "position": -2.5
+          },
+          {
+            "id": "L_EL_vas_1",
+            "position": null
+          },
+          {
+            "id": "L_EL_vas_2",
+            "position": 1.8
+          },
+          {
+            "id": "L_EL_vas_3",
+            "position": null
+          },
+          {
+            "id": "L_EL_vas_4",
+            "position": 7.5
+          }
+        ]
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_matrix",
+      "type": "matrix",
+      "response_key": "R_matrix",
+      "properties": {
+        "label_html": "<p><strong>Matriz</strong> compartida</p>",
+        "helper_html": null,
+        "footer_html": "",
+        "matrix_kind": "likert",
+        "matrix_rows": [
+          {
+            "id": "ROW_0",
+            "response_key": "R_ROW_0",
+            "variable_name": "sintoma_1",
+            "label": "Item 1",
+            "label_html": "<p>Item <em>1</em></p>",
+            "helper_html": null,
+            "footer_html": "",
+            "required": true
+          },
+          {
+            "id": "ROW_1",
+            "response_key": "R_ROW_1",
+            "variable_name": "sintoma_2",
+            "label": "Item 2",
+            "label_html": "<p>Item <em>2</em></p>",
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          },
+          {
+            "id": "ROW_2",
+            "response_key": "R_ROW_2",
+            "variable_name": "sintoma_3",
+            "label": "Item 3",
+            "label_html": "<p>Item <em>3</em></p>",
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          },
+          {
+            "id": "ROW_3",
+            "response_key": "R_ROW_3",
+            "variable_name": "sintoma_4",
+            "label": "Item 4",
+            "label_html": "<p>Item <em>4</em></p>",
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          },
+          {
+            "id": "ROW_4",
+            "response_key": "R_ROW_4",
+            "variable_name": "sintoma_5",
+            "label": "Item 5",
+            "label_html": "<p>Item <em>5</em></p>",
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          }
+        ],
+        "presentation": "horizontal",
+        "min": -2,
+        "preset": "custom",
+        "reversed": true,
+        "gradient": "improvement-right",
+        "gradient_start": "#f44336",
+        "gradient_end": "#4caf50",
+        "label": "Matriz compartida",
+        "helper": "",
+        "required": true,
+        "variable_name": "matriz_sintomas"
+      },
+      "options": [
+        {
+          "id": "O_matrix_0",
+          "label": "Nunca"
+        },
+        {
+          "id": "O_matrix_1",
+          "label": "A veces"
+        },
+        {
+          "id": "O_matrix_2",
+          "label": "Frecuente"
+        },
+        {
+          "id": "O_matrix_3",
+          "label": "Siempre"
+        }
+      ],
+      "children": []
+    }
+  ]
+}

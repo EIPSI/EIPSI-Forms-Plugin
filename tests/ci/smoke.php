@@ -13,10 +13,10 @@ $tests = array();
 
 $tests['Plugin and canonical schema/version load'] = function () {
     m0_assert(is_plugin_active('EIPSI-Forms-Plugin/eipsi-forms.php'), 'Plugin inactive');
-    m0_assert(EIPSI_Migration_Runner::LATEST_VERSION === 10 && (int) get_option('eipsi_migration_version') === 10, 'Migration version differs');
+    m0_assert((int) get_option('eipsi_migration_version') === EIPSI_Migration_Runner::LATEST_VERSION, 'Migration version differs');
     m0_assert(get_option('eipsi_db_schema_version') === EIPSI_FORMS_VERSION, 'Schema version differs');
     $map = EIPSI_Schema_Registry::get_schema_map();
-    m0_assert(count($map) === 26, 'Expected 26 schema domains');
+    m0_assert(count($map) === 43, 'Expected 43 schema domains, including management');
     foreach (array_keys($map) as $slug) {
         $result = EIPSI_Schema_Inspector::inspect($slug);
         m0_assert(empty($result['issues']), 'Schema issues: ' . $slug);
@@ -61,7 +61,7 @@ $tests['Anonymous Forms submission confirms actual local persistence'] = functio
     m0_assert((int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}vas_form_results WHERE participant_id=%s", $key)) === 1, 'Submitted response not persisted exactly once in this request');
 };
 $tests['Critical RCT owner resolves and resets its own anonymous assignment'] = function () use (&$form, $key) {
-    $config = array('formularios' => array(array('id' => $form)), 'probabilidades' => array(100), 'method' => 'seeded', 'persistent_mode' => true);
+    $config = array('config_id' => $key, 'formularios' => array(array('id' => $form)), 'probabilidades' => array($form => 100), 'method' => 'seeded', 'persistent_mode' => true);
     $assignment = EIPSI_Randomization_Assignment_Service::resolve($key, $config, $key);
     m0_assert(!is_wp_error($assignment) && !empty($assignment['reset_capability']), 'RCT assignment creation failed');
     $_POST['reset_capability'] = $assignment['reset_capability'];

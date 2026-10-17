@@ -302,8 +302,8 @@ class EIPSI_SMTP_Service {
 
         $this->load_phpmailer();
 
-        $from_email = $config['user'];
-        $from_name = get_option('eipsi_investigator_name', get_bloginfo('name'));
+        $from_email = !empty($config['from_email']) && is_email($config['from_email']) ? $config['from_email'] : $config['user'];
+        $from_name = isset($config['from_name']) && is_string($config['from_name']) && !preg_match('/[\r\n\x00-\x1f]/', $config['from_name']) ? $config['from_name'] : get_option('eipsi_investigator_name', get_bloginfo('name'));
         $reply_to = get_option('eipsi_investigator_email', get_option('admin_email'));
 
         try {

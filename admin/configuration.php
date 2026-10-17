@@ -28,6 +28,16 @@ function eipsi_display_configuration_page() {
         'none' => __('Sin cifrado', 'eipsi-forms')
     );
 
+    require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/runtime/PublicMessages.php';
+    $public_message_class='\\EIPSI\\StudyEngine\\Runtime\\PublicMessages';
+    $public_message_notice='';
+    if(isset($_POST['eipsi_save_public_fallback'])){
+        check_admin_referer('eipsi_public_fallback');
+        $submitted=wp_unslash($_POST['eipsi_public_fallback']??array());
+        try{if(!is_array($submitted)||array_diff(array_keys($submitted),array_column($public_message_class::fallbackFields(),'key')))throw new \DomainException('INVALID_PUBLIC_MESSAGES');$submitted=$public_message_class::validate($submitted);update_option('eipsi_study_public_fallback_messages',$submitted,false);$public_message_notice='Mensajes de respaldo guardados.';}
+        catch(\Throwable $error){$public_message_notice='Revisá los textos antes de guardar.';}
+    }
+
     // Get current credentials for display (without password)
     $credentials = $db_helper->get_credentials();
     $current_host = $credentials ? $credentials['host'] : '';
@@ -54,6 +64,15 @@ function eipsi_display_configuration_page() {
         $smtp_service_for_tab = class_exists('EIPSI_SMTP_Service') ? new EIPSI_SMTP_Service() : null;
         $smtp_configured_for_tab = $smtp_service_for_tab ? $smtp_service_for_tab->is_configured() : false;
         ?>
+        <details class="eipsi-public-fallback">
+            <summary>Mensajes públicos sin estudio identificable</summary>
+            <p>Se usan cuando la URL no permite recuperar un estudio. Los textos de cada estudio se editan dentro de Study Engine.</p>
+            <?php if($public_message_notice!=='')echo '<p role="status">'.esc_html($public_message_notice).'</p>'; ?>
+            <form method="post">
+                <?php wp_nonce_field('eipsi_public_fallback');$public_fallback=$public_message_class::all();foreach($public_message_class::fallbackFields() as $field){echo '<p><label>'.esc_html($field['label']).'<br><input class="large-text" name="eipsi_public_fallback['.esc_attr($field['key']).']" maxlength="4000" value="'.esc_attr($public_fallback[$field['key']]).'"></label></p>';} ?>
+                <button class="button button-primary" name="eipsi_save_public_fallback" value="1">Guardar mensajes de respaldo</button>
+            </form>
+        </details>
         <h2 class="nav-tab-wrapper">
             <a href="?page=eipsi-configuration&tab=database"
                class="nav-tab <?php echo esc_attr(($active_tab === 'database') ? 'nav-tab-active' : ''); ?>">

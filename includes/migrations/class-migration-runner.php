@@ -18,7 +18,7 @@ class EIPSI_Schema_Migration_Runner {
     const DATE_OPTION     = 'eipsi_migration_date';
     const LOCK_TRANSIENT  = 'eipsi_migration_running';
     const LOCK_TIMEOUT    = 60;
-    const LATEST_VERSION  = 10;
+    const LATEST_VERSION  = 17;
 
     /**
      * Initialize the runner.
@@ -26,6 +26,16 @@ class EIPSI_Schema_Migration_Runner {
     public static function init() {
         if ( ! is_admin() ) {
             return;
+        }
+        // On first activation bootstrap runs before the lifecycle creates the schema.
+        // Existing/partial installations must still follow the historical migrations.
+        if ( defined('WP_SANDBOX_SCRAPING') && WP_SANDBOX_SCRAPING && false === get_option(self::VERSION_OPTION, false) ) {
+            global $wpdb;
+            $has_schema = false;
+            foreach (array_keys(EIPSI_Schema_Registry::get_schema_map()) as $slug) {
+                if (EIPSI_Schema_Inspector::local_table_exists($wpdb->prefix . $slug)) { $has_schema = true; break; }
+            }
+            if (!$has_schema) { return; }
         }
         $instance = new self();
         $instance->run();
@@ -399,5 +409,39 @@ class EIPSI_Schema_Migration_Runner {
         $result=EIPSI_Schema_Installer::repair_local_schema();
         if (!$result['success']) { throw new RuntimeException('Schema convergence failed: '.wp_json_encode($result)); }
     }
+
+    /** Additive local-only Study Engine structures. Does not migrate study data. */
+    private function migrate_v11() {
+        foreach (EIPSI_Schema_Registry::get_table_creation_order() as $slug) {
+            if (strpos($slug, 'eipsi_engine_') !== 0) { continue; }
+            $result=EIPSI_Schema_Repair_Service::sync_local_table($slug);
+            if (!$result['success']) { throw new RuntimeException('Study Engine schema failed: '.$slug); }
+        }
+        EIPSI_Schema_Version_Service::record_verified();
+    }
+
+    private function migrate_v12() {
+        foreach (array('eipsi_engine_public_studies','eipsi_engine_anonymous_access','eipsi_engine_submission_journal') as $slug) {
+            $result=EIPSI_Schema_Repair_Service::sync_local_table($slug);
+            if (!$result['success']) { throw new RuntimeException('Study runtime schema failed: '.$slug); }
+        }
+        EIPSI_Schema_Version_Service::record_verified();
+    }
+
+    /** P1-F additive credentials/config; no legacy participant migration. */
+    private function migrate_v13() { $this->migrate_v11(); }
+    private function migrate_v14() { $this->migrate_v11(); }
+    /** Remove the participant notification preference; withdrawal remains the stop operation. */
+    private function migrate_v17() {
+        global $wpdb;$this->migrate_v11();
+        $table=$wpdb->prefix.'eipsi_engine_participants';
+        if($wpdb->get_var($wpdb->prepare('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s AND COLUMN_NAME=%s',$table,'communications_enabled')))$this->db_query($wpdb,"ALTER TABLE `$table` DROP COLUMN communications_enabled");
+        foreach(array('access_capabilities'=>'purpose','participant_sessions'=>'kind') as $suffix=>$column){$table=$wpdb->prefix.'eipsi_engine_'.$suffix;$this->db_query($wpdb,"DELETE FROM `$table` WHERE `$column`='COMMUNICATION_OPTIONS'");}
+        require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/longitudinal/InitialScreen.php';
+        $library=get_option('eipsi_study_email_library_v1',null);if(is_array($library)&&isset($library['templates'])){$changed=false;foreach($library['templates'] as &$entry)foreach(array('subject','html') as $key){$clean=\EIPSI\StudyEngine\Longitudinal\InitialScreen::removeRetiredEmailLink($entry[$key]);if($clean!==$entry[$key]){$entry[$key]=$clean;$changed=true;}}unset($entry);if($changed){$library['revision']++;if(!update_option('eipsi_study_email_library_v1',$library,false))throw new RuntimeException('Retired email preference cleanup failed');}}
+        EIPSI_Schema_Version_Service::record_verified();
+    }
+    private function migrate_v16() { $this->migrate_v11(); require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/management/Schema.php'; \EIPSI\StudyEngine\Management\Schema::nativeIndex(); }
+    private function migrate_v15() { $this->migrate_v11(); }
 
 }

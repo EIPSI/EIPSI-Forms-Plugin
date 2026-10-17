@@ -1,0 +1,383 @@
+{
+  "contract": "EIPSI_ASSESSMENT_V1",
+  "id": "AE_FUNCTIONAL",
+  "title": "Demo descartable — cierre funcional",
+  "elements": [
+    {
+      "id": "EL_FN_0",
+      "type": "text",
+      "response_key": "R_FN_0",
+      "properties": {
+        "label_html": "<p>¿Cómo <strong>te sentís</strong>?</p>",
+        "helper_html": null,
+        "footer_html": "<p>Podés revisar tu respuesta.</p>",
+        "content_type": "free",
+        "display_mode": "single",
+        "placeholder": "",
+        "max_length": 2000,
+        "min_length": 0,
+        "label": "¿Cómo te sentís?",
+        "helper": "",
+        "required": false,
+        "variable_name": "ansiedad"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_FN_1",
+      "type": "likert",
+      "response_key": "R_FN_1",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "min": 1,
+        "preset": "custom",
+        "reversed": false,
+        "gradient": "none",
+        "gradient_start": "#f44336",
+        "gradient_end": "#4caf50",
+        "label": "Frecuencia",
+        "helper": "",
+        "required": false,
+        "presentation": "horizontal",
+        "variable_name": "likert_1"
+      },
+      "options": [
+        {
+          "id": "O_FN_1_0",
+          "label": "Nunca",
+          "value": 0
+        },
+        {
+          "id": "O_FN_1_1",
+          "label": "A veces",
+          "value": 2
+        },
+        {
+          "id": "O_FN_1_2",
+          "label": "Siempre",
+          "value": 7
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_FN_2",
+      "type": "matrix",
+      "response_key": "R_FN_2",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "matrix_kind": "likert",
+        "matrix_rows": [
+          {
+            "id": "ROW_FN_0",
+            "response_key": "R_ROW_FN_0",
+            "variable_name": "phq_1",
+            "label": "Item 1",
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          },
+          {
+            "id": "ROW_FN_1",
+            "response_key": "R_ROW_FN_1",
+            "variable_name": "phq_2",
+            "label": "Item 2",
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          }
+        ],
+        "presentation": "horizontal",
+        "min": 1,
+        "preset": "custom",
+        "reversed": false,
+        "gradient": "none",
+        "gradient_start": "#f44336",
+        "gradient_end": "#4caf50",
+        "label": "Frecuencia",
+        "helper": "",
+        "required": false,
+        "variable_name": "phq"
+      },
+      "options": [
+        {
+          "id": "O_FN_2_0",
+          "label": "Nunca",
+          "value": 0
+        },
+        {
+          "id": "O_FN_2_1",
+          "label": "A veces",
+          "value": 2
+        },
+        {
+          "id": "O_FN_2_2",
+          "label": "Siempre",
+          "value": 7
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_FN_3",
+      "type": "page_break",
+      "response_key": null,
+      "properties": {
+        "label": "Salto de página"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_FN_4",
+      "type": "vas",
+      "response_key": "R_FN_4",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "gradient": "none",
+        "gradient_start": "#f44336",
+        "gradient_end": "#4caf50",
+        "labels": [
+          "No",
+          "Poco",
+          "Moderadamente",
+          "Mucho",
+          "Un texto largo que necesita adaptarse al espacio"
+        ],
+        "label_font_size": 16,
+        "label_scale": "normal",
+        "value_font_size": 36,
+        "bold_labels": true,
+        "label_boxes": false,
+        "label_alignment": 100,
+        "value_position": "below",
+        "label": "Escribí tu pregunta",
+        "helper": "",
+        "required": false,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "initial": 50,
+        "left_label": "Nada",
+        "right_label": "Mucho",
+        "show_value": true,
+        "variable_name": "vas_1",
+        "label_settings": [
+          {
+            "id": "L_FN_0",
+            "position": 0
+          },
+          {
+            "id": "L_FN_1",
+            "position": 25
+          },
+          {
+            "id": "L_FN_2",
+            "position": 50
+          },
+          {
+            "id": "L_FN_3",
+            "position": 75
+          },
+          {
+            "id": "L_FN_4",
+            "position": 100
+          }
+        ]
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_FN_5",
+      "type": "date",
+      "response_key": "R_FN_5",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "label": "Escribí tu pregunta",
+        "helper": "",
+        "required": false,
+        "variable_name": "date_1"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_FN_6",
+      "type": "multiple_choice",
+      "response_key": "R_FN_6",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "columns": 1,
+        "min_selected": 0,
+        "max_selected": null,
+        "label": "Escribí tu pregunta",
+        "helper": "",
+        "required": false,
+        "presentation": "vertical",
+        "variable_name": "multiple_1"
+      },
+      "options": [
+        {
+          "id": "O_FN_6_0",
+          "label": "Opción 1"
+        },
+        {
+          "id": "O_FN_6_1",
+          "label": "Opción 2"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_FN_7",
+      "type": "select",
+      "response_key": "R_FN_7",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "placeholder": "Seleccioná una opción",
+        "label": "Escribí tu pregunta",
+        "helper": "",
+        "required": false,
+        "variable_name": "select_1"
+      },
+      "options": [
+        {
+          "id": "O_FN_7_0",
+          "label": "Opción 1"
+        },
+        {
+          "id": "O_FN_7_1",
+          "label": "Opción 2"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_FN_8",
+      "type": "url",
+      "response_key": "R_FN_8",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "content_type": "url",
+        "display_mode": "single",
+        "placeholder": "",
+        "max_length": 2000,
+        "min_length": 0,
+        "label": "Escribí tu pregunta",
+        "helper": "",
+        "required": false,
+        "variable_name": "text_2"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_FN_9",
+      "type": "page_break",
+      "response_key": null,
+      "properties": {
+        "label": "Salto de página"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_FN_10",
+      "type": "textarea",
+      "response_key": "R_FN_10",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "content_type": "free",
+        "display_mode": "multiline",
+        "placeholder": "",
+        "max_length": 2000,
+        "min_length": 0,
+        "rows": 4,
+        "label": "Escribí tu pregunta",
+        "helper": "",
+        "required": false,
+        "variable_name": "text_3"
+      },
+      "options": [],
+      "children": []
+    }
+  ],
+  "authoring": {
+    "variable_policy": "MATRIX_ORDINAL_V1",
+    "variable_next": {
+      "text": 4,
+      "date": 2,
+      "single": 1,
+      "multiple": 2,
+      "select": 2,
+      "likert": 2,
+      "vas": 2,
+      "matrix": 2
+    },
+    "legacy_row_variables": []
+  },
+  "flow": {
+    "pages": [
+      {
+        "id": "PG_AE_FUNCTIONAL",
+        "boundary_id": null,
+        "title": "Inicio",
+        "description_html": "<p>Instrucciones de la página 1.</p>"
+      },
+      {
+        "id": "PG_EL_FN_3",
+        "boundary_id": "EL_FN_3",
+        "title": "Medidas",
+        "description_html": "<p>Instrucciones de la página 2.</p>"
+      },
+      {
+        "id": "PG_EL_FN_9",
+        "boundary_id": "EL_FN_9",
+        "title": "Comentarios",
+        "description_html": "<p>Instrucciones de la página 3.</p>"
+      }
+    ],
+    "allow_back": true,
+    "progress": "both",
+    "completion": {
+      "title": "Gracias",
+      "message_html": "<p>Fin de la <strong>simulación</strong>.</p>",
+      "image_url": "",
+      "button_label": "Responder nuevamente",
+      "allow_restart": true
+    },
+    "save_continue": {
+      "enabled": true,
+      "window": {
+        "value": 10,
+        "unit": "minutes"
+      }
+    },
+    "metadata_profile": "detailed",
+    "navigation_labels": {
+      "back": "",
+      "next": "",
+      "finish": ""
+    }
+  }
+}

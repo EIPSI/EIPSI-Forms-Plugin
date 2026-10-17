@@ -1,0 +1,90 @@
+{
+    "contract": "P1F_OWNER_ADDITIONS_V1",
+    "original_public_contracts_sha256": "7cb0f9c38ed56269e3665ca74ef4a7dc5b73241494b1f0b0f539e65fc39e7ff9",
+    "reason": "Four opt-in APIs: schedule existing worker, scoped delivery, deferred existing lease, atomic enqueue on scientific connection. No existing method signature changed.",
+    "added_public_methods": {
+        "EIPSI_Cron_Registry": {
+            "schedule_study_engine": {
+                "static": true,
+                "parameters": [],
+                "owner": "EIPSI_Cron_Registry"
+            }
+        },
+        "EIPSI_Notification_Email_Delivery_Service": {
+            "send_study_engine": {
+                "static": true,
+                "parameters": [
+                    {
+                        "name": "to",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "subject",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "content",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "intent_id",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    }
+                ],
+                "owner": "EIPSI_Notification_Email_Delivery_Service"
+            }
+        },
+        "EIPSI_Notification_Nudge_Queue_Service": {
+            "postpone_processing": {
+                "static": true,
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "scheduled_at",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    }
+                ],
+                "owner": "EIPSI_Notification_Nudge_Queue_Service"
+            },
+            "enqueue_study_engine": {
+                "static": true,
+                "parameters": [
+                    {
+                        "name": "db",
+                        "optional": false,
+                        "default": null,
+                        "type": "EIPSI\\StudyEngine\\Persistence\\Database"
+                    },
+                    {
+                        "name": "intent_id",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "scheduled_at",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    }
+                ],
+                "owner": "EIPSI_Notification_Nudge_Queue_Service"
+            }
+        }
+    }
+}

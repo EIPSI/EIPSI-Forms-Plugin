@@ -1,0 +1,173 @@
+{
+  "contract_version": "P1B_V1",
+  "study": {
+    "logical_id": "STUDY_10-withdrawal-followup",
+    "public_id": "PUBLIC_10-withdrawal-followup"
+  },
+  "id": "VERSION_1",
+  "version_number": 1,
+  "state": "PUBLISHED",
+  "timezone": {
+    "policy": "PARTICIPANT_LOCAL",
+    "default": "America/Argentina/Buenos_Aires"
+  },
+  "root_block_ids": [
+    "M_ROOT"
+  ],
+  "nodes": [
+    {
+      "kind": "BLOCK",
+      "id": "M_ROOT",
+      "logical_id": "M_ROOT",
+      "version_id": "VERSION_1",
+      "parent_id": "VERSION_1",
+      "scope": "MACRO",
+      "position": 0,
+      "children_strategy": "SEQUENTIAL",
+      "randomization": null,
+      "schedule": {
+        "anchor": "EXECUTION_CREATED",
+        "anchor_ref": null,
+        "occurrence_selector": null,
+        "temporal_rule": {
+          "kind": "IMMEDIATE"
+        },
+        "timezone_policy": "PARTICIPANT_LOCAL",
+        "window": {
+          "kind": "NO_DEADLINE"
+        },
+        "recurrence": null,
+        "dst_policy": {
+          "gap": "SHIFT_FORWARD_BY_GAP",
+          "fold": "EARLIER_INSTANT"
+        }
+      },
+      "completion_boundary": "NONE",
+      "metadata": {}
+    },
+    {
+      "kind": "BLOCK",
+      "id": "E_INITIAL",
+      "logical_id": "E_INITIAL",
+      "version_id": "VERSION_1",
+      "parent_id": "M_ROOT",
+      "scope": "MICRO",
+      "position": 0,
+      "children_strategy": "SEQUENTIAL",
+      "randomization": null,
+      "schedule": {
+        "anchor": "EXECUTION_CREATED",
+        "anchor_ref": null,
+        "occurrence_selector": null,
+        "temporal_rule": {
+          "kind": "IMMEDIATE"
+        },
+        "timezone_policy": "PARTICIPANT_LOCAL",
+        "window": {
+          "kind": "DURATION",
+          "duration": {
+            "kind": "ELAPSED",
+            "seconds": 7200
+          }
+        },
+        "recurrence": null,
+        "dst_policy": {
+          "gap": "SHIFT_FORWARD_BY_GAP",
+          "fold": "EARLIER_INSTANT"
+        }
+      },
+      "completion_boundary": "ASSESSMENT",
+      "metadata": {}
+    },
+    {
+      "kind": "QUESTION",
+      "id": "Q_INITIAL",
+      "version_id": "VERSION_1",
+      "parent_id": "E_INITIAL",
+      "position": 0,
+      "response_key": "RESPONSE_Q_INITIAL",
+      "type": "INTEGER",
+      "options": [],
+      "validation": {},
+      "required": true,
+      "semantic_role": null,
+      "content": {
+        "content_id": "CONTENT_Q_INITIAL",
+        "version": 1,
+        "snapshot": "Q_INITIAL",
+        "sha256": "50dee34d9391074382602cf01ddcdbb2c7f9f30f4425bc1659a2ac808488ffd9"
+      }
+    },
+    {
+      "kind": "BLOCK",
+      "id": "E_FOLLOW",
+      "logical_id": "E_FOLLOW",
+      "version_id": "VERSION_1",
+      "parent_id": "M_ROOT",
+      "scope": "MICRO",
+      "position": 1,
+      "children_strategy": "SEQUENTIAL",
+      "randomization": null,
+      "schedule": {
+        "anchor": "SPECIFIC_BLOCK_COMPLETED",
+        "anchor_ref": "E_INITIAL",
+        "occurrence_selector": {
+          "kind": "SINGLE"
+        },
+        "temporal_rule": {
+          "kind": "RECURRENCE"
+        },
+        "timezone_policy": "PARTICIPANT_LOCAL",
+        "window": {
+          "kind": "DURATION",
+          "duration": {
+            "kind": "ELAPSED",
+            "seconds": 14400
+          }
+        },
+        "recurrence": {
+          "kind": "DAILY_LOCAL",
+          "days": 3,
+          "times": [
+            "09:00"
+          ],
+          "start_day": 2
+        },
+        "dst_policy": {
+          "gap": "SHIFT_FORWARD_BY_GAP",
+          "fold": "EARLIER_INSTANT"
+        }
+      },
+      "completion_boundary": "ASSESSMENT",
+      "metadata": {}
+    },
+    {
+      "kind": "QUESTION",
+      "id": "Q_FOLLOW",
+      "version_id": "VERSION_1",
+      "parent_id": "E_FOLLOW",
+      "position": 0,
+      "response_key": "RESPONSE_Q_FOLLOW",
+      "type": "INTEGER",
+      "options": [],
+      "validation": {},
+      "required": true,
+      "semantic_role": null,
+      "content": {
+        "content_id": "CONTENT_Q_FOLLOW",
+        "version": 1,
+        "snapshot": "Q_FOLLOW",
+        "sha256": "84058be693e89af3b47e3f80e1265c84736eb263161aaea7eea7955f38861572"
+      }
+    }
+  ],
+  "condition_rules": [],
+  "compiler_contract_version": "P1C_V1",
+  "protocol_metadata": {
+    "title": "10-withdrawal-followup",
+    "source": "P1-A P.10"
+  },
+  "closure": {
+    "kind": "ALL_SELECTED_OPPORTUNITIES_TERMINAL"
+  }
+}

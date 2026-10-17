@@ -1449,17 +1449,17 @@ function eipsi_save_db_config_handler() {
             'status' => $status,
             'schema_verified' => $schema_result['success'],
             'tables_created' => array(
-                'results' => $schema_result['results_table']['created'],
-                'events' => $schema_result['events_table']['created']
+                'results' => $schema_result['results_table']['created'] ?? null,
+                'events' => $schema_result['events_table']['created'] ?? null
             ),
             'columns_added' => array(
-                'results' => count($schema_result['results_table']['columns_added']),
-                'events' => count($schema_result['events_table']['columns_added'])
+                'results' => isset($schema_result['results_table']['columns_added']) ? count($schema_result['results_table']['columns_added']) : null,
+                'events' => isset($schema_result['events_table']['columns_added']) ? count($schema_result['events_table']['columns_added']) : null
             )
         );
         
         if (!$schema_result['success']) {
-            $response_data['schema_warnings'] = $schema_result['errors'];
+            $response_data['schema_warnings'] = $schema_result['errors'] ?? array($schema_result['error'] ?? 'Schema verification failed');
         }
         
         wp_send_json_success($response_data);

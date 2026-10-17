@@ -1,0 +1,114 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "06-rct-arms",
+  "scenarios": [
+    {
+      "id": "S_ARM_A",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z",
+        "seed_ref": "FIXTURE_S_A",
+        "random_oracle": "DECLARED_DECISIONS_NOT_VERIFIED_SEED_VECTOR",
+        "declared_decisions": [
+          {
+            "owner_id": "M_ARM",
+            "selection": [
+              "M_ARM_A"
+            ]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_SCREEN",
+              "responses": {
+                "Q_ELIGIBLE": true
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "RANDOM_SELECTION",
+              "owner_id": "M_ARM",
+              "scope": "EXECUTION",
+              "selection": [
+                "M_ARM_A"
+              ]
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "M_ARM_B",
+              "slot": "single",
+              "state": "NOT_SCHEDULED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "RELOAD",
+            "data": {}
+          },
+          "expected": [
+            {
+              "kind": "STABLE_HISTORY",
+              "fields": [
+                "random_decisions",
+                "execution_id"
+              ]
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_INTERVENTION_A",
+              "responses": {
+                "Q_INTERVENTION_A": 1
+              },
+              "at": "2026-10-12T11:30:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "WINDOW",
+              "node_id": "E_FOLLOW_A",
+              "slot": "single",
+              "available_at": "2026-10-19T11:30:00Z",
+              "due_at": "2026-10-20T11:30:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S_EXCLUDED",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_SCREEN",
+              "responses": {
+                "Q_ELIGIBLE": false
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "TERMINATED_BY_RULE"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

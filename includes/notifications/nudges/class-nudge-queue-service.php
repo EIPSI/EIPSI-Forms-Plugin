@@ -125,6 +125,16 @@ public static function enqueue($job_type, $payload, $priority = 10, $scheduled_a
         return $job_id;
     }
 
+    /** Same queue owner/schema, using the scientific transaction's non-reconnecting writer. */
+    public static function enqueue_study_engine(\EIPSI\StudyEngine\Persistence\Database $db,$intent_id,$scheduled_at) {
+        global $wpdb;$db->requireTransaction();
+        $db->query($db->prepare('INSERT INTO `'.$wpdb->prefix.'survey_nudge_jobs` (job_type,payload,priority,scheduled_at,status,retries,created_at) VALUES (%s,%s,10,%s,%s,0,%s)',
+            'study_engine_notification',wp_json_encode(array('intent_id'=>$intent_id)),$scheduled_at,'pending',current_time('mysql')));
+        $id=$db->row('SELECT LAST_INSERT_ID() AS id')['id']??null;
+        if(!$id)throw new \EIPSI\StudyEngine\Persistence\IntegrityFailure('NOTIFICATION_QUEUE_WRITE_FAILED');
+        return (int)$id;
+    }
+
 public static function count_pending_urgent() {
         global $wpdb;
 
@@ -191,6 +201,16 @@ public static function mark_completed($job_id, $result = null) {
             return self::write_outcome($wpdb->update(self::get_table_name(),$data,
                 array('id'=>$job_id,'status'=>'processing')),$job_id,'completed');
         } finally { self::release_processing($job_id); }
+    }
+
+    /** Deferral is not a delivery failure; use the existing connection-bound claim. */
+    public static function postpone_processing($job_id,$scheduled_at) {
+        global $wpdb;
+        if (!self::owns_claim($job_id) || !is_string($scheduled_at) || !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/D',$scheduled_at)) { return false; }
+        try { return self::write_outcome($wpdb->update(self::get_table_name(),
+            array('status'=>'pending','scheduled_at'=>$scheduled_at,'processed_at'=>null),
+            array('id'=>$job_id,'status'=>'processing')),$job_id,'defer'); }
+        finally { self::release_processing($job_id); }
     }
 
 /** Explicit internal outcome; facade bool retains retry-only semantics. */

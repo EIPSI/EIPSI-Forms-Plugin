@@ -1,0 +1,175 @@
+{
+  "contract": "EIPSI_ASSESSMENT_V1",
+  "id": "AE_V0_TEST",
+  "title": "Evaluación nativa",
+  "elements": [
+    {
+      "id": "EL_text",
+      "type": "text",
+      "response_key": "R_text",
+      "properties": {
+        "label": "Texto",
+        "helper": "",
+        "required": true,
+        "placeholder": "Ejemplo",
+        "max_length": 2000
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_single_choice",
+      "type": "single_choice",
+      "response_key": "R_single_choice",
+      "properties": {
+        "label": "Única",
+        "helper": "",
+        "required": true,
+        "presentation": "vertical"
+      },
+      "options": [
+        {
+          "id": "O_single_choice_0",
+          "label": "Nada"
+        },
+        {
+          "id": "O_single_choice_1",
+          "label": "Poco"
+        },
+        {
+          "id": "O_single_choice_2",
+          "label": "Mucho"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_multiple_choice",
+      "type": "multiple_choice",
+      "response_key": "R_multiple_choice",
+      "properties": {
+        "label": "Múltiple",
+        "helper": "",
+        "required": true,
+        "presentation": "vertical"
+      },
+      "options": [
+        {
+          "id": "O_multiple_choice_0",
+          "label": "Nada"
+        },
+        {
+          "id": "O_multiple_choice_1",
+          "label": "Poco"
+        },
+        {
+          "id": "O_multiple_choice_2",
+          "label": "Mucho"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_likert",
+      "type": "likert",
+      "response_key": "R_likert",
+      "properties": {
+        "label": "Likert",
+        "helper": "",
+        "required": true,
+        "presentation": "horizontal"
+      },
+      "options": [
+        {
+          "id": "O_likert_0",
+          "label": "Nada"
+        },
+        {
+          "id": "O_likert_1",
+          "label": "Poco"
+        },
+        {
+          "id": "O_likert_2",
+          "label": "Mucho"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_vas",
+      "type": "vas",
+      "response_key": "R_vas",
+      "properties": {
+        "label": "VAS",
+        "helper": "",
+        "required": true,
+        "min": 0,
+        "max": 100,
+        "step": 2,
+        "initial": 50,
+        "left_label": "Nada",
+        "right_label": "Mucho",
+        "show_value": true
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_instruction",
+      "type": "instruction",
+      "response_key": null,
+      "properties": {
+        "label": "Instrucciones"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_image",
+      "type": "image",
+      "response_key": null,
+      "properties": {
+        "label": "Imagen",
+        "alt": "Alternativo",
+        "caption": "Ejemplo"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_group",
+      "type": "group",
+      "response_key": null,
+      "properties": {
+        "label": "Sección"
+      },
+      "options": [],
+      "children": [
+        {
+          "id": "EL_textarea",
+          "type": "textarea",
+          "response_key": "R_textarea",
+          "properties": {
+            "label": "Texto largo",
+            "helper": "",
+            "required": true,
+            "placeholder": "Ejemplo",
+            "max_length": 2000
+          },
+          "options": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "EL_page_break",
+      "type": "page_break",
+      "response_key": null,
+      "properties": {
+        "label": "Salto de página"
+      },
+      "options": [],
+      "children": []
+    }
+  ]
+}

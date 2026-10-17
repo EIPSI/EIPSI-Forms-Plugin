@@ -29,7 +29,7 @@ services:
       WORDPRESS_DB_USER: m0
       WORDPRESS_DB_PASSWORD: m0-isolated
       WORDPRESS_DEBUG: '1'
-      WORDPRESS_CONFIG_EXTRA: 'define("DISABLE_WP_CRON", true); define("WP_DEBUG_LOG", true); define("WP_DEBUG_DISPLAY", false);'
+      WORDPRESS_CONFIG_EXTRA: 'define("DISABLE_WP_CRON", true); define("WP_DEBUG_LOG", true); define("WP_DEBUG_DISPLAY", ${EIPSI_CI_DEBUG_DISPLAY:-false});'
     volumes:
       - wordpress:/var/www/html
       - ${EIPSI_CI_PLUGIN_ROOT:?Set by gate.py}:/var/www/html/wp-content/plugins/EIPSI-Forms-Plugin:ro

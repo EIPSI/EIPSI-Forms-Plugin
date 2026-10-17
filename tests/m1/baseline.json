@@ -3298,7 +3298,7 @@
         "handle": "eipsi-blocks-editor-data",
         "src": "",
         "deps": [],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": false
       },
@@ -3525,7 +3525,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3537,7 +3537,7 @@
           "jquery",
           "eipsi-participant-auth"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3549,7 +3549,7 @@
           "jquery",
           "eipsi-participant-auth"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3560,7 +3560,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3571,7 +3571,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3580,7 +3580,7 @@
         "handle": "eipsi-fingerprint-js",
         "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/js/eipsi-fingerprint.js",
         "deps": [],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3589,7 +3589,7 @@
         "handle": "eipsi-tracking-js",
         "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/js/eipsi-tracking.js",
         "deps": [],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3600,7 +3600,7 @@
         "deps": [
           "eipsi-tracking-js"
         ],
-        "version": "2.6.1.<request-time>",
+        "version": "1.0.0.<request-time>",
         "group": 1,
         "enqueued": true
       },
@@ -3611,7 +3611,7 @@
         "deps": [
           "eipsi-forms-js"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3622,7 +3622,7 @@
         "deps": [
           "eipsi-forms-js"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3633,7 +3633,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -3878,7 +3878,7 @@
         "deps": [
           "eipsi-theme-toggle-css"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -3889,7 +3889,7 @@
         "deps": [
           "eipsi-theme-toggle-css"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -3900,7 +3900,7 @@
         "deps": [
           "eipsi-theme-toggle-css"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -3909,7 +3909,7 @@
         "handle": "eipsi-tokens",
         "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/css/eipsi-tokens.css",
         "deps": [],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -3920,7 +3920,7 @@
         "deps": [
           "eipsi-tokens"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -3932,7 +3932,7 @@
           "eipsi-tokens",
           "eipsi-forms-css"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -3943,7 +3943,7 @@
         "deps": [
           "eipsi-forms-css"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -3954,7 +3954,7 @@
         "deps": [
           "eipsi-theme-toggle-css"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -3965,7 +3965,7 @@
         "deps": [
           "eipsi-theme-toggle-css"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       }
@@ -9761,14 +9761,6 @@
         "callable": true
       },
       {
-        "hook": "eipsi-forms_page_eipsi-longitudinal-study",
-        "callback": "eipsi_display_longitudinal_study_page",
-        "priority": 10,
-        "accepted_args": 1,
-        "order_at_priority": 1,
-        "callable": true
-      },
-      {
         "hook": "admin_page_eipsi-time-travel",
         "callback": "eipsi_render_time_travel_page",
         "priority": 10,
@@ -10028,7 +10020,7 @@
         "handle": "eipsi-blocks-editor-data",
         "src": "",
         "deps": [],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": false
       },
@@ -10256,7 +10248,7 @@
           "jquery",
           "wp-blocks"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -10267,7 +10259,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -10278,7 +10270,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -10289,7 +10281,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -10300,7 +10292,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -10311,7 +10303,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -10322,7 +10314,7 @@
         "deps": [
           "jquery"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": 1,
         "enqueued": true
       },
@@ -10576,7 +10568,7 @@
         "handle": "eipsi-tokens",
         "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/css/eipsi-tokens.css",
         "deps": [],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10587,7 +10579,7 @@
         "deps": [
           "eipsi-tokens"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10599,7 +10591,7 @@
           "eipsi-tokens",
           "eipsi-admin-light-theme"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10608,7 +10600,7 @@
         "handle": "eipsi-randomization-css",
         "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/css/randomization.css",
         "deps": [],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10619,7 +10611,7 @@
         "deps": [
           "eipsi-tokens"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10628,7 +10620,7 @@
         "handle": "eipsi-waves-manager-css",
         "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/css/waves-manager.css",
         "deps": [],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10640,7 +10632,7 @@
           "eipsi-tokens",
           "eipsi-admin-light-theme"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10651,7 +10643,7 @@
         "deps": [
           "eipsi-tokens"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10662,7 +10654,7 @@
         "deps": [
           "eipsi-tokens"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       },
@@ -10673,7 +10665,7 @@
         "deps": [
           "eipsi-tokens"
         ],
-        "version": "2.6.1",
+        "version": "1.0.0",
         "group": null,
         "enqueued": true
       }
@@ -13417,13 +13409,6 @@
         "file": "admin/configuration.php"
       },
       {
-        "hook": "eipsi-forms_page_eipsi-longitudinal-study",
-        "callback": "eipsi_display_longitudinal_study_page",
-        "priority": 10,
-        "order_at_priority": 1,
-        "file": "admin/longitudinal-study-page.php"
-      },
-      {
         "hook": "admin_page_eipsi-time-travel",
         "callback": "eipsi_render_time_travel_page",
         "priority": 10,
@@ -13479,7 +13464,7 @@
     "eipsi_log_audit": "2aebfa53069daf582d477af8cf76d5c2fc0ada6bcddbc039405a237f716b2fa5"
   },
   "allowlist": {
-    "asset_request_time": "Only eipsi-forms-js retains 2.6.1.<time()>; validate prefix/shape before normalization.",
+    "asset_request_time": "Only eipsi-forms-js retains 1.0.0.<time()>; validate prefix/shape before normalization.",
     "reflection_locations": "Only original eipsi-forms.php globals and closures move to explicit bootstrap/compatibility files.",
     "textdomain_file_identity": "__FILE__ becomes EIPSI_FORMS_PLUGIN_FILE to preserve language directory.",
     "deactivation": "Unschedule all argument variants of the 19 explicitly owned cron hooks; no persistent data deletion.",
@@ -13612,7 +13597,13 @@
       "includes/schema/class-schema-lock.php",
       "includes/schema/class-schema-inspector.php",
       "includes/migrations/class-migration-runner.php",
-      "includes/storage/external/class-external-schema-adapter.php"
+      "includes/storage/external/class-external-schema-adapter.php",
+      "includes/study-engine/management.php",
+      "includes/study-engine/management/Schema.php",
+      "includes/study-engine/management/Audit.php",
+      "includes/study-engine/management/Query.php",
+      "includes/study-engine/management/Exports.php",
+      "includes/study-engine/management/Admin.php"
     ],
     "m2_includes": "Auth/Participants definition-only owners, originals keep their relative order; M2 policy equivalence checked independently.",
     "m3_includes": "Explicit Forms owners/adapters; all external records remain compared.",

@@ -37,9 +37,9 @@ function eipsi_register_form_template_cpt() {
     $args = array(
         'labels'              => $labels,
         'public'              => false,
-        'show_ui'             => true,
-        'show_in_menu'        => false, // We'll add it manually to EIPSI Forms menu
-        'show_in_rest'        => true, // Enable Gutenberg
+        'show_ui'             => false,
+        'show_in_menu'        => false,
+        'show_in_rest'        => false,
         'capability_type'     => 'post',
         'capabilities'        => array(
             'edit_post'          => 'edit_posts',         // Clínicos pueden crear/editar formularios propios

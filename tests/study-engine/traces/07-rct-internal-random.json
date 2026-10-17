@@ -1,0 +1,112 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "07-rct-internal-random",
+  "scenarios": [
+    {
+      "id": "S_RANDOM_INTERNAL",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z",
+        "seed_ref": "FIXTURE_S_A",
+        "random_oracle": "DECLARED_DECISIONS_NOT_VERIFIED_SEED_VECTOR",
+        "declared_decisions": [
+          {
+            "owner_id": "M_ROOT",
+            "selection": [
+              "M_ARM_A"
+            ]
+          },
+          {
+            "owner_id": "m_ITEMS_A",
+            "selection": [
+              "Q_A_3",
+              "Q_A_1",
+              "Q_A_2"
+            ]
+          },
+          {
+            "owner_id": "m_TASKS_A",
+            "selection": [
+              "m_TASK_A_2",
+              "m_TASK_A_1"
+            ]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "EXECUTION_CREATED",
+            "data": {}
+          },
+          "expected": [
+            {
+              "kind": "RANDOM_SELECTION",
+              "owner_id": "M_ROOT",
+              "scope": "EXECUTION",
+              "selection": [
+                "M_ARM_A"
+              ]
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "M_ARM_B",
+              "slot": "single",
+              "state": "NOT_SCHEDULED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_OPENED",
+            "data": {
+              "node_id": "E_A"
+            }
+          },
+          "expected": [
+            {
+              "kind": "RANDOM_SELECTION",
+              "owner_id": "m_ITEMS_A",
+              "scope": "BLOCK_INSTANCE",
+              "selection": [
+                "Q_A_3",
+                "Q_A_1",
+                "Q_A_2"
+              ]
+            },
+            {
+              "kind": "RANDOM_SELECTION",
+              "owner_id": "m_TASKS_A",
+              "scope": "BLOCK_INSTANCE",
+              "selection": [
+                "m_TASK_A_2",
+                "m_TASK_A_1"
+              ]
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "m_TASK_A_3",
+              "slot": "single",
+              "state": "NOT_SCHEDULED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "RELOAD",
+            "data": {}
+          },
+          "expected": [
+            {
+              "kind": "STABLE_HISTORY",
+              "fields": [
+                "random_decisions",
+                "cursor"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

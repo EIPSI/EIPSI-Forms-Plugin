@@ -33,6 +33,9 @@ public static function sync_external_schema( $mysqli ) {
 
         foreach ( $external_tables as $slug ) {
 
+            $report_key = $slug === 'vas_form_results' ? 'results_table' : ($slug === 'vas_form_events' ? 'events_table' : null);
+            if ($report_key) { $results[$report_key] = array('created' => false, 'columns_added' => array()); }
+
             $table_name = $wpdb->prefix . $slug;
 
             if ( ! isset( $map[$slug] ) ) continue;
@@ -76,6 +79,7 @@ public static function sync_external_schema( $mysqli ) {
                     continue;
 
                 }
+                if ($report_key) { $results[$report_key]['created'] = true; }
 
             }
 
@@ -92,6 +96,8 @@ public static function sync_external_schema( $mysqli ) {
                     if (!$mysqli->query( "ALTER TABLE `$table_name` ADD COLUMN `$col` $def" )) {
                         $results['success'] = false;
                         $results['errors'][] = "Failed to add $table_name.$col: " . $mysqli->error;
+                    } elseif ($report_key) {
+                        $results[$report_key]['columns_added'][] = $col;
                     }
 
                 }

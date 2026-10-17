@@ -1,0 +1,30 @@
+{
+  "entry_order": [
+    "../../frontend/study/interactions.js",
+    "model.js",
+    "controls.js",
+    "message-catalog.js",
+    "public-messages.js",
+    "schedule.js",
+    "conditions.js",
+    "randomization.js",
+    "notifications.js",
+    "tree.js",
+    "assessment.js",
+    "validation.js",
+    "experience.js",
+    "simulation.js",
+    "calendar.js",
+    "interaction-dialog.js",
+    "repetition.js",
+    "transversal.js",
+    "longitudinal.js",
+    "trajectory.js",
+    "trajectory-tracks.js",
+    "email-templates.js",
+    "initial-screen.js",
+    "product.js",
+    "management.js",
+    "app.js"
+  ]
+}

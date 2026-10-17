@@ -25,15 +25,11 @@ function eipsi_forms_menu() {
         25
     );
 
-    // Submenú: Cross-sectional Study
-    add_submenu_page(
-        'eipsi-results-experience',
-        __('Cross-sectional Study', 'eipsi-forms'),
-        __('Cross-sectional Study', 'eipsi-forms'),
-        $capabilities['results'],
-        'eipsi-results-experience',
-        'eipsi_display_results_experience_page'
-    );
+    // Register the parent destination explicitly below, after the authoring tools.
+    global $submenu;
+    if (!isset($submenu['eipsi-results-experience'])) {
+        $submenu['eipsi-results-experience'] = array();
+    }
 
     // Submenú: Configuration
     add_submenu_page(
@@ -45,107 +41,28 @@ function eipsi_forms_menu() {
         'eipsi_display_configuration_page'
     );
 
-    // Submenú: Longitudinal Study
-    add_submenu_page(
-        'eipsi-results-experience',
-        __('Longitudinal Study', 'eipsi-forms'),
-        __('Longitudinal Study', 'eipsi-forms'),
-        $capabilities['longitudinal'],
-        'eipsi-longitudinal-study',
-        'eipsi_display_longitudinal_study_page'
-    );
+    add_submenu_page('eipsi-results-experience', 'Templates de Emails', 'Templates de Emails', 'manage_options', 'eipsi-email-templates', static function() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/builder.php'; \EIPSI\StudyEngine\Builder\EmailLibrary::screen(); });
 
-    // Submenú: Form Library
-    add_submenu_page(
-        'eipsi-results-experience',
-        __('Form Library', 'eipsi-forms'),
-        __('Form Library', 'eipsi-forms'),
-        $capabilities['form_library'],
-        'edit.php?post_type=eipsi_form_template'
-    );
-    
+    add_submenu_page('eipsi-results-experience', 'Assessment Editor', 'Assessment Editor', 'manage_options', 'eipsi-assessment-editor', static function () {
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/assessment-editor/bootstrap.php';
+        \EIPSI\AssessmentEditor\Admin::screen();
+    });
+
+    add_submenu_page('eipsi-results-experience', 'Study Engine', 'Study Engine', 'manage_options', 'eipsi-study-builder', static function() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/builder.php'; \EIPSI\StudyEngine\Builder\Admin::screen(); });
+
+
+
 }
 
 /**
- * Handle redirects for backwards compatibility from old menu URLs.
- * Redirects old standalone pages to new tabbed structure.
+ * Route the menu destination and reject retired administrative pages.
+ * Study authoring and management share the current Study Engine screen.
  */
 function eipsi_admin_menu_redirects() {
-    if (!is_admin()) {
-        return;
-    }
-
-    $page = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
-    
-    // Skip if no page parameter or already on correct page
-    if (empty($page)) {
-        return;
-    }
-
-    // Get current tab to avoid redirect loops
-    $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : '';
-
-    switch ($page) {
-        case 'eipsi-randomization':
-            // Redirect to Cross-sectional Study > Randomization tab
-            if ($current_tab !== 'randomization') {
-                $redirect_url = add_query_arg(
-                    array(
-                        'page' => 'eipsi-results-experience',
-                        'tab' => 'randomization'
-                    ),
-                    admin_url('admin.php')
-                );
-                wp_redirect($redirect_url);
-                exit;
-            }
-            break;
-
-        case 'eipsi-longitudinal-pools':
-            // Redirect to Longitudinal Study > Longitudinal Pools tab
-            if ($current_tab !== 'longitudinal-pools') {
-                $redirect_url = add_query_arg(
-                    array(
-                        'page' => 'eipsi-longitudinal-study',
-                        'tab' => 'longitudinal-pools'
-                    ),
-                    admin_url('admin.php')
-                );
-                wp_redirect($redirect_url);
-                exit;
-            }
-            break;
-
-        case 'eipsi-pool-dashboard':
-            // Redirect to Longitudinal Study > Pool Analytics tab
-            if ($current_tab !== 'pool-analytics') {
-                $redirect_url = add_query_arg(
-                    array(
-                        'page' => 'eipsi-longitudinal-study',
-                        'tab' => 'pool-analytics'
-                    ),
-                    admin_url('admin.php')
-                );
-                wp_redirect($redirect_url);
-                exit;
-            }
-            break;
-
-        case 'eipsi-configuration':
-            // Redirect old notifications tab to Longitudinal Study > Recordatorios
-            if ($current_tab === 'notifications') {
-                $redirect_url = add_query_arg(
-                    array(
-                        'page' => 'eipsi-longitudinal-study',
-                        'tab' => 'reminders'
-                    ),
-                    admin_url('admin.php')
-                );
-                wp_redirect($redirect_url);
-                exit;
-            }
-            break;
-    }
+    if (!is_admin()) return;
+    $page=isset($_GET['page'])?sanitize_key($_GET['page']):'';
+    if($page==='eipsi-results-experience'){wp_safe_redirect(admin_url('admin.php?page=eipsi-study-builder'));exit;}
+    if(in_array($page,array('eipsi-longitudinal-study','eipsi-randomization','eipsi-longitudinal-pools','eipsi-pool-dashboard','eipsi-notifications'),true))wp_die('Esta sección fue retirada.',410);
 }
 add_action('admin_menu', 'eipsi_forms_menu', 1);
 add_action('admin_init', 'eipsi_admin_menu_redirects', 1);

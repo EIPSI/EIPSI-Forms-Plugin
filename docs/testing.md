@@ -2,7 +2,7 @@
 
 ## T0 — Gate automático actual
 
-Desde la raíz del plugin: `./tests/ci/run.sh fast` (963 PHP + 68 JS, gate RCT y build) o `./tests/ci/run.sh full` (añade nueva instalación, seis smoke tests y deactivate/reactivate). FULL es el modo por defecto. Se mantienen los **1031 anteriores**; con los seis tests nuevos T0 el total es **1037 únicos: 969 PHP + 68 JS**. Repeticiones/lifecycle no suman casos.
+Desde la raíz del plugin: `./tests/ci/run.sh fast` (965 PHP legacy + 127 contratos + 157 compiler/simulator + 30 checkpoint/crypto + 85 persistencia DB + 110 Content/runtime + 123 longitudinal + 84 privacy DB + 12 privacy puros + 51 Builder DB + 33 Builder puros + 25 Pilot/operacionales + 134 JS, gate RCT y build) o `./tests/ci/run.sh full` (añade nueva instalación, seis smoke tests y deactivate/reactivate). FULL agrega además las dos regresiones B0 de activación inicial/reactivación sin output en procesos admin nuevos. FULL es el modo por defecto. Se mantienen los **1031 anteriores**; con los seis tests nuevos T0 el total es **1037 únicos: 969 PHP + 68 JS; con B0 y las dos regresiones de guardado de storage, 1041 únicos: 973 PHP + 68 JS**. P1-B añade 127 tests puros: **1168 únicos: 1100 PHP + 68 JS**. P1-C añade 157 tests nuevos: **1325 únicos: 1257 PHP + 68 JS**. P1-D agrega 115 casos: **1440 únicos: 1372 PHP + 68 JS**. P1-E añade120: **1560 únicos:1482 PHP +78 JS**. P1-F añade129: **1689 únicos:1605 PHP +84 JS**. P1-G agrega106: **1795 únicos:1701 PHP +94 JS**. Los 21 negativos P1-B se revalidan en el compiler y se reportan aparte, sin sumarlos otra vez. Repeticiones/lifecycle no suman casos.
 
 [Requisitos, versiones, suites, logs y límites](../tests/ci/README.md). GitHub Actions corre PHP tests, JS tests, Build y Clean smoke para PRs/pushes a `develop`; no sustituye el upgrade histórico manual/pre-release ni certifica deploy institucional. Los conteos siguientes conservan la historia de cada fase.
 
@@ -197,3 +197,27 @@ M0 cambia conscientemente cuatro expectativas de missing, M5 una. M1/PURGA FINAL
 La ejecución original S4 caracterizaba un P1 abierto. S4.1 convierte ese mismo caso en una invariante permanente de rechazo y conservación de filas; `EIPSI_S4_EXPECT_RCT_DENIAL=1` selecciona el gate estricto. Tres consumidores VM/DOM mínimo incluyen un ReferenceError inline P2 confirmado; no es E2E visual global. Pruebas RED preservadas en informe S4. Sin snapshots reemplazados ni schema modificado.
 
 S4.1 añade 22 PHP + 8 JS: **1031 casos únicos (963 PHP + 68 JS)**. [Contrato y comandos S4.1](../tests/s41/README.md). Clean/upgrade/lifecycle y gate estricto son repeticiones y no aumentan el total.
+
+## Study Engine P1-D
+
+Persistencia interna y Execution Owner: [contrato técnico](study-engine/persistence-execution.md). Nuevos runners `tests/run-study-engine-persistence-unit.php` (30 puros) y `tests/run-study-engine-persistence.php` (85 MariaDB). Cierre histórico P1-D: **1440 únicos (1372 PHP + 68 JS)**; FAST P1-D: 1432. Sin endpoints/UI/SMTP ni conversión legacy.
+
+## Study Engine P1-E
+
+Slice público/anónimo opt-in: [Content Adapter y runtime cross-sectional](study-engine/content-cross-sectional.md). Snapshot pinneado, recuperación HttpOnly, páginas/conditions/order del engine y Storage local+journal en la misma transacción. 44 tests de contenido,66 HTTP/DB y10 DOM nuevos; FULL1560 únicos (1482 PHP+78 JS), FAST1552. Sin migración legacy, emails, workflow longitudinal ni Builder.
+
+## Study Engine P1-F
+
+[Acceso longitudinal y notificaciones](study-engine/longitudinal-access-notifications.md): EMAIL_LONGITUDINAL opt-in, identidad Study-scoped, sesiones provisionales/autenticadas, capabilities de un uso, verificación y outbox integrado a S2. P1-F agrega 123 DB/HTTP y 6 DOM; FULL 1689 únicos (1605 PHP +84 JS), FAST 1681. Retiro completo y Builder quedan fuera de esta fase. Deploy requiere keyrings, HTTPS, cron y validación operacional de SMTP.
+
+## Study Engine P1-G
+
+[Retiro, privacidad y export](study-engine/withdrawal-privacy-export.md): B1/B2 con AccessContext, exclusión analítica inmediata y cleanup local recuperable. Adapter de export versionado, coverage y tombstones explícitos. Agrega 106 únicos (12 PHP puros +84 DB/HTTP +10 DOM); FULL 1795 (1701 PHP +94 JS), FAST 1787. Sin Builder/P1-H; deploy condicionado a upgrade v14, secrets, HTTPS y cron.
+
+## P1-H — Visual Study Builder
+
+El Builder administrativo añade 124 casos (51 DB/API/HTTP, 33 puros, 40 DOM). Total vigente FULL: **1919 únicos: 1785 PHP +134 JS**; FAST: **1911**. Gate estricto RCT, build, clean smoke y lifecycle verdes. Los totales anteriores documentan fases históricas. [Arquitectura, uso, límites y verificación](study-engine/study-builder.md). Sin migración legacy automática ni certificación institucional/SMTP real.
+
+## P1-I — piloto y operación (abierto)
+
+FULL vigente **1944 únicos:1810 PHP +134 JS**, FAST1936; añade25 casos de integración (10 Builder→runtime→export,5 canje HTTP,10 operación). GET de email ya no consume la capability: requiere confirmación POST explícita tras redirect limpio. Gate/RCT/build/smoke/lifecycle verdes. **P1-I no cerrado: smoke humano Builder/participante/accesibilidad/visual pendiente por decisión del responsable.** Readiness: CONDITIONAL GO sólo tras checklist operacional y humano; no deploy institucional certificado. [Evidencias de alcance, runbook y límites](study-engine/pilot-readiness.md). Sin commit/push/tag/release.

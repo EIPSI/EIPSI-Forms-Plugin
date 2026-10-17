@@ -37,5 +37,17 @@ final class EIPSI_Hook_Registry {
         add_action('admin_post_nopriv_eipsi_pool_join', 'eipsi_handle_pool_join');
         add_action('admin_post_eipsi_pool_join', 'eipsi_handle_pool_join');
         EIPSI_Cron_Registry::register_partial_cleanup();
+        if (is_admin() && ($GLOBALS['pagenow'] ?? '') === 'plugins.php') {
+            add_filter('plugin_row_meta', static function ($links, $file) {
+                if ($file !== plugin_basename(EIPSI_FORMS_PLUGIN_FILE)) { return $links; }
+                foreach ($links as &$link) {
+                    if (strpos($link, 'https://github.com/EIPSI/EIPSI-Forms-Plugin') !== false) {
+                        $link = preg_replace('~>[^<]*</a>~', '>GitHub</a>', $link);
+                    }
+                }
+                unset($link);
+                return $links;
+            }, 10, 2);
+        }
     }
 }

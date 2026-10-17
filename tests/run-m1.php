@@ -9,7 +9,7 @@ foreach (array('frontend','admin') as $profile) {
     $canonical = m1_contracts($observed[$profile]);
     foreach (array('includes','hooks','hook_locations','shortcodes','rest','cron','assets','blocks') as $contract) {
         $tests["Inventario $profile: $contract equivalente al baseline"] = function () use ($baseline,$profile,$contract,$canonical) {
-            m0_assert($canonical[$contract] == $baseline[$profile][$contract], 'Unexpected contract difference: '.$profile.' '.$contract);
+            m0_assert($canonical[$contract] == $baseline[$profile][$contract], 'Unexpected contract difference: '.$profile.' '.$contract.' '.json_encode(array('added'=>array_values(array_udiff($canonical[$contract],$baseline[$profile][$contract],static function($a,$b){return strcmp(json_encode($a),json_encode($b));})),'removed'=>array_values(array_udiff($baseline[$profile][$contract],$canonical[$contract],static function($a,$b){return strcmp(json_encode($a),json_encode($b));})))));
         };
     }
 }
@@ -117,7 +117,7 @@ $tests['Lifecycle: reactivación repetida no duplica cron'] = function () {
     m0_assert(_get_cron_array() === $before,'Repeated activation duplicated or changed cron');
 };
 $tests['Smoke después de reactivar: admin, REST público y assets responden'] = function () {
-    foreach (array('/wp-admin/admin.php?page=eipsi-results-experience','/wp-json/eipsi/v1/pool-detect','/wp-content/plugins/EIPSI-Forms-Plugin/assets/js/eipsi-forms.js') as $path) {
+    foreach (array('/wp-admin/admin.php?page=eipsi-study-builder','/wp-json/eipsi/v1/pool-detect','/wp-content/plugins/EIPSI-Forms-Plugin/assets/js/eipsi-forms.js') as $path) {
         $result=m0_http($path,null,strpos($path,'/wp-admin/')===0);
         m0_assert(!is_wp_error($result),'HTTP failure: '.$path);
         $status=wp_remote_retrieve_response_code($result);

@@ -1,7 +1,7 @@
 {
     "name": "eipsi-forms",
-    "version": "1.5.5",
-    "description": "Professional form builder with Gutenberg blocks and Excel export capabilities.",
+    "version": "1.0.0",
+    "description": "Create assessments and manage cross-sectional and longitudinal studies with randomization, conditional logic, email notifications, and data export.",
     "sideEffects": false,
     "scripts": {
         "build": "wp-scripts build && node scripts/fix-block-json-css-references.js && node scripts/build-form-runtime.js",
@@ -18,7 +18,7 @@
         "blocks",
         "forms"
     ],
-    "author": "EIPSI Team",
+    "author": "EIPSI",
     "license": "GPL-2.0-or-later",
     "devDependencies": {
         "@wordpress/scripts": "^31.4.0",

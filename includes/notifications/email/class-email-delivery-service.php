@@ -4,6 +4,24 @@ if (!defined('ABSPATH')) { exit; }
 
 class EIPSI_Notification_Email_Delivery_Service {
 
+    /** Study Engine adapter: same SMTP/wp_mail owner; logs IDs/status, never bearer/body/PII. */
+    public static function send_study_engine($to,$subject,$content,$intent_id) {
+        try {
+            $sender=array('from_name'=>'','from_email'=>'');
+            if(is_array($content)){
+                $dto=$content;if(array_diff(array_keys($dto),array('html','from_name','from_email'))||!is_string($dto['html']??null))return false;
+                foreach($sender as $key=>$default){$value=$dto[$key]??'';if(!is_string($value)||strlen($value)>240||preg_match('/[\r\n\x00-\x1f]/',$value))return false;$sender[$key]=$value;}
+                if($sender['from_email']!==''&&!is_email($sender['from_email']))return false;$content=$dto['html'];
+            }
+            $smtp=class_exists('EIPSI_SMTP_Service')?new EIPSI_SMTP_Service():null;
+            $config=$smtp?$smtp->get_config():null;
+            if($config){foreach($sender as $key=>$value)if($value!=='')$config[$key]=$value;$result=$smtp->send_message($to,$subject,$content,$config);$sent=!empty($result['success']);}
+            else{$headers=array('Content-Type: text/html; charset=UTF-8');if($sender['from_email']!=='')$headers[]='From: '.($sender['from_name']!==''?'"'.addcslashes($sender['from_name'],"\\\"").'" ':'').'<'.$sender['from_email'].'>';$nameFilter=static function($name)use($sender){return $sender['from_name']!==''?$sender['from_name']:$name;};add_filter('wp_mail_from_name',$nameFilter,PHP_INT_MAX);try{$sent=wp_mail($to,$subject,$content,$headers);}finally{remove_filter('wp_mail_from_name',$nameFilter,PHP_INT_MAX);}}
+            error_log('[EIPSI STUDY EMAIL] intent='.preg_replace('/[^A-Za-z0-9_]/','',(string)$intent_id).' result='.($sent?'ACCEPTED':'RETRYABLE'));
+            return (bool)$sent;
+        }catch(Throwable $e){error_log('[EIPSI STUDY EMAIL] intent='.preg_replace('/[^A-Za-z0-9_]/','',(string)$intent_id).' result=RETRYABLE');return false;}
+    }
+
 public static function send_email($survey_id, $participant_id, $to, $type, $subject, $content, $metadata = array()) {
         $headers = array('Content-Type: text/html; charset=UTF-8');
 

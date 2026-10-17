@@ -1,0 +1,399 @@
+{
+  "expected_error": "MISSING_OCCURRENCE_KEY",
+  "definition": {
+    "contract_version": "P1B_V1",
+    "study": {
+      "logical_id": "STUDY_08-wait-resume-micro",
+      "public_id": "PUBLIC_08-wait-resume-micro"
+    },
+    "id": "VERSION_1",
+    "version_number": 1,
+    "state": "PUBLISHED",
+    "timezone": {
+      "policy": "PARTICIPANT_LOCAL",
+      "default": "America/Argentina/Buenos_Aires"
+    },
+    "root_block_ids": [
+      "M_ROOT"
+    ],
+    "nodes": [
+      {
+        "kind": "BLOCK",
+        "id": "M_ROOT",
+        "logical_id": "M_ROOT",
+        "version_id": "VERSION_1",
+        "parent_id": "VERSION_1",
+        "scope": "MACRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "NONE",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_FOLLOWUP_1",
+        "logical_id": "E_FOLLOWUP_1",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "OFFSET",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 0
+            }
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "DURATION",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 7200
+            }
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_FOLLOWUP_2",
+        "logical_id": "E_FOLLOWUP_2",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MICRO",
+        "position": 1,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "OFFSET",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 86400
+            }
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "DURATION",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 7200
+            }
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_FOLLOWUP_3",
+        "logical_id": "E_FOLLOWUP_3",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MICRO",
+        "position": 2,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "OFFSET",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 172800
+            }
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "DURATION",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 7200
+            }
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_FOLLOWUP_4",
+        "logical_id": "E_FOLLOWUP_4",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MICRO",
+        "position": 3,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "OFFSET",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 259200
+            }
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "DURATION",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 7200
+            }
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_RISK",
+        "version_id": "VERSION_1",
+        "parent_id": "E_FOLLOWUP_1",
+        "position": 0,
+        "response_key": "RESPONSE_Q_RISK",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {
+          "min": 0,
+          "max": 10
+        },
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_RISK",
+          "version": 1,
+          "snapshot": "Q_RISK",
+          "sha256": "932b927f9f6315fe6f351814a30415f4215fa7e128f3d41eb6844bf2c63665a9"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_FOLLOW_2",
+        "version_id": "VERSION_1",
+        "parent_id": "E_FOLLOWUP_2",
+        "position": 0,
+        "response_key": "RESPONSE_Q_FOLLOW_2",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_FOLLOW_2",
+          "version": 1,
+          "snapshot": "Q_FOLLOW_2",
+          "sha256": "974d9bd6a6c7706b7ec9cc3604cc9998912ef000d07d4b054cee814c686d02a5"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_FOLLOW_3",
+        "version_id": "VERSION_1",
+        "parent_id": "E_FOLLOWUP_3",
+        "position": 0,
+        "response_key": "RESPONSE_Q_FOLLOW_3",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_FOLLOW_3",
+          "version": 1,
+          "snapshot": "Q_FOLLOW_3",
+          "sha256": "875ad903c8417506f89c5a063bb26910a13b57baff090b01b738101f19f565d8"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_INTRO",
+        "logical_id": "m_INTRO",
+        "version_id": "VERSION_1",
+        "parent_id": "E_FOLLOWUP_4",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_INTRO",
+        "version_id": "VERSION_1",
+        "parent_id": "m_INTRO",
+        "position": 0,
+        "response_key": "RESPONSE_Q_INTRO",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_INTRO",
+          "version": 1,
+          "snapshot": "Q_INTRO",
+          "sha256": "30325005f10b6c9e4e92b08310f9737da035c66ebad1c99a003bfb0cd3f167aa"
+        }
+      },
+      {
+        "kind": "DIRECTIVE",
+        "id": "D_FOUR_PAGE",
+        "version_id": "VERSION_1",
+        "parent_id": "E_FOLLOWUP_4",
+        "position": 1,
+        "directive_kind": "PAGE_BREAK",
+        "target": null,
+        "resume_target": null,
+        "on_target_unavailable": null
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_X",
+        "logical_id": "m_X",
+        "version_id": "VERSION_1",
+        "parent_id": "E_FOLLOWUP_4",
+        "scope": "MICRO",
+        "position": 2,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_X",
+        "version_id": "VERSION_1",
+        "parent_id": "m_X",
+        "position": 0,
+        "response_key": "RESPONSE_Q_X",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_X",
+          "version": 1,
+          "snapshot": "Q_X",
+          "sha256": "b55754320a8637cbfce8e9784d5035d7396e949c0a241fbe07ca90a2f697ccb3"
+        }
+      }
+    ],
+    "condition_rules": [
+      {
+        "id": "R_WAIT_FOUR",
+        "version_id": "VERSION_1",
+        "trigger": "ON_ASSESSMENT_COMPLETE",
+        "source": {
+          "kind": "BLOCK",
+          "node_id": "E_FOLLOWUP_1",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          }
+        },
+        "order": 10,
+        "predicate": {
+          "op": "GTE",
+          "left": {
+            "kind": "REFERENCE",
+            "reference": {
+              "kind": "QUESTION",
+              "node_id": "Q_RISK",
+              "occurrence_selector": {
+                "kind": "SINGLE"
+              }
+            }
+          },
+          "right": {
+            "kind": "VALUE",
+            "type": "INTEGER",
+            "value": 8
+          }
+        },
+        "action": "WAIT",
+        "target": {
+          "kind": "ASSESSMENT_ENTRY",
+          "node_id": "E_FOLLOWUP_4",
+          "occurrence_selector": {
+            "kind": "EXACT_OCCURRENCE"
+          }
+        },
+        "resume_target": {
+          "kind": "MICRO_ENTRY",
+          "node_id": "m_X",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          }
+        },
+        "on_target_unavailable": "CONTINUE_AFTER_TARGET",
+        "metadata": {}
+      }
+    ],
+    "compiler_contract_version": "P1C_V1",
+    "protocol_metadata": {
+      "title": "08-wait-resume-micro",
+      "source": "P1-A P.8"
+    },
+    "closure": {
+      "kind": "ALL_SELECTED_OPPORTUNITIES_TERMINAL"
+    }
+  }
+}

@@ -13,14 +13,14 @@ function m1_contracts($inventory) {
     }
     $hooks = array();
     foreach ($inventory['hooks'] as $row) {
-        if (m1_s3_added_hook($row)) { continue; }
+        if (m1_s3_added_hook($row) || m1_builder_added_hook($row) || m1_native_assessment_added_hook($row)) { continue; }
         if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
         if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
         $hooks[] = array_intersect_key($row, array_flip(array('hook','callback','priority','accepted_args','order_at_priority','callable')));
     }
     $hook_locations = array();
     foreach ($inventory['hooks'] as $row) {
-        if (m1_s3_added_hook($row)) { continue; }
+        if (m1_s3_added_hook($row) || m1_builder_added_hook($row) || m1_native_assessment_added_hook($row)) { continue; }
         if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
         if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
         $hook_locations[] = array_intersect_key($row, array_flip(array('hook','callback','priority','order_at_priority','file')));
@@ -42,8 +42,8 @@ function m1_contracts($inventory) {
             $row['version'] = '<filemtime:admin/js/privacy-dashboard.js>';
         }
         if ($row['handle'] === 'eipsi-forms-js') {
-            m0_assert(preg_match('/^2\.6\.1\.\d{10}$/', (string)$row['version']) === 1, 'Unexpected forms asset version contract');
-            $row['version'] = '2.6.1.<request-time>';
+            m0_assert(preg_match('/^1\.0\.0\.\d{10}$/', (string)$row['version']) === 1, 'Unexpected forms asset version contract');
+            $row['version'] = '1.0.0.<request-time>';
         }
     }
     unset($row);
@@ -85,6 +85,23 @@ function m1_s3_added_hook($row) {
             m0_assert(array_intersect_key($row,$expected)==$expected,'Unexpected S3 hook contract');
             return true;
         }
+    }
+    return false;
+}
+
+// Intentional P1-H menu addition; validate every field before comparing historical hooks.
+function m1_builder_added_hook($row) {
+    $extensions=json_decode(file_get_contents(__DIR__.'/../study-engine/builder/boundary-extensions.json'),true);
+    foreach($extensions['added_hooks'] as $expected)if($row['hook']===$expected['hook']) {m0_assert(array_intersect_key($row,$expected)==$expected,'Unexpected P1-H hook contract');return true;}
+    return false;
+}
+
+// Native v0 adds exactly one menu hook; all existing callbacks remain compared.
+function m1_native_assessment_added_hook($row) {
+    $extensions=json_decode(file_get_contents(__DIR__.'/../assessment-editor/boundary-extensions.json'),true);
+    foreach($extensions['added_hooks'] as $expected) if($row['hook']===$expected['hook']) {
+        m0_assert(array_intersect_key($row,$expected)==$expected,'Unexpected native Assessment Editor hook contract');
+        return true;
     }
     return false;
 }

@@ -146,4 +146,9 @@ public static function run($participant_id, $mode = 'hard_delete', $reason = '')
         }
         return $result;
     }
+
+public static function run_study_engine($database, $execution_id, $observer = null) {
+    require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/privacy.php';
+    return (new \EIPSI\StudyEngine\Privacy\CleanupAdapter($database,$observer))->run($execution_id);
+}
 }

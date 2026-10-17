@@ -4,7 +4,7 @@
 
 Instalar Docker/Compose con acceso al daemon, Bash y Python 3.9+. Ejecutar `./tests/ci/run.sh fast` o `./tests/ci/run.sh full` desde el plugin; FULL es el modo por defecto. El wrapper usa imágenes fijadas, instala npm desde el lockfile si faltan dependencias y crea bases descartables independientes del WordPress de desarrollo. Tras modificar el lockfile, ejecutar nuevamente npm ci según [setup T0](../tests/ci/README.md).
 
-FAST mantiene 1031 tests (963 PHP + 68 JS), gate estricto RCT y build. FULL añade seis tests smoke sobre otra instalación nueva, con deactivate/reactivate: total único 1037. Los fallos muestran etapa/comando/exit code y guardan logs en `.cache/ci/`. GitHub ejecuta cuatro checks en PR/push a develop y cachea únicamente npm; no publica builds/releases ni necesita secretos institucionales. Requisitos y versiones canónicas, tiempos, checks recomendados y límites: [T0](../tests/ci/README.md).
+FAST ejecuta 1936 tests (965 PHP legacy + 127 de contratos + 157 compiler/simulator + 30 de checkpoint/crypto + 85 de persistencia DB + 110 de Content/runtime + 123 longitudinal + 84 privacy DB + 12 privacy puros + 51 Builder DB + 33 Builder puros + 25 Pilot/operacionales + 134 JS), gate estricto RCT y build. FULL añade seis tests smoke sobre otra instalación nueva, con deactivate/reactivate: total T0 1037. B0 agrega activación inicial y reactivación admin con cero bytes inesperados: total B0 1039. Dos regresiones de guardado de storage llevan el total anterior a P1-B a 1041 (973 PHP + 68 JS). P1-B suma 127 tests de contratos puros: total P1-B 1168 (1100 PHP + 68 JS). P1-C añade 157 tests nuevos: total P1-C 1325 (1257 PHP + 68 JS). P1-D suma 115 tests: total P1-D 1440 (1372 PHP + 68 JS). P1-E añade 120 tests: total P1-E 1560 (1482 PHP +78 JS). P1-F añade 129: total P1-F 1689 (1605 PHP +84 JS). P1-G agrega 106: total P1-G 1795 (1701 PHP +94 JS). Los fallos muestran etapa/comando/exit code y guardan logs en `.cache/ci/`. GitHub ejecuta cuatro checks en PR/push a develop y cachea únicamente npm; no publica builds/releases ni necesita secretos institucionales. Requisitos y versiones canónicas, tiempos, checks recomendados y límites: [T0](../tests/ci/README.md).
 
 El gate no certifica SMTP, Nginx, datasets institucionales, E2E visual, performance, exactly-once ni atomicidad global. El upgrade histórico completo sigue siendo check manual/pre-release con los fixtures existentes.
 
@@ -116,3 +116,27 @@ Do not change RNG bounds, fallback, seed source or weighting when extending test
 Usar Registry para definición, Installer para creación, migrations para transformaciones conocidas y Repair para drift aditivo. No escribir otro schema map ni añadir DDL incidental al submit. No borrar fallbacks históricos antes de demostrar convergencia. Añadir migraciones con SQL comprobado y checkpoints por versión; instrucciones completas en [schema.md](schema.md).
 
 M8 no cambia policy de uniques, tipos de IDs, estados de estudios ni una versión pública. Una forma de identidad desconocida debe fallar explícitamente y conservar datos. GET_LOCK serializa exclusivamente la misma instancia DB/prefix. Los scripts históricos no son automáticamente descartables.
+
+## Study Engine P1-D
+
+Persistencia interna y Execution Owner: [contrato técnico](study-engine/persistence-execution.md). Nuevos runners `tests/run-study-engine-persistence-unit.php` (30 puros) y `tests/run-study-engine-persistence.php` (85 MariaDB). Cierre histórico P1-D: **1440 únicos (1372 PHP + 68 JS)**; FAST P1-D: 1432. Sin endpoints/UI/SMTP ni conversión legacy.
+
+## Study Engine P1-E
+
+Slice público/anónimo opt-in: [Content Adapter y runtime cross-sectional](study-engine/content-cross-sectional.md). Snapshot pinneado, recuperación HttpOnly, páginas/conditions/order del engine y Storage local+journal en la misma transacción. 44 tests de contenido,66 HTTP/DB y10 DOM nuevos; FULL1560 únicos (1482 PHP+78 JS), FAST1552. Sin migración legacy, emails, workflow longitudinal ni Builder.
+
+## Study Engine P1-F
+
+[Acceso longitudinal y notificaciones](study-engine/longitudinal-access-notifications.md): EMAIL_LONGITUDINAL opt-in, identidad Study-scoped, sesiones provisionales/autenticadas, capabilities de un uso, verificación y outbox integrado a S2. P1-F agrega 123 DB/HTTP y 6 DOM; FULL 1689 únicos (1605 PHP +84 JS), FAST 1681. Retiro completo y Builder quedan fuera de esta fase. Deploy requiere keyrings, HTTPS, cron y validación operacional de SMTP.
+
+## Study Engine P1-G
+
+[Retiro, privacidad y export](study-engine/withdrawal-privacy-export.md): B1/B2 con AccessContext, exclusión analítica inmediata y cleanup local recuperable. Adapter de export versionado, coverage y tombstones explícitos. Agrega 106 únicos (12 PHP puros +84 DB/HTTP +10 DOM); FULL 1795 (1701 PHP +94 JS), FAST 1787. Sin Builder/P1-H; deploy condicionado a upgrade v14, secrets, HTTPS y cron.
+
+## P1-H — Visual Study Builder
+
+El Builder administrativo añade 124 casos (51 DB/API/HTTP, 33 puros, 40 DOM). Total vigente FULL: **1919 únicos: 1785 PHP +134 JS**; FAST: **1911**. Gate estricto RCT, build, clean smoke y lifecycle verdes. Los totales anteriores documentan fases históricas. [Arquitectura, uso, límites y verificación](study-engine/study-builder.md). Sin migración legacy automática ni certificación institucional/SMTP real.
+
+## P1-I — piloto y operación (abierto)
+
+FULL vigente **1944 únicos:1810 PHP +134 JS**, FAST1936; añade25 casos de integración (10 Builder→runtime→export,5 canje HTTP,10 operación). GET de email ya no consume la capability: requiere confirmación POST explícita tras redirect limpio. Gate/RCT/build/smoke/lifecycle verdes. **P1-I no cerrado: smoke humano Builder/participante/accesibilidad/visual pendiente por decisión del responsable.** Readiness: CONDITIONAL GO sólo tras checklist operacional y humano; no deploy institucional certificado. [Evidencias de alcance, runbook y límites](study-engine/pilot-readiness.md). Sin commit/push/tag/release.

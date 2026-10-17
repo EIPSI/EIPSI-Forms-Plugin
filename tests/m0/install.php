@@ -15,6 +15,10 @@ if (!is_blog_installed()) {
 }
 update_option('eipsi_m0_isolated_install', true);
 wp_set_current_user(1);
+if (in_array('--install-only', $argv, true)) {
+    echo "M0 isolated install OK; activation deferred\n";
+    exit(0);
+}
 $result = activate_plugin('EIPSI-Forms-Plugin/eipsi-forms.php');
 if (is_wp_error($result)) {
     fwrite(STDERR, $result->get_error_message() . "\n");

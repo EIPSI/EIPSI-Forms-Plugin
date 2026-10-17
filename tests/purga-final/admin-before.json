@@ -8611,7 +8611,7 @@
       "handle": "eipsi-blocks-editor-data",
       "src": "",
       "deps": [],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": 1,
       "enqueued": false
     },
@@ -8839,7 +8839,7 @@
         "jquery",
         "wp-blocks"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": 1,
       "enqueued": true
     },
@@ -8850,7 +8850,7 @@
       "deps": [
         "jquery"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": 1,
       "enqueued": true
     },
@@ -8861,7 +8861,7 @@
       "deps": [
         "jquery"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": 1,
       "enqueued": true
     },
@@ -8872,7 +8872,7 @@
       "deps": [
         "jquery"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": 1,
       "enqueued": true
     },
@@ -8883,7 +8883,7 @@
       "deps": [
         "jquery"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": 1,
       "enqueued": true
     },
@@ -8894,7 +8894,7 @@
       "deps": [
         "jquery"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": 1,
       "enqueued": true
     },
@@ -8905,7 +8905,7 @@
       "deps": [
         "jquery"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": 1,
       "enqueued": true
     },
@@ -9159,7 +9159,7 @@
       "handle": "eipsi-tokens",
       "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/css/eipsi-tokens.css",
       "deps": [],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9170,7 +9170,7 @@
       "deps": [
         "eipsi-tokens"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9182,7 +9182,7 @@
         "eipsi-tokens",
         "eipsi-admin-light-theme"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9191,7 +9191,7 @@
       "handle": "eipsi-randomization-css",
       "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/css/randomization.css",
       "deps": [],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9202,7 +9202,7 @@
       "deps": [
         "eipsi-tokens"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9211,7 +9211,7 @@
       "handle": "eipsi-waves-manager-css",
       "src": "http://127.0.0.1:18080/wp-content/plugins/EIPSI-Forms-Plugin/assets/css/waves-manager.css",
       "deps": [],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9223,7 +9223,7 @@
         "eipsi-tokens",
         "eipsi-admin-light-theme"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9234,7 +9234,7 @@
       "deps": [
         "eipsi-tokens"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9245,7 +9245,7 @@
       "deps": [
         "eipsi-tokens"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     },
@@ -9256,7 +9256,7 @@
       "deps": [
         "eipsi-tokens"
       ],
-      "version": "2.6.1",
+      "version": "1.0.0",
       "group": null,
       "enqueued": true
     }

@@ -514,6 +514,8 @@ public static function raw_responses($form_id=null) {
 
         if ($export_source === 'wordpress_db' && $wpdb->last_error) { throw new RuntimeException('No se pudieron consultar las respuestas locales.'); }
 
+// Engine rows use the explicit version-aware adapter; never reinterpret them as legacy Forms/Waves.
+        $results=array_values(array_filter($results,static function($row){$meta=json_decode($row->metadata??'',true);return !isset($meta['study_engine']);}));
 return array('rows'=>$results,'source'=>$export_source);
 }
 
@@ -577,5 +579,11 @@ public static function pool_roster_hub($pool_id) {
 
     if ($wpdb->last_error) { throw new RuntimeException('No se pudo consultar el roster del pool.'); }
     return array('pool_name'=>$pool_name,'rows'=>$assignments);
+}
+
+public static function study_engine($study_id, $include_retained = true) {
+    if(!current_user_can('manage_options'))throw new RuntimeException('EXPORT_AUTHORIZATION_REQUIRED');
+    require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/privacy.php';global $wpdb;
+    return (new \EIPSI\StudyEngine\Privacy\ExportAdapter(new \EIPSI\StudyEngine\Persistence\Database($wpdb)))->dataset($study_id,(bool)$include_retained);
 }
 }

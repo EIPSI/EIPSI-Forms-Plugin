@@ -1073,4 +1073,11 @@ public static function eipsi_generate_pool_context_csv($form_id, $study_id) {
     
     return $csv;
 }
+
+public static function study_engine_csv($dataset, $stream) {
+    if(!current_user_can('manage_options'))throw new RuntimeException('EXPORT_AUTHORIZATION_REQUIRED');
+    if(($dataset['contract']??null)!=='P1G_EXPORT_V1'||!is_resource($stream))throw new InvalidArgumentException('INVALID_ENGINE_EXPORT');
+    if(!$dataset['rows'])return 0;$columns=array_keys($dataset['rows'][0]);EIPSI_Export_File_Service::write_csv_row($stream,$columns);$count=0;
+    foreach($dataset['rows'] as $row){$values=array();foreach($columns as $column){$value=$row[$column];$value=is_array($value)?wp_json_encode($value,JSON_UNESCAPED_UNICODE):$value;if(is_string($value)&&preg_match('/^[\s\x{FEFF}\x{200B}]*[=+\-@]/u',$value))$value="'".$value;$values[]=$value;}EIPSI_Export_File_Service::write_csv_row($stream,$values);$count++;}return $count;
+}
 }

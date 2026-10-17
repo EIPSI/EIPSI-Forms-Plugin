@@ -6,4 +6,9 @@ class EIPSI_Privacy_Coverage_Report {
   return array('source'=>'wordpress_db','complete'=>false,'not_covered'=>$not_covered,
    'excluded'=>array_values(array_unique(array_merge($not_covered,array('backups','server_logs','delivered_email','unreliably_linked_records','identifying_free_text')))));
  }
+
+ public static function for_study_engine($categories = array(), $unsupported = array()) {
+    require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/privacy.php';
+    return \EIPSI\StudyEngine\Privacy\Coverage::report($categories,$unsupported);
+ }
 }

@@ -1,0 +1,93 @@
+{
+    "contract": "P1G_OWNER_ADDITIONS_V1",
+    "original_public_contracts_sha256": "7cb0f9c38ed56269e3665ca74ef4a7dc5b73241494b1f0b0f539e65fc39e7ff9",
+    "reason": "Four explicit Study Engine adapters on existing cleanup, coverage, query and CSV owners. No existing method signature changed.",
+    "added_public_methods": {
+        "EIPSI_Export_Query_Service": {
+            "study_engine": {
+                "static": true,
+                "parameters": [
+                    {
+                        "name": "study_id",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "include_retained",
+                        "optional": true,
+                        "default": true,
+                        "type": null
+                    }
+                ],
+                "owner": "EIPSI_Export_Query_Service"
+            }
+        },
+        "EIPSI_Privacy_Coverage_Report": {
+            "for_study_engine": {
+                "static": true,
+                "parameters": [
+                    {
+                        "name": "categories",
+                        "optional": true,
+                        "default": [],
+                        "type": null
+                    },
+                    {
+                        "name": "unsupported",
+                        "optional": true,
+                        "default": [],
+                        "type": null
+                    }
+                ],
+                "owner": "EIPSI_Privacy_Coverage_Report"
+            }
+        },
+        "EIPSI_Privacy_Data_Cleanup_Service": {
+            "run_study_engine": {
+                "static": true,
+                "parameters": [
+                    {
+                        "name": "database",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "execution_id",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "observer",
+                        "optional": true,
+                        "default": null,
+                        "type": null
+                    }
+                ],
+                "owner": "EIPSI_Privacy_Data_Cleanup_Service"
+            }
+        },
+        "EIPSI_Raw_Export_Service": {
+            "study_engine_csv": {
+                "static": true,
+                "parameters": [
+                    {
+                        "name": "dataset",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    },
+                    {
+                        "name": "stream",
+                        "optional": false,
+                        "default": null,
+                        "type": null
+                    }
+                ],
+                "owner": "EIPSI_Raw_Export_Service"
+            }
+        }
+    }
+}

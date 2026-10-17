@@ -1,0 +1,87 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "05-ema-thirty-five",
+  "scenarios": [
+    {
+      "id": "S_EMA",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "EXECUTION_CREATED",
+            "data": {}
+          },
+          "expected": [
+            {
+              "kind": "ASSESSMENT_COUNT",
+              "node_id": "E_EMA",
+              "count": 35
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_EMA",
+              "slot": {
+                "day": 1,
+                "slot": 1
+              },
+              "state": "AVAILABLE"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CLOCK_ADVANCED",
+            "data": {
+              "at": "2026-10-13T17:45:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_EMA",
+              "slot": {
+                "day": 2,
+                "slot": 3
+              },
+              "state": "EXPIRED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "TIMEZONE_CHANGED",
+            "data": {
+              "timezone": "Asia/Tokyo",
+              "at": "2026-10-13T18:00:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "FROZEN_STATES",
+              "states": [
+                "AVAILABLE",
+                "IN_PROGRESS",
+                "COMPLETED",
+                "EXPIRED",
+                "SKIPPED_BY_RULE",
+                "NOT_SCHEDULED",
+                "WITHDRAWN",
+                "TERMINATED_BY_RULE"
+              ]
+            },
+            {
+              "kind": "STABLE_HISTORY",
+              "fields": [
+                "occurrence_ids",
+                "responses"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

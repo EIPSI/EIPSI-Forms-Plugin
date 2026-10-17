@@ -1,0 +1,57 @@
+.eipsi-study{box-sizing:border-box;max-width:48rem;margin:2rem auto;padding:1rem;color:#172b4d;background:#fff;overflow-wrap:anywhere}.eipsi-study *{box-sizing:border-box}.eipsi-study .form-group{margin:1.4rem 0}.eipsi-study label{display:block;margin:.5rem 0}.eipsi-study input:not([type=radio]):not([type=hidden]),.eipsi-study textarea,.eipsi-study select{width:100%;max-width:100%;padding:.6rem;font:inherit}.eipsi-study input[type=radio]{margin-right:.5rem}.eipsi-study textarea{min-height:6rem}.eipsi-study fieldset{padding:1rem;border:1px solid #8a96a8}.eipsi-study button{padding:.7rem 1rem;min-height:44px;font:inherit;cursor:pointer}.eipsi-study img{max-width:100%;height:auto}.eipsi-study [role=alert]{color:#9d1515;border:2px solid currentColor;padding:1rem}.eipsi-study :focus-visible{outline:3px solid #005fcc;outline-offset:3px}
+.eipsi-initial{box-sizing:border-box;margin:24px auto;padding:24px}.eipsi-initial img{max-width:100%;height:auto}.eipsi-initial-withdrawal{margin:16px 0}.eipsi-initial-withdrawal button{padding:5px 9px;cursor:pointer}.eipsi-withdrawal-dialog{max-width:720px;width:calc(100vw - 40px);box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:24px}.eipsi-withdrawal-dialog::backdrop{background:rgba(15,23,42,.45)}.eipsi-initial .eipsi-study-form>label{display:block;margin-block:12px}.eipsi-initial input[type=email]{width:100%;box-sizing:border-box}
+
+.eipsi-withdrawal-choices{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.eipsi-withdrawal-choices button{white-space:normal;text-align:left;padding:12px 16px;border:1px solid currentColor;border-radius:6px}
+.eipsi-withdrawal-confirmation{width:min(720px,calc(100vw - 40px));max-height:85vh;overflow:auto;border:1px solid #d5dce5;border-radius:10px;padding:24px;box-sizing:border-box}
+.eipsi-withdrawal-confirmation::backdrop{background:rgba(20,30,45,.45)}
+.eipsi-withdrawal-confirmation strong{overflow-wrap:anywhere}
+.eipsi-withdrawal-confirmation [data-privacy-confirmation][hidden]{display:none}
+
+.eipsi-study button.eipsi-configured-button{color:var(--eipsi-button-text-color);background:var(--eipsi-button-background);border:var(--eipsi-button-border-width) solid var(--eipsi-button-border-color);border-radius:var(--eipsi-button-radius);font-size:var(--eipsi-button-font-size)}
+.eipsi-study button.eipsi-configured-button:hover:not(:disabled){color:var(--eipsi-button-hover-text-color);background:var(--eipsi-button-hover-background);border-color:var(--eipsi-button-hover-border-color)}
+.eipsi-study .is-parallel{flex-direction:row;align-items:stretch;flex-wrap:wrap}
+.eipsi-study .is-parallel>*{flex:1 1 180px;min-width:0}
+.eipsi-study .is-parallel>section>button{width:100%;height:100%}
+
+#eipsi-study button.eipsi-configured-button{color:var(--eipsi-button-text-color);background:var(--eipsi-button-background);border:var(--eipsi-button-border-width) solid var(--eipsi-button-border-color);border-radius:var(--eipsi-button-radius);font-size:var(--eipsi-button-font-size);transition:background-color .12s,color .12s,border-color .12s}
+#eipsi-study button.eipsi-configured-button:hover:not(:disabled){color:var(--eipsi-button-hover-text-color);background:var(--eipsi-button-hover-background);border-color:var(--eipsi-button-hover-border-color)}
+
+.eipsi-initial{width:min(var(--eipsi-screen-width,720px),calc(100vw - 40px));max-width:100%;padding:24px}
+
+.eipsi-withdrawal-dialog{max-height:85vh;overflow:auto;border-color:#d5dce5}
+
+.eipsi-study input[type=checkbox],.eipsi-study input[type=radio]{width:auto;max-width:none;padding:0}
+
+.eipsi-email-change{max-width:min(520px,calc(100vw - 40px));padding:24px;border:1px solid #cbd5e1;border-radius:12px;color:#243247;background:#fff;box-shadow:0 16px 48px #0003}
+.eipsi-email-change::backdrop{background:#18243866}
+.eipsi-email-change button{margin:8px 12px 0 0;width:auto}
+
+.eipsi-study .eipsi-availability-notice{color:#9d1515;border:1px solid #e5b1b1;background:#fff2f2;margin:0 0 1rem;padding:.75rem 1rem}
+
+.eipsi-portal-notices{display:grid;gap:6px;margin:0 0 16px}.eipsi-portal-notices:empty{display:none}
+.eipsi-study .eipsi-portal-notice,#eipsi-study-builder .eipsi-study .eipsi-portal-notice{padding:4px 10px;border:0;border-left:3px solid #8ba3bd;border-radius:0;background:#f0f4f9;color:#475569;margin:0;font-size:13px;font-weight:400;line-height:1.5;box-shadow:none}
+.eipsi-study .eipsi-portal-notice.is-error,#eipsi-study-builder .eipsi-study .eipsi-portal-notice.is-error{color:#9d1515;border-left-color:#c76a6a;background:#fff2f2}
+.eipsi-study .eipsi-portal-notice.is-success,#eipsi-study-builder .eipsi-study .eipsi-portal-notice.is-success{color:#28613d;border-left-color:#75a987;background:#eff9f2}
+
+/* Shared layout for the participant screen and its simulated surface. */
+.eipsi-study .eipsi-study-form{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin-block:16px;min-width:0}
+.eipsi-study .eipsi-study-form>button{align-self:flex-start;width:auto;max-width:100%}
+.eipsi-study .eipsi-study-form>label:has(input[type=checkbox]){display:flex;align-items:flex-start;gap:8px}
+.eipsi-study .eipsi-email-label{margin:0;line-height:1.5}
+.eipsi-study .eipsi-email-label>:first-child{margin-top:0}.eipsi-study .eipsi-email-label>:last-child{margin-bottom:0}
+.eipsi-study .eipsi-withdrawal-dialog>input[type=email]{display:block;margin-block:12px;width:100%;min-width:0}
+.eipsi-study .eipsi-withdrawal-confirmation .eipsi-study-form>label{margin:0}
+.eipsi-study .eipsi-withdrawal-choices{gap:12px;margin-block:16px}
+.eipsi-study .eipsi-withdrawal-error[hidden]{display:none}
+.eipsi-study .eipsi-withdrawal-error{font-size:13px;line-height:1.5;padding:6px 10px;border:0;border-left:3px solid #c76a6a;color:#9d1515;background:#fff2f2}
+
+.eipsi-study{font-size:16px;line-height:1.5;font-family:Arial,Helvetica,sans-serif}
+.eipsi-study h1{font-size:2em;line-height:1.2;margin:.67em 0}.eipsi-study h2{font-size:1.5em;line-height:1.3;margin:.83em 0}.eipsi-study h3{font-size:1.17em;line-height:1.4;margin:1em 0}
+.eipsi-study input[type=email],.eipsi-study input[name=confirmation_text],.eipsi-study .sb-preview-confirmation input[type=text]{display:block;min-height:42px;line-height:1.5;padding:8px 10px;border:1px solid #8c8f94;border-radius:4px;background:#fff;color:#243247;font:inherit;box-sizing:border-box}
+
+/* Study lifecycle pages share one quiet, empty presentation. */
+.eipsi-study.eipsi-study-state{max-width:none;min-height:100dvh;margin:0;padding:24px;display:grid;place-items:center;background:#fff;color:#777;text-align:center}
+.eipsi-study.eipsi-study-state>p{margin:0;max-width:40rem;font-size:13px;line-height:1.5;font-weight:400}
+.eipsi-study.eipsi-notice-surface{background:transparent}
+.sb-experience-surface .eipsi-study-state{min-height:280px}

@@ -1,0 +1,7 @@
+{
+  "assets/css/admin-style.css": {
+    "before_presentation_sha256": "172bc9e73ba231bffc0829b6cd0d223607f0690c4a4ea5f199e5400f750bcb56",
+    "presentation_sha256": "c4b61412a7f02e78edf2d7ab4d757ec2bb02137f1b88ab970dd9ef67ef8f6fce",
+    "reason": "Checkboxes inline on EIPSI admin settings; authored assessment widgets and previews excluded."
+  }
+}

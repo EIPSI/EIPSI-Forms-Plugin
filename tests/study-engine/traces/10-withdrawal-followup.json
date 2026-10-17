@@ -1,0 +1,288 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "10-withdrawal-followup",
+  "scenarios": [
+    {
+      "id": "S_RETAIN_FOR_ANALYSIS",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_INITIAL",
+              "at": "2026-10-12T11:30:00Z",
+              "responses": {
+                "Q_INITIAL": 1
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_INITIAL",
+              "slot": "single",
+              "state": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 2,
+                "slot": 1
+              },
+              "at": "2026-10-13T12:15:00Z",
+              "responses": {
+                "Q_FOLLOW": 2
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 2,
+                "slot": 1
+              },
+              "state": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CAPABILITY_OPENED",
+            "data": {
+              "purpose": "WITHDRAWAL_CONFIRM",
+              "method": "GET"
+            }
+          },
+          "expected": [
+            {
+              "kind": "NO_WITHDRAWAL_RECORD"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "WITHDRAWAL_CONFIRMED",
+            "data": {
+              "mode": "RETAIN_FOR_ANALYSIS",
+              "at": "2026-10-13T15:00:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "WITHDRAWN"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_INITIAL",
+              "slot": "single",
+              "state": "COMPLETED"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 2,
+                "slot": 1
+              },
+              "state": "COMPLETED"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 3,
+                "slot": 1
+              },
+              "state": "WITHDRAWN"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 4,
+                "slot": 1
+              },
+              "state": "WITHDRAWN"
+            },
+            {
+              "kind": "DATA_POLICY",
+              "mode": "RETAIN_FOR_ANALYSIS"
+            },
+            {
+              "kind": "NOTIFICATIONS_CANCELLED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CAPABILITY_OPENED",
+            "data": {
+              "purpose": "ACCESS",
+              "method": "GET",
+              "target_id": "E_FOLLOW"
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "WITHDRAWN"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S_DO_NOT_USE",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_INITIAL",
+              "at": "2026-10-12T11:30:00Z",
+              "responses": {
+                "Q_INITIAL": 1
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_INITIAL",
+              "slot": "single",
+              "state": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 2,
+                "slot": 1
+              },
+              "at": "2026-10-13T12:15:00Z",
+              "responses": {
+                "Q_FOLLOW": 2
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 2,
+                "slot": 1
+              },
+              "state": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CAPABILITY_OPENED",
+            "data": {
+              "purpose": "WITHDRAWAL_CONFIRM",
+              "method": "GET"
+            }
+          },
+          "expected": [
+            {
+              "kind": "NO_WITHDRAWAL_RECORD"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "WITHDRAWAL_CONFIRMED",
+            "data": {
+              "mode": "DO_NOT_USE",
+              "at": "2026-10-13T15:00:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "WITHDRAWN"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_INITIAL",
+              "slot": "single",
+              "state": "COMPLETED"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 2,
+                "slot": 1
+              },
+              "state": "COMPLETED"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 3,
+                "slot": 1
+              },
+              "state": "WITHDRAWN"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOW",
+              "slot": {
+                "day": 4,
+                "slot": 1
+              },
+              "state": "WITHDRAWN"
+            },
+            {
+              "kind": "DATA_POLICY",
+              "mode": "DO_NOT_USE"
+            },
+            {
+              "kind": "NOTIFICATIONS_CANCELLED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CAPABILITY_OPENED",
+            "data": {
+              "purpose": "ACCESS",
+              "method": "GET",
+              "target_id": "E_FOLLOW"
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "WITHDRAWN"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

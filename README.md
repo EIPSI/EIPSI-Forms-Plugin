@@ -4,7 +4,7 @@
 
 Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene M0–M8 y la etapa de normalización S0–S4/S4.1 cerrada para nuevas features. T0 añade un gate CI básico; deploy institucional sigue condicionado. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
 
-Gate local: `./tests/ci/run.sh fast` o `./tests/ci/run.sh full` (modo por defecto). [Setup, versiones, 1031 tests anteriores + seis smoke nuevos, CI y límites](tests/ci/README.md).
+Gate local: `./tests/ci/run.sh fast` o `./tests/ci/run.sh full` (modo por defecto). [Setup, versiones, 1944 tests, incluidos contratos, simulador y persistencia Study Engine, smoke y regresiones de activación/storage, CI y límites](tests/ci/README.md).
 
 ## Qué es
 
@@ -97,3 +97,27 @@ M6 separa persistencia, CapturePolicy/cleanup y datasets/files/download, manteni
 Pools and Randomization domain owners live in `includes/pools/` and `includes/randomization/`; historical callback files remain compatibility facades. See [architecture](docs/architecture.md) and [M7 tests](tests/m7/README.md).
 
 Schema actual y upgrades tienen owners en `includes/schema/`, `includes/migrations/` e `includes/storage/external/`. Véase [schema y migraciones](docs/schema.md) y [pruebas M8](tests/m8/README.md).
+
+## Study Engine P1-D
+
+Persistencia interna y Execution Owner: [contrato técnico](docs/study-engine/persistence-execution.md). Nuevos runners `tests/run-study-engine-persistence-unit.php` (30 puros) y `tests/run-study-engine-persistence.php` (85 MariaDB). Cierre histórico P1-D: **1440 únicos (1372 PHP + 68 JS)**; FAST P1-D: 1432. Sin endpoints/UI/SMTP ni conversión legacy.
+
+## Study Engine P1-E
+
+Slice público/anónimo opt-in: [Content Adapter y runtime cross-sectional](docs/study-engine/content-cross-sectional.md). Snapshot pinneado, recuperación HttpOnly, páginas/conditions/order del engine y Storage local+journal en la misma transacción. 44 tests de contenido,66 HTTP/DB y10 DOM nuevos; FULL1560 únicos (1482 PHP+78 JS), FAST1552. Sin migración legacy, emails, workflow longitudinal ni Builder.
+
+## Study Engine P1-F
+
+[Acceso longitudinal y notificaciones](docs/study-engine/longitudinal-access-notifications.md): EMAIL_LONGITUDINAL opt-in, identidad Study-scoped, sesiones provisionales/autenticadas, capabilities de un uso, verificación y outbox integrado a S2. P1-F agrega 123 DB/HTTP y 6 DOM; FULL 1689 únicos (1605 PHP +84 JS), FAST 1681. Retiro completo y Builder quedan fuera de esta fase. Deploy requiere keyrings, HTTPS, cron y validación operacional de SMTP.
+
+## Study Engine P1-G
+
+[Retiro, privacidad y export](docs/study-engine/withdrawal-privacy-export.md): B1/B2 con AccessContext, exclusión analítica inmediata y cleanup local recuperable. Adapter de export versionado, coverage y tombstones explícitos. Agrega 106 únicos (12 PHP puros +84 DB/HTTP +10 DOM); FULL 1795 (1701 PHP +94 JS), FAST 1787. Sin Builder/P1-H; deploy condicionado a upgrade v14, secrets, HTTPS y cron.
+
+## P1-H — Visual Study Builder
+
+El Builder administrativo añade 124 casos (51 DB/API/HTTP, 33 puros, 40 DOM). Total vigente FULL: **1919 únicos: 1785 PHP +134 JS**; FAST: **1911**. Gate estricto RCT, build, clean smoke y lifecycle verdes. Los totales anteriores documentan fases históricas. [Arquitectura, uso, límites y verificación](docs/study-engine/study-builder.md). Sin migración legacy automática ni certificación institucional/SMTP real.
+
+## P1-I — piloto y operación (abierto)
+
+FULL vigente **1944 únicos:1810 PHP +134 JS**, FAST1936; añade25 casos de integración (10 Builder→runtime→export,5 canje HTTP,10 operación). GET de email ya no consume la capability: requiere confirmación POST explícita tras redirect limpio. Gate/RCT/build/smoke/lifecycle verdes. **P1-I no cerrado: smoke humano Builder/participante/accesibilidad/visual pendiente por decisión del responsable.** Readiness: CONDITIONAL GO sólo tras checklist operacional y humano; no deploy institucional certificado. [Evidencias de alcance, runbook y límites](docs/study-engine/pilot-readiness.md). Sin commit/push/tag/release.

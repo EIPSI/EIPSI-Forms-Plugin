@@ -63,6 +63,7 @@ final class EIPSI_Cron_Registry {
     }
 
     public static function schedule_activation() {
+        self::schedule_study_engine();
         // === Cron Reminders Scheduling (Fase 2 - Legacy) ===
         if (!wp_next_scheduled('eipsi_send_take_reminders_daily')) {
             wp_schedule_event(time(), 'daily', 'eipsi_send_take_reminders_daily');
@@ -124,6 +125,13 @@ final class EIPSI_Cron_Registry {
         // Send weekly reminders to T1 non-completers (daily check)
         if (!wp_next_scheduled('eipsi_weekly_t1_reminders_cron')) {
             wp_schedule_event(time(), 'daily', 'eipsi_weekly_t1_reminders_cron');
+        }
+    }
+
+    /** Opt-in engine catchup shares the existing batch worker event and owner. */
+    public static function schedule_study_engine() {
+        if(get_option('eipsi_study_engine_longitudinal_enabled')&&!wp_next_scheduled('eipsi_process_nudge_jobs')){
+            wp_schedule_event(time(),'every_minute','eipsi_process_nudge_jobs');
         }
     }
 

@@ -40,6 +40,9 @@ private static function execute_job($job) {
         $job_type = $job->job_type;
 
         switch ($job_type) {
+            case 'study_engine_notification':
+                require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/longitudinal.php';
+                return \EIPSI\StudyEngine\Longitudinal\Worker::dispatch($job);
             case 'send_nudge_0':
                 return self::execute_nudge_0($payload);
 
@@ -607,7 +610,15 @@ public static function process_job($job) {
         $current=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}survey_nudge_jobs WHERE id=%d AND status='processing'",$job->id));
         if (!$current) { $stats['persistence_failed']=1; return $stats; }
         $result=self::execute_job($current);
-        if ($result['success']) {
+        // Privacy may cancel/remove this claimed engine job while external delivery is revalidated.
+        if($current->job_type==='study_engine_notification'){
+            $status=$wpdb->get_var($wpdb->prepare("SELECT status FROM {$wpdb->prefix}survey_nudge_jobs WHERE id=%d",$job->id));
+            if(!$wpdb->last_error&&($status===null||$status==='cancelled'))return $stats;
+        }
+        if (isset($result['defer_until'])) {
+            if (EIPSI_Notification_Nudge_Queue_Service::postpone_processing($job->id,$result['defer_until'])) { $stats['retried']=1; }
+            else { $stats['persistence_failed']=1; }
+        } elseif ($result['success']) {
             if (EIPSI_Notification_Nudge_Queue_Service::mark_completed($job->id,$result['message']??null)) { $stats['completed']=1; }
             else { $stats['persistence_failed']=1; }
         } else {

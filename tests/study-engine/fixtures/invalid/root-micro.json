@@ -1,0 +1,167 @@
+{
+  "expected_error": "ROOT_NOT_MACRO",
+  "definition": {
+    "contract_version": "P1B_V1",
+    "study": {
+      "logical_id": "STUDY_01-cross-sectional",
+      "public_id": "PUBLIC_01-cross-sectional"
+    },
+    "id": "VERSION_1",
+    "version_number": 1,
+    "state": "PUBLISHED",
+    "timezone": {
+      "policy": "PARTICIPANT_LOCAL",
+      "default": "America/Argentina/Buenos_Aires"
+    },
+    "root_block_ids": [
+      "M_ROOT"
+    ],
+    "nodes": [
+      {
+        "kind": "BLOCK",
+        "id": "M_ROOT",
+        "logical_id": "M_ROOT",
+        "version_id": "VERSION_1",
+        "parent_id": "VERSION_1",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_SIMPLE",
+        "logical_id": "E_SIMPLE",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "BLOCK_AVAILABLE",
+          "anchor_ref": "M_ROOT",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          },
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_AGE",
+        "version_id": "VERSION_1",
+        "parent_id": "E_SIMPLE",
+        "position": 0,
+        "response_key": "RESPONSE_Q_AGE",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {
+          "min": 0,
+          "max": 120
+        },
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_AGE",
+          "version": 1,
+          "snapshot": "Q_AGE",
+          "sha256": "6bf9cd2fc991a9a8612e7f88057f1b63a6f6782d01dd73243fbd4a62fa30f329"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_WELLBEING",
+        "version_id": "VERSION_1",
+        "parent_id": "E_SIMPLE",
+        "position": 1,
+        "response_key": "RESPONSE_Q_WELLBEING",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {
+          "min": 1,
+          "max": 5
+        },
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_WELLBEING",
+          "version": 1,
+          "snapshot": "Q_WELLBEING",
+          "sha256": "f75f5eab03cf1f76e37423ec23118e4e11a707bdb7de710db1422a6803e1a61d"
+        }
+      },
+      {
+        "kind": "DIRECTIVE",
+        "id": "D_PAGE_1",
+        "version_id": "VERSION_1",
+        "parent_id": "E_SIMPLE",
+        "position": 2,
+        "directive_kind": "PAGE_BREAK",
+        "target": null,
+        "resume_target": null,
+        "on_target_unavailable": null
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_COMMENT",
+        "version_id": "VERSION_1",
+        "parent_id": "E_SIMPLE",
+        "position": 3,
+        "response_key": "RESPONSE_Q_COMMENT",
+        "type": "TEXT",
+        "options": [],
+        "validation": {},
+        "required": false,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_COMMENT",
+          "version": 1,
+          "snapshot": "Q_COMMENT",
+          "sha256": "13fe61e906a1c2a281c3a5a9c06f5176a59a9ec48db68ecec175882e2f043675"
+        }
+      }
+    ],
+    "condition_rules": [],
+    "compiler_contract_version": "P1C_V1",
+    "protocol_metadata": {
+      "title": "01-cross-sectional",
+      "source": "P1-A P.1"
+    },
+    "closure": {
+      "kind": "ALL_SELECTED_OPPORTUNITIES_TERMINAL"
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "01-cross-sectional",
+  "scenarios": [
+    {
+      "id": "S_SIMPLE",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "EXECUTION_CREATED",
+            "data": {}
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_SIMPLE",
+              "slot": "single",
+              "state": "AVAILABLE"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "RESPONSE_SAVED",
+            "data": {
+              "question_id": "Q_AGE",
+              "value": 32
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_SIMPLE",
+              "slot": "single",
+              "state": "IN_PROGRESS"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "RESPONSE_SAVED",
+            "data": {
+              "question_id": "Q_WELLBEING",
+              "value": 4
+            }
+          },
+          "expected": []
+        },
+        {
+          "event": {
+            "kind": "RELOAD",
+            "data": {}
+          },
+          "expected": [
+            {
+              "kind": "STABLE_HISTORY",
+              "fields": [
+                "execution_id",
+                "responses",
+                "cursor"
+              ]
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_SIMPLE"
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_SIMPLE",
+              "slot": "single",
+              "state": "COMPLETED"
+            },
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "COMPLETED"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
