@@ -1,0 +1,23 @@
+{
+  "reason": "I18N-1B per-user administrative presentation; no public runtime or scientific boundary migration.",
+  "functions": {
+    "eipsi_enqueue_admin_light_theme": {
+      "before_sha256": "1a591cf1c4aef7834fe65b663ffb11e09d55784508494b8707c34287b7d7dbaa",
+      "after_sha256": "d442db6fc3f0d529ecf2ab11e40022ab2e5e07473c60bdf91595c183ffe897f7"
+    },
+    "eipsi_forms_enqueue_admin_assets": {
+      "before_sha256": "0791a404a637990094d4dba205f36d23c2058cb6875f3dd50e8723dd3faa086a",
+      "after_sha256": "ffefecccdb2d4a8fe8c0df829beaf6c238bd5f9d423f2e07e3c5812e57a92851"
+    }
+  },
+  "assets": {
+    "assets/js/configuration-panel.js": {
+      "before_sha256": "aea2a0eca16ff98f57a79df708ecc98dbcfa8b121d14b242bf57a5d5d72e6d44",
+      "after_sha256": "375cf076f1a4439bf5f3824a95c620c4c078ed2ba6c21fd0714dc719d274d8c2"
+    },
+    "assets/js/email-test.js": {
+      "before_sha256": "24e413824517180a4265bbc906c0f91ebb042a96dd7e2c4ed3f6b9cd86b37b6c",
+      "after_sha256": "4b2e0bcfd2352112e93e9779c2dcfdae6dcf2bea7f156f741e64c1c5ef68196d"
+    }
+  }
+}

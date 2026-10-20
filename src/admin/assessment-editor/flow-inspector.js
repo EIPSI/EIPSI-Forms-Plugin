@@ -44,51 +44,51 @@
     );
   }
   A.pageInspector = function (page, host, onchange) {
-    host.append(el("h3", {}, "Página"));
-    field(host, page, "title", "Título de página", onchange);
-    rich(host, page, "description_html", "Descripción de página", onchange);
+    host.append(el("h3", {}, root.EIPSIAdminI18n.t("Page")));
+    field(host, page, "title", root.EIPSIAdminI18n.t("Page title"), onchange);
+    rich(host, page, "description_html", root.EIPSIAdminI18n.t("Page description"), onchange);
   };
   A.completionInspector = function (c, host, onchange) {
-    host.append(el("h3", {}, "Pantalla final"));
+    host.append(el("h3", {}, root.EIPSIAdminI18n.t("Completion screen")));
   };
   A.flowInspector = function (d, host, onchange) {
     root.EIPSIAssessmentFlow.normalize(d);
     const f = d.flow;
-    host.append(el("h3", {}, "Configuración"));
-    const texts={...root.EIPSIAssessmentFlow.messages,...f.messages};
+    host.append(el("h3", {}, root.EIPSIAdminI18n.t("Configuration")));
+    const texts={...root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(d)),...f.messages};
     const updateMessages=()=>{f.messages={...texts};onchange();};
-    const messages=el("details",{class:"ae-property-section"});messages.append(el("summary",{},"Mensajes de la evaluación"));
-    field(messages,texts,"completed","Respuestas recibidas",updateMessages);
-    field(messages,texts,"invalid","Error de respuestas",updateMessages);
-    field(messages,texts,"delivery_error","Error de envío",updateMessages);
+    const messages=el("details",{class:"ae-property-section"});messages.append(el("summary",{},root.EIPSIAdminI18n.t("Assessment messages")));
+    field(messages,texts,"completed",root.EIPSIAdminI18n.t("Responses received"),updateMessages);
+    field(messages,texts,"invalid",root.EIPSIAdminI18n.t("Response error"),updateMessages);
+    field(messages,texts,"delivery_error",root.EIPSIAdminI18n.t("Delivery error"),updateMessages);
 
     const titlePolicy = {show_title: f.show_title !== false};
-    field(host, titlePolicy, "show_title", "Mostrar título de la evaluación", () => {
+    field(host, titlePolicy, "show_title", root.EIPSIAdminI18n.t("Show assessment title"), () => {
       f.show_title = titlePolicy.show_title;
       onchange();
     }, "checkbox");
     const discardPolicy = {allow_discard: f.allow_discard === true};
     const discardFields=el("div",{class:"ae-dependent-fields"});
     discardFields.hidden=!discardPolicy.allow_discard;
-    field(host, discardPolicy, "allow_discard", "Permitir descartar respuesta", () => {
+    field(host, discardPolicy, "allow_discard", root.EIPSIAdminI18n.t("Allow discarding responses"), () => {
       f.allow_discard = discardPolicy.allow_discard;
       discardFields.hidden=!f.allow_discard;
       onchange();
     }, "checkbox");
     host.append(discardFields);
-    field(discardFields,texts,"discard_label","Botón descartar",updateMessages);
-    field(discardFields,texts,"discard_confirm","Confirmación de descarte",updateMessages);
-    field(discardFields,texts,"discard_accept","Botón confirmar descarte",updateMessages);
-    field(discardFields,texts,"discard_cancel","Botón cancelar descarte",updateMessages);
-    field(discardFields,texts,"discarded","Respuesta descartada",updateMessages);
+    field(discardFields,texts,"discard_label",root.EIPSIAdminI18n.t("Discard button"),updateMessages);
+    field(discardFields,texts,"discard_confirm",root.EIPSIAdminI18n.t("Discard confirmation"),updateMessages);
+    field(discardFields,texts,"discard_accept",root.EIPSIAdminI18n.t("Confirm discard button"),updateMessages);
+    field(discardFields,texts,"discard_cancel",root.EIPSIAdminI18n.t("Cancel discard button"),updateMessages);
+    field(discardFields,texts,"discarded",root.EIPSIAdminI18n.t("Response discarded"),updateMessages);
     const backFields=el("div",{class:"ae-dependent-fields"});
     backFields.hidden=!f.allow_back;
-    field(host, f, "allow_back", "Permitir volver atrás", ()=>{backFields.hidden=!f.allow_back;onchange();}, "checkbox");
+    field(host, f, "allow_back", root.EIPSIAdminI18n.t("Allow going back"), ()=>{backFields.hidden=!f.allow_back;onchange();}, "checkbox");
     host.append(backFields);
     for (const [key, label] of [
-      ["back", "Texto del botón Atrás"],
-      ["next", "Texto del botón Siguiente"],
-      ["finish", "Texto del botón Terminar"],
+      ["back", root.EIPSIAdminI18n.t("Back button text")],
+      ["next", root.EIPSIAdminI18n.t("Next button text")],
+      ["finish", root.EIPSIAdminI18n.t("Finish button text")],
     ]) {
       const input = field(
         key === "back" ? backFields : host,
@@ -97,45 +97,45 @@
         label,
         onchange,
       );
-      input.placeholder = {back: "Anterior", next: "Siguiente", finish: "Terminar"}[key];
+      input.placeholder = root.EIPSIContent.get('flow',root.EIPSIContent.language(d)).navigation_labels[key];
     }
 
     const progressFields=el("div",{class:"ae-dependent-fields"});
     progressFields.hidden=f.progress==="none";
     const progressText=el("div");progressFields.append(progressText);
-    field(host, f, "progress", "Mostrar progreso", ()=>{progressFields.hidden=f.progress==="none";progressText.hidden=!["pages","both"].includes(f.progress);onchange();}, "text", [
-      ["none", "No"],
-      ["bar", "Barra"],
-      ["pages", "Página X de Y"],
-      ["both", "Barra + páginas"],
+    field(host, f, "progress", root.EIPSIAdminI18n.t("Show progress"), ()=>{progressFields.hidden=f.progress==="none";progressText.hidden=!["pages","both"].includes(f.progress);onchange();}, "text", [
+      ["none", root.EIPSIAdminI18n.t("No")],
+      ["bar", root.EIPSIAdminI18n.t("Bar")],
+      ["pages", root.EIPSIAdminI18n.t("Page X of Y")],
+      ["both", root.EIPSIAdminI18n.t("Bar and pages")],
     ]);
     host.append(progressFields);
-    field(progressText,texts,"progress","Texto de progreso — [ACTUAL] y [TOTAL]",updateMessages);
+    field(progressText,texts,"progress",root.EIPSIAdminI18n.t("Progress text — [ACTUAL] and [TOTAL]"),updateMessages);
     progressText.hidden=!["pages","both"].includes(f.progress);
-    field(progressFields,texts,"progress_accessible","Etiqueta accesible del progreso",updateMessages);
+    field(progressFields,texts,"progress_accessible",root.EIPSIAdminI18n.t("Accessible progress label"),updateMessages);
     A.designInspector(d, host, onchange, field);
-    host.append(el("h3", {}, "Sesión del cuestionario y guardado parcial"));
+    host.append(el("h3", {}, root.EIPSIAdminI18n.t("Questionnaire session and partial saving")));
     const enabled = field(
         host,
         f.save_continue,
         "enabled",
-        "Guardar respuestas parciales cuando venza la sesión",
+        root.EIPSIAdminI18n.t("Save partial responses when the session expires"),
         onchange,
         "checkbox",
       ),
       window = el("div", {class: "ae-session-window-row"});
-    host.append(el("p", {}, "Mientras la sesión siga vigente, se puede volver con las respuestas en curso aunque el guardado parcial esté desactivado. Al vencer, se empieza desde cero."), window);
-    window.append(el("p", {class: "ae-session-window-title"}, "Conservar la sesión al salir durante"));
+    host.append(el("p", {}, root.EIPSIAdminI18n.t("While the session is valid, participants can return to their current responses even when partial saving is disabled. Once it expires, they start again.")), window);
+    window.append(el("p", {class: "ae-session-window-title"}, root.EIPSIAdminI18n.t("Keep the session after leaving for")));
     const number = field(
       window,
       f.save_continue.window,
       "value",
-      "Duración",
+      root.EIPSIAdminI18n.t("Duration"),
       onchange,
       "number",
     );
     number.parentElement.querySelector("span").remove();
-    number.setAttribute("aria-label", "Conservar la sesión al salir durante");
+    number.setAttribute("aria-label", root.EIPSIAdminI18n.t("Keep the session after leaving for"));
     number.min = 1;
     number.step = 1;
     number.max = 9999;
@@ -149,45 +149,45 @@
       window,
       f.save_continue.window,
       "unit",
-      "Unidad",
+      root.EIPSIAdminI18n.t("Unit"),
       onchange,
       "text",
       [
-        ["minutes", "Minutos"],
-        ["hours", "Horas"],
-        ["days", "Días"],
-        ["weeks", "Semanas"],
-        ["months", "Meses (30 días)"],
+        ["minutes", root.EIPSIAdminI18n.t("Minutes")],
+        ["hours", root.EIPSIAdminI18n.t("Hours")],
+        ["days", root.EIPSIAdminI18n.t("Days")],
+        ["weeks", root.EIPSIAdminI18n.t("Weeks")],
+        ["months", root.EIPSIAdminI18n.t("Months (30 days)")],
       ],
     );
     unit.parentElement.querySelector("span").remove();
-    unit.setAttribute("aria-label", "Unidad de duración de la sesión");
+    unit.setAttribute("aria-label", root.EIPSIAdminI18n.t("Session duration unit"));
     window.hidden = false;
     const change = enabled.onchange;
     enabled.onchange = () => {
       change();
       window.hidden = false;
     };
-    field(host,texts,"expired","Sesión vencida",updateMessages);
-    field(host,texts,"expired_saved","Sesión vencida con parcial guardado",updateMessages);
-    field(host,texts,"processing","Procesando",updateMessages);
-    field(host,texts,"updated","Sesión actualizada",updateMessages);
-    host.append(el("h3", {}, "Metadata del proceso"));
+    field(host,texts,"expired",root.EIPSIAdminI18n.t("Session expired"),updateMessages);
+    field(host,texts,"expired_saved",root.EIPSIAdminI18n.t("Session expired with saved partial responses"),updateMessages);
+    field(host,texts,"processing",root.EIPSIAdminI18n.t("Processing"),updateMessages);
+    field(host,texts,"updated",root.EIPSIAdminI18n.t("Session updated"),updateMessages);
+    host.append(el("h3", {}, root.EIPSIAdminI18n.t("Process metadata")));
     for (const [value, title, description] of [
       [
         "basic",
         "Basic",
-        "Registra los tiempos esenciales de la evaluación, las páginas y las respuestas, incluyendo cuándo se presentan y cuándo se responden.",
+        root.EIPSIAdminI18n.t("Records essential assessment, page and response timing, including presentation and response times."),
       ],
       [
         "standard",
         "Standard",
-        "Agrega interacciones, cambios de respuesta, foco, revisitas, navegación, dispositivo, navegador, viewport y método de entrada cuando puede detectarse.",
+        root.EIPSIAdminI18n.t("Adds interactions, response changes, focus, revisits, navigation, device, browser, viewport and input method when detectable."),
       ],
       [
         "detailed",
         "Detailed",
-        "Además registra la secuencia de cambios e interacciones compatibles para estudiar el proceso de respuesta. En campos de texto no almacena cada tecla ni el contenido intermedio.",
+        root.EIPSIAdminI18n.t("Also records supported change and interaction sequences to study the response process. Text fields do not store individual keystrokes or intermediate content."),
       ],
     ]) {
       const card = el("label", { class: "ae-metadata-profile" }),

@@ -1,6 +1,6 @@
 # T0 — Gate técnico mínimo
 
-Conteo vigente Product & Runtime Completion: **2491 funcionales** = 1709 PHP WordPress + 359 PHP puros + 423 JS. Incluye Product backend 100, HTTP 16, Functional backend 43, Functional DOM 41 Product DOM 59 y Randomization/typography DOM 57. Los conteos inferiores describen baselines históricos. RCT strict, smoke, activación y harness se reportan aparte.
+Conteo vigente verificado en el cierre I18N-1D: **3831 funcionales** = 2479 PHP WordPress + 525 PHP puros + 827 JS, según `gate.json`. Los conteos inferiores describen baselines históricos. RCT strict, smoke, activación y harness se reportan aparte; los casos repetidos no se suman dos veces.
 
 Un único entorno Linux con Docker Engine, Docker Compose v2.20+ (soporte `up --wait`), Bash y Python 3.9+. El wrapper usa solo la biblioteca estándar Python. Referencia local: Python 3.12.3 / Compose 5.3.1. No exige PHP, Node ni WordPress instalados en el host.
 
@@ -112,3 +112,10 @@ El Builder administrativo añade 124 casos (51 DB/API/HTTP, 33 puros, 40 DOM). T
 ## P1-I — piloto y operación (abierto)
 
 FULL vigente **1944 únicos:1810 PHP +134 JS**, FAST1936; añade25 casos de integración (10 Builder→runtime→export,5 canje HTTP,10 operación). GET de email ya no consume la capability: requiere confirmación POST explícita tras redirect limpio. Gate/RCT/build/smoke/lifecycle verdes. **P1-I no cerrado: smoke humano Builder/participante/accesibilidad/visual pendiente por decisión del responsable.** Readiness: CONDITIONAL GO sólo tras checklist operacional y humano; no deploy institucional certificado. [Evidencias de alcance, runbook y límites](../../docs/study-engine/pilot-readiness.md). Sin commit/push/tag/release.
+
+
+## DATA-1 — canonical dataset and effective metadata policy
+
+Permanent suites: `tests/run-data1-unit.php` (36), `tests/run-data1.php` (18), `tests/data1/metadata-dom.js` (7) and `tests/data1/management-dom.js` (3). They cover wide observations, provenance/collisions, historical dictionary/types, UTC/partials, manual/live/snapshot parity, typed secure XLSX, private binary percent preservation, Range/withdrawal/retained semantics and global metadata intersection with historical preservation. API-4 additionally records HTTP V2 payloads and validates them against the versioned OpenAPI schemas.
+
+Current configured suites: **3,564 cases** (2,421 WordPress/PHP + 464 pure PHP + 679 JS). FULL also runs strict RCT, observed OpenAPI validation, build, clean activation, smoke, lifecycle and cold reactivation; repeated smoke/RCT do not inflate the suite count. DATA-1 final evidence is documented in the project report. No human review is implied by automated PASS.

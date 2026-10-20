@@ -30,7 +30,7 @@ trait StudyLifecycle {
             $previous=$public?($public['enrollment_state']==='FINALIZED'?'FINALIZED':($public['enrollment_state']==='OPEN'?'ACTIVE':'PAUSED')):'DRAFT';
             if($previous==='FINALIZED'&&$action!=='REOPEN')throw new \DomainException('STUDY_FINALIZED');
             if($action==='REOPEN'&&$previous!=='FINALIZED')throw new \DomainException('STUDY_NOT_FINALIZED');
-            if($action===$previous)throw new \DomainException('STUDY_STATE_UNCHANGED');
+            if($action===$previous)return;
             $now=P\Database::now();$cycle=(int)($public['study_cycle']??1);
             if($action==='FINALIZED'){
                 if(!$public)throw new \DomainException('STUDY_NOT_STARTED');
@@ -62,7 +62,7 @@ trait StudyLifecycle {
             }
             \EIPSI\StudyEngine\Management\Audit::record($r['study_id'],'STUDY_STATE_CHANGED',null,$id,array('state'=>$action,'previous'=>$previous,'cycle'=>$cycle,'request_id'=>$request));
             $meta['lifecycle'][]=array('event'=>'STUDY_STATE_CHANGED','state'=>$action==='REOPEN'?'ACTIVE':$action,'previous'=>$previous,'cycle'=>$cycle,'erase_emails'=>$action==='FINALIZED'?$erase:null,'actor'=>get_current_user_id(),'at'=>$now,'request_id'=>$request,'request_hash'=>$hash);
-            $this->db->update('study_versions',array('metadata_json'=>C\Canonical::json($meta),'updated_at'=>$now),$this->db->prepare('id=%s',$id));
+            $this->db->update('study_versions',array('metadata_json'=>C\Canonical::json($meta),'updated_at'=>$now),$this->db->prepare('id=%s',$id));$this->observer->reached('before_study_state_commit');
         });});
         $out=$this->load($id);if(in_array($action,array('ACTIVE','REOPEN'),true)&&($out['definition']['protocol_metadata']['enrollment_mode']??null)==='EMAIL_LONGITUDINAL'){update_option('eipsi_study_engine_longitudinal_enabled',1,false);require_once dirname(__DIR__).'/longitudinal/bootstrap.php';\EIPSI_Cron_Registry::schedule_study_engine();}return $out;
     }

@@ -30,11 +30,11 @@ class EIPSI_Storage_Device_Data_Store {
         if (!$device_data) { return false; }
         $table_name = $wpdb->prefix . 'eipsi_device_data';
 
-        error_log("[EIPSI-DEVICE-DATA] SAVE START: submission_id={$submission_id}, data_keys=" . implode(',', array_keys($device_data)));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L33'), 'debug');
 
         // Ensure table exists
         if (!self::ensure_table_exists()) {
-            error_log('[EIPSI-DEVICE-DATA] ERROR: Device data table does not exist');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L37'), 'debug');
             return false;
         }
 
@@ -124,13 +124,13 @@ class EIPSI_Storage_Device_Data_Store {
         $result = $wpdb->insert($table_name, $data, $format);
 
         if ($result === false) {
-            error_log('[EIPSI-DEVICE-DATA] SAVE ERROR: ' . $wpdb->last_error);
-            error_log('[EIPSI-DEVICE-DATA] SAVE ERROR DATA: ' . print_r($data, true));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L127'), 'debug');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L128'), 'debug');
             return false;
         }
 
-        error_log("[EIPSI-DEVICE-DATA] SAVE SUCCESS: submission_id={$submission_id}, insert_id={$wpdb->insert_id}");
-        error_log("[EIPSI-DEVICE-DATA] SAVE VALUES: canvas=" . substr($data['canvas_fingerprint'] ?? 'NULL', 0, 20) . "..., webgl=" . substr($data['webgl_renderer'] ?? 'NULL', 0, 20) . "...");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L132'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L133'), 'debug');
         return $wpdb->insert_id;
     }
 
@@ -161,14 +161,14 @@ class EIPSI_Storage_Device_Data_Store {
         $table_name = $wpdb->prefix . 'eipsi_device_data';
 
         if (empty($submission_ids)) {
-            error_log('[EIPSI-DEVICE-DATA] BATCH: Empty submission_ids array');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L164'), 'debug');
             return array();
         }
 
         $ids = array_map('absint', $submission_ids);
         $ids_placeholder = implode(',', array_fill(0, count($ids), '%d'));
 
-        error_log("[EIPSI-DEVICE-DATA] BATCH: Fetching data for " . count($ids) . " submissions: " . implode(',', $ids));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L171'), 'debug');
 
         $results = $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM {$table_name} WHERE submission_id IN ({$ids_placeholder})",
@@ -176,18 +176,18 @@ class EIPSI_Storage_Device_Data_Store {
         ));
 
         $data = array();
-        error_log("[EIPSI-DEVICE-DATA] BATCH: Found " . count($results) . " rows from DB");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L179'), 'debug');
         foreach ($results as $row) {
             $data[$row->submission_id] = $row;
-            error_log("[EIPSI-DEVICE-DATA] BATCH: Row for submission_id={$row->submission_id}, type=" . gettype($row) . ", canvas=" . (isset($row->canvas_fingerprint) ? substr($row->canvas_fingerprint, 0, 20) : 'NOTSET'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L182'), 'debug');
         }
 
         if (empty($data)) {
-            error_log("[EIPSI-DEVICE-DATA] BATCH WARNING: No device data found for any of the requested submissions");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L186'), 'debug');
             // Try direct query to diagnose
             $sample_id = $ids[0];
             $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_name} WHERE submission_id = %d", $sample_id));
-            error_log("[EIPSI-DEVICE-DATA] BATCH DIAG: Direct check for submission_id={$sample_id}, exists={$exists}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_device_data_store_L190'), 'debug');
         }
 
         return $data;

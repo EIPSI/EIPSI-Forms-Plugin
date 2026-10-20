@@ -79,7 +79,7 @@ class EIPSI_Authentication_Service {
             // Existing mail service generates and sends exactly one MagicLinkService token.
             $delivery = EIPSI_Email_Service::send_magic_link_email($survey_id, $participant->id);
             if (empty($delivery['success'])) {
-                error_log('[EIPSI Auth] Access-link delivery failed; study=' . (int) $survey_id);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_authentication_service_L82'), 'debug');
             }
         }
         return array(

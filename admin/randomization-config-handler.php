@@ -44,8 +44,8 @@ function eipsi_register_randomization_config_rest() {
     register_rest_route( 'eipsi/v1', '/randomization-config', array(
         'methods' => 'POST',
         'callback' => 'eipsi_randomization_config_rest_handler',
-        'permission_callback' => function() {
-            return current_user_can( 'edit_posts' );
+        'permission_callback' => function($request) {
+            return EIPSI_Randomization_Resource_Policy::permission($request);
         },
         'args' => array(
             'post_id' => array(
@@ -111,8 +111,8 @@ function eipsi_register_randomization_detect_rest() {
     register_rest_route( 'eipsi/v1', '/randomization-detect', array(
         'methods' => 'POST',
         'callback' => 'eipsi_randomization_detect_rest_handler',
-        'permission_callback' => function() {
-            return current_user_can( 'edit_posts' );
+        'permission_callback' => function($request) {
+            return EIPSI_Randomization_Resource_Policy::permission($request);
         },
         'args' => array(
             'post_id' => array(

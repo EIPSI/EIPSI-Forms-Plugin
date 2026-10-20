@@ -18,7 +18,21 @@ final class Store {
         $this->ready();
     }
     public function ready(): void {global $wpdb;$names=array();foreach(array('versions','executions','commands') as $n)$names[]=$this->prepare('%s',$wpdb->prefix.'eipsi_engine_native_'.$n);$rows=$this->db->rows('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('.implode(',',$names).')');if(count($rows)!==3)throw new \RuntimeException('Native runtime not installed',409);foreach($rows as $r)if(strcasecmp($r['ENGINE'],'InnoDB')!==0)throw new \RuntimeException('Native InnoDB required',409);}
-    public function transaction(callable $work){$this->ready();if((int)$this->db->row('SELECT @@session.in_transaction AS active')['active']!==0)throw new \LogicException('Nested native transaction');$this->db->query('START TRANSACTION');try{$result=$work();$this->db->query('COMMIT');return $result;}catch(\Throwable $e){$this->db->query('ROLLBACK');if($e instanceof \EIPSI\StudyEngine\Persistence\DatabaseFailure&&in_array((int)$e->getCode(),array(1020,1205,1213),true))throw new \RuntimeException('Concurrent native update. Reload before continuing.',409,$e);throw $e;}}
+    /** Retry a complete rolled-back transaction, including MariaDB's concurrent-read 1020. */
+    public function transaction(callable $work){
+        $this->ready();if((int)$this->db->row('SELECT @@session.in_transaction AS active')['active']!==0)throw new \LogicException('Nested native transaction');
+        for($attempt=0;$attempt<3;$attempt++){
+            $this->db->query('START TRANSACTION');
+            try{$result=$work();$this->db->query('COMMIT');return $result;}
+            catch(\Throwable $e){$this->db->query('ROLLBACK');
+                if($e instanceof \EIPSI\StudyEngine\Persistence\DatabaseFailure&&in_array((int)$e->getCode(),array(1020,1205,1213),true)){
+                    if($attempt<2){usleep(20000*($attempt+1));continue;}
+                    throw new \RuntimeException('Concurrent native update. Reload before continuing.',409,$e);
+                }throw $e;
+            }
+        }throw new \LogicException('Unreachable native retry');
+    }
+
     public function insert(string $table,array $row): void {if($table==='executions')unset($row['management_execution'],$row['management_opportunity']);$cols=array();$values=array();foreach($row as $k=>$v){if(!preg_match('/^[a-z_]+$/D',$k))throw new \LogicException('Column');$cols[]='`'.$k.'`';$values[]=$v===null?'NULL':$this->prepare('%s',(string)$v);}$this->db->query('INSERT INTO '.$this->table($table).' ('.implode(',',$cols).') VALUES ('.implode(',',$values).')');}
     public function update(string $table,array $row,string $where): int {$set=array();foreach($row as $k=>$v){if(!preg_match('/^[a-z_]+$/D',$k))throw new \LogicException('Column');$set[]='`'.$k.'`='.($v===null?'NULL':$this->prepare('%s',(string)$v));}return $this->db->query('UPDATE '.$this->table($table).' SET '.implode(',',$set).' WHERE '.$where);}
     public function find(string $table,string $id,bool $lock=false): ?array {\EIPSI\AssessmentEditor\Definition::id($id);return $this->db->row($this->prepare('SELECT * FROM '.$this->table($table).' WHERE id=%s'.($lock?' FOR UPDATE':''),$id));}

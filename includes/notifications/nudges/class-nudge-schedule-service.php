@@ -41,9 +41,9 @@ public static function refresh_wave_follow_ups($wave_id, $assignment_id = null) 
 private static function schedule_nudge_sequence_unlocked($assignment_id) {
         global $wpdb;
 
-        error_log(sprintf('[EIPSI EventScheduler] ========================================'));
-        error_log(sprintf('[EIPSI EventScheduler] schedule_nudge_sequence CALLED for assignment %d', $assignment_id));
-        error_log(sprintf('[EIPSI EventScheduler] Current time: %s', current_time('mysql')));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L44'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L45'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L46'), 'debug');
 
         // Obtener datos de la asignación y su configuración de nudges
         $assignment = $wpdb->get_row($wpdb->prepare(
@@ -57,14 +57,11 @@ private static function schedule_nudge_sequence_unlocked($assignment_id) {
         ));
 
         if (!$assignment) {
-            error_log(sprintf('[EIPSI EventScheduler] Assignment %d not found or not pending - ABORTING', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L60'), 'debug');
             return false;
         }
 
-        error_log(sprintf('[EIPSI EventScheduler] Assignment found: wave_id=%d, follow_up_reminders_enabled=%s',
-            $assignment->wave_id,
-            $assignment->follow_up_reminders_enabled ? 'YES' : 'NO'
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L64'), 'debug');
 
         // Calcular timestamp base (cuándo la wave se hizo disponible)
         $available_at = !empty($assignment->available_at)
@@ -72,7 +69,7 @@ private static function schedule_nudge_sequence_unlocked($assignment_id) {
             : current_time('timestamp');
 
         if (!$available_at) {
-            error_log(sprintf('[EIPSI EventScheduler] Invalid available_at for assignment %d', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L75'), 'debug');
             return false;
         }
 
@@ -81,7 +78,7 @@ private static function schedule_nudge_sequence_unlocked($assignment_id) {
             ? json_decode($assignment->nudge_config, true)
             : array();
 
-        error_log(sprintf('[EIPSI EventScheduler] Nudge config: %s', json_encode($nudge_config)));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L84'), 'debug');
 
         $scheduled_count = 0;
 
@@ -90,7 +87,7 @@ private static function schedule_nudge_sequence_unlocked($assignment_id) {
         $nudge_0_success = false;
 
         if (class_exists('EIPSI_Nudge_Job_Queue')) {
-            error_log(sprintf('[EIPSI EventScheduler] STEP 1: Executing Nudge 0 SYNCHRONOUSLY for assignment %d', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L93'), 'debug');
             $nudge_0_result = EIPSI_Nudge_Job_Queue::execute_nudge_0(array(
                 'assignment_id' => $assignment_id,
                 'participant_id' => $assignment->participant_id,
@@ -99,21 +96,17 @@ private static function schedule_nudge_sequence_unlocked($assignment_id) {
             ));
 
             if ($nudge_0_result['success']) {
-                error_log(sprintf('[EIPSI EventScheduler] Nudge 0 executed SUCCESSFULLY for assignment %d', $assignment_id));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L102'), 'debug');
                 $scheduled_count++;
                 $nudge_0_success = true;
             } else {
                 $error_msg = $nudge_0_result['error'] ?? 'unknown';
-                error_log(sprintf('[EIPSI EventScheduler] Nudge 0 execution FAILED for assignment %d: %s', $assignment_id, $error_msg));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L107'), 'debug');
 
                 // v2.1.7 - Si falló porque la wave no está disponible, programar reintento exacto
                 if (strpos($error_msg, 'Wave not yet available') !== false || strpos($error_msg, 'not yet available') !== false) {
                     $retry_time = !empty($assignment->available_at) ? strtotime($assignment->available_at) : time() + 60;
-                    error_log(sprintf(
-                        '[EIPSI EventScheduler] RESCHEDULING: Nudge 0 for assignment %d will retry at %s (when wave becomes available)',
-                        $assignment_id,
-                        date('Y-m-d H:i:s', $retry_time)
-                    ));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L112'), 'debug');
 
                     // Programar reintento exacto en available_at
                     wp_schedule_single_event($retry_time, 'eipsi_wave_available_retry', array($assignment_id));
@@ -136,26 +129,25 @@ private static function schedule_nudge_sequence_unlocked($assignment_id) {
                 }
 
                 // Si Nudge 0 falló, NO programar los nudges de seguimiento
-                error_log(sprintf('[EIPSI EventScheduler] ABORTING: Nudge 0 failed, not scheduling follow-up nudges for assignment %d', $assignment_id));
-                error_log(sprintf('[EIPSI EventScheduler] COMPLETED: Scheduled %d nudges for assignment %d', $scheduled_count, $assignment_id));
-                error_log(sprintf('[EIPSI EventScheduler] ========================================'));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L139'), 'debug');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L140'), 'debug');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L141'), 'debug');
                 return $scheduled_count;
             }
         } else {
-            error_log(sprintf('[EIPSI EventScheduler] EIPSI_Nudge_JobQueue class NOT FOUND - cannot execute Nudge 0'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L145'), 'debug');
             return 0;
         }
 
         // v2.1.7 - STEP 2: Solo si Nudge 0 tuvo éxito, programar nudges 1-4
         if ($nudge_0_success && !empty($assignment->follow_up_reminders_enabled)) {
-            error_log(sprintf('[EIPSI EventScheduler] STEP 2: Scheduling follow-up nudges for assignment %d', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L151'), 'debug');
 
             // Phase 5 T1-Anchor: Get due_at deadline to prevent nudges after expiration
             $due_at_timestamp = null;
             if (!empty($assignment->due_at)) {
                 $due_at_timestamp = strtotime($assignment->due_at);
-                error_log(sprintf('[EIPSI EventScheduler] Assignment has due_at: %s (timestamp: %d)',
-                    $assignment->due_at, $due_at_timestamp));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L157'), 'debug');
             }
 
             // v1.4.2 - Absolute offsets: calculate directly from available_at
@@ -165,13 +157,13 @@ private static function schedule_nudge_sequence_unlocked($assignment_id) {
                 if(wp_schedule_single_event($item['timestamp'],self::NUDGE_EVENT_HOOK,array($args))!==false){$scheduled_count++;}
             }
         } else if (!$nudge_0_success) {
-            error_log(sprintf('[EIPSI EventScheduler] SKIPPING follow-up nudges: Nudge 0 failed for assignment %d', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L168'), 'debug');
         } else {
-            error_log(sprintf('[EIPSI EventScheduler] SKIPPING follow-up nudges: disabled for assignment %d', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L170'), 'debug');
         }
 
-        error_log(sprintf('[EIPSI EventScheduler] COMPLETED: Scheduled %d nudges for assignment %d', $scheduled_count, $assignment_id));
-        error_log(sprintf('[EIPSI EventScheduler] ========================================'));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L173'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L174'), 'debug');
 
         return $scheduled_count;
     }
@@ -191,10 +183,7 @@ private static function cancel_scheduled_nudges_unlocked($assignment_id) {
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf(
-                '[EIPSI EventScheduler] Cancelled all scheduled nudges for assignment %d',
-                $assignment_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L194'), 'debug');
         }
     }
 
@@ -210,7 +199,7 @@ private static function reschedule_nudges_for_deadline_unlocked($assignment_id) 
             return; // No recalcular si ya está completado o expirado
         }
 
-        error_log(sprintf('[EIPSI EventScheduler] Rescheduling nudges for assignment %d due to deadline change', $assignment_id));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L213'), 'debug');
 
         if ((int) $assignment->reminder_count >= 1) {
             return self::refresh_wave_follow_ups($assignment->wave_id, $assignment_id);
@@ -225,7 +214,7 @@ private static function reschedule_nudges_for_deadline_unlocked($assignment_id) 
 public static function reschedule_all_nudges_for_participant($study_id, $participant_id) {
         global $wpdb;
 
-        error_log(sprintf('[EIPSI EventScheduler] Rescheduling all nudges for participant %d in study %d (T1 anchored)', $participant_id, $study_id));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L228'), 'debug');
 
         // Obtener todos los assignments del participante (excepto T1 y los ya completados)
         $assignments = $wpdb->get_results($wpdb->prepare(
@@ -253,7 +242,7 @@ public static function reschedule_all_nudges_for_participant($study_id, $partici
             }
         }
 
-        error_log(sprintf('[EIPSI EventScheduler] Rescheduled nudges for %d assignments', $rescheduled));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L256'), 'debug');
     }
 
 public static function get_scheduled_events() {
@@ -297,7 +286,7 @@ private static function cancel_nudges_for_assignment_unlocked($assignment_id) {
         if ($wpdb->last_error) { return false; }
         if ($exists!==$legacy) { return $modern; }
         $cancelled=$wpdb->update($legacy,array('status'=>'cancelled'),array('assignment_id'=>$assignment_id,'status'=>'pending'),array('%s'),array('%d','%s'));
-        if ($cancelled===false) { error_log('[EIPSI EventScheduler] persistence_sql_error operation=legacy_cancel'); return false; }
+        if ($cancelled===false) { EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L300'), 'debug'); return false; }
         return $modern+intval($cancelled);
     }
 
@@ -308,20 +297,20 @@ private static function reschedule_nudges_for_assignment_unlocked($assignment_id
             $result = self::refresh_wave_follow_ups($assignment->wave_id, $assignment_id);
             return !is_wp_error($result);
         }
-        error_log("[EIPSI EventScheduler] Rescheduling nudges for assignment {$assignment_id}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L311'), 'debug');
 
         // 1. Cancelar nudges pendientes
         $cancelled = self::cancel_nudges_for_assignment($assignment_id);
         if ($cancelled === false) { return false; }
-        error_log("[EIPSI EventScheduler] Cancelled {$cancelled} pending nudges before rescheduling");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L316'), 'debug');
 
         // 2. Re-programar desde cero (lee available_at actualizado de la DB)
         $result = self::schedule_nudge_sequence($assignment_id);
 
         if ($result) {
-            error_log("[EIPSI EventScheduler] Successfully rescheduled nudges for assignment {$assignment_id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L322'), 'debug');
         } else {
-            error_log("[EIPSI EventScheduler] Failed to reschedule nudges for assignment {$assignment_id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L324'), 'debug');
         }
 
         return $result;
@@ -330,43 +319,30 @@ private static function reschedule_nudges_for_assignment_unlocked($assignment_id
 private static function schedule_follow_up_nudges_only_unlocked($assignment) {
         global $wpdb;
 
-        error_log('[EIPSI EventScheduler] ========================================');
-        error_log('[EIPSI EventScheduler] schedule_follow_up_nudges_only() CALLED');
-        error_log('[EIPSI EventScheduler] ========================================');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L333'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L334'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L335'), 'debug');
 
         if (empty($assignment->id)) {
-            error_log('[EIPSI EventScheduler] ❌ ERROR: Missing assignment ID');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L338'), 'debug');
             return 0;
         }
 
         $assignment_id = (int) $assignment->id;
 
-        error_log(sprintf(
-            '[EIPSI EventScheduler] Assignment %d: reminder_count=%d, status=%s, wave_id=%d, available_at=%s',
-            $assignment_id,
-            $assignment->reminder_count,
-            $assignment->status,
-            $assignment->wave_id,
-            $assignment->available_at
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L344'), 'debug');
 
         // Verify reminder_count is 1 (Nudge 0 was sent)
         if ((int) $assignment->reminder_count < 1) {
-            error_log(sprintf(
-                '[EIPSI EventScheduler] ❌ ABORT: Assignment %d has reminder_count=%d (expected 1)',
-                $assignment_id,
-                $assignment->reminder_count
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L355'), 'debug');
             return 0;
         }
 
-        error_log(sprintf(
-            '[EIPSI EventScheduler] ✓ Reminder count validation passed (reminder_count=1)'
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L363'), 'debug');
 
         // Check if follow-up reminders are enabled
         if (empty($assignment->follow_up_reminders_enabled)) {
-            error_log(sprintf('[EIPSI EventScheduler] Follow-up reminders disabled for assignment %d', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L369'), 'debug');
             return 0;
         }
 
@@ -377,21 +353,21 @@ private static function schedule_follow_up_nudges_only_unlocked($assignment) {
         ));
 
         if (!$wave) {
-            error_log(sprintf('[EIPSI EventScheduler] Wave %d not found for assignment %d', $assignment->wave_id, $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L380'), 'debug');
             return 0;
         }
 
         // Parse nudge config
         $nudge_config = !empty($wave->nudge_config) ? json_decode($wave->nudge_config, true) : array();
         if (empty($nudge_config)) {
-            error_log(sprintf('[EIPSI EventScheduler] No nudge config for wave %d', $wave->id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L387'), 'debug');
             return 0;
         }
 
         // Get available_at timestamp
         $available_at = !empty($assignment->available_at) ? strtotime($assignment->available_at) : null;
         if (!$available_at) {
-            error_log(sprintf('[EIPSI EventScheduler] No available_at for assignment %d', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L394'), 'debug');
             return 0;
         }
 
@@ -401,11 +377,7 @@ private static function schedule_follow_up_nudges_only_unlocked($assignment) {
             $due_at_timestamp = strtotime($assignment->due_at);
         }
 
-        error_log(sprintf(
-            '[EIPSI EventScheduler] Scheduling follow-up nudges 1-4 for assignment %d (available_at=%s)',
-            $assignment_id,
-            date('Y-m-d H:i:s', $available_at)
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L404'), 'debug');
 
         $scheduled_count = 0;
 
@@ -417,11 +389,7 @@ private static function schedule_follow_up_nudges_only_unlocked($assignment) {
             $scheduled_count++;
         }
 
-        error_log(sprintf(
-            '[EIPSI EventScheduler] Scheduled %d follow-up nudges for assignment %d',
-            $scheduled_count,
-            $assignment_id
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_schedule_service_L420'), 'debug');
 
         return $scheduled_count;
     }

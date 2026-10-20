@@ -96,7 +96,8 @@ $tests['Submit all INSERT failures return error, never success']=function(){glob
 };
 
 $tests['Public Forms facade signatures and defaults preserved']=function(){
-    $baseline=json_decode(file_get_contents(__DIR__.'/contracts.json'),true);
+    require_once dirname(__DIR__).'/sec1/contracts.php';
+    $baseline=sec1_expected(json_decode(file_get_contents(__DIR__.'/contracts.json'),true));
     foreach($baseline['public_api'] as $name=>$expected){
         $fn=new ReflectionFunction($name);$actual=array();
         foreach($fn->getParameters() as $parameter){$row=array('name'=>$parameter->getName(),'optional'=>$parameter->isOptional());if($parameter->isDefaultValueAvailable()){$row['default']=$parameter->getDefaultValue();}$actual[]=$row;}

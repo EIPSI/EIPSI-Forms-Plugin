@@ -7,6 +7,7 @@
       this.definition = d;
       this.clock = clock;
       this.profile = d.flow.metadata_profile;
+      this.policy = A.effectiveMetadataPolicy || root.eipsiAssessmentEditorConfig?.metadata_policy || null;
       this.focused = {};
       this.currentPage = null;
       this.lastTrajectory = {};
@@ -27,31 +28,42 @@
             events: [],
             dropped_events: 0,
           };
-      if (this.profile !== "basic" && !snapshot)
-        this.data.context = {
-          device: root.matchMedia?.("(pointer:coarse)").matches
-            ? "touch-capable"
-            : "desktop-or-unknown",
-          browser:
-            (root.navigator?.userAgent || "").match(
-              /(?:Firefox|Chrome|Safari|Edg)\/[\d.]+/,
-            )?.[0] || "unknown",
-          os: root.navigator?.platform || "unknown",
-          screen: {
-            width: root.screen?.width || 0,
-            height: root.screen?.height || 0,
+      // Restore working counters even when the persisted policy omitted them.
+      const defaults={started_at:clock(),completed_at:null,duration:0,recovery_used:false,recovery_count:0,dropped_events:0,pages:{},items:{},events:[]};
+      this.data={...defaults,...this.data};
+      for(const p of Object.values(this.data.pages))Object.assign(p,{duration:0,visit_count:0,revisit_count:0,next_transitions:0,previous_transitions:0,current_presented_at:clock(),...p});
+      for(const v of Object.values(this.data.items))Object.assign(v,{presented_at:clock(),first_interaction_at:null,interaction_count:0,change_count:0,focus_count:0,focus_duration:0,visit_count:0,revisit_count:0,trajectory:[],...v});
+      if(this.profile!=="basic"&&!snapshot){
+        const readers={
+          device:()=>root.matchMedia?.("(pointer:coarse)").matches?"touch-capable":"desktop-or-unknown",
+          browser:()=>(root.navigator?.userAgent||"").match(/(?:Firefox|Chrome|Safari|Edg)\/[\d.]+/)?.[0]||"unknown",
+          os:()=>root.navigator?.platform||"unknown",
+          screen:()=>({width:root.screen?.width||0,height:root.screen?.height||0}),
+          viewport:()=>({width:root.innerWidth||0,height:root.innerHeight||0}),
+          timezone:()=>Intl.DateTimeFormat().resolvedOptions().timeZone,
+          language:()=>root.navigator?.language||"",
+          input_capabilities:()=>({touch:(root.navigator?.maxTouchPoints||0)>0,pointer:!!root.PointerEvent}),
+          webgl_renderer:()=>{
+            let gl;
+            try{
+              const canvas=root.document?.createElement('canvas');
+              gl=canvas?.getContext('webgl')||canvas?.getContext('experimental-webgl');
+              if(!gl)return null;
+              const debug=gl.getExtension('WEBGL_debug_renderer_info');
+              const vendor=gl.getParameter(debug?debug.UNMASKED_VENDOR_WEBGL:gl.VENDOR);
+              const renderer=gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER);
+              const value=String(vendor||'')+' | '+String(renderer||'');
+              return value.length<=512?value:null;
+            }catch(_){return null;}finally{try{gl?.getExtension('WEBGL_lose_context')?.loseContext();}catch(_){}}
           },
-          viewport: {
-            width: root.innerWidth || 0,
-            height: root.innerHeight || 0,
-          },
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          language: root.navigator?.language || "",
-          input_capabilities: {
-            touch: (root.navigator?.maxTouchPoints || 0) > 0,
-            pointer: !!root.PointerEvent,
-          },
+          screen_depth:()=>Number.isInteger(root.screen?.colorDepth)&&root.screen.colorDepth>=0&&root.screen.colorDepth<=128?root.screen.colorDepth:null,
+          pixel_ratio:()=>Number.isFinite(root.devicePixelRatio)&&root.devicePixelRatio>0&&root.devicePixelRatio<=100?root.devicePixelRatio:null,
+          cpu_cores:()=>Number.isInteger(root.navigator?.hardwareConcurrency)&&root.navigator.hardwareConcurrency>=1&&root.navigator.hardwareConcurrency<=65536?root.navigator.hardwareConcurrency:null,
+          cookies_enabled:()=>typeof root.navigator?.cookieEnabled==='boolean'?root.navigator.cookieEnabled:null
         };
+        this.data.context={};
+        for(const [field,read]of Object.entries(readers))if(!this.policy||this.policy.client.includes(field))this.data.context[field]=read();
+      }
       this.items = new Map();
       A.walk(d.elements, (e) => {
         if (e.type === "matrix")
@@ -80,7 +92,7 @@
         : clone(value ?? null);
     }
     event(kind, identity = null, state = null) {
-      if (this.profile === "basic") return;
+      if (this.profile === "basic" || (this.policy && !this.policy.events.length)) return;
       const events = this.data.events;
       if (events.length < 2048)
         events.push({
@@ -197,7 +209,7 @@
       v.final_response_at = now;
       v.time_to_final_response = Math.max(0,now - v.presented_at);
       if (this.profile !== "basic") v.input_method = method;
-      if (this.profile === "detailed") {
+      if (this.profile === "detailed" && (!this.policy || this.policy.item.includes("trajectory"))) {
         const trajectory = v.trajectory,
           last = trajectory[trajectory.length - 1];
         if (last && now - last.timestamp < 250 && trajectory.length > 1) {
@@ -231,7 +243,13 @@
         this.event("final_response", v.item_id, v.final_state);
     }
     snapshot() {
-      return clone(this.data);
+      const data=clone(this.data),policy=this.policy;
+      if(!policy)return data;
+      for(const field of ['started_at','completed_at','duration','recovery_used','recovery_count','dropped_events'])if(!policy.session.includes(field))delete data[field];
+      for(const [collection,group,ids] of [['pages','page',['page_id']],['items','item',['item_id','response_key','variable_name']]])for(const row of Object.values(data[collection]||{}))for(const key of Object.keys(row))if(!ids.includes(key)&&!policy[group].includes(key))delete row[key];
+      if(!policy.events.length)data.events=[];
+      if(data.context){for(const key of Object.keys(data.context))if(!policy.client.includes(key))delete data.context[key];if(!Object.keys(data.context).length)delete data.context;}
+      return data;
     }
   }
   A.MetadataRecorder = MetadataRecorder;

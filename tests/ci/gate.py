@@ -183,6 +183,10 @@ class Gate:
             else:
                 output = php(name, base + 'run-' + name + '.php')
             self.count('php-' + name, output, count)
+        sample = call('api4-samples', ['exec','-T','wordpress','cat','/tmp/eipsi-api4-samples.json'])
+        artifact = self.logs / 'api4-samples.json'
+        artifact.write_text(sample)
+        self.count('api4-openapi-runtime', self.node('api4-openapi-runtime', ['node','tests/api4/openapi.js',str(artifact.relative_to(ROOT))]), 1)
         output = php('rct-strict', PLUGIN + '/tests/run-s4.php', ['-e', 'EIPSI_S4_EXPECT_RCT_DENIAL=1'])
         self.count('rct-strict', output, 1)
         print(f'PHP: {sum(CONFIG["php"].values())} tests, 0 failures; RCT strict 1/1', flush=True)

@@ -2,11 +2,17 @@
 const fs = require('fs');
 const path = require('path');
 const { minify } = require('terser');
+require('./check-admin-i18n').check();
 const root = path.resolve(__dirname, '..');
+fs.writeFileSync(path.join(root,'src/admin/i18n/content-catalog.js'),'/* Generated from includes/i18n/content-defaults.json. */\nglobalThis.EIPSIContentCatalog='+fs.readFileSync(path.join(root,'includes/i18n/content-defaults.json'),'utf8').trim()+';\n');
+require('./check-content-defaults').check();
 const sourceDir = path.join(root, 'src/frontend/forms');
 const manifest = JSON.parse(fs.readFileSync(path.join(sourceDir, 'manifest.json'), 'utf8'));
 const source = manifest.entry_order.map(file => fs.readFileSync(path.join(sourceDir, file), 'utf8')).join('');
 (async () => {
+    const adminI18n = await minify(fs.readFileSync(path.join(root, 'src/admin/i18n/runtime.js'), 'utf8'), { compress: false, mangle: false });
+    if (!adminI18n.code) throw new Error('Empty admin i18n runtime');
+    fs.writeFileSync(path.join(root, 'assets/js/admin-i18n.js'), '/* Generated from src/admin/i18n/runtime.js. */\n' + adminI18n.code + '\n');
     // Do not compress/reorder logic or rename externally observable functions.
     const result = await minify(source, { compress: false, mangle: false, format: { comments: false } });
     if (!result.code) { throw new Error('Empty Forms runtime'); }

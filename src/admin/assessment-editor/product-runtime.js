@@ -9,6 +9,12 @@
       pending = null,
       closed = false;
     const checkedRandomFrames = new Map();
+    let renderedProjection = null, inputEpoch = 0, queuedLogic = false, queuedMove = null;
+    // The public projection describes visible content; its randomization reference also
+    // changes for audit/dependency bookkeeping that must not rebuild the controls.
+    const projectionKey = value => JSON.stringify(value.participant_contract && value.projection_ref
+      ? [value.execution_id,value.page,value.projection_ref]
+      : [value.execution_id,value.state,value.logical_exit,value.page,value.logical_entry_question,value.logical_skipped_ids,value.randomization,value.projection_ref]);
     const mountedWithSession = !!(initial.session ?? initial.partial);
     const status = el("p", { role: "status", "aria-live": "polite" }),
       body = el("div"),
@@ -42,6 +48,7 @@
         return result.data;
       };
     function restore(markResume = true) {
+      A.effectiveMetadataPolicy = frame.effective_metadata_policy || root.eipsiAssessmentEditorConfig?.metadata_policy || null;
       const definition = A.copy(frame.definition);
       const dates=items=>items.forEach(item=>{if(item.type==='date')item.properties.date_format=frame.study_date_format||'YYYY-MM-DD';dates(item.children);});dates(definition.elements);
       const skipped = new Set(frame.logical_skipped_ids || []);
@@ -74,7 +81,21 @@
         if (markResume) {
           session.metadata.present(session.definition.flow.pages[session.page].id, session.pages[session.page]);
           session.metadata.resume();
-        } else { const pageId=session.definition.flow.pages[session.page].id; if(frame.has_logic&&!current.metadata.pages?.[pageId])session.metadata.present(pageId,session.pages[session.page]);else session.metadata.currentPage = pageId; }
+        } else { const pageId=session.definition.flow.pages[session.page].id; if((frame.has_logic || frame.participant_contract)&&!current.metadata.pages?.[pageId])session.metadata.present(pageId,session.pages[session.page]);else session.metadata.currentPage = pageId; }
+      }
+      if (frame.participant_contract && current && frame.state === "ACTIVE") {
+        const keys = [];
+        A.walk(session.pages[session.page], e => {
+          if (e.type === "matrix") keys.push(...e.properties.matrix_rows.map(row => row.response_key));
+          else if (e.response_key) keys.push(e.response_key);
+        });
+        const missing = keys.filter(key => !session.metadata.data.items[key]);
+        if (missing.length) {
+          // Record newly delivered items without inventing a page revisit or replacing history.
+          const introduced = new A.MetadataRecorder(session.definition);
+          introduced.present(session.definition.flow.pages[session.page].id, session.pages[session.page]);
+          missing.forEach(key => { session.metadata.data.items[key] = A.copy(introduced.data.items[key]); });
+        }
       }
       session.finished = frame.state === "COMPLETED";
     }
@@ -95,15 +116,16 @@
       b.onclick = fn;
       return b;
     }
-    const message = key => frame.definition.flow.messages?.[key] ?? root.EIPSIAssessmentFlow.messages[key];
+    const message = key => frame.definition.flow.messages?.[key] ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(frame.definition))[key];
     const expiredNotice=()=>message(frame.previous_partial_saved?'expired_saved':'expired');
     async function send(payload, keepalive = false, quiet = false) {
       if (busy) return false;
       busy = true; pending = payload;
+      if(quiet && payload.action==='logic')queuedLogic=false;
       let okay = false, resetSession = false, transitioned = false, logicChanged = false;
-      const previousLogic=JSON.stringify([frame.page,frame.logical_entry_question,frame.logical_skipped_ids,frame.randomization]);
-      const previousExecution = frame.execution_id, locked=[];
-      if(quiet && payload.action === "logic") body.querySelectorAll("input,textarea,select,button").forEach(n=>{if(!n.disabled){locked.push(n);n.disabled=true;}});
+      const previousLogic=renderedProjection || projectionKey(frame), sentEpoch=inputEpoch;
+      const previousExecution = frame.execution_id;
+
       if (!quiet) { status.textContent = message("processing"); render(); }
       try {
         frame = await api(payload, keepalive);
@@ -114,8 +136,11 @@
         }
         pending = null;
         transitioned = previousExecution !== frame.execution_id;
-        logicChanged=transitioned||previousLogic!==JSON.stringify([frame.page,frame.logical_entry_question,frame.logical_skipped_ids,frame.randomization]);
-        if (frame.has_logic && (logicChanged || ["open","next","back","submit","partial","discard"].includes(payload.action))) restore(false);
+        logicChanged=transitioned||previousLogic!==projectionKey(frame);
+        const newerInput=quiet && payload.action === 'logic' && sentEpoch!==inputEpoch && !transitioned && frame.state==='ACTIVE' && !frame.logical_exit && !frame.session_reset;
+        if(newerInput)logicChanged=false; // Keep newer local edits until their own logical check.
+        if(quiet && !logicChanged && frame.participant_contract && frame.randomization){session.randomization=A.copy(frame.randomization);session.metadata.data.randomization=A.copy(frame.randomization);}
+        if (!newerInput && (frame.has_logic || frame.participant_contract) && (logicChanged || ["open","next","back","submit","partial","discard"].includes(payload.action))) restore(false);
         resetSession = !!frame.session_reset;
         if (resetSession) {  restore(false); }
         if (!quiet || resetSession) status.textContent = frame.state === "COMPLETED"
@@ -129,7 +154,7 @@
         status.textContent = Array.isArray(e.validationErrors) ? e.validationErrors.map(item=>item.message).join(" ") : e.status === 400
           ? message("invalid")
           : message("delivery_error");
-      } finally { busy = false; locked.forEach(n=>{if(n.isConnected)n.disabled=false;}); if (!quiet || !okay || resetSession || logicChanged) render(); if(logicChanged) body.querySelector("input,textarea,select,button")?.focus(); }
+      } finally { busy = false; if (!quiet || !okay || resetSession || logicChanged) render(); if(logicChanged) body.querySelector("input,textarea,select,button")?.focus(); }
       if (transitioned && frame.session == null && frame.state === "ACTIVE") { await send(request("open"),false,true); restore(false); render(); }
       if (resetSession) {
         const notice = status.textContent;
@@ -138,21 +163,24 @@
         render();
         return false;
       }
-      if (okay && frame.has_logic && frame.state === "ACTIVE" && !frame.logical_exit && frame.randomization?.contract === "LOCAL_RANDOMIZATION_LAZY_V3") {
-        const signature=JSON.stringify([frame.randomization.blocks,frame.randomization.option_orders]);
+      if (okay && frame.has_logic && frame.state === "ACTIVE" && !frame.logical_exit && (frame.randomization?.contract === "LOCAL_RANDOMIZATION_LAZY_V3" || frame.evaluate_logic_on_open)) {
+        const signature=JSON.stringify([frame.randomization?.reference,frame.randomization?.blocks,frame.randomization?.option_orders]);
         if(checkedRandomFrames.get(frame.execution_id)!==signature){checkedRandomFrames.set(frame.execution_id,signature);await send(request("logic"),false,true);}
       }
+      if(okay && quiet && payload.action==='logic' && queuedLogic && !closed && frame.state==='ACTIVE' && !frame.logical_exit){queuedLogic=false;await send(request('logic'),false,true);}
+      if(okay && !busy && !pending && queuedMove && !closed){const direction=queuedMove;queuedMove=null;await move(direction);}
       return okay;
     }
     async function move(direction) {
-      if (busy || pending) return;
+      if (busy || pending) {if(busy && pending?.action==='logic')queuedMove=direction;return;}
       const errors = direction === "back" || frame.has_logic ? [] : session.errors();
       if (errors.length) {
         status.textContent = errors.map((e) => e.message).join(" ");
         return;
       }
-      if(frame.has_logic)session.metadata.leave(direction);
-      if (!frame.has_logic) { if (direction === "back") session.previous(); else if (!session.next()) return; }
+      if (frame.participant_contract && !frame.has_logic && direction === "submit") session.metadata.complete();
+      else if(frame.has_logic || frame.participant_contract)session.metadata.leave(direction === "back" ? "previous" : "next");
+      if (!frame.has_logic && !frame.participant_contract) { if (direction === "back") session.previous(); else if (!session.next()) return; }
       const okay = await send(request(direction));
       if (!okay) {
         /* Keep exact attempted command and local state: retry is idempotent. */
@@ -169,6 +197,8 @@
       restore(okay); render();
     }
     function render() {
+      host.lang=root.EIPSIContent.language(frame.definition);
+      renderedProjection=projectionKey(frame);
       body.replaceChildren();
       actions.replaceChildren();
       discardFooter.replaceChildren();
@@ -194,7 +224,7 @@
       if (f.show_title !== false) body.append(el("h1", {}, d.title));
       if (pending && frame.state === "COMPLETED") {
         actions.append(
-          button(pending.action === "discard" ? message("discard_label") : (f.completion.button_label || f.navigation_labels.finish || "Terminar"), async () => {
+          button(pending.action === "discard" ? message("discard_label") : (f.completion.button_label || f.navigation_labels.finish || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.finish), async () => {
             const okay = await send(pending);
             if (okay) {
               restore();
@@ -258,7 +288,7 @@
           .forEach((n) => (n.disabled = true));
       if (pending) {
         actions.append(
-          button(pending.action === "back" ? (f.navigation_labels.back || "Anterior") : pending.action === "discard" ? message("discard_label") : session.page === session.pages.length - 1 ? (f.navigation_labels.finish || "Terminar") : (f.navigation_labels.next || "Siguiente"), async () => {
+          button(pending.action === "back" ? (f.navigation_labels.back || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.back) : pending.action === "discard" ? message("discard_label") : session.page === session.pages.length - 1 ? (f.navigation_labels.finish || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.finish) : (f.navigation_labels.next || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.next), async () => {
             const action = pending.action;
             const okay = await send(pending);
             if (okay) {
@@ -274,14 +304,14 @@
       }
       if (f.allow_back && session.page > (frame.logical_entry_page || 0))
         actions.append(
-          Object.assign(button(f.navigation_labels.back || "Anterior", () => move("back")), {className: "ae-nav-back"}),
+          Object.assign(button(f.navigation_labels.back || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.back, () => move("back")), {className: "ae-nav-back"}),
         );
       const last = session.page === session.pages.length - 1;
       actions.append(
         button(
           last
-            ? f.navigation_labels.finish || "Terminar"
-            : f.navigation_labels.next || "Siguiente",
+            ? f.navigation_labels.finish || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.finish
+            : f.navigation_labels.next || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.next,
           () => move(last ? "submit" : "next"),
         ),
       );
@@ -289,8 +319,12 @@
 
     }
     let logicTimer = null;
+    body.addEventListener('input',()=>{inputEpoch++;});
     body.addEventListener("change", () => {
-      if (!frame.has_logic || busy || pending || frame.logical_exit) return;
+      inputEpoch++;
+      if (!frame.has_logic || frame.logical_exit) return;
+      if(busy){if(pending?.action==='logic')queuedLogic=true;return;}
+      if(pending)return;
       root.clearTimeout(logicTimer);
       logicTimer = root.setTimeout(() => { if (!closed && !busy && !pending) send(request("logic"),false,true); }, 250);
     });

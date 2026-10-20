@@ -111,15 +111,7 @@ $tests['DB real: fallo externo y local nunca confirma éxito'] = function () use
         p0_assert(strpos($result['error'], 'external') !== false && strpos($result['error'], 'wordpress') !== false, 'Missing destination diagnostics');
     });
 };
-$tests['DB real: partial debug deniega público y permite administrador'] = function () use ($debug_request) {
-    p0_live_fixture(function ($db) use ($debug_request) {
-        $_POST = $debug_request;
-        p0_assert(!p0_ajax('eipsi_debug_partial_response_handler')->success, 'Public diagnostic allowed');
-        $GLOBALS['p0_admin'] = true;
-        $response = p0_ajax('eipsi_debug_partial_response_handler');
-        p0_assert($response->success && $response->data['raw_responses']['phq_score'] === 4, 'Authorized live diagnostic failed');
-    });
-};
+$tests['DB real: diagnostic retirado']=function(){p0_assert(!function_exists('eipsi_debug_partial_response_handler'),'Retired diagnostic exists');};
 $tests['DB real: retiro ajeno bloqueado y propio persistido'] = function () use ($withdraw_request) {
     p0_live_fixture(function ($db) use ($withdraw_request) {
         $_POST = $withdraw_request; $_POST['participant_id'] = '8';

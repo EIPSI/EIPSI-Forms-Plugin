@@ -7,7 +7,7 @@ class EIPSI_Notification_Weekly_T1_Reminder_Service {
 public static function eipsi_weekly_t1_reminders() {
     global $wpdb;
 
-    error_log('[EIPSI Weekly T1] Starting cron job');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_weekly_t1_reminder_service_L10'), 'debug');
 
     // Get all pending T1 assignments with participant and study info
     $pending_t1 = $wpdb->get_results("
@@ -32,11 +32,11 @@ public static function eipsi_weekly_t1_reminders() {
     ");
 
     if (empty($pending_t1)) {
-        error_log('[EIPSI Weekly T1] No pending T1 assignments found');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_weekly_t1_reminder_service_L35'), 'debug');
         return;
     }
 
-    error_log(sprintf('[EIPSI Weekly T1] Found %d pending T1 assignments', count($pending_t1)));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_weekly_t1_reminder_service_L39'), 'debug');
 
     $sent_count = 0;
     $expired_count = 0;
@@ -115,8 +115,7 @@ public static function eipsi_weekly_t1_reminders() {
         }
     }
 
-    error_log(sprintf('[EIPSI Weekly T1] Cron completed: %d reminders sent, %d assignments expired',
-        $sent_count, $expired_count));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_weekly_t1_reminder_service_L118'), 'debug');
 }
 
 public static function eipsi_send_weekly_t1_reminder($assignment, $reminder_number) {
@@ -133,7 +132,7 @@ public static function eipsi_send_weekly_t1_reminder($assignment, $reminder_numb
     );
 
     if (!$token) {
-        error_log("[EIPSI Weekly T1] Failed to generate magic link for participant {$assignment->participant_id}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_weekly_t1_reminder_service_L136'), 'debug');
         return false;
     }
 
@@ -182,15 +181,9 @@ public static function eipsi_send_weekly_t1_reminder($assignment, $reminder_numb
             array('%d', '%d', '%s')
         );
 
-        error_log(sprintf(
-            '[EIPSI Weekly T1] Sent reminder #%d to participant %d (assignment %d)',
-            $reminder_number, $assignment->participant_id, $assignment->assignment_id
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_weekly_t1_reminder_service_L185'), 'debug');
     } else {
-        error_log(sprintf(
-            '[EIPSI Weekly T1] Failed to send reminder to participant %d',
-            $assignment->participant_id
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_weekly_t1_reminder_service_L190'), 'debug');
     }
 
     return $result;

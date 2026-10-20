@@ -55,3 +55,7 @@
 .eipsi-study.eipsi-study-state>p{margin:0;max-width:40rem;font-size:13px;line-height:1.5;font-weight:400}
 .eipsi-study.eipsi-notice-surface{background:transparent}
 .sb-experience-surface .eipsi-study-state{min-height:280px}
+
+/* The embedded assessment supplies its own surface and spacing. */
+.eipsi-study:has(> .eipsi-native-assessment-frame){padding:0;background:transparent;border:0;box-shadow:none}
+.eipsi-study > .eipsi-native-assessment-frame{display:block}

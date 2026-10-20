@@ -8,7 +8,7 @@ public static function generate_magic_link_url($survey_id, $participant_id) {
         // Validate survey_id before proceeding
         $survey_id = intval($survey_id);
         if ($survey_id <= 0) {
-            error_log("[EIPSI Email] Invalid survey_id in generate_magic_link_url: $survey_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L11'), 'debug');
             return false;
         }
 
@@ -75,7 +75,7 @@ public static function send_magic_link_email($survey_id, $participant_id, $custo
         // Validate survey_id before proceeding - prevent FK errors
         $survey_id = intval($survey_id);
         if ($survey_id <= 0) {
-            error_log("[EIPSI Email] Invalid survey_id: $survey_id for participant $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L78'), 'debug');
             return array('success' => false, 'magic_link' => null, 'error' => 'ID de estudio inválido: ' . $survey_id);
         }
 
@@ -86,7 +86,7 @@ public static function send_magic_link_email($survey_id, $participant_id, $custo
 
         // Verificar que el participante esté activo
         if (!$participant->is_active) {
-            error_log("[EIPSI Email] Cannot send magic link to inactive participant: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L89'), 'debug');
             return array('success' => false, 'magic_link' => null, 'error' => 'El participante está inactivo');
         }
 
@@ -197,7 +197,7 @@ public static function send_welcome_email($survey_id, $participant_id) {
         // Validate survey_id before proceeding
         $survey_id = intval($survey_id);
         if ($survey_id <= 0) {
-            error_log("[EIPSI Email] Invalid survey_id in send_welcome_email: $survey_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L200'), 'debug');
             return false;
         }
 
@@ -206,7 +206,7 @@ public static function send_welcome_email($survey_id, $participant_id) {
 
         // Verificar que el participante esté activo
         if (!$participant->is_active) {
-            error_log("[EIPSI Email] Cannot send welcome email to inactive participant: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L209'), 'debug');
             return false;
         }
 
@@ -236,13 +236,13 @@ public static function send_welcome_email($survey_id, $participant_id) {
 public static function send_confirmation_email($survey_id, $participant_id, $confirmation_token) {
         $participant = self::get_participant($participant_id);
         if (!$participant) {
-            error_log("[EIPSI Email] Cannot send confirmation: participant not found: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L239'), 'debug');
             return false;
         }
 
         // Don't send confirmation to already active participants
         if ($participant->is_active) {
-            error_log("[EIPSI Email] Skipping confirmation: participant already active: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L245'), 'debug');
             return false;
         }
 
@@ -298,13 +298,13 @@ public static function get_confirmation_email_preview($survey_id, $participant_i
 public static function send_welcome_after_confirmation($survey_id, $participant_id) {
         $participant = self::get_participant($participant_id);
         if (!$participant) {
-            error_log("[EIPSI Email] Cannot send welcome after confirmation: participant not found: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L301'), 'debug');
             return false;
         }
 
         // v2.5.4 - Verificar que el participante esté activo (enforce double opt-in logic)
         if (!$participant->is_active) {
-            error_log("[EIPSI Email] Cannot send welcome after confirmation to inactive participant: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L307'), 'debug');
             return false;
         }
 
@@ -337,7 +337,7 @@ public static function send_wave_reminder_email($survey_id, $participant_id, $wa
 
         // Verificar que el participante esté activo
         if (!$participant->is_active) {
-            error_log("[EIPSI Email] Cannot send reminder email to inactive participant: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L340'), 'debug');
             return false;
         }
 
@@ -370,12 +370,7 @@ public static function send_wave_reminder_email($survey_id, $participant_id, $wa
             ));
 
             if ($assignment && EIPSI_Wave_Expiration_Service::is_assignment_expired($assignment)) {
-                error_log(sprintf(
-                    '[EIPSI Email] Blocked reminder email for expired wave (Wave %d, Participant %d, Due: %s)',
-                    $wave->id,
-                    $participant_id,
-                    $assignment->due_at ?? 'N/A'
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L373'), 'debug');
                 EIPSI_Notification_Email_Log_Service::log_email($survey_id, $participant_id, 'reminder', 'blocked', 'Wave expired');
                 return false;
             }
@@ -460,7 +455,7 @@ public static function send_wave_confirmation_email($survey_id, $participant_id,
 
         // Verificar que el participante esté activo
         if (!$participant->is_active) {
-            error_log("[EIPSI Email] Cannot send confirmation email to inactive participant: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L463'), 'debug');
             return false;
         }
 
@@ -513,7 +508,7 @@ public static function send_dropout_recovery_email($survey_id, $participant_id, 
 
         // Verificar que el participante esté activo
         if (!$participant->is_active) {
-            error_log("[EIPSI Email] Cannot send recovery email to inactive participant: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L516'), 'debug');
             return false;
         }
 
@@ -561,7 +556,7 @@ private static function get_participant($participant_id) {
         ));
 
         if (!$participant) {
-            error_log("[EIPSI Email] Participant not found: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L564'), 'debug');
             return null;
         }
 
@@ -592,7 +587,7 @@ private static function get_study_name($survey_id) {
             return $post_title;
         }
 
-        error_log("[EIPSI Email] Study name not found for survey_id: $survey_id");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L595'), 'debug');
         return __('Estudio de Investigación', 'eipsi-forms');
     }
 
@@ -833,7 +828,7 @@ private static function send_manual_reminder_email($survey_id, $participant_id, 
 
         // v2.5.4 - Verificar que el participante esté activo
         if (!$participant->is_active) {
-            error_log("[EIPSI Email] Cannot send manual reminder to inactive participant: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L836'), 'debug');
             EIPSI_Notification_Email_Log_Service::log_email($survey_id, $participant_id, 'manual_reminder', 'failed', 'Participante inactivo');
             return false;
         }
@@ -960,7 +955,7 @@ public static function resend_participant_email($participant_id, $email_type, $s
                     break;
             }
         } catch (Exception $e) {
-            error_log("[EIPSI Email] Exception in resend_participant_email: " . $e->getMessage());
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_message_service_L963'), 'debug');
             return array(
                 'success' => false,
                 'message' => 'Error al enviar email: ' . $e->getMessage(),

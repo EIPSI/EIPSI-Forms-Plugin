@@ -71,7 +71,7 @@ class EIPSI_Session_Service {
             );
 
             if ($result === false) {
-                error_log('EIPSI Session creation failed: ' . $wpdb->last_error);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_session_service_L74'), 'debug');
                 return array(
                     'success' => false,
                     'token' => null,
@@ -104,7 +104,7 @@ class EIPSI_Session_Service {
                     $cookie_set = setcookie($cookie_name, $token, $cookie_expires, '/', '', $secure, true);
                 }
             } else {
-                error_log('EIPSI Auth: headers already sent, cookie fallback required for participant ' . $participant_id);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_session_service_L107'), 'debug');
             }
 
             // Make the validated new identity available to magic-link rendering
@@ -120,7 +120,7 @@ class EIPSI_Session_Service {
             );
 
         } catch (Exception $e) {
-            error_log('EIPSI Session creation exception: ' . $e->getMessage());
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_session_service_L123'), 'debug');
             return array(
                 'success' => false,
                 'token'   => null,

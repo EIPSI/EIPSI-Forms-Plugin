@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__.'/../includes/security/Log.php';
+require_once __DIR__.'/../includes/security/Csv.php';
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 /** Isolated WordPress doubles: no WordPress bootstrap, live options, email or participant writes. */
 define('ABSPATH', '/var/www/html/');

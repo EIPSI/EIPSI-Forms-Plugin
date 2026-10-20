@@ -29,7 +29,7 @@ class EIPSI_Notification_Nudge_Queue_Service {
     private static function write_outcome($result, $id, $operation) {
         if ($result === false || (int)$result !== 1) {
             // IDs and operation only: never payload, email, token or raw DB error.
-            error_log(sprintf('[EIPSI JobQueue] persistence_%s job=%d operation=%s', $result === false ? 'sql_error' : 'conflict', $id, $operation));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_queue_service_L32'), 'debug');
             return false;
         }
         return true;
@@ -106,20 +106,14 @@ public static function enqueue($job_type, $payload, $priority = 10, $scheduled_a
         );
 
         if ($result !== 1) {
-            error_log('[EIPSI JobQueue] persistence_failure operation=enqueue');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_queue_service_L109'), 'debug');
             return false;
         }
 
         $job_id = $wpdb->insert_id;
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf(
-                '[EIPSI JobQueue] Enqueued job #%d: type=%s, priority=%d, scheduled=%s',
-                $job_id,
-                $job_type,
-                $priority,
-                $scheduled_at
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_queue_service_L116'), 'debug');
         }
 
         return $job_id;
@@ -279,16 +273,12 @@ public static function cancel_jobs_for_assignment($assignment_id) {
         ));
 
         if ($result === false) {
-            error_log('[EIPSI JobQueue] persistence_sql_error operation=cancel assignment=' . $assignment_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_queue_service_L282'), 'debug');
             return false;
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf(
-                '[EIPSI JobQueue] Cancelled %d jobs for assignment %d',
-                $result,
-                $assignment_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_queue_service_L287'), 'debug');
         }
 
         return intval($result);
@@ -300,7 +290,7 @@ public static function cancel_pending_nudges($participant_id, $wave_id) {
             WHERE status='pending' AND job_type IN ('send_nudge_0','send_nudge_1','send_nudge_2','send_nudge_3','send_nudge_4')
             AND JSON_EXTRACT(payload,'$.participant_id')=%d AND JSON_EXTRACT(payload,'$.wave_id')=%d",
             current_time('mysql'),$participant_id,$wave_id));
-        if ($result===false) { error_log('[EIPSI JobQueue] persistence_sql_error operation=cancel_participant_wave'); }
+        if ($result===false) { EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_queue_service_L303'), 'debug'); }
         return $result;
     }
 }

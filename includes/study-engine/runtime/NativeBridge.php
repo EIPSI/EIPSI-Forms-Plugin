@@ -30,7 +30,7 @@ final class NativeBridge {
         if(($binding['execution_id']??null)!==$frame['access']['execution_id']||($binding['participant_id']??null)!==$frame['access']['participant_id']||($binding['public_id']??null)!==$frame['study']['public_id']||($row['state']??null)!=='COMPLETED')return $frame;
         $state=\EIPSI\StudyEngine\Longitudinal\EmailConfirmation::read($owner->store->db,$frame['access']['execution_id']);
         if(!in_array($state['state']??null,array('PENDING','CONFIRMED'),true))return $frame;
-        $native=$owner->view($id);$c=$native['definition']['flow']['completion'];if(!empty($native['allow_study_repeat'])&&$c['button_label']!=='')$frame['assessment_completion_native_url']=add_query_arg('eipsi_native',$id,home_url('/'));$frame['assessment_completion_html']=($c['title']!==''?'<h2>'.esc_html($c['title']).'</h2>':'').\EIPSI\StudyEngine\Longitudinal\InitialScreen::html($c['message_html']).($c['image_url']!==''?'<img src="'.esc_url($c['image_url']).'" alt="">':'');return $frame;
+        $native=N\EffectiveAssessmentProjection::frame($owner->view($id));$c=$native['definition']['flow']['completion'];if(!empty($native['allow_study_repeat'])&&$c['button_label']!=='')$frame['assessment_completion_native_url']=add_query_arg('eipsi_native',$id,home_url('/'));$frame['assessment_completion_html']=($c['title']!==''?'<h2>'.esc_html($c['title']).'</h2>':'').\EIPSI\StudyEngine\Longitudinal\InitialScreen::html($c['message_html']).($c['image_url']!==''?'<img src="'.esc_url($c['image_url']).'" alt="">':'');return $frame;
     }
     public static function progress(string $native): void {self::complete($native,true);}
     public static function complete(string $native,bool $startOnly=false): void {

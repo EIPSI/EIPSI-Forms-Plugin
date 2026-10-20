@@ -23,26 +23,7 @@ $tests['Emergency CREATE fallido no intenta INSERT'] = function () use ($submiss
     $result = eipsi_safety_emergency_save($submission, 'original failure');
     p0_assert(!$result['success'] && count($GLOBALS['wpdb']->writes) === 1, 'CREATE failure must fail closed');
 };
-$tests['Partial debug no autorizado no lee respuestas'] = function () use ($debug_request) {
-    $_POST = $debug_request;
-    $response = p0_ajax('eipsi_debug_partial_response_handler');
-    p0_assert(!$response->success && $response->status === 403 && $GLOBALS['wpdb']->loads === 0, 'Unauthorized read');
-};
-$tests['Partial debug administrador con nonce accede'] = function () use ($debug_request) {
-    $GLOBALS['p0_admin'] = true; $_POST = $debug_request;
-    $response = p0_ajax('eipsi_debug_partial_response_handler');
-    p0_assert($response->success && $response->data['raw_responses']['phq_score'] === 4, 'Authorized diagnostic contract broken');
-};
-$tests['Partial debug administrador sin nonce no lee'] = function () use ($debug_request) {
-    $GLOBALS['p0_admin'] = true; $_POST = $debug_request; unset($_POST['nonce']);
-    $response = p0_ajax('eipsi_debug_partial_response_handler');
-    p0_assert(!$response->success && $GLOBALS['wpdb']->loads === 0, 'Missing nonce accepted');
-};
-$tests['Partial debug nonce inválido no lee'] = function () use ($debug_request) {
-    $GLOBALS['p0_admin'] = true; $_POST = $debug_request; $_POST['nonce'] = 'invalid';
-    $response = p0_ajax('eipsi_debug_partial_response_handler');
-    p0_assert(!$response->success && $GLOBALS['wpdb']->loads === 0, 'Invalid nonce accepted');
-};
+$tests['Retired partial diagnostic is unreachable']=function(){p0_assert(!function_exists('eipsi_debug_partial_response_handler'),'Retired diagnostic still callable');p0_assert(empty($GLOBALS['p0_hooks']['wp_ajax_eipsi_debug_partial_response'])&&empty($GLOBALS['p0_hooks']['wp_ajax_nopriv_eipsi_debug_partial_response']),'Retired diagnostic registered');};
 $tests['Retiro de otro participante bloqueado antes de escribir'] = function () use ($withdraw_request) {
     $_POST = $withdraw_request; $_POST['participant_id'] = '8'; $_POST['withdrawal_type'] = 'b2';
     $_POST['verification_text'] = 'QUIERO QUE ELIMINEN MIS DATOS';

@@ -56,13 +56,13 @@ public function create_assignment( $pool_id, $participant_id, $study_id ) {
         );
 
         if ( $result === false ) {
-            error_log( '[EIPSI-POOL] Error creando asignación: ' . $wpdb->last_error );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_repository_L59'), 'debug');
             return false;
         }
 
         $assignment_id = (int) $wpdb->insert_id;
 
-        error_log( "[EIPSI] Asignación persistida: ID {$assignment_id}, participante {$participant_id}, pool {$pool_id}, estudio {$study_id}" );
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_repository_L65'), 'debug');
 
         // Actualizar analytics diarios de assignments (Fase 4)
         (new EIPSI_Pool_Analytics_Service())->update_daily_analytics_assignments( $pool_id, $study_id );

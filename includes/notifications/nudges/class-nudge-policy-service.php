@@ -153,13 +153,13 @@ public static function should_send_nudge($assignment, $wave, $current_stage, $cu
         // Stage 0 (NUDGE_AVAILABLE) is always sent immediately when wave becomes available
         if ((int)$current_stage === self::NUDGE_AVAILABLE) {
             $available_at = isset($assignment->available_at) ? $assignment->available_at : 'not_set';
-            error_log("[EIPSI Nudge] CHECK NUDGE 0: assignment_id={$assignment_id}, available_at={$available_at}, result=ALLOWED");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_policy_service_L156'), 'debug');
             return true;
         }
 
         // For stages 1-4, check if follow_up_reminders_enabled
         if (empty($wave->follow_up_reminders_enabled)) {
-            error_log("[EIPSI Nudge] Stage {$current_stage} - BLOCKED: follow_up_reminders_enabled is empty");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_policy_service_L162'), 'debug');
             return false;
         }
 
@@ -168,7 +168,7 @@ public static function should_send_nudge($assignment, $wave, $current_stage, $cu
             $cached = EIPSI_Nudge_Cache::get_cached_should_send($assignment_id, $current_stage);
             if ($cached !== null) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("[EIPSI Nudge] Stage {$current_stage}: CACHE HIT for assignment {$assignment_id} = " . ($cached ? 'SEND' : 'SKIP'));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_policy_service_L171'), 'debug');
                 }
                 return $cached;
             }
@@ -232,23 +232,10 @@ public static function should_send_nudge($assignment, $wave, $current_stage, $cu
 
             if ($segundos_desde_ultimo < $intervalo_minimo_segundos) {
                 $minutos_restantes = round(($intervalo_minimo_segundos - $segundos_desde_ultimo) / 60);
-                error_log(sprintf(
-                    '[EIPSI NUDGE] SKIP intervalo: nudge_%d para assignment %d - último nudge hace %d min, intervalo mínimo %d min, faltan %d min',
-                    $current_stage,
-                    $assignment_id,
-                    round($segundos_desde_ultimo / 60),
-                    round($intervalo_minimo_segundos / 60),
-                    $minutos_restantes
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_policy_service_L235'), 'debug');
                 $should_send = false;
             } else {
-                error_log(sprintf(
-                    '[EIPSI NUDGE] OK intervalo: nudge_%d para assignment %d - último nudge hace %d min >= intervalo mínimo %d min',
-                    $current_stage,
-                    $assignment_id,
-                    round($segundos_desde_ultimo / 60),
-                    round($intervalo_minimo_segundos / 60)
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_policy_service_L245'), 'debug');
             }
         }
 
@@ -257,7 +244,7 @@ public static function should_send_nudge($assignment, $wave, $current_stage, $cu
             EIPSI_Nudge_Cache::cache_should_send($assignment_id, $current_stage, $should_send, 300); // 5 min cache
         }
 
-        error_log("[EIPSI Nudge] Stage {$current_stage}: trigger at " . date('Y-m-d H:i:s', $trigger_ts) . " ({$timing_value} {$timing_unit} after available)");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_policy_service_L260'), 'debug');
 
         return $should_send;
     }

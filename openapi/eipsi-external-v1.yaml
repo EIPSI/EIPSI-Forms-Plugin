@@ -1,0 +1,6197 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EIPSI External API v1",
+    "version": "v1+DATA-1",
+    "description": "Read-only machine API using HTTP Bearer, scopes and Study grants. Explicit EIPSI_STUDY_DATA_V2 negotiation provides wide responses and private JSON/CSV/XLSX exports with selected process/randomization/audit annexes. Requests without negotiation retain per-item V1. Identities and scientific writes are excluded. CORS closed. See docs/dataset/Canonical Dataset and Metadata Policy.md."
+  },
+  "servers": [
+    {
+      "url": "https://example.invalid/wp-json/eipsi-external/v1"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyBearer": []
+    }
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "operationId": "getStatus",
+        "summary": "getStatus",
+        "description": " Required API-key permission: authenticated key (no scientific scope). These are internal permissions, not OAuth scopes.",
+        "x-required-scope": "authenticated key (no scientific scope)",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable"
+            ]
+          },
+          "200": {
+            "description": "Successful response. ",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/studies": {
+      "get": {
+        "operationId": "listStudies",
+        "summary": "listStudies",
+        "description": " Required API-key permission: read:studies. These are internal permissions, not OAuth scopes.",
+        "x-required-scope": "read:studies",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            },
+            "description": ""
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque cursor: do not decode, modify or reuse across keys/Study/filter families."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "HTTP 400; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_parameters",
+              "eipsi_external_invalid_cursor"
+            ]
+          },
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable"
+            ]
+          },
+          "200": {
+            "description": "Successful response. ",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Studies"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/studies/{code}": {
+      "get": {
+        "operationId": "getStudy",
+        "summary": "getStudy",
+        "description": " Required API-key permission: read:studies. These are internal permissions, not OAuth scopes.",
+        "x-required-scope": "read:studies",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "description": "Public Study code. Knowledge of this code grants no access."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "HTTP 400; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_parameters"
+            ]
+          },
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_study_unavailable"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable"
+            ]
+          },
+          "200": {
+            "description": "Successful response. ",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Study"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/studies/{code}/data": {
+      "get": {
+        "operationId": "getLiveData",
+        "summary": "getLiveData",
+        "description": "Live JSON pagination is not a global snapshot. CSV rejects limit/cursor. CSV adds study_code before the 21 scientific columns. Required API-key permission: read:data. These are internal permissions, not OAuth scopes. Negotiate wide observations with contract=EIPSI_STUDY_DATA_V2. V2 response_at is UTC full seconds; conflicts block instead of merging. No contract query preserves V1. V2 live reads are bounded; use snapshots for large datasets.",
+        "x-required-scope": "read:data",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "description": "Public Study code. Knowledge of this code grants no access."
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "json",
+                "csv"
+              ],
+              "default": "json"
+            },
+            "description": ""
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 500
+            },
+            "description": ""
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque cursor: do not decode, modify or reuse across keys/Study/filter families."
+          },
+          {
+            "name": "include_partials",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "default": "false"
+            },
+            "description": "Saved analytical partials only. String in query, boolean in export JSON body."
+          },
+          {
+            "name": "contract",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EIPSI_STUDY_DATA_V2"
+              ]
+            },
+            "description": "Explicit scientific contract; omit for V1."
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "execution",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "assessment",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "opportunity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "response_from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "response_to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "cycle",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "include_retained",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "HTTP 400; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_filters",
+              "eipsi_external_invalid_format",
+              "eipsi_external_invalid_cursor"
+            ]
+          },
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_study_unavailable"
+            ]
+          },
+          "422": {
+            "description": "HTTP 422; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_too_large",
+              "eipsi_external_dataset_conflict",
+              "eipsi_external_export_limit_exceeded"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_dataset_failed"
+            ]
+          },
+          "200": {
+            "description": "Successful response. Live JSON pagination is not a global snapshot. CSV rejects limit/cursor. CSV adds study_code before the 21 scientific columns.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "CSV only."
+              },
+              "X-EIPSI-As-Of": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "CSV only, UTC."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Data"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/studies/{code}/dictionary": {
+      "get": {
+        "operationId": "getLiveDictionary",
+        "summary": "getLiveDictionary",
+        "description": " Required API-key permission: read:data. These are internal permissions, not OAuth scopes. Negotiate wide observations with contract=EIPSI_STUDY_DATA_V2. V2 response_at is UTC full seconds; conflicts block instead of merging. No contract query preserves V1. V2 live reads are bounded; use snapshots for large datasets.",
+        "x-required-scope": "read:data",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "description": "Public Study code. Knowledge of this code grants no access."
+          },
+          {
+            "name": "include_partials",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "default": "false"
+            },
+            "description": "Saved analytical partials only. String in query, boolean in export JSON body."
+          },
+          {
+            "name": "contract",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EIPSI_STUDY_DATA_V2"
+              ]
+            },
+            "description": "Explicit scientific contract; omit for V1."
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "execution",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "assessment",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "opportunity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "response_from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "response_to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "cycle",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          },
+          {
+            "name": "include_retained",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "description": "V2 filter only. Datetime bounds are inclusive YYYY-MM-DD HH:MM:SS UTC."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "HTTP 400; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_filters"
+            ]
+          },
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_study_unavailable"
+            ]
+          },
+          "422": {
+            "description": "HTTP 422; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_too_large",
+              "eipsi_external_dataset_conflict",
+              "eipsi_external_export_limit_exceeded"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_dataset_failed"
+            ]
+          },
+          "200": {
+            "description": "Successful response. ",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dictionary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/studies/{code}/exports": {
+      "post": {
+        "operationId": "createExport",
+        "summary": "createExport",
+        "description": "Always PREPARING. Pinned sources/as_of, TTL and own byte limit. Not an idempotent POST; do not blindly retry a timed-out creation. Required API-key permission: read:data. These are internal permissions, not OAuth scopes. Specify contract EIPSI_STUDY_DATA_V2 for canonical snapshots. JSON is a bundle object, CSV contains main data, XLSX is a private workbook with selected annexes and manifest. Identities are rejected. Conflicts cause terminal FAILED status.",
+        "x-required-scope": "read:data",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "description": "Public Study code. Knowledge of this code grants no access."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "HTTP 400; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_filters"
+            ]
+          },
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_study_unavailable"
+            ]
+          },
+          "422": {
+            "description": "HTTP 422; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_limit_exceeded",
+              "eipsi_external_export_too_large"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited",
+              "eipsi_external_export_quota",
+              "eipsi_external_export_busy"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_capacity"
+            ]
+          },
+          "202": {
+            "description": "Successful response. Always PREPARING. Pinned sources/as_of, TTL and own byte limit. Not an idempotent POST; do not blindly retry a timed-out creation.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Polling guidance, default 5 seconds."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Export"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exports/{id}": {
+      "get": {
+        "operationId": "getExport",
+        "summary": "getExport",
+        "description": "GET status may perform a bounded recovery step while PREPARING; cron remains the scheduler. Required API-key permission: read:data. These are internal permissions, not OAuth scopes.",
+        "x-required-scope": "read:data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Opaque export ID, bound to its creating API key."
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_unavailable"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable"
+            ]
+          },
+          "200": {
+            "description": "Successful response. GET status may perform a bounded recovery step while PREPARING; cron remains the scheduler.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Only when still PREPARING."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Export"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unexpected query/body rejected.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_filters"
+            ]
+          }
+        }
+      }
+    },
+    "/exports/{id}/manifest": {
+      "get": {
+        "operationId": "getExportManifest",
+        "summary": "getExportManifest",
+        "description": " Required API-key permission: read:data. These are internal permissions, not OAuth scopes.",
+        "x-required-scope": "read:data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Opaque export ID, bound to its creating API key."
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_unavailable"
+            ]
+          },
+          "409": {
+            "description": "HTTP 409; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_preparing",
+              "eipsi_external_export_failed"
+            ]
+          },
+          "410": {
+            "description": "HTTP 410; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_expired",
+              "eipsi_external_snapshot_invalidated"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_failed",
+              "eipsi_external_export_capacity"
+            ]
+          },
+          "200": {
+            "description": "Successful response. ",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Manifest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unexpected query/body rejected.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_filters"
+            ]
+          }
+        }
+      }
+    },
+    "/exports/{id}/data": {
+      "get": {
+        "operationId": "getSnapshotData",
+        "summary": "getSnapshotData",
+        "description": " Required API-key permission: read:data. These are internal permissions, not OAuth scopes.",
+        "x-required-scope": "read:data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Opaque export ID, bound to its creating API key."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 500
+            },
+            "description": ""
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque cursor: do not decode, modify or reuse across keys/Study/filter families."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "HTTP 400; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_filters",
+              "eipsi_external_invalid_cursor"
+            ]
+          },
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_unavailable"
+            ]
+          },
+          "409": {
+            "description": "HTTP 409; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_preparing",
+              "eipsi_external_export_failed"
+            ]
+          },
+          "410": {
+            "description": "HTTP 410; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_expired",
+              "eipsi_external_snapshot_invalidated"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_failed",
+              "eipsi_external_export_capacity"
+            ]
+          },
+          "200": {
+            "description": "Successful response. ",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Data"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exports/{id}/dictionary": {
+      "get": {
+        "operationId": "getSnapshotDictionary",
+        "summary": "getSnapshotDictionary",
+        "description": " Required API-key permission: read:data. These are internal permissions, not OAuth scopes.",
+        "x-required-scope": "read:data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Opaque export ID, bound to its creating API key."
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_unavailable"
+            ]
+          },
+          "409": {
+            "description": "HTTP 409; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_preparing",
+              "eipsi_external_export_failed"
+            ]
+          },
+          "410": {
+            "description": "HTTP 410; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_expired",
+              "eipsi_external_snapshot_invalidated"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_failed",
+              "eipsi_external_export_capacity"
+            ]
+          },
+          "200": {
+            "description": "Successful response. ",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dictionary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unexpected query/body rejected.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_filters"
+            ]
+          }
+        }
+      }
+    },
+    "/exports/{id}/download": {
+      "get": {
+        "operationId": "downloadExport",
+        "summary": "downloadExport",
+        "description": "csv export downloads CSV; json export downloads NDJSON, not a JSON array. Required API-key permission: read:data. These are internal permissions, not OAuth scopes.",
+        "x-required-scope": "read:data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Opaque export ID, bound to its creating API key."
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "One byte range only: bytes=start-end, start- or -suffix."
+          },
+          {
+            "name": "If-Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Exact strong quoted ETag resumes; other validators return full 200 after a valid Range parses."
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "HTTP 401; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unauthorized"
+            ]
+          },
+          "403": {
+            "description": "HTTP 403; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_scope_denied",
+              "eipsi_external_https_required"
+            ]
+          },
+          "404": {
+            "description": "HTTP 404; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_unavailable"
+            ]
+          },
+          "409": {
+            "description": "HTTP 409; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_preparing",
+              "eipsi_external_export_failed"
+            ]
+          },
+          "410": {
+            "description": "HTTP 410; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_export_expired",
+              "eipsi_external_snapshot_invalidated"
+            ]
+          },
+          "416": {
+            "description": "HTTP 416; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_range"
+            ]
+          },
+          "429": {
+            "description": "HTTP 429; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds until retry; export quota currently defaults to 60."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_rate_limited"
+            ]
+          },
+          "503": {
+            "description": "HTTP 503; generic message, see code and data.request_id.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_unavailable",
+              "eipsi_external_export_failed",
+              "eipsi_external_export_capacity"
+            ]
+          },
+          "200": {
+            "description": "Successful response. csv export downloads CSV; json export downloads NDJSON, not a JSON array.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Disposition for verified immutable download."
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Length for verified immutable download."
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Accept-Ranges for verified immutable download."
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag for verified immutable download."
+              }
+            },
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "V2 bundle JSON"
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Single byte range.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              },
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Disposition for verified immutable download."
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Length for verified immutable download."
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Accept-Ranges for verified immutable download."
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag for verified immutable download."
+              },
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "bytes start-end/total"
+              }
+            },
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "V2 bundle JSON"
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unexpected query/body rejected.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Opaque correlation ID."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "no-cache"
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization"
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "nosniff"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "x-error-codes": [
+              "eipsi_external_invalid_filters"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API key from environment; never query, cookie, source or logs."
+      }
+    },
+    "schemas": {
+      "Row": {
+        "type": "object",
+        "properties": {
+          "study_id": {
+            "type": "string"
+          },
+          "cycle": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "study_version_id": {
+            "type": "string"
+          },
+          "participation_id": {
+            "type": "string"
+          },
+          "opportunity_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "occurrence": {
+            "type": [
+              "string",
+              "object",
+              "array",
+              "null"
+            ],
+            "additionalProperties": true,
+            "items": {}
+          },
+          "assessment_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "native_version_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attempt_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attempt_state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "saved_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "item_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "response_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "variable_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "response_status": {
+            "type": "string",
+            "enum": [
+              "VALUE_RECORDED",
+              "NO_VALUE_RECORDED",
+              "NOT_RECORDED",
+              "SKIPPED_BY_LOGIC",
+              "NOT_SELECTED_BY_RANDOMIZATION",
+              "RANDOMIZATION_UNRESOLVED"
+            ]
+          },
+          "value": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "selected_option_id": {
+            "type": [
+              "string",
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "definition_hash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "data_policy": {
+            "type": "string",
+            "enum": [
+              "USE_ALLOWED",
+              "RETAIN_FOR_ANALYSIS"
+            ]
+          }
+        },
+        "required": [
+          "study_id",
+          "cycle",
+          "study_version_id",
+          "participation_id",
+          "opportunity_id",
+          "occurrence",
+          "assessment_id",
+          "native_version_id",
+          "attempt_id",
+          "attempt_state",
+          "saved_at",
+          "item_id",
+          "response_key",
+          "variable_name",
+          "label",
+          "type",
+          "response_status",
+          "value",
+          "selected_option_id",
+          "definition_hash",
+          "data_policy"
+        ],
+        "additionalProperties": false
+      },
+      "Status": {
+        "type": "object",
+        "properties": {
+          "api_version": {
+            "const": "v1"
+          },
+          "authenticated": {
+            "const": true
+          },
+          "key_id": {
+            "type": "string"
+          },
+          "key_name": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "read:studies",
+                "read:data"
+              ]
+            }
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "api_version",
+          "authenticated",
+          "key_id",
+          "key_name",
+          "scopes",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "Study": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "TRANSVERSAL",
+              "LONGITUDINAL"
+            ]
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "PAUSED",
+              "FINALIZED",
+              "ARCHIVED"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "type",
+          "status",
+          "created_at",
+          "updated_at",
+          "archived"
+        ],
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer"
+              },
+              "request_id": {
+                "type": "string"
+              },
+              "api_version": {
+                "const": "v1"
+              },
+              "retry_after": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "status",
+              "request_id",
+              "api_version"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "Studies": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Study"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "Data": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/DataV1"
+          },
+          {
+            "$ref": "#/components/schemas/DataV2"
+          }
+        ]
+      },
+      "DictionaryItem": {
+        "type": "object",
+        "properties": {
+          "study_version_id": {
+            "type": "string"
+          },
+          "assessment_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "native_version_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "definition_hash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "item_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "response_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "variable_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "id",
+                "label",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "nullable": {
+            "const": true
+          },
+          "validation": {
+            "type": [
+              "object",
+              "array"
+            ],
+            "additionalProperties": true,
+            "items": {}
+          }
+        },
+        "required": [
+          "study_version_id",
+          "assessment_id",
+          "native_version_id",
+          "definition_hash",
+          "item_id",
+          "response_key",
+          "variable_name",
+          "label",
+          "type",
+          "options",
+          "nullable",
+          "validation"
+        ],
+        "additionalProperties": false
+      },
+      "Dictionary": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/DictionaryV1"
+          },
+          {
+            "$ref": "#/components/schemas/DictionaryV2"
+          }
+        ]
+      },
+      "Export": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ExportV1"
+          },
+          {
+            "$ref": "#/components/schemas/ExportV2"
+          }
+        ]
+      },
+      "ExportRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ExportRequestV1"
+          },
+          {
+            "$ref": "#/components/schemas/ExportRequestV2"
+          }
+        ]
+      },
+      "Manifest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ManifestV1"
+          },
+          {
+            "$ref": "#/components/schemas/ManifestV2"
+          }
+        ]
+      },
+      "ObservationV2": {
+        "type": "object",
+        "properties": {
+          "observation_id": {
+            "type": "string"
+          },
+          "study_id": {
+            "type": "string"
+          },
+          "study_code": {
+            "type": "string"
+          },
+          "participation_id": {
+            "type": "string"
+          },
+          "response_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+          },
+          "study_version_id": {
+            "type": "string"
+          },
+          "attempt_state": {
+            "type": "string"
+          },
+          "response_kind": {
+            "type": "string"
+          },
+          "cycle": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "observation_id",
+          "study_id",
+          "study_code",
+          "cycle",
+          "participation_id",
+          "response_at",
+          "study_version_id",
+          "attempt_state",
+          "response_kind"
+        ],
+        "additionalProperties": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "DictionaryItemV2": {
+        "type": "object",
+        "properties": {
+          "study_version_id": {
+            "type": "string"
+          },
+          "assessment_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "native_version_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "definition_hash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "item_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "response_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "variable_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "id",
+                "label",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "nullable": {
+            "const": true
+          },
+          "validation": {
+            "type": [
+              "object",
+              "array"
+            ],
+            "additionalProperties": true,
+            "items": {}
+          },
+          "value_family": {
+            "enum": [
+              "number",
+              "string",
+              "array",
+              "date",
+              "boolean"
+            ]
+          }
+        },
+        "required": [
+          "study_version_id",
+          "assessment_id",
+          "native_version_id",
+          "definition_hash",
+          "item_id",
+          "response_key",
+          "variable_name",
+          "label",
+          "type",
+          "options",
+          "nullable",
+          "validation",
+          "value_family"
+        ],
+        "additionalProperties": false
+      },
+      "DataV1": {
+        "type": "object",
+        "properties": {
+          "contract": {
+            "const": "EIPSI_EXTERNAL_DATA_V1"
+          },
+          "dataset_contract": {
+            "const": "EIPSI_STUDY_DATA_V1"
+          },
+          "study_code": {
+            "type": "string"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Row"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "export_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contract",
+          "dataset_contract",
+          "study_code",
+          "as_of",
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "DictionaryV1": {
+        "type": "object",
+        "properties": {
+          "contract": {
+            "const": "EIPSI_EXTERNAL_DICTIONARY_V1"
+          },
+          "dataset_contract": {
+            "const": "EIPSI_STUDY_DATA_V1"
+          },
+          "study_code": {
+            "type": "string"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DictionaryItem"
+            }
+          },
+          "export_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contract",
+          "dataset_contract",
+          "study_code",
+          "as_of",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ExportV1": {
+        "type": "object",
+        "properties": {
+          "export_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PREPARING",
+              "READY",
+              "FAILED",
+              "EXPIRED",
+              "REVOKED"
+            ]
+          },
+          "study_code": {
+            "type": "string"
+          },
+          "dataset_contract": {
+            "const": "EIPSI_STUDY_DATA_V1"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "json"
+            ]
+          },
+          "include_partials": {
+            "type": "boolean"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "status_url": {
+            "type": "string"
+          },
+          "row_count": {
+            "type": "integer"
+          },
+          "byte_count": {
+            "type": "integer"
+          },
+          "download_url": {
+            "type": "string"
+          },
+          "dictionary_url": {
+            "type": "string"
+          },
+          "manifest_url": {
+            "type": "string"
+          },
+          "error_code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "export_id",
+          "status",
+          "study_code",
+          "dataset_contract",
+          "format",
+          "include_partials",
+          "as_of",
+          "created_at",
+          "expires_at",
+          "status_url"
+        ],
+        "additionalProperties": false
+      },
+      "ExportRequestV1": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "enum": [
+              "csv",
+              "json"
+            ]
+          },
+          "include_partials": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "format"
+        ],
+        "additionalProperties": false
+      },
+      "ManifestV1": {
+        "type": "object",
+        "properties": {
+          "export_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PREPARING",
+              "READY",
+              "FAILED",
+              "EXPIRED",
+              "REVOKED"
+            ]
+          },
+          "study_code": {
+            "type": "string"
+          },
+          "dataset_contract": {
+            "const": "EIPSI_STUDY_DATA_V1"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "json"
+            ]
+          },
+          "include_partials": {
+            "type": "boolean"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "status_url": {
+            "type": "string"
+          },
+          "row_count": {
+            "type": "integer"
+          },
+          "byte_count": {
+            "type": "integer"
+          },
+          "download_url": {
+            "type": "string"
+          },
+          "dictionary_url": {
+            "type": "string"
+          },
+          "manifest_url": {
+            "type": "string"
+          },
+          "error_code": {
+            "type": "string"
+          },
+          "filters": {
+            "type": "object",
+            "properties": {
+              "include_partials": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "include_partials"
+            ],
+            "additionalProperties": false
+          },
+          "chunk_count": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sequence": {
+                  "type": "integer"
+                },
+                "row_count": {
+                  "type": "integer"
+                },
+                "byte_count": {
+                  "type": "integer"
+                },
+                "sha256": {
+                  "type": "string"
+                },
+                "dataset_contract": {
+                  "const": "EIPSI_STUDY_DATA_V1"
+                },
+                "export_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "sequence",
+                "row_count",
+                "byte_count",
+                "sha256",
+                "dataset_contract",
+                "export_id"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "row_chunks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sequence": {
+                  "type": "integer"
+                },
+                "row_count": {
+                  "type": "integer"
+                },
+                "byte_count": {
+                  "type": "integer"
+                },
+                "sha256": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "sequence",
+                "row_count",
+                "byte_count",
+                "sha256"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "dictionary_sha256": {
+            "type": "string"
+          },
+          "dictionary_contract": {
+            "const": "EIPSI_EXTERNAL_DICTIONARY_V1"
+          }
+        },
+        "required": [
+          "export_id",
+          "status",
+          "study_code",
+          "dataset_contract",
+          "format",
+          "include_partials",
+          "as_of",
+          "created_at",
+          "expires_at",
+          "status_url",
+          "row_count",
+          "byte_count",
+          "download_url",
+          "dictionary_url",
+          "manifest_url",
+          "filters",
+          "chunk_count",
+          "sha256",
+          "chunks",
+          "row_chunks",
+          "dictionary_sha256",
+          "dictionary_contract"
+        ],
+        "additionalProperties": false
+      },
+      "DataV2": {
+        "type": "object",
+        "properties": {
+          "contract": {
+            "const": "EIPSI_EXTERNAL_DATA_V2"
+          },
+          "dataset_contract": {
+            "const": "EIPSI_STUDY_DATA_V2"
+          },
+          "study_code": {
+            "type": "string"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservationV2"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "export_id": {
+            "type": "string"
+          },
+          "timezone": {
+            "const": "UTC"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "contract",
+          "dataset_contract",
+          "study_code",
+          "as_of",
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "DictionaryV2": {
+        "type": "object",
+        "properties": {
+          "contract": {
+            "const": "EIPSI_EXTERNAL_DICTIONARY_V2"
+          },
+          "dataset_contract": {
+            "const": "EIPSI_STUDY_DATA_V2"
+          },
+          "study_code": {
+            "type": "string"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DictionaryItemV2"
+            }
+          },
+          "export_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contract",
+          "dataset_contract",
+          "study_code",
+          "as_of",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ExportV2": {
+        "type": "object",
+        "properties": {
+          "export_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PREPARING",
+              "READY",
+              "FAILED",
+              "EXPIRED",
+              "REVOKED"
+            ]
+          },
+          "study_code": {
+            "type": "string"
+          },
+          "dataset_contract": {
+            "const": "EIPSI_STUDY_DATA_V2"
+          },
+          "format": {
+            "enum": [
+              "json",
+              "csv",
+              "xlsx"
+            ]
+          },
+          "include_partials": {
+            "type": "boolean"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "status_url": {
+            "type": "string"
+          },
+          "row_count": {
+            "type": "integer"
+          },
+          "byte_count": {
+            "type": "integer"
+          },
+          "download_url": {
+            "type": "string"
+          },
+          "dictionary_url": {
+            "type": "string"
+          },
+          "manifest_url": {
+            "type": "string"
+          },
+          "error_code": {
+            "type": "string"
+          },
+          "conflicts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "code",
+                "details"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "export_id",
+          "status",
+          "study_code",
+          "dataset_contract",
+          "format",
+          "include_partials",
+          "as_of",
+          "created_at",
+          "expires_at",
+          "status_url"
+        ],
+        "additionalProperties": false
+      },
+      "ExportRequestV2": {
+        "type": "object",
+        "properties": {
+          "contract": {
+            "const": "EIPSI_STUDY_DATA_V2"
+          },
+          "format": {
+            "enum": [
+              "json",
+              "csv",
+              "xlsx"
+            ]
+          },
+          "include_partials": {
+            "type": "boolean"
+          },
+          "filters": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "execution": {
+                "type": "string"
+              },
+              "assessment": {
+                "type": "string"
+              },
+              "opportunity": {
+                "type": "string"
+              },
+              "response_from": {
+                "type": "string"
+              },
+              "response_to": {
+                "type": "string"
+              },
+              "cycle": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "include_partials": {
+                "type": "boolean",
+                "default": false
+              },
+              "include_retained": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "additionalProperties": false
+          },
+          "annexes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "data",
+                "dictionary",
+                "response_status",
+                "bindings",
+                "process_metadata",
+                "randomization",
+                "audit"
+              ]
+            }
+          }
+        },
+        "required": [
+          "contract",
+          "format"
+        ],
+        "additionalProperties": false
+      },
+      "ManifestV2": {
+        "type": "object",
+        "properties": {
+          "contract": {
+            "const": "EIPSI_STUDY_DATA_V2"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "generated_at": {
+            "type": "string"
+          },
+          "timezone": {
+            "const": "UTC"
+          },
+          "filters": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "execution": {
+                "type": "string"
+              },
+              "assessment": {
+                "type": "string"
+              },
+              "opportunity": {
+                "type": "string"
+              },
+              "response_from": {
+                "type": "string"
+              },
+              "response_to": {
+                "type": "string"
+              },
+              "cycle": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "include_partials": {
+                "type": "boolean",
+                "default": false
+              },
+              "include_retained": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "additionalProperties": false
+          },
+          "include_partials": {
+            "type": "boolean"
+          },
+          "selected_annexes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "data",
+                "dictionary",
+                "response_status",
+                "bindings",
+                "process_metadata",
+                "randomization",
+                "audit"
+              ]
+            }
+          },
+          "rows": {
+            "type": "integer"
+          },
+          "variables": {
+            "type": "integer"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "conflicts": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "byte_count": {
+            "type": "integer"
+          },
+          "chunk_count": {
+            "type": "integer"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "row_chunks": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "dictionary_sha256": {
+            "type": "string"
+          },
+          "dictionary_contract": {
+            "const": "EIPSI_EXTERNAL_DICTIONARY_V2"
+          },
+          "study_id": {
+            "type": "string"
+          },
+          "study_code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contract",
+          "as_of",
+          "generated_at",
+          "timezone",
+          "filters",
+          "include_partials",
+          "selected_annexes",
+          "rows",
+          "variables",
+          "columns",
+          "warnings",
+          "conflicts",
+          "sha256",
+          "dictionary_sha256",
+          "study_id",
+          "study_code"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

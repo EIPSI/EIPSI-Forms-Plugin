@@ -152,11 +152,11 @@ public function fetch_participants_data($study_id, $filters = array()) {
     // v2.1.3 - Always load Device Data Service for extended metadata (even for wide exports)
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-device-data-service.php';
     $submission_ids = array_column($submissions, 'id');
-    error_log("[EIPSI-EXPORT-DIAG] fetch_participants_data: submissions_count=" . count($submissions) . ", submission_ids=" . implode(',', $submission_ids));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_query_service_L155'), 'debug');
     $device_data_batch = !empty($submission_ids) 
         ? EIPSI_Device_Data_Service::get_device_data_batch($submission_ids) 
         : array();
-    error_log("[EIPSI-EXPORT-DIAG] fetch_participants_data: device_data_batch count=" . count($device_data_batch) . ", keys=" . implode(',', array_keys($device_data_batch)));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_query_service_L159'), 'debug');
 
     // Process submissions and organize by participant
     $submissions_by_participant = array();
@@ -197,11 +197,11 @@ public function fetch_participants_data($study_id, $filters = array()) {
         // v2.1.3 - Add extended device metadata
         $device_data = $device_data_batch[$sub->id] ?? null;
         if ($device_data) {
-            error_log("[EIPSI-EXPORT-DIAG] Processing device_data for submission_id={$sub->id}, device_data_type=" . gettype($device_data));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_query_service_L200'), 'debug');
             if (is_object($device_data)) {
-                error_log("[EIPSI-EXPORT-DIAG] Device data object properties: " . implode(',', array_keys(get_object_vars($device_data))));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_query_service_L202'), 'debug');
             } elseif (is_array($device_data)) {
-                error_log("[EIPSI-EXPORT-DIAG] Device data array keys: " . implode(',', array_keys($device_data)));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_query_service_L204'), 'debug');
             }
             $submission_data['canvas_fingerprint'] = ($privacy['export_canvas_fingerprint'] ?? true) ? ($device_data->canvas_fingerprint ?? '') : '';
             $submission_data['webgl_renderer'] = ($privacy['export_webgl_renderer'] ?? true) ? ($device_data->webgl_renderer ?? '') : '';
@@ -215,9 +215,9 @@ public function fetch_participants_data($study_id, $filters = array()) {
             $submission_data['plugins'] = ($privacy['export_plugins'] ?? true) ? ($device_data->plugins ?? '') : '';
             $submission_data['touch_support'] = ($privacy['export_touch_support'] ?? true) ? ($device_data->touch_support ?? '') : '';
             $submission_data['cookies_enabled'] = ($privacy['export_cookies_enabled'] ?? true) ? ($device_data->cookies_enabled ?? '') : '';
-            error_log("[EIPSI-EXPORT-DIAG] Set extended fields: canvas=" . substr($submission_data['canvas_fingerprint'], 0, 15) . ", webgl=" . substr($submission_data['webgl_renderer'], 0, 15) . ", ram=" . $submission_data['ram']);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_query_service_L218'), 'debug');
         } else {
-            error_log("[EIPSI-EXPORT-DIAG] NO device_data found for submission_id={$sub->id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_query_service_L220'), 'debug');
         }
 
         // Organize by longitudinal participant ID (integer)
@@ -464,7 +464,7 @@ public static function eipsi_export_responses_with_pool_context($form_id, $study
     $results = $wpdb->get_results($wpdb->prepare($sql, $study_id, $form_id));
     if ($wpdb->last_error) { throw new RuntimeException('No se pudieron consultar las respuestas con contexto de pool.'); }
     
-    error_log('[EIPSI-POOL] Export with context: ' . count($results) . ' responses for study ' . $study_id);
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_query_service_L467'), 'debug');
     
     return $results;
 }

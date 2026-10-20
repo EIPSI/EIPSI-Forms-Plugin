@@ -18,6 +18,8 @@ function m7_reset(){global$wpdb;$_COOKIE=array();$_POST=array();wp_set_current_u
 function m7_assign(){return(new EIPSI_Pool_Assignment_Service())->assign_participant(994701,994707);}
 function m7_cfg(){global$form,$other_form;return array('config_id'=>'m7-config','method'=>'seeded','metodo'=>'seeded','seed'=>'fixture','formularios'=>array(array('id'=>$form),array('id'=>$other_form)),'probabilidades'=>array($form=>30,$other_form=>70),'persistent_mode'=>true);}
 try{
+ eipsi_migrate_pools_to_v2();
+ m0_assert(get_option('eipsi_pools_migrated_v2'),'Pool migration precondition');
  m0_assert(!$wpdb->get_var("SELECT id FROM {$wpdb->prefix}survey_studies WHERE id IN (994703,994704)")&&!$wpdb->get_var("SELECT id FROM {$wpdb->prefix}eipsi_longitudinal_pools WHERE id=994701"),'Fixture collision');$created=true;$now=current_time('mysql');
  foreach(array(994703,994704)as$id){m0_assert($wpdb->insert($wpdb->prefix.'survey_studies',array('id'=>$id,'study_code'=>'m7-'.$id,'study_name'=>'M7','created_at'=>$now,'updated_at'=>$now,'config'=>'{}'))!==false,$wpdb->last_error);}
  foreach(array(994707=>994703,994708=>994704)as$id=>$study){m0_assert($wpdb->insert($wpdb->prefix.'survey_participants',array('id'=>$id,'survey_id'=>$study,'email'=>'m7-'.$id.'@example.invalid','password_hash'=>wp_hash_password('fixture'),'is_active'=>1,'consent_decision'=>'accepted','created_at'=>$now))!==false,$wpdb->last_error);}

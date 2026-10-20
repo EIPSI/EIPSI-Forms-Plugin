@@ -28,6 +28,10 @@ define('EIPSI_FORMS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EIPSI_FORMS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('EIPSI_FORMS_PLUGIN_FILE', __FILE__);
 define('EIPSI_FORMS_SLUG', 'eipsi-forms');
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/i18n/admin.php';
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/security/bootstrap.php';
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/dataset/bootstrap.php';
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/external-api/bootstrap.php';
 
 // Session Cookie Name for Participant Authentication
 define('EIPSI_SESSION_COOKIE_NAME', 'eipsi_session_token');
@@ -51,7 +55,7 @@ if (is_admin() && ((isset($_GET['page']) && $_GET['page'] === 'eipsi-assessment-
 }
 
 // Native execution is opt-in and separate from existing Engine/legacy routes.
-if (isset($_GET['eipsi_native']) || (wp_doing_ajax() && ($_REQUEST['action'] ?? '') === 'eipsi_native_participant')) {
+if (isset($_GET['eipsi_native']) || isset($_GET['eipsi_native_asset']) || (wp_doing_ajax() && ($_REQUEST['action'] ?? '') === 'eipsi_native_participant')) {
     require_once EIPSI_FORMS_PLUGIN_DIR.'includes/assessment-editor/runtime/bootstrap.php';
 }
 if (get_option('eipsi_native_runtime_enabled')) {
@@ -68,3 +72,6 @@ if (get_option('eipsi_native_runtime_enabled')) {
         \EIPSI\AssessmentEditor\Runtime\Privacy::eraseUser((int)$user);
     });
 }
+
+// Plugin-wide diagnostics observe the existing WordPress cron owners.
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/scheduler/bootstrap.php';

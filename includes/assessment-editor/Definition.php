@@ -11,7 +11,8 @@ final class Definition {
     const TYPES = array('text','textarea','email','number','tel','date','url','single_choice','multiple_choice','select','likert','matrix','vas','instruction','image','group','randomization','page_break');
     const QUESTIONS = array('text','textarea','email','number','tel','date','url','single_choice','multiple_choice','select','likert','matrix','vas');
     public static function validate(array $d): array {
-        self::fields($d,array_merge(array('contract','id','title','elements'),array_key_exists('authoring',$d)?array('authoring'):array(),array_key_exists('flow',$d)?array('flow'):array()));
+        self::fields($d,array_merge(array('contract','id','title','elements'),array_key_exists('authoring',$d)?array('authoring'):array(),array_merge(array_key_exists('flow',$d)?array('flow'):array(),array_key_exists('content_language',$d)?array('content_language'):array())));
+        if(array_key_exists('content_language',$d))\EIPSI\I18n\ContentDefaults::valid($d['content_language']);
         if ($d['contract']!==self::CONTRACT) self::fail('Unsupported contract');
         self::id($d['id']); self::text($d['title'],200);
         self::listing($d['elements']);
@@ -98,7 +99,8 @@ final class Definition {
     }
     /** Add only properties introduced after v0. Original required properties remain mandatory. */
     public static function withDefaults(array $d): array {
-        $visit=function(&$items)use(&$visit){
+        $language=array_key_exists('content_language',$d)?$d['content_language']:null;
+        $visit=function(&$items)use(&$visit,$language){
             foreach($items as &$e){
                 if(!is_array($e)||!isset($e['type'],$e['properties'],$e['children'])||!is_array($e['properties'])||!is_array($e['children']))self::fail('Invalid element shape');
                 $p=$e['properties'];$defaults=array();$t=$e['type'];if($t==='image')$defaults['src']='';if($t==='instruction')$defaults['label_html']=null;
@@ -108,7 +110,7 @@ final class Definition {
                 if(in_array($t,array('likert','matrix'),true))$defaults=array('min'=>1,'preset'=>'custom','reversed'=>false);
                 if(in_array($t,array('likert','matrix','vas'),true))$defaults=array_merge($defaults,array('gradient'=>'none','gradient_start'=>'#f44336','gradient_end'=>'#4caf50'));
                 if($t==='vas')$defaults=array_merge($defaults,array('labels'=>array($p['left_label']??'Nada',$p['right_label']??'Mucho'),'value_position'=>'below','value_font_size'=>36,'label_font_size'=>16,'bold_labels'=>true,'label_boxes'=>false,'label_alignment'=>100));
-                $e['properties']=array_merge($defaults,$p);if(in_array($t,array('likert','matrix'),true)&&isset($e['options'])&&is_array($e['options']))foreach($e['options'] as $i=>&$o){if(is_array($o)&&!array_key_exists('value',$o))$o['value']=($e['properties']['min']??1)+$i;}unset($o);$e['properties']=Authoring::defaults($e);if($t==='instruction'&&$e['properties']['label_html']!==null){if(!is_string($e['properties']['label_html'])||strlen($e['properties']['label_html'])>80000)self::fail('Invalid instruction rich text');$e['properties']['label_html']=RichText::sanitize($e['properties']['label_html']);}$visit($e['children']);
+                $e['properties']=array_merge($defaults,$language!==null?\EIPSI\I18n\ContentDefaults::question($t,$language):array(),$p);if($t==='vas'&&!array_key_exists('labels',$p))$e['properties']['labels']=$defaults['labels'];if(in_array($t,array('likert','matrix'),true)&&isset($e['options'])&&is_array($e['options']))foreach($e['options'] as $i=>&$o){if(is_array($o)&&!array_key_exists('value',$o))$o['value']=($e['properties']['min']??1)+$i;}unset($o);$e['properties']=Authoring::defaults($e);if($t==='instruction'&&$e['properties']['label_html']!==null){if(!is_string($e['properties']['label_html'])||strlen($e['properties']['label_html'])>80000)self::fail('Invalid instruction rich text');$e['properties']['label_html']=RichText::sanitize($e['properties']['label_html']);}$visit($e['children']);
             }
         };
         $visit($d['elements']);return $d;

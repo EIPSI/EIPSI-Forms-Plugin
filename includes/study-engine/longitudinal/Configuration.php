@@ -28,6 +28,7 @@ final class Configuration {
     /** Internal opt-in publishing helper writes every choice into the version. */
     public static function apply(array $definition,array $overrides=array()): array {
         $config=array_merge(array('contract'=>'P1F_V1','email_enabled'=>true,'availability_template'=>'ASSESSMENT_AVAILABLE','reminder_template'=>'ASSESSMENT_REMINDER','reminder_unit'=>'minutes','reminder_basis'=>'AFTER_AVAILABLE','reminder_offsets'=>array(15,30,60,120),'verification_policy'=>'VERIFIED_ONLY','provisional_hours'=>24,'session_days'=>30,'capability_hours'=>48,'immediate_availability_policy'=>'SUPPRESS_WHILE_PRESENT','show_next_time'=>true),$overrides);
+        if(isset($definition['protocol_metadata']['content_language'])&&!isset($config['initial_screen']))$config['initial_screen']=InitialScreen::defaults($definition['protocol_metadata']['content_language']);
         $definition['protocol_metadata']['enrollment_mode']='EMAIL_LONGITUDINAL';$definition['protocol_metadata']['longitudinal']=self::normalize($config);return $definition;
     }
     public static function read(array $definition): array {
@@ -38,7 +39,7 @@ final class Configuration {
 /** Injectable UTC clock used by credentials/worker; engine remains sole temporal authority. */
 class Clock {
     private $source;
-    public function __construct(?callable $source=null){$this->source=$source??static function(){return gmdate('Y-m-d\TH:i:s\Z');};}
+    public function __construct(?callable $source=null){$this->source=$source??static function(){return gmdate('Y-m-d\TH:i:s\Z',function_exists('apply_filters')?(int)apply_filters('eipsi_runtime_timestamp',time()):time());};}
     public function now(): string {$v=($this->source)();Check::timestamp($v,'clock',false);return $v;}
     public function mysql(): string {return \EIPSI\StudyEngine\Persistence\Database::date($this->now());}
     public function later(int $seconds): string {return gmdate('Y-m-d H:i:s',strtotime($this->now())+$seconds);}

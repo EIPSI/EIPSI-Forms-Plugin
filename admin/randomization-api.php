@@ -156,7 +156,7 @@ function eipsi_download_assignments_csv() {
             'days_since_assignment',
             'completed_status'
         );
-        fputcsv($output, $headers);
+        EIPSI_Csv_Serializer::row($output, $headers);
 
         // Procesar cada fila
         foreach ($results as $row) {
@@ -203,14 +203,14 @@ function eipsi_download_assignments_csv() {
                 $completed_status
             );
 
-            fputcsv($output, $csv_row);
+            EIPSI_Csv_Serializer::row($output, $csv_row);
         }
 
         fclose($output);
         exit;
 
     } catch (Exception $e) {
-        error_log('[EIPSI Randomization] Error en descarga CSV: ' . $e->getMessage());
+        EIPSI_Security_Log::event('RANDOMIZATION_EXPORT_FAILED');
         wp_die('Error generando CSV: ' . $e->getMessage());
     }
 }
@@ -398,7 +398,7 @@ function eipsi_download_assignments_excel() {
         exit;
 
     } catch (Exception $e) {
-        error_log('[EIPSI Randomization] Error en descarga Excel: ' . $e->getMessage());
+        EIPSI_Security_Log::event('RANDOMIZATION_EXPORT_FAILED');
         wp_die('Error generando Excel: ' . $e->getMessage());
     }
 }

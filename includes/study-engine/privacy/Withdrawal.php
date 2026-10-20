@@ -9,6 +9,7 @@ final class Withdrawal {
         $queue=$db->row($db->prepare('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s',$wpdb->prefix.'survey_nudge_jobs'));
         if(!$queue||strcasecmp($queue['ENGINE'],'InnoDB')!==0)throw new P\IntegrityFailure('QUEUE_TRANSACTION_REQUIRED');
         $db->query($db->prepare("UPDATE ".$db->table('management_exports')." SET state='INVALIDATED',payload_json=NULL,plan_json='[]',manifest_json=NULL,error_code='DATA_POLICY_CHANGED' WHERE study_id=%s",$row['study_id']));
+            if($mode==='DO_NOT_USE')\EIPSI\ExternalApi\ExportStorage::invalidateStudy($row['study_id']);
         $db->update('study_executions',array('data_policy'=>$mode),$db->prepare('id=%s',$id));
         $db->update('notification_intents',array('state'=>'CANCELLED','cancel_reason'=>'VOLUNTARY_WITHDRAWAL','updated_at'=>$now),$db->prepare("execution_id=%s AND state IN ('PENDING','CLAIMED','FAILED_RETRYABLE')",$id));
         $db->query($db->prepare('UPDATE `'.$wpdb->prefix.'survey_nudge_jobs` j JOIN '.$db->table('notification_intents')." i ON i.queue_job_id=j.id SET j.status='cancelled',j.error='VOLUNTARY_WITHDRAWAL' WHERE i.execution_id=%s AND j.status IN ('pending','processing')",$id));

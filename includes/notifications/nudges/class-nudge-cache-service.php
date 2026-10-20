@@ -13,12 +13,7 @@ public static function get_trigger_timestamp($assignment_id, $stage, $assignment
         $cached = get_transient($cache_key);
         if ($cached !== false) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log(sprintf(
-                    '[EIPSI NudgeCache] CACHE HIT: trigger_ts for assignment %d, stage %d = %s',
-                    $assignment_id,
-                    $stage,
-                    date('Y-m-d H:i:s', $cached)
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_cache_service_L16'), 'debug');
             }
             return intval($cached);
         }
@@ -31,12 +26,7 @@ public static function get_trigger_timestamp($assignment_id, $stage, $assignment
             set_transient($cache_key, $timestamp, self::DEFAULT_TTL);
 
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log(sprintf(
-                    '[EIPSI NudgeCache] CACHE MISS: Calculated and cached trigger_ts for assignment %d, stage %d = %s',
-                    $assignment_id,
-                    $stage,
-                    date('Y-m-d H:i:s', $timestamp)
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_cache_service_L34'), 'debug');
             }
         }
 
@@ -98,11 +88,7 @@ public static function invalidate_assignment_cache($assignment_id) {
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf(
-                '[EIPSI NudgeCache] Invalidated all cache for assignment %d (version: %d)',
-                $assignment_id,
-                $new_version
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_cache_service_L101'), 'debug');
         }
     }
 
@@ -161,7 +147,7 @@ public static function clear_all_cache() {
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf('[EIPSI NudgeCache] Cleared %d cached entries', count($option_names)));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_cache_service_L164'), 'debug');
         }
 
         return count($option_names);

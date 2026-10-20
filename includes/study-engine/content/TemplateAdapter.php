@@ -1,5 +1,6 @@
 <?php
 namespace EIPSI\StudyEngine\Content;
+require_once __DIR__.'/UnsupportedBlock.php';
 use EIPSI\StudyEngine\Contracts\Canonical;
 use EIPSI\StudyEngine\Contracts\Check;
 use EIPSI\StudyEngine\Contracts\StudyVersionDefinition;
@@ -63,7 +64,7 @@ final class TemplateAdapter {
             $this->nodes[]=array('kind'=>'CONTENT','id'=>$id,'version_id'=>$this->version,'parent_id'=>$parent,'position'=>$position,'type'=>$media===null?'TEXT':'MEDIA','content'=>$this->content($id,$snapshot),'durable_reference'=>$media===null?null:array('uri'=>$media['snapshot_url'],'sha256'=>$media['sha256']));return;
         }
         $types=array('eipsi/campo-texto'=>'TEXT','eipsi/campo-textarea'=>'TEXT','eipsi/campo-radio'=>'CHOICE','eipsi/campo-select'=>'CHOICE','eipsi/campo-likert'=>'INTEGER','eipsi/vas-slider'=>'NUMBER','eipsi/consent-block'=>'BOOLEAN');
-        if(!isset($types[$name]))throw new \DomainException('UNSUPPORTED_BLOCK: '.$name);
+        if(!isset($types[$name]))throw new UnsupportedBlock($name);
         if(!empty($block['innerBlocks']))throw new \DomainException('QUESTION_CHILDREN_UNSUPPORTED');
         $key=trim(!empty($a['fieldKey'])?$a['fieldKey']:($a['fieldName']??''));Check::id($key,'stable_field_key');$key=($this->clone===''?'':$this->clone.'_').$key;
         $id='Q_'.$key;if(isset($this->seen[$id]))throw new \DomainException('DUPLICATE_LOGICAL_ID');$this->seen[$id]=true;

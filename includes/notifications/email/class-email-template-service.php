@@ -8,7 +8,7 @@ public static function render_template($template_name, $placeholders = array()) 
         $file_path = EIPSI_FORMS_PLUGIN_DIR . 'includes/emails/' . $template_name . '.php';
 
         if (!file_exists($file_path)) {
-            error_log("[EIPSI Email] Template not found: $file_path");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_template_service_L11'), 'debug');
             return "<p>Error: Email template missing.</p>";
         }
 

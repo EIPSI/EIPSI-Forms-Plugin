@@ -4,6 +4,10 @@ const assert = require('assert/strict');
 const { minify } = require('terser');
 const root = path.resolve(__dirname, '../..');
 (async () => {
+    require('../../scripts/check-admin-i18n').check();
+    require('../../scripts/check-content-defaults').check();
+    const i18n = await minify(fs.readFileSync(path.join(root,'src/admin/i18n/runtime.js'),'utf8'), { compress:false,mangle:false });
+    assert.equal(fs.readFileSync(path.join(root,'assets/js/admin-i18n.js'),'utf8'),'/* Generated from src/admin/i18n/runtime.js. */\n'+i18n.code+'\n','Admin i18n runtime is stale');
     const sourceBlocks = fs.readdirSync(path.join(root, 'src/blocks'))
         .filter(name => fs.existsSync(path.join(root, 'src/blocks', name, 'block.json'))).sort();
     const builtBlocks = fs.readdirSync(path.join(root, 'build/blocks')).sort();

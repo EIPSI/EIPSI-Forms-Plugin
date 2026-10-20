@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) { exit; }
 class EIPSI_Notification_Dropout_Recovery_Service {
 
 public static function eipsi_send_dropout_recovery_hourly() {
-    error_log('[EIPSI Cron] Starting hourly dropout recovery');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_dropout_recovery_service_L8'), 'debug');
 
     global $wpdb;
 
@@ -15,7 +15,7 @@ public static function eipsi_send_dropout_recovery_hourly() {
     );
 
     if (empty($studies)) {
-        error_log('[EIPSI Cron] No active studies found');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_dropout_recovery_service_L18'), 'debug');
         return;
     }
 
@@ -96,9 +96,9 @@ public static function eipsi_send_dropout_recovery_hourly() {
             }
         }
 
-        error_log("[EIPSI Cron] Study {$study->study_name}: {$emails_sent} recovery emails sent");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_dropout_recovery_service_L99'), 'debug');
     }
 
-    error_log('[EIPSI Cron] Completed hourly dropout recovery');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_dropout_recovery_service_L102'), 'debug');
 }
 }

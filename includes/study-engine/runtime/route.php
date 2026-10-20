@@ -24,11 +24,14 @@ add_action('template_redirect', static function () {
         $study=(new \EIPSI\StudyEngine\Runtime\PublicStudyRepository($db))->find($public);if(!$study)throw new \EIPSI\StudyEngine\Runtime\AccessDenied('STUDY_UNAVAILABLE');$longitudinal=($study['enrollment_mode']??'ANONYMOUS')==='EMAIL_LONGITUDINAL';$versions=new \EIPSI\StudyEngine\Persistence\StudyVersionRepository($db);$published=$versions->find($study['active_version_id']);if($published)$displayDefinition=$versions->compiled($published)->definition();
         if($longitudinal){require_once dirname(__DIR__).'/longitudinal.php';$runtime=new \EIPSI\StudyEngine\Longitudinal\Runtime($db,$vault,\EIPSI\StudyEngine\Longitudinal\Capability::configured($db));$name=\EIPSI\StudyEngine\Longitudinal\Identity::cookieName($public);header('Referrer-Policy: no-referrer');}
         else{$runtime=new \EIPSI\StudyEngine\Runtime\CrossSectionalRuntime($db,$vault);$name=\EIPSI\StudyEngine\Runtime\AnonymousAccess::cookieName($public);}
-        if(in_array($study['enrollment_state'],array('PAUSED','CLOSED','FINALIZED'),true)){
-            $state=$study['enrollment_state']==='FINALIZED'?'FINALIZED':'PAUSED';
+        $token=isset($_COOKIE[$name])&&is_string($_COOKIE[$name])?wp_unslash($_COOKIE[$name]):null;
+        $pauseAccess=!\EIPSI\StudyEngine\Runtime\PausePolicy::paused($study)||$token===null?null:($longitudinal?(new \EIPSI\StudyEngine\Longitudinal\Identity($db))->recover($public,$token):(new \EIPSI\StudyEngine\Runtime\AnonymousAccess($db))->recover($public,$token));
+        $pausePass=\EIPSI\StudyEngine\Runtime\PausePolicy::portal($db,$study,$pauseAccess)||($longitudinal&&(isset($_GET['eipsi_cap'])||isset($_GET['eipsi_confirm'])));
+        if($study['enrollment_state']==='FINALIZED'||(\EIPSI\StudyEngine\Runtime\PausePolicy::paused($study)&&!$pausePass)){
+            $state=$study['enrollment_state']==='FINALIZED'?'FINALIZED':'PAUSED';if($state==='PAUSED')\EIPSI\StudyEngine\Runtime\PausePolicy::denied($study);
             $html=\EIPSI\StudyEngine\Runtime\PublicStudyRepository::availabilityHtml($displayDefinition,$state);
             if($json)wp_send_json(array('state'=>$state,'revision'=>null,'receipt'=>null,'html'=>$html,'error_message'=>null),200);
-            echo \EIPSI\StudyEngine\Runtime\PublicPage::document($html,$m('document_title'),array('assets/css/study-runtime.css'),array('assets/js/study-runtime.js'));exit;
+            echo \EIPSI\StudyEngine\Runtime\PublicPage::document($html,$m('document_title'),array('assets/css/study-runtime.css'),array('assets/js/study-runtime.js'),($displayDefinition?\EIPSI\I18n\ContentDefaults::language($displayDefinition):eipsi_forms_language()));exit;
         }
         $token=isset($_COOKIE[$name])&&is_string($_COOKIE[$name])?wp_unslash($_COOKIE[$name]):null;
         $request=null;$method=$_SERVER['REQUEST_METHOD']??'GET';
@@ -46,11 +49,12 @@ add_action('template_redirect', static function () {
         }
         // Bounded local abuse control; reverse-proxy/DDoS policy remains operational.
         $category=(isset($_GET['eipsi_cap'])||isset($_GET['eipsi_confirm']))?'redemption':($request===null?($token===null?'creation':'read'):(($request['action']??null)==='submit'?'submit':'mutation'));
-        if($longitudinal&&in_array($request['action']??null,array('enroll','resend','confirm_email','withdrawal_lookup'),true))$category=$request['action']==='enroll'?'enrollment':($request['action']==='resend'?'verification_resend':'access_request');
+        if($longitudinal&&in_array($request['action']??null,array('enroll','resend','confirm_email','withdrawal_lookup','withdraw'),true))$category=$request['action']==='withdraw'?'withdrawal':($request['action']==='enroll'?'enrollment':($request['action']==='resend'?'verification_resend':'access_request'));
         $limit=$category==='creation'?20:($category==='read'?120:($category==='submit'?40:240));
-        if(in_array($category,array('enrollment','access_request','verification_resend','redemption'),true))$limit=$category==='redemption'?40:10;
-        $rateKey='eipsi_se_'.substr(hash_hmac('sha256',$public.'|'.($_SERVER['REMOTE_ADDR']??'').'|'.$category.'|'.intdiv(time(),60),wp_salt('nonce')),0,32);
-        $used=(int)get_transient($rateKey);if($used>=$limit){header('Retry-After: 60');throw new \OverflowException('RATE_LIMIT');}set_transient($rateKey,$used+1,120);
+        if(in_array($category,array('enrollment','access_request','verification_resend','redemption','withdrawal'),true))$limit=in_array($category,array('redemption','withdrawal'),true)?40:10;
+        if(in_array($category,array('creation','enrollment','access_request','verification_resend','redemption','withdrawal'),true)){
+            \EIPSI_Rate_Limiter::consume('study.'.$category,$public.'|'.($_SERVER['REMOTE_ADDR']??''),$limit,60);
+        }
         if($longitudinal){require_once dirname(__DIR__).'/longitudinal/CapabilityLanding.php';}
         if(isset($_GET['eipsi_cap'])){
             if(!$longitudinal||$method!=='GET'||!is_string($_GET['eipsi_cap'])||strlen($_GET['eipsi_cap'])>256)throw new \EIPSI\StudyEngine\Runtime\AccessDenied('ACCESS_REQUIRED');
@@ -86,7 +90,7 @@ add_action('template_redirect', static function () {
                 $frame=$runtime->handle($public,$token,null);$frame['set_cookie']=true;
             }else $frame=$finished;
         }
-        if($frame===null)$frame=$longitudinal&&$request===null&&!isset($_GET['eipsi_completion'])&&isset($displayDefinition['protocol_metadata']['longitudinal']['initial_screen'])?$runtime->initialFrame($public,$token):$runtime->handle($public,$token,$request);
+        if($frame===null)$frame=$longitudinal&&!\EIPSI\StudyEngine\Runtime\PausePolicy::paused($study)&&$request===null&&!isset($_GET['eipsi_completion'])&&isset($displayDefinition['protocol_metadata']['longitudinal']['initial_screen'])?$runtime->initialFrame($public,$token):$runtime->handle($public,$token,$request);
         if(isset($frame['token']))$_COOKIE[$name]=$frame['token'];
         if($frame['set_cookie']){
             $path=wp_parse_url(home_url('/'),PHP_URL_PATH)?:'/';
@@ -95,10 +99,16 @@ add_action('template_redirect', static function () {
         }
         if($method==='POST'&&!$json&&!isset($frame['entry'])&&($request['action']??null)!=='confirm_access'){wp_safe_redirect(isset($_GET['eipsi_completion'])&&is_string($_GET['eipsi_completion'])&&($request['action']??null)==='confirm_email'?add_query_arg(array('eipsi_study'=>$public,'eipsi_completion'=>wp_unslash($_GET['eipsi_completion'])),home_url('/')):add_query_arg('eipsi_study',$public,home_url('/')),303);exit;}
     }catch(\EIPSI\StudyEngine\Persistence\PersistenceConflict $e){$status=409;$message=$m('conflict');}
+    catch(\EIPSI\StudyEngine\Runtime\StudyPaused $e){
+        \EIPSI\StudyEngine\Runtime\PausePolicy::denied($study);$html=\EIPSI\StudyEngine\Runtime\PublicStudyRepository::availabilityHtml($displayDefinition,'PAUSED');
+        if($json)wp_send_json(array('state'=>'PAUSED','revision'=>null,'receipt'=>null,'html'=>$html,'error_message'=>null),200);
+        echo \EIPSI\StudyEngine\Runtime\PublicPage::document($html,$m('document_title'),array('assets/css/study-runtime.css'),array('assets/js/study-runtime.js'),($displayDefinition?\EIPSI\I18n\ContentDefaults::language($displayDefinition):eipsi_forms_language()));exit;
+    }
     catch(\EIPSI\StudyEngine\Runtime\AccessDenied $e){if(!isset($study['study_id'])&&$e->getMessage()==='STUDY_UNAVAILABLE'){status_header(404);exit;}$status=403;$message=$e->getMessage()==='STUDY_FINALIZED'?$m('finalized_body'):$m('unavailable_title');}
+    catch(\EIPSI_Rate_Limit_Exception $e){header('Retry-After: '.$e->retry_after);$status=$e->getCode();$message=$m('rate_limit');}
     catch(\OverflowException $e){$status=429;$message=$m('rate_limit');}
     catch(\DomainException $e){$status=422;$withdrawalMismatch=$e->getMessage()==='WITHDRAWAL_EMAIL_NOT_FOUND';$message=$withdrawalMismatch?$m('withdrawal_email_not_found'):($e->getMessage()==='EMAIL_CHANGE_CONFIRMATION_REQUIRED'?$m('change_unconfirmed'):($e->getMessage()==='RESPONSE_ALREADY_RECORDED'?$m('unique_response'):($e->getMessage()==='EMAIL_ALREADY_ENROLLED'?$m('email_collision'):$m(($longitudinal??false)?'invalid_fields':'operation_failed'))));}
-    catch(\Throwable $e){$status=503;$message=$m('operation_failed');error_log('[EIPSI STUDY] study='.preg_replace('/[^A-Za-z0-9_.:-]/','',$public).' execution='.($frame['access']['execution_id']??'unavailable').' command='.preg_replace('/[^A-Za-z0-9_.:-]/','',substr((string)($request['command_id']??'none'),0,128)).' reason='.(preg_match('/^[A-Z0-9_]{1,80}$/D',$e->getMessage())?$e->getMessage():get_class($e)));}
+    catch(\Throwable $e){$status=503;$message=$m('operation_failed');\EIPSI_Security_Log::event('STUDY_OPERATION_FAILED',array('study_id'=>$study['study_id']??'unavailable','code'=>'RUNTIME_FAILURE'));}
     if($status===403&&($study['enrollment_state']??null)!=='FINALIZED'&&($longitudinal??false)&&isset($runtime,$study['study_id'])){
         if(class_exists('\\EIPSI\\StudyEngine\\Longitudinal\\CapabilityLanding'))\EIPSI\StudyEngine\Longitudinal\CapabilityLanding::cookie($public,'',time()-3600);
         if(!$json){wp_safe_redirect(add_query_arg(array('eipsi_study'=>$public,'eipsi_initial'=>'1','eipsi_notice'=>'unavailable'),home_url('/')),303);exit;}
@@ -135,5 +145,5 @@ add_action('template_redirect', static function () {
     catch(\Throwable $e){$status=503;status_header(503);$message=$m('content_failed');$html=\EIPSI\StudyEngine\Runtime\PublicPage::errorContent($message);}
     if(($study['enrollment_state']??null)==='FINALIZED')$html=\EIPSI\StudyEngine\Runtime\PublicStudyRepository::finalizedHtml($displayDefinition);
     if($json){wp_send_json(array('state'=>$status===200?($frame['view']['next_action']['kind']??'OPERATIONAL_ERROR'):'ERROR','revision'=>$frame['view']['revision']??null,'receipt'=>$status===200?($frame['receipt']??null):null,'html'=>$html,'withdrawal_check'=>$frame['withdrawal_check']??null,'error_message'=>$frame['withdrawal_error']??$message),$status);}
-    echo \EIPSI\StudyEngine\Runtime\PublicPage::document($html,$m('document_title'),array('assets/css/study-runtime.css'),array('assets/js/study-runtime.js'));exit;
+    echo \EIPSI\StudyEngine\Runtime\PublicPage::document($html,$m('document_title'),array('assets/css/study-runtime.css'),array('assets/js/study-runtime.js'),($displayDefinition?\EIPSI\I18n\ContentDefaults::language($displayDefinition):eipsi_forms_language()));exit;
 }, -100);

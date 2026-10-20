@@ -5,6 +5,9 @@ if (!defined('ABSPATH')) { exit; }
 class EIPSI_Randomization_DB_Rest_Adapter {
 
 public static function eipsi_rest_save_randomization_config( $request ) {
+    if (!current_user_can('manage_options')) { return EIPSI_Randomization_Resource_Policy::denied(); }
+    $authorized = EIPSI_Randomization_Resource_Policy::sources($request->get_param('formularios'), 'postId');
+    if (is_wp_error($authorized)) { return $authorized; }
     $randomization_id   = $request->get_param( 'randomizationId' );
     $formularios        = $request->get_param( 'formularios' );
     $method             = $request->get_param( 'method' );

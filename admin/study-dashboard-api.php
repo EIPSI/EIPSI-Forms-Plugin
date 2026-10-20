@@ -14,8 +14,6 @@ require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/longitudinal/bootstrap.php';
 /**
  * Register AJAX handlers
  */
-add_action('wp_ajax_eipsi_test_no_nonce', 'wp_ajax_eipsi_test_no_nonce_handler');
-add_action('wp_ajax_eipsi_test_deadline', 'wp_ajax_eipsi_test_deadline_handler');
 add_action('wp_ajax_eipsi_get_study_overview', 'wp_ajax_eipsi_get_study_overview_handler');
 add_action('wp_ajax_eipsi_get_wave_details', 'wp_ajax_eipsi_get_wave_details_handler');
 add_action('wp_ajax_eipsi_send_wave_reminder_manual', 'wp_ajax_eipsi_send_wave_reminder_manual_handler');
@@ -58,16 +56,16 @@ function eipsi_delete_participant_dispatch() {
  * GET consolidated study data
  */
 function wp_ajax_eipsi_get_study_overview_handler() {
-    error_log('[EIPSI DASHBOARD API] get_study_overview called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L59'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L63'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
     $study_id = isset($_GET['study_id']) ? intval($_GET['study_id']) : 0;
-    error_log("[EIPSI DASHBOARD API] Study ID: {$study_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L68'), 'debug');
     if (empty($study_id)) {
         wp_send_json_error('Missing study ID');
     }
@@ -127,16 +125,16 @@ function wp_ajax_eipsi_get_wave_details_handler() {
  * POST send manual reminder
  */
 function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
-    error_log('[EIPSI DASHBOARD API] send_wave_reminder_manual called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L128'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L132'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
     $wave_id = isset($_POST['wave_id']) ? (int) $_POST['wave_id'] : 0;
-    error_log("[EIPSI DASHBOARD API] Wave ID: {$wave_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L137'), 'debug');
     if (!$wave_id) {
         wp_send_json_error('Missing wave ID');
     }
@@ -177,7 +175,7 @@ function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
         ));
 
         if (empty($candidate_ids)) {
-            error_log("[EIPSI Reminder] No participants found for wave {$wave_id}, study {$survey_id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L178'), 'debug');
             wp_send_json_error('No active participants found for this wave');
         }
 
@@ -189,11 +187,11 @@ function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
         );
 
         if (empty($participant_ids)) {
-            error_log("[EIPSI Reminder] No eligible participants found for wave {$wave_id}, study {$survey_id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L190'), 'debug');
             wp_send_json_error('No eligible participants found for this wave (previous wave not completed)');
         }
         
-        error_log("[EIPSI Reminder] Found " . count($participant_ids) . " eligible participants for wave {$wave_id} (filtered from " . count($candidate_ids) . " candidates)");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L194'), 'debug');
 
         // Send reminders via Email Service
         $result = EIPSI_Email_Service::send_manual_reminders($survey_id, $participant_ids, $wave_id);
@@ -204,7 +202,7 @@ function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
             'failed' => $result['failed_count']
         ));
     } catch (Exception $e) {
-        error_log('[EIPSI Reminder] Error: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L205'), 'debug');
         wp_send_json_error(array(
             'message' => 'Error al enviar recordatorios: ' . $e->getMessage(),
             'error' => 'exception'
@@ -217,16 +215,16 @@ function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
  */
 add_action('wp_ajax_eipsi_send_global_reminder', 'wp_ajax_eipsi_send_global_reminder_handler');
 function wp_ajax_eipsi_send_global_reminder_handler() {
-    error_log('[EIPSI DASHBOARD API] send_global_reminder called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L218'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L222'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
     $study_id = isset($_POST['study_id']) ? (int) $_POST['study_id'] : 0;
-    error_log("[EIPSI DASHBOARD API] Study ID: {$study_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L227'), 'debug');
     if (!$study_id) {
         wp_send_json_error('Missing study ID');
     }
@@ -273,7 +271,7 @@ function wp_ajax_eipsi_send_global_reminder_handler() {
             'failed_count' => $total_failed
         ));
     } catch (Exception $e) {
-        error_log('[EIPSI Global Reminder] Error: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L274'), 'debug');
         wp_send_json_error(array(
             'message' => 'Error al enviar recordatorios globales: ' . $e->getMessage(),
             'error' => 'exception'
@@ -372,16 +370,16 @@ function wp_ajax_eipsi_remove_wave_deadline_handler() {
  * GET email logs
  */
 function wp_ajax_eipsi_get_study_email_logs_handler() {
-    error_log('[EIPSI DASHBOARD API] get_study_email_logs called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L373'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L377'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
     $study_id = isset($_GET['study_id']) ? intval($_GET['study_id']) : 0;
-    error_log("[EIPSI DASHBOARD API] Study ID: {$study_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L382'), 'debug');
     if (empty($study_id)) {
         wp_send_json_error('Missing study ID');
     }
@@ -404,7 +402,7 @@ function wp_ajax_eipsi_get_study_email_logs_handler() {
                 $timestamp
             );
         }
-        error_log("[EIPSI EMAIL LOGS] Log ID {$log->id}: email_type='{$log->email_type}', status='{$log->status}'");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L405'), 'debug');
     }
 
     wp_send_json_success($logs);
@@ -419,7 +417,7 @@ function wp_ajax_eipsi_get_study_email_logs_handler() {
  * @fix v1.7.3 - Added survey_id validation to prevent FK errors
  */
 function wp_ajax_eipsi_resend_participant_email_handler() {
-    error_log('[EIPSI DASHBOARD API] resend_participant_email called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L420'), 'debug');
     
     // v2.5.1 - Ensure Email Service is loaded
     if (!class_exists('EIPSI_Email_Service')) {
@@ -506,7 +504,7 @@ function wp_ajax_eipsi_resend_participant_email_handler() {
             ));
         }
     } catch (Exception $e) {
-        error_log('[EIPSI Resend Email] Exception: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L507'), 'debug');
         wp_send_json_error(array(
             'message' => 'Error al enviar email: ' . $e->getMessage(),
             'error' => 'exception'
@@ -519,13 +517,13 @@ function wp_ajax_eipsi_resend_participant_email_handler() {
  */
 add_action('wp_ajax_eipsi_save_wave_nudges', 'wp_ajax_eipsi_save_wave_nudges_handler');
 function wp_ajax_eipsi_save_wave_nudges_handler() {
-    error_log('[EIPSI DASHBOARD API] ========================================');
-    error_log('[EIPSI DASHBOARD API] save_wave_nudges called');
-    error_log('[EIPSI DASHBOARD API] FULL POST DATA: ' . print_r($_POST, true));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L520'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L521'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L522'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L526'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
@@ -535,27 +533,27 @@ function wp_ajax_eipsi_save_wave_nudges_handler() {
     // v2.5.0 - Robust enabled detection: accepts 'true', true, '1', 1, 'on'
     $enabled_raw = isset($_POST['enabled']) ? $_POST['enabled'] : false;
     $enabled = in_array($enabled_raw, array('true', true, '1', 1, 'on', 'yes'), true);
-    error_log("[EIPSI DASHBOARD API] Raw enabled value: " . var_export($enabled_raw, true));
-    error_log("[EIPSI DASHBOARD API] Parsed enabled value: " . ($enabled ? 'true' : 'false'));
-    error_log("[EIPSI DASHBOARD API] window_minutes: " . ($window_minutes ? $window_minutes : 'NULL'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L536'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L537'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L538'), 'debug');
     
     // Handle JSON string if passed
     if (is_string($nudges)) {
         $nudges = json_decode(stripslashes($nudges), true);
-        error_log("[EIPSI DASHBOARD API] Decoded nudges from JSON: " . print_r($nudges, true));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L543'), 'debug');
     }
     if (!is_array($nudges)) {
         wp_send_json_error(array('message' => 'Configuración de nudges inválida.'));
     }
     
     $nudge_count = is_array($nudges) ? count($nudges) : 0;
-    error_log("[EIPSI DASHBOARD API] Wave ID: {$wave_id}");
-    error_log("[EIPSI DASHBOARD API] Enabled (final): " . ($enabled ? 'true' : 'false'));
-    error_log("[EIPSI DASHBOARD API] Nudges count: " . $nudge_count);
-    error_log("[EIPSI DASHBOARD API] Nudges data: " . print_r($nudges, true));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L550'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L551'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L552'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L553'), 'debug');
 
     if (!$wave_id) {
-        error_log("[EIPSI DASHBOARD API] ERROR: Missing wave ID");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L556'), 'debug');
         wp_send_json_error('Missing wave ID');
     }
 
@@ -591,8 +589,8 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
     try {
         global $wpdb;
         
-        error_log('[EIPSI REDISTRIBUTE BTN] ========================================');
-        error_log('[EIPSI REDISTRIBUTE BTN] Manual redistribution requested for wave_id: ' . $wave_id);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L592'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L593'), 'debug');
         
         // Get wave info
         $wave = $wpdb->get_row($wpdb->prepare(
@@ -602,11 +600,11 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
         ));
         
         if (!$wave) {
-            error_log('[EIPSI REDISTRIBUTE BTN] ERROR: Wave not found');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L603'), 'debug');
             wp_send_json_error('Wave not found');
         }
         
-        error_log('[EIPSI REDISTRIBUTE BTN] Wave found: study_id=' . $wave->study_id . ', offset_minutes=' . $wave->offset_minutes . ', window_minutes=' . $wave->window_minutes . ', due_date=' . $wave->due_date);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L607'), 'debug');
         
         // Get study creation date
         $study = $wpdb->get_row($wpdb->prepare(
@@ -615,62 +613,58 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
         ));
         
         if (!$study) {
-            error_log('[EIPSI REDISTRIBUTE BTN] ERROR: Study not found');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L616'), 'debug');
             wp_send_json_error('Study not found');
         }
         
-        error_log('[EIPSI REDISTRIBUTE BTN] Study created_at: ' . $study->created_at);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L620'), 'debug');
         
         $study_created_timestamp = strtotime($study->created_at);
         $is_t1 = ($wave->offset_minutes == 0);
         
-        error_log('[EIPSI REDISTRIBUTE BTN] study_created_timestamp (parsed): ' . $study_created_timestamp . ' (' . date('Y-m-d H:i:s', $study_created_timestamp) . ')');
-        error_log('[EIPSI REDISTRIBUTE BTN] is_t1: ' . ($is_t1 ? 'YES' : 'NO'));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L625'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L626'), 'debug');
         
         // Calculate current window
         $current_window_minutes = 0;
         
         if (!empty($wave->due_date)) {
-            error_log('[EIPSI REDISTRIBUTE BTN] Wave has due_date: ' . $wave->due_date);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L632'), 'debug');
             
             // Extract date part only (due_date from DB has format "YYYY-MM-DD HH:MM:SS")
             $deadline_date = substr($wave->due_date, 0, 10);
             $deadline_datetime = $deadline_date . ' 23:59:59';
             $deadline_timestamp = strtotime($deadline_datetime);
-            error_log('[EIPSI REDISTRIBUTE BTN] deadline_date extracted: ' . $deadline_date);
-            error_log('[EIPSI REDISTRIBUTE BTN] deadline_datetime built: ' . $deadline_datetime);
-            error_log('[EIPSI REDISTRIBUTE BTN] deadline_timestamp (parsed): ' . $deadline_timestamp . ' (' . date('Y-m-d H:i:s', $deadline_timestamp) . ')');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L638'), 'debug');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L639'), 'debug');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L640'), 'debug');
             
             // T1 (offset=0): window from created_at to deadline (fixed)
             // Other waves: window from NOW to deadline (dynamic, remaining time)
             if ($is_t1) {
-                error_log('[EIPSI REDISTRIBUTE BTN] T1 calculation: deadline_timestamp - study_created_timestamp');
-                error_log('[EIPSI REDISTRIBUTE BTN] T1 calculation: ' . $deadline_timestamp . ' - ' . $study_created_timestamp . ' = ' . ($deadline_timestamp - $study_created_timestamp) . ' seconds');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L645'), 'debug');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L646'), 'debug');
                 $current_window_minutes = ceil(($deadline_timestamp - $study_created_timestamp) / 60);
-                error_log('[EIPSI REDISTRIBUTE BTN] T1 current_window_minutes: ' . $current_window_minutes);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L648'), 'debug');
             } else {
                 $now_timestamp = current_time('timestamp');
-                error_log('[EIPSI REDISTRIBUTE BTN] Other wave calculation: deadline_timestamp - now_timestamp');
-                error_log('[EIPSI REDISTRIBUTE BTN] now_timestamp: ' . $now_timestamp . ' (' . date('Y-m-d H:i:s', $now_timestamp) . ')');
-                error_log('[EIPSI REDISTRIBUTE BTN] Other calculation: ' . $deadline_timestamp . ' - ' . $now_timestamp . ' = ' . ($deadline_timestamp - $now_timestamp) . ' seconds');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L651'), 'debug');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L652'), 'debug');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L653'), 'debug');
                 $current_window_minutes = ceil(($deadline_timestamp - $now_timestamp) / 60);
-                error_log('[EIPSI REDISTRIBUTE BTN] Other current_window_minutes: ' . $current_window_minutes);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L655'), 'debug');
             }
         } else {
             // No deadline: use original window
-            error_log('[EIPSI REDISTRIBUTE BTN] No due_date, using original window_minutes: ' . $wave->window_minutes);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L659'), 'debug');
             $current_window_minutes = $wave->window_minutes;
         }
         
-        error_log('[EIPSI REDISTRIBUTE BTN] FINAL current_window_minutes: ' . $current_window_minutes);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L663'), 'debug');
         
         // Validate minimum window for nudge redistribution
         if ($current_window_minutes < 60) {
-            error_log(sprintf(
-                '[EIPSI Redistribute] Wave %d: Window too short (%d min) for redistribution',
-                $wave_id,
-                $current_window_minutes
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L667'), 'debug');
             
             wp_send_json_error(array(
                 'message' => sprintf(
@@ -733,8 +727,7 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
         
         $window_days = ceil($current_window_minutes / 1440);
         
-        error_log(sprintf('[EIPSI Redistribute] Wave %d: Redistributed to %d days (%d minutes)',
-            $wave_id, $window_days, $current_window_minutes));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L734'), 'debug');
         
         wp_send_json_success(array(
             'message' => 'Nudges redistribuidos correctamente',
@@ -742,7 +735,7 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
             'window_minutes' => $current_window_minutes
         ));
     } catch (Exception $e) {
-        error_log('[EIPSI Redistribute] Error: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L743'), 'debug');
         wp_send_json_error(array(
             'message' => 'Error al redistribuir nudges: ' . $e->getMessage(),
             'error' => 'exception'
@@ -2137,19 +2130,12 @@ function wp_ajax_eipsi_create_study_page_handler() {
 /**
  * Test handler WITHOUT nonce verification
  */
-function wp_ajax_eipsi_test_no_nonce_handler() {
-    error_log('[EIPSI TEST NO NONCE] Handler called - NO nonce check');
-    wp_send_json_success(array('message' => 'Handler works without nonce check'));
-}
+
 
 /**
  * Test AJAX handler to verify registration
  */
-function wp_ajax_eipsi_test_deadline_handler() {
-    error_log('[EIPSI TEST] Test deadline handler called!');
-    error_log('[EIPSI TEST] POST data: ' . print_r($_POST, true));
-    wp_send_json_success(array('message' => 'Test handler works!'));
-}
+
 
 // S3: exact contracts emitted by the active study dashboard modal.
 add_action('wp_ajax_eipsi_send_individual_reminder', 'eipsi_send_individual_reminder_handler');

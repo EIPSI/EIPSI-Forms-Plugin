@@ -10,9 +10,10 @@ final class NotificationScheduler {
     public function __construct(P\Database $db){$this->db=$db;}
     public function synchronize(array $s,CompiledStudy $graph,array $subject,string $version): void {
         $this->db->requireTransaction();$config=Configuration::read($graph->definition());if($subject['kind']!=='PARTICIPANT')throw new P\IntegrityFailure('PARTICIPANT_REQUIRED');
+        $study=\EIPSI\StudyEngine\Runtime\PausePolicy::study($this->db,$s['execution']['study_id']);$allowed=null;if(\EIPSI\StudyEngine\Runtime\PausePolicy::paused($study)){$e=(new P\StudyExecutionRepository($this->db))->find($s['execution']['id']);$allowed=\EIPSI\StudyEngine\Runtime\PausePolicy::openBlocks($this->db,$e,$graph->definition(),true);}
         $identity=new Identity($this->db);$p=$identity->participant($subject['id'],true);if(!$p)throw new P\IntegrityFailure('PARTICIPANT_REQUIRED');
         if(isset($config['initial_screen'])&&(bool)$p['active']&&$p['privacy_state']==='ACTIVE'&&$p['verification_state']!=='VERIFIED'&&!$s['notifications_cancelled']&&in_array($s['execution']['state'],array('ACTIVE','WAITING'),true)&&InitialScreen::required($config,$s,$graph->definition())){
-            foreach($s['instances'] as $i)if(!P\NotificationIntentRepository::logicalCancellation($s,$i)&&$graph->node($i['definition_id'])['completion_boundary']==='ASSESSMENT'&&in_array($i['state'],array('SCHEDULED','AVAILABLE','IN_PROGRESS'),true)&&$i['available_at']!==null&&($i['due_at']===null||$i['available_at']<$i['due_at']))$this->enqueue($s['execution']['id'],array('key'=>'VERIFY_OPPORTUNITY','block_execution_id'=>$i['id'],'trigger_at'=>$i['available_at'],'channel'=>'EMAIL','purpose'=>'VERIFY_PARTICIPANT'),$s);
+            foreach($s['instances'] as $i)if(($allowed===null||isset($allowed[$i['id']]))&&!P\NotificationIntentRepository::logicalCancellation($s,$i)&&$graph->node($i['definition_id'])['completion_boundary']==='ASSESSMENT'&&in_array($i['state'],array('SCHEDULED','AVAILABLE','IN_PROGRESS'),true)&&$i['available_at']!==null&&($i['due_at']===null||$i['available_at']<$i['due_at']))$this->enqueue($s['execution']['id'],array('key'=>'VERIFY_OPPORTUNITY','block_execution_id'=>$i['id'],'trigger_at'=>$i['available_at'],'channel'=>'EMAIL','purpose'=>'VERIFY_PARTICIPANT'),$s);
         }
         $repo=new P\NotificationIntentRepository($this->db);$exec=$s['execution']['id'];
         if(!(bool)$p['active']||$p['privacy_state']!=='ACTIVE'||!$config['email_enabled']||$s['notifications_cancelled']||in_array($s['execution']['state'],array('COMPLETED','WITHDRAWN','TERMINATED_BY_RULE'),true)){
@@ -24,9 +25,10 @@ final class NotificationScheduler {
         foreach($repo->list($exec) as $row)if($row['block_execution_id']!==null&&$barrier!==null&&$row['block_execution_id']!==$barrier&&in_array($row['state'],array('PENDING','CLAIMED','FAILED_RETRYABLE'),true))$this->db->update('notification_intents',array('state'=>'CANCELLED','cancel_reason'=>'WAIT_SUPERSEDED'),$this->db->prepare('id=%s',$row['id']));
         if($p['verification_state']!=='VERIFIED'&&(InitialScreen::v2($config)?InitialScreen::required($config,$s,$graph->definition()):$config['verification_policy']==='VERIFIED_ONLY'))return;
         foreach($s['instances'] as $i){
+            if($allowed!==null&&!isset($allowed[$i['id']]))continue;
             if(P\NotificationIntentRepository::logicalCancellation($s,$i)||$graph->node($i['definition_id'])['completion_boundary']!=='ASSESSMENT'||!in_array($i['state'],array('SCHEDULED','AVAILABLE','IN_PROGRESS'),true)||$i['available_at']===null||($barrier!==null&&$i['id']!==$barrier))continue;
             $available=$i['available_at'];$due=$i['due_at'];if($due!==null&&$available>=$due)continue;
-            $this->enqueue($exec,array('key'=>$config['availability_template'],'block_execution_id'=>$i['id'],'trigger_at'=>$available,'channel'=>'EMAIL','purpose'=>'ASSESSMENT_AVAILABLE'),$s);
+            if($allowed===null)$this->enqueue($exec,array('key'=>$config['availability_template'],'block_execution_id'=>$i['id'],'trigger_at'=>$available,'channel'=>'EMAIL','purpose'=>'ASSESSMENT_AVAILABLE'),$s);
             $node=$graph->node($i['definition_id']);$scheduled=$node['metadata']['scheduled_interaction']??null;
             if($scheduled===null&&$i['parent_execution_id']!==null){$parent=$s['instances'][$i['parent_execution_id']]??null;if($parent)$scheduled=$graph->node($parent['definition_id'])['metadata']['scheduled_interaction']??null;}
             $offsets=$scheduled!==null?$scheduled['reminders']:array_map(static function($minutes){return $minutes*60;},$config['reminder_offsets']);

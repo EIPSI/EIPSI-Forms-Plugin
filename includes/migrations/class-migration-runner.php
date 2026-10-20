@@ -18,7 +18,7 @@ class EIPSI_Schema_Migration_Runner {
     const DATE_OPTION     = 'eipsi_migration_date';
     const LOCK_TRANSIENT  = 'eipsi_migration_running';
     const LOCK_TIMEOUT    = 60;
-    const LATEST_VERSION  = 17;
+    const LATEST_VERSION  = 20;
 
     /**
      * Initialize the runner.
@@ -443,5 +443,12 @@ class EIPSI_Schema_Migration_Runner {
     }
     private function migrate_v16() { $this->migrate_v11(); require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/management/Schema.php'; \EIPSI\StudyEngine\Management\Schema::nativeIndex(); }
     private function migrate_v15() { $this->migrate_v11(); }
+
+    /** API-0: additive local credentials; existing data/settings remain untouched. */
+    private function migrate_v20() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/external-api/OperationsSchema.php'; \EIPSI\ExternalApi\OperationsSchema::install(); EIPSI_Schema_Version_Service::record_verified(); }
+
+    private function migrate_v19() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/external-api/ExportSchema.php'; \EIPSI\ExternalApi\ExportSchema::install(); EIPSI_Schema_Version_Service::record_verified(); }
+
+    private function migrate_v18() { \EIPSI\ExternalApi\Schema::install(); EIPSI_Schema_Version_Service::record_verified(); }
 
 }

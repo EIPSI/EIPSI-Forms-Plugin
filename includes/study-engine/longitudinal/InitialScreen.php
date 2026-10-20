@@ -1,11 +1,10 @@
 <?php
 namespace EIPSI\StudyEngine\Longitudinal;
 use EIPSI\StudyEngine\Contracts\Check;
+require_once (defined('EIPSI_FORMS_PLUGIN_DIR')?EIPSI_FORMS_PLUGIN_DIR.'includes/i18n/ContentDefaults.php':dirname(__DIR__,2).'/i18n/ContentDefaults.php');
 /** Versioned presentation and portal verification; possession remains mandatory for recovery. */
 final class InitialScreen {
-    public static function defaults(): array {
-        return array('contract'=>'INITIAL_SCREEN_V2','title_html'=>'<h1>Participar en el estudio</h1>','description_html'=>'','footer_html'=>'','background'=>'#ffffff','text_color'=>'#243247','max_width'=>720,'authentication'=>array('type'=>'EMAIL','label'=>'Email','label_html'=>'','label_visible'=>true,'placeholder'=>'nombre@ejemplo.com','button'=>'Continuar','verification'=>'NEVER','confirm_after_first'=>true,'membership_enabled'=>false,'membership_label'=>'Ya participo en este estudio'),'withdrawal'=>array('label'=>'Abandonar estudio','position'=>'BOTTOM','align'=>'RIGHT','text_color'=>'#536176','background'=>'#ffffff','border_color'=>'#d5dce5','border_width'=>1,'radius'=>6,'font_size'=>13,'modal_title'=>'Abandonar estudio','modal_html'=>'<p>Elegí qué debe ocurrir con tus datos.</p>','retain_label'=>'Dejar el estudio y permitir el uso de mis datos','delete_label'=>'Dejar el estudio y solicitar eliminar mis datos','confirm_label'=>'Confirmar abandono'),'templates'=>array('VERIFY_PARTICIPANT'=>array('subject'=>'','html'=>''),'ASSESSMENT_AVAILABLE'=>array('subject'=>'','html'=>''),'ASSESSMENT_REMINDER'=>array('subject'=>'','html'=>'')));
-    }
+    public static function defaults(?string $language=null): array {return \EIPSI\I18n\ContentDefaults::get($language===null?'initial_legacy':'initial',$language??'es');}
     public static function normalize(array $c): array {
         $defaults=self::defaults();Check::fields($c,array_keys($defaults),array('button_styles'));if(isset($c['button_styles'])){if(!is_array($c['button_styles']))throw new \DomainException('INVALID_BUTTON_STYLE');foreach($c['button_styles'] as $key=>$style){if(!in_array($key,array('continue','resend','withdrawal','retain','delete','cancel','confirm','back'),true)||!is_array($style))throw new \DomainException('INVALID_BUTTON_STYLE');Check::fields($style,array(),array('text_color','background','border_color','border_width','radius','font_size','hover_text_color','hover_background','hover_border_color'));foreach($style as $field=>$v){if(in_array($field,array('border_width','radius','font_size'),true)){Check::integer($v,$field,$field==='font_size'?10:0);if($v>array('border_width'=>8,'radius'=>40,'font_size'=>32)[$field])throw new \DomainException('INVALID_BUTTON_STYLE');}else self::color($v);}}}if(!in_array($c['contract'],array('INITIAL_SCREEN_V1','INITIAL_SCREEN_V2'),true))throw new \DomainException('INVALID_INITIAL_SCREEN');
         foreach(array('background','text_color') as $k)self::color($c[$k]);Check::integer($c['max_width'],'max_width',320);if($c['max_width']>1200)throw new \DomainException('INVALID_INITIAL_WIDTH');
@@ -33,15 +32,15 @@ final class InitialScreen {
         $s=array_merge($base,$c['button_styles'][$key]??array());$css='';foreach(array('text_color','background','border_color','border_width','radius','font_size') as $field)$css.='--eipsi-button-'.str_replace('_','-',$field).':'.$s[$field].(in_array($field,array('border_width','radius','font_size'),true)?'px':'').';';
         foreach(array('text_color','background','border_color') as $field)$css.='--eipsi-button-hover-'.str_replace('_','-',$field).':'.($s['hover_'.$field]??($field==='background'?self::hoverColor($s[$field]):$s[$field])).';';return $css;
     }
-    public static function confirmationDefaults(): array {return array('title_html'=>'<h2>Confirmar decisión</h2>','message_html'=>'<p>¿Está seguro de que desea [opcion]?</p>','instruction_html'=>'<p>Para confirmar, complete el siguiente texto:</p>','body_html'=>'<p>¿Está seguro de que desea [OPCION]? Para confirmar, escriba <strong>[CONFIRMACION]</strong>.</p>','input_label'=>'Campo de confirmación','input_placeholder'=>'Escribí el texto indicado en mayúsculas','cancel_label'=>'Cancelar','background'=>'#ffffff','text_color'=>'#243247','max_width'=>720,'buttons_layout'=>'ROW');}
+    public static function confirmationDefaults(string $language='es'): array {return \EIPSI\I18n\ContentDefaults::get('confirmation',$language);}
     private static function hoverColor(string $color): string {$rgb=array(hexdec(substr($color,1,2)),hexdec(substr($color,3,2)),hexdec(substr($color,5,2)));$light=array_sum($rgb)>380;$result='#';foreach($rgb as $v)$result.=sprintf('%02x',(int)round($light?$v*.85:$v+(255-$v)*.2));return $result;}
     public static function withdrawalPhrase(array $w,string $mode): string {
         $text=$w[$mode==='RETAIN_FOR_ANALYSIS'?'retain_label':'delete_label'];
         return function_exists('mb_strtoupper')?mb_strtoupper($text,'UTF-8'):strtoupper($text);
     }
-    public static function withdrawalCompletion(array $w,string $mode): string {
-        $label=$w[$mode==='RETAIN_FOR_ANALYSIS'?'retain_label':'delete_label']??($mode==='RETAIN_FOR_ANALYSIS'?'Conservar datos':'Eliminar datos');
-        $body=self::html($w['completion_html']??'<h2>Tu participación terminó</h2><p>Registramos tu decisión: <strong>[OPCION]</strong>. Gracias por participar.</p>');
+    public static function withdrawalCompletion(array $w,string $mode,string $language='es'): string {
+        $defaults=self::defaults($language)['withdrawal'];$w=array_replace($defaults,$w);$label=$w[$mode==='RETAIN_FOR_ANALYSIS'?'retain_label':'delete_label'];
+        $body=self::html($w['completion_html']??$defaults['completion_html']);
         return preg_replace_callback('/\[(opcion|confirmacion)\](?=[^<>]*(?:<|$))/i',static function($m)use($label,$w,$mode){return htmlspecialchars(strtolower($m[1])==='opcion'?$label:self::withdrawalPhrase($w,$mode),ENT_QUOTES,'UTF-8');},$body);
     }
     public const VARIABLES=array('study_name'=>'Nombre del estudio','assessment_name'=>'Evaluación de esta oportunidad','available_time'=>'Fecha y hora de disponibilidad, en la zona del participante','due_time'=>'Fecha y hora de vencimiento','direct_link'=>'Enlace personal para validar y acceder al estado actual','withdrawal_link'=>'Enlace para las opciones de abandono');

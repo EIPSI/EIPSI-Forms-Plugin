@@ -19,7 +19,45 @@
         else if(!['EMAIL_ENTRY','EMAIL_VERIFICATION_REQUIRED'].includes(state))url.searchParams.delete('eipsi_initial');
         if(url.href!==window.location.href)window.history.replaceState(window.history.state,'',url);
     };
-    const ready=()=>{const content=document.getElementById('eipsi-study');reloadDestination(content);if(content)window.EIPSIStudyInteraction.present(content);};
+    // Same-origin Native assessments grow with their content; the outer page scrolls.
+    const frameObservers = new WeakMap();
+    const fitAssessment = frame => {
+        if (!frame.matches?.('.eipsi-native-assessment-frame')) return;
+        frameObservers.get(frame)?.();
+        let doc;
+        try { doc = frame.contentDocument; if (!doc?.body) return; }
+        catch (_) { return; }
+        doc.documentElement.style.minHeight = '0';
+        doc.body.style.minHeight = '0';
+        let scheduled = 0;
+        const resize = () => {
+            if (scheduled) return;
+            scheduled = window.requestAnimationFrame(() => {
+                scheduled = 0;
+                if (!frame.isConnected) { cleanup(); return; }
+                const body = doc.body;
+                const bottom = Math.max(body.getBoundingClientRect().bottom,
+                    ...Array.from(body.children, child => child.getBoundingClientRect().bottom));
+                const height = Math.ceil(bottom + frame.contentWindow.scrollY + parseFloat(frame.contentWindow.getComputedStyle(body).marginBottom || 0));
+                if (height > 0 && frame.style.height !== height + 'px') frame.style.height = height + 'px';
+            });
+        };
+        const observer = new ResizeObserver(resize);
+        observer.observe(doc.body);
+        const mutation = new MutationObserver(resize);
+        mutation.observe(doc.body, {childList:true, subtree:true, attributes:true, characterData:true});
+        const cleanup = () => {
+            observer.disconnect(); mutation.disconnect();
+            window.cancelAnimationFrame(scheduled);
+            doc.removeEventListener('load', resize, true);
+        };
+        frameObservers.set(frame, cleanup);
+        doc.addEventListener('load', resize, true);
+        doc.fonts?.ready.then(resize);
+        resize();
+    };
+    document.addEventListener('load', event => fitAssessment(event.target), true);
+    const ready=()=>{const content=document.getElementById('eipsi-study');reloadDestination(content);if(content){window.EIPSIStudyInteraction.present(content);content.querySelectorAll('.eipsi-native-assessment-frame').forEach(fitAssessment);}};
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
     const showOperationError=(root,text)=>{
                 let notices=root.querySelector('.eipsi-portal-notices');

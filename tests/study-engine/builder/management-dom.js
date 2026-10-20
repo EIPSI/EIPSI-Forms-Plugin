@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('fs'),path=require('path'),assert=require('assert/strict'),{JSDOM}=require('jsdom'),{webcrypto}=require('crypto');
-const root=path.resolve(__dirname,'../../..'),dom=new JSDOM('<div id="root"></div>',{url:'https://local.invalid/',runScripts:'outside-only'}),w=dom.window;Object.defineProperty(w,'crypto',{value:webcrypto});w.confirm=()=>true;w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.remove();};
+const root=path.resolve(__dirname,'../../..'),dom=new JSDOM('<div id="root"></div>',{url:'https://local.invalid/',runScripts:'outside-only'}),w=dom.window;
+require("../../i18n1b/admin-language.js")(dom.window);Object.defineProperty(w,'crypto',{value:webcrypto});w.confirm=()=>true;w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.remove();};
 JSON.parse(fs.readFileSync(path.join(root,'src/admin/study-builder/manifest.json'))).entry_order.forEach(f=>w.eval(fs.readFileSync(path.join(root,'src/admin/study-builder',f),'utf8')));
 const B=w.EIPSIBuilder,host=w.document.getElementById('root'),plain=v=>JSON.parse(JSON.stringify(v));let tests=0,failures=0;
 async function test(name,fn){tests++;try{await fn();console.log('PASS '+name);}catch(e){failures++;console.log('FAIL '+name+': '+e.stack);}}

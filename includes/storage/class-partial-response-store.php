@@ -9,8 +9,7 @@ public static function save($form_id, $participant_id, $session_id, $page_index,
 
             $table_name = $wpdb->prefix . 'eipsi_partial_responses';
 
-            error_log(sprintf('[EIPSI SAVE&CONTINUE] save() called: form_id=%s, participant_id=%s, session_id=%s, page_index=%d, response_count=%d',
-                $form_id, $participant_id, $session_id, $page_index, is_array($responses) ? count($responses) : 0));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L12'), 'debug');
 
             // Sanitize inputs
             $form_id = sanitize_text_field($form_id);
@@ -20,7 +19,7 @@ public static function save($form_id, $participant_id, $session_id, $page_index,
 
             // Validate
             if (empty($form_id) || empty($participant_id) || empty($session_id)) {
-                error_log('[EIPSI SAVE&CONTINUE] save() validation failed: missing required fields');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L23'), 'debug');
                 return array(
                     'success' => false,
                     'error' => 'Missing required fields'
@@ -55,14 +54,14 @@ public static function save($form_id, $participant_id, $session_id, $page_index,
             $result = $wpdb->query($sql);
 
             if ($result === false) {
-                error_log(sprintf('[EIPSI SAVE&CONTINUE] save() DB error: %s', $wpdb->last_error));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L58'), 'debug');
                 return array(
                     'success' => false,
                     'error' => $wpdb->last_error
                 );
             }
 
-            error_log(sprintf('[EIPSI SAVE&CONTINUE] save() DB query result: %d rows affected', $result));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L65'), 'debug');
 
             // Get the ID (either inserted or updated)
             $record_id = $wpdb->get_var($wpdb->prepare(
@@ -74,7 +73,7 @@ public static function save($form_id, $participant_id, $session_id, $page_index,
             ));
 
             $action = $record_id ? ($result > 0 ? 'inserted' : 'updated') : 'updated';
-            error_log(sprintf('[EIPSI SAVE&CONTINUE] save() success: action=%s, record_id=%d', $action, $record_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L77'), 'debug');
 
             return array(
                 'success' => true,
@@ -88,8 +87,7 @@ public static function load($form_id, $participant_id, $session_id) {
 
             $table_name = $wpdb->prefix . 'eipsi_partial_responses';
 
-            error_log(sprintf('[EIPSI SAVE&CONTINUE] load() called: form_id=%s, participant_id=%s, session_id=%s',
-                $form_id, $participant_id, $session_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L91'), 'debug');
 
             $result = $wpdb->get_row($wpdb->prepare(
                 "SELECT * FROM $table_name
@@ -102,12 +100,11 @@ public static function load($form_id, $participant_id, $session_id) {
             ));
 
             if (!$result) {
-                error_log('[EIPSI SAVE&CONTINUE] load() result: no partial response found');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L105'), 'debug');
                 return null;
             }
 
-            error_log(sprintf('[EIPSI SAVE&CONTINUE] load() result: found record id=%d, page_index=%d, updated_at=%s',
-                $result->id, $result->page_index, $result->updated_at));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L109'), 'debug');
 
             return array(
                 'id' => $result->id,
@@ -126,8 +123,7 @@ public static function mark_completed($form_id, $participant_id, $session_id) {
 
             $table_name = $wpdb->prefix . 'eipsi_partial_responses';
 
-            error_log(sprintf('[EIPSI SAVE&CONTINUE] mark_completed() called: form_id=%s, participant_id=%s, session_id=%s',
-                $form_id, $participant_id, $session_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L129'), 'debug');
 
             $result = $wpdb->update(
                 $table_name,
@@ -145,9 +141,9 @@ public static function mark_completed($form_id, $participant_id, $session_id) {
             );
 
             if ($result !== false) {
-                error_log(sprintf('[EIPSI SAVE&CONTINUE] mark_completed() success: %d rows updated', $result));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L148'), 'debug');
             } else {
-                error_log(sprintf('[EIPSI SAVE&CONTINUE] mark_completed() failed: %s', $wpdb->last_error));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L150'), 'debug');
             }
 
             return $result !== false;
@@ -158,8 +154,7 @@ public static function discard($form_id, $participant_id, $session_id) {
 
             $table_name = $wpdb->prefix . 'eipsi_partial_responses';
 
-            error_log(sprintf('[EIPSI SAVE&CONTINUE] discard() called: form_id=%s, participant_id=%s, session_id=%s',
-                $form_id, $participant_id, $session_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L161'), 'debug');
 
             $result = $wpdb->delete(
                 $table_name,
@@ -172,9 +167,9 @@ public static function discard($form_id, $participant_id, $session_id) {
             );
 
             if ($result !== false) {
-                error_log(sprintf('[EIPSI SAVE&CONTINUE] discard() success: %d rows deleted', $result));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L175'), 'debug');
             } else {
-                error_log(sprintf('[EIPSI SAVE&CONTINUE] discard() failed: %s', $wpdb->last_error));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L177'), 'debug');
             }
 
             return $result !== false;
@@ -185,14 +180,14 @@ public static function cleanup_old_responses() {
 
             $table_name = $wpdb->prefix . 'eipsi_partial_responses';
 
-            error_log('[EIPSI SAVE&CONTINUE] cleanup_old_responses() called');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L188'), 'debug');
 
             $result = $wpdb->query("
                 DELETE FROM $table_name
                 WHERE updated_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
             ");
 
-            error_log(sprintf('[EIPSI SAVE&CONTINUE] cleanup_old_responses() deleted %d old records', intval($result)));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_partial_response_store_L195'), 'debug');
 
             return intval($result);
         }

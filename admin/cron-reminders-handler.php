@@ -55,7 +55,7 @@ add_action('eipsi_send_dropout_recovery_hourly', 'eipsi_send_dropout_recovery_ho
  * @deprecated 1.4.2 Use eipsi_send_wave_reminders_hourly instead
  */
 function eipsi_send_take_reminders_daily() {
-    error_log('[EIPSI Cron] Legacy daily reminders triggered (deprecated)');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'cron_reminders_handler_L58'), 'debug');
 }
 add_action('eipsi_send_take_reminders_daily', 'eipsi_send_take_reminders_daily');
 
@@ -66,7 +66,7 @@ add_action('eipsi_send_take_reminders_daily', 'eipsi_send_take_reminders_daily')
  * @deprecated 1.4.2 Use eipsi_send_wave_reminders_hourly instead
  */
 function eipsi_send_take_reminders_weekly() {
-    error_log('[EIPSI Cron] Legacy weekly reminders triggered (deprecated)');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'cron_reminders_handler_L69'), 'debug');
 }
 add_action('eipsi_send_take_reminders_weekly', 'eipsi_send_take_reminders_weekly');
 
@@ -161,7 +161,7 @@ function eipsi_run_reminders_cron_handler() {
     // Get selected study ID from request
     $study_id = isset($_POST['study_id']) ? intval($_POST['study_id']) : 0;
     
-    error_log('[EIPSI] Manual cron execution triggered by user' . ($study_id ? " for study {$study_id}" : ''));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'cron_reminders_handler_L164'), 'debug');
 
     global $wpdb;
     
@@ -219,7 +219,7 @@ function eipsi_run_reminders_cron_handler() {
         $headers = array('Content-Type: text/html; charset=UTF-8');
         $test_email_sent = wp_mail($investigator_email, $test_subject, nl2br($test_message), $headers);
 
-        error_log("[EIPSI] Test email sent to investigator: {$investigator_email} - Result: " . ($test_email_sent ? 'SUCCESS' : 'FAILED'));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'cron_reminders_handler_L222'), 'debug');
     }
 
     // Get last cron logs
@@ -281,7 +281,7 @@ function eipsi_clear_rate_limits_handler() {
          OR option_name LIKE '_transient_timeout_eipsi_reminder_%'"
     );
 
-    error_log('[EIPSI] Rate limits cleared by user. Deleted: ' . ($deleted !== false ? $deleted : 0));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'cron_reminders_handler_L284'), 'debug');
 
     wp_send_json_success(array(
         'message' => __('Rate limits cleared. You can now test again.', 'eipsi-forms'),
@@ -331,7 +331,7 @@ function eipsi_schedule_job_worker() {
     if (!$timestamp) {
         $result = wp_schedule_event(time(), 'every_5_minutes', $hook);
         if ($result !== false) {
-            error_log('[EIPSI JobWorker] Scheduled job worker cron');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'cron_reminders_handler_L334'), 'debug');
         }
     }
 }
@@ -420,7 +420,7 @@ function eipsi_ajax_trigger_cron() {
         wp_send_json_error('Invalid cron hook');
     }
     
-    error_log("[EIPSI Manual Cron] Triggering: {$hook} for study_id={$study_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'cron_reminders_handler_L423'), 'debug');
     
     do_action($hook);
     

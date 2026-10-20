@@ -129,7 +129,7 @@
     const tools = document.createElement("div");
     tools.className = "ae-rich-toolbar";
     tools.setAttribute("role", "toolbar");
-    tools.setAttribute("aria-label", "Formato: " + label);
+    tools.setAttribute("aria-label", root.EIPSIAdminI18n.f('Formatting: %s',label));
     const input = render(p, key);
     input.setAttribute("contenteditable", "true");
     input.tabIndex = 0;
@@ -192,11 +192,11 @@
       tools.append(b);
     }
     [
-      ["Negrita", "bold"],
-      ["Cursiva", "italic"],
-      ["Subrayado", "underline"],
-      ["Lista", "insertUnorderedList"],
-      ["Lista numerada", "insertOrderedList"],
+      [root.EIPSIAdminI18n.t("Bold"), "bold"],
+      [root.EIPSIAdminI18n.t("Italic"), "italic"],
+      [root.EIPSIAdminI18n.t("Underline"), "underline"],
+      [root.EIPSIAdminI18n.t("List"), "insertUnorderedList"],
+      [root.EIPSIAdminI18n.t("Numbered list"), "insertOrderedList"],
     ].forEach(([label, cmd]) =>
       button(label, () => {
         restore();
@@ -204,22 +204,22 @@
         update();
       }),
     );
-    button("Título", () => {
+    button(root.EIPSIAdminI18n.t("Title"), () => {
       restore();
       if (document.execCommand)
         document.execCommand("formatBlock", false, "h3");
       update();
     });
-    button("Párrafo", () => {
+    button(root.EIPSIAdminI18n.t("Paragraph"), () => {
       restore();
       if (document.execCommand) document.execCommand("formatBlock", false, "p");
       update();
     });
-    button("Imagen", () => {
+    button(root.EIPSIAdminI18n.t("Image"), () => {
       remember();
       if (root.wp?.media) {
         const media = root.wp.media({
-          title: "Insertar imagen",
+          title: root.EIPSIAdminI18n.t("Insert image"),
           multiple: false,
           library: { type: "image" },
         });
@@ -238,7 +238,7 @@
         );
         media.open();
       } else {
-        const url = root.prompt("URL de imagen (https://…)");
+        const url = root.prompt(root.EIPSIAdminI18n.t("Image URL (https://…)"));
         if (url && safeURL(url, true)) {
           const img = document.createElement("img");
           img.src = url;
@@ -252,9 +252,9 @@
       if (document.execCommand) document.execCommand(cmd, false, null);
       update();
     }
-    button("Deshacer", () => command("undo"));
-    button("Rehacer", () => command("redo"));
-    button("Limpiar formato", () => command("removeFormat"));
+    button(root.EIPSIAdminI18n.t("Undo"), () => command("undo"));
+    button(root.EIPSIAdminI18n.t("Redo"), () => command("redo"));
+    button(root.EIPSIAdminI18n.t("Clear formatting"), () => command("removeFormat"));
     input.oninput = update;
     input.onkeyup = remember;
     input.onmouseup = remember;
@@ -285,12 +285,13 @@
     overlay.className = "ae-rich-overlay";
     const dialog = document.createElement("section");
     dialog.className = "ae-rich-modal";
+    dialog.lang = root.EIPSIAdminI18n.language;
     dialog.setAttribute("role", "dialog");
     dialog.setAttribute("aria-modal", "true");
-    dialog.setAttribute("aria-label", "Formato enriquecido: " + label);
+    dialog.setAttribute("aria-label", root.EIPSIAdminI18n.f('Rich formatting: %s',label));
     dialog.tabIndex = -1;
     const title = document.createElement("h2");
-    title.textContent = "Formato enriquecido — " + label;
+    title.textContent = root.EIPSIAdminI18n.f('Rich formatting — %s',label);
     const draft = { ...p },
       body = richBody(draft, key, label, () => {}),
       actions = document.createElement("div");
@@ -304,11 +305,11 @@
     editorTools.className = "ae-rich-modes";
     const htmlButton = document.createElement("button");
     htmlButton.type = "button";
-    htmlButton.textContent = "Editar HTML";
+    htmlButton.textContent = root.EIPSIAdminI18n.t("Edit HTML");
     htmlButton.setAttribute("aria-pressed", "false");
     const source = document.createElement("textarea");
     source.className = "ae-html-source";
-    source.setAttribute("aria-label", "Código HTML");
+    source.setAttribute("aria-label", root.EIPSIAdminI18n.t("HTML code"));
     source.spellcheck = false;
     source.rows = 12;
     source.hidden = true;
@@ -332,35 +333,35 @@
       body.hidden = htmlMode;
       linkButton.disabled = htmlMode;
       linkPanel.hidden = true;
-      htmlButton.textContent = htmlMode ? "Volver a visual" : "Editar HTML";
+      htmlButton.textContent = htmlMode ? root.EIPSIAdminI18n.t("Back to visual") : root.EIPSIAdminI18n.t("Edit HTML");
       htmlButton.setAttribute("aria-pressed", String(htmlMode));
       if (htmlMode) source.focus();
       else {const ed = classicId && root.tinymce?.get(classicId); if(ed) ed.focus(); else body.querySelector('textarea,[contenteditable="true"]')?.focus();}
     };
     const linkButton = document.createElement("button");
     linkButton.type = "button";
-    linkButton.textContent = "Insertar o editar enlace";
+    linkButton.textContent = root.EIPSIAdminI18n.t("Insert or edit link");
     const linkPanel = document.createElement("fieldset");
     linkPanel.className = "ae-link-panel";
     linkPanel.hidden = true;
-    const legend = document.createElement("legend"); legend.textContent = "Enlace";
+    const legend = document.createElement("legend"); legend.textContent = root.EIPSIAdminI18n.t("Link");
     function linkField(label) {
       const row = document.createElement("label"), input = document.createElement("input");
       row.textContent = label; input.type = "text"; input.setAttribute("aria-label",label); row.append(input); linkPanel.append(row); return input;
     }
     linkPanel.append(legend);
-    const linkURL = linkField("URL del enlace"), linkText = linkField("Texto del enlace"), linkError = document.createElement("p");
+    const linkURL = linkField(root.EIPSIAdminI18n.t("Link URL")), linkText = linkField(root.EIPSIAdminI18n.t("Link text")), linkError = document.createElement("p");
     linkURL.placeholder = "https://…";
     linkError.setAttribute("role", "alert");
     const insertLink = document.createElement("button"), cancelLink = document.createElement("button");
     insertLink.type = cancelLink.type = "button";
-    insertLink.textContent = "Aplicar enlace"; cancelLink.textContent = "Cancelar enlace";
+    insertLink.textContent = root.EIPSIAdminI18n.t("Apply link"); cancelLink.textContent = root.EIPSIAdminI18n.t("Cancel link");
     let bookmark = null, linkRange = null, selectedHTML = "", originalText = "";
     linkButton.onmousedown = event => event.preventDefault();
     linkButton.onclick = () => {
       const ed = classicId && root.tinymce?.get(classicId), input = body.querySelector('[contenteditable="true"]');
       let anchor = null;
-      if (classicId && !ed) {linkPanel.hidden = false; linkError.textContent = "El editor visual todavía se está cargando. Volvé a intentarlo."; return;}
+      if (classicId && !ed) {linkPanel.hidden = false; linkError.textContent = root.EIPSIAdminI18n.t("The visual editor is still loading. Try again."); return;}
       if (ed) {
         const node = ed.selection.getNode?.(); anchor = node?.closest?.("a");
         if (anchor) ed.selection.select(anchor);
@@ -383,7 +384,7 @@
     cancelLink.onclick = () => {linkPanel.hidden = true; linkButton.focus();};
     insertLink.onclick = () => {
       const url = linkURL.value.trim();
-      if (!url || !safeURL(url)) {linkError.textContent = "Ingresá una URL válida (https://…, http://…, mailto:… o una ruta relativa)."; linkURL.focus(); return;}
+      if (!url || !safeURL(url)) {linkError.textContent = root.EIPSIAdminI18n.t("Enter a valid URL (https://…, http://…, mailto:… or a relative path)."); linkURL.focus(); return;}
       const anchor = document.createElement("a"); anchor.setAttribute("href",url);
       anchor.innerHTML = linkText.value === originalText && selectedHTML ? sanitize(selectedHTML) : escaped(linkText.value || url);
       const html = sanitize(anchor.outerHTML), ed = classicId && root.tinymce?.get(classicId);
@@ -410,12 +411,12 @@
     }
     const cancel = document.createElement("button");
     cancel.type = "button";
-    cancel.textContent = "Cancelar";
+    cancel.textContent = root.EIPSIAdminI18n.t("Cancel");
     cancel.onclick = close;
     const apply = document.createElement("button");
     apply.type = "button";
     apply.className = "ae-primary";
-    apply.textContent = "Guardar formato";
+    apply.textContent = root.EIPSIAdminI18n.t("Save formatting");
     apply.onclick = () => {
       draft[key + "_html"] = readHTML();
       p[key + "_html"] = sanitize(
@@ -462,13 +463,13 @@
       textarea.value = draft[key + "_html"] ?? escaped(draft[key] || "");
       const imageButton = document.createElement("button");
       imageButton.type = "button";
-      imageButton.textContent = "Imagen · Media Library";
+      imageButton.textContent = root.EIPSIAdminI18n.t("Image · Media Library");
       imageButton.onclick = () => {
         if (!root.wp?.media) return;
         const ed = root.tinymce?.get(classicId),
           bookmark = ed?.selection.getBookmark(2, true),
           media = root.wp.media({
-            title: "Insertar imagen",
+            title: root.EIPSIAdminI18n.t("Insert image"),
             multiple: false,
             library: { type: "image" },
           });
@@ -506,7 +507,7 @@
           fontsize_formats: "10px 12px 14px 16px 18px 20px 24px 28px 32px 36px 48px 64px",
           formats: {bold: {inline:"strong"}, italic: {inline:"em"}, underline: {inline:"u"}, strikethrough: {inline:"s"}},
           content_style: "body{font-family:Arial,sans-serif;font-size:16px;line-height:1.5}img{max-width:100%;height:auto}strong,b{font-weight:700}em,i{font-style:italic}",
-          block_formats: "Párrafo=p;Título 2=h2;Título 3=h3;Título 4=h4;Título 5=h5;Título 6=h6;Código=pre",
+          block_formats: root.EIPSIAdminI18n.t("Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5;Heading 6=h6;Code=pre"),
           setup: (ed) => {
             ed.on("init", () => {
               if (closed) ed.remove();
@@ -589,8 +590,8 @@
       format.type = "button";
       format.className = "ae-format-button";
       format.textContent = "✎";
-      format.title = "Editar formato enriquecido";
-      format.setAttribute("aria-label", "Editar formato enriquecido: " + label);
+      format.title = root.EIPSIAdminI18n.t("Edit rich text formatting");
+      format.setAttribute("aria-label", root.EIPSIAdminI18n.f('Edit rich formatting: %s',label));
       format.onclick = (e) => {
         e.stopPropagation();
         openModal(p, key, label, () => {
@@ -605,7 +606,7 @@
     return box;
   }
   const variableErrors = root.EIPSIAssessmentVariables.errors;
-  function textMode(e, mode, format) {
+  function textMode(e, mode, format, language='es') {
     const p = e.properties;
     if (mode === "multiline") format = "free";
     if (format === "number") mode = "single";
@@ -630,7 +631,10 @@
     ])
       keep[k] = p[k];
     for(const key of ["required_message","validation_message"])if(p[key]!==undefined)keep[key]=p[key];
-    const next = { ...A.element(t).properties, ...keep };
+    const next = { ...A.element(t,{elements:[],content_language:language}).properties, ...keep };
+    const defaults=root.EIPSIContent.get('validation',language),oldFormat=p.content_type||e.type;
+    const oldDefault=defaults[oldFormat==='free'||oldFormat==='tel'?'text':oldFormat];
+    if(p.validation_message===oldDefault)next.validation_message=defaults[format==='free'||format==='tel'?'text':format];
     if (t === "number") {
       for (const k of ["min", "max", "step", "integer_only", "number_range_message"])
         if (p[k] !== undefined) next[k] = p[k];

@@ -1,123 +1,59 @@
 # EIPSI Forms
 
-## Estado del proyecto
+EIPSI Forms is a WordPress project by [EIPSI](https://equipoeipsi.com/) for creating assessments and running cross-sectional and longitudinal research studies. It brings questionnaire design, study planning, participant communication, and research data management into one place.
 
-Plugin en desarrollo activo. `origin/main` es la referencia de integración; `develop` contiene M0–M8 y la etapa de normalización S0–S4/S4.1 cerrada para nuevas features. T0 añade un gate CI básico; deploy institucional sigue condicionado. No se ha acreditado una rama estable para producción. Según el historial informado por el responsable, nunca existió una release pública v1.0. Las versiones heredadas del código no acreditan publicaciones.
+The goal is to let researchers build and review the participant experience visually, while keeping published assessments, study versions, and collected responses traceable.
 
-Gate local: `./tests/ci/run.sh fast` o `./tests/ci/run.sh full` (modo por defecto). [Setup, versiones, 1944 tests, incluidos contratos, simulador y persistencia Study Engine, smoke y regresiones de activación/storage, CI y límites](tests/ci/README.md).
+## Before your first study
 
-## Qué es
+Open **EIPSI Forms → Configuration** and review these essentials before collecting responses:
 
-Plugin de WordPress para construir formularios con Gutenberg y administrar estudios longitudinales, participantes, respuestas y comunicaciones.
+- **Interface language:** choose English or Spanish for the administration interface and initial default texts. You can edit participant-facing content in any language; existing content keeps its saved text.
+- **Storage and backups:** confirm where responses will be stored and arrange backups. You can use the WordPress database; if using external storage, prefer a dedicated database, test the connection, save it, and check the saved status.
+- **Email delivery:** for studies that use email, configure SMTP and the sender, send a test, and verify receipt. Review the Email Templates, including their links and variables.
+- **Scheduled work:** for timed evaluations and notifications, configure WP-Cron or an external scheduler and verify recorded executions. This is essential for longitudinal studies.
+- **Privacy:** review the identifying data and optional metadata you will collect before enrolling participants.
+- **Readiness:** check Schema Status, the study's time zone and timing, and its validation results. Try the simulation and the real public link with disposable data before activating recruitment.
 
-## Funcionalidades principales
+The external API is optional; configure it only if you need connected analysis tools. See the [configuration guide](docs/user-guide/configuration.md) for each setting.
 
-- Bloques de formularios, páginas, campos, escalas y consentimiento.
-- Biblioteca de formularios con importación/exportación JSON y compatibilidad con formatos anteriores.
-- Persistencia de respuestas, guardado parcial y almacenamiento de emergencia confirmado.
-- Estudios por waves, fechas relativas a T1 y dashboard del participante.
-- Sesiones de participantes, magic links, retiro del estudio y asignación a Pools.
-- Servicios de correo, recordatorios, nudges y tareas cron.
-- Administración y exportación de datos mediante recorridos existentes. Algunas acciones de UI siguen sin handler; consultar las limitaciones en [arquitectura](docs/architecture.md).
+## How it works
 
-## Arquitectura
+1. **Create an assessment.** Add questions, pages, instructions, response validation, and internal randomization in Assessment Editor.
+2. **Publish a version.** Saving keeps an editable draft; publishing fixes a version that a study can use.
+3. **Build a study.** Choose a cross-sectional or longitudinal design, select published assessment versions, and configure timing, randomization, and logical conditions.
+4. **Prepare the participant experience.** Edit the initial screen and emails where relevant, review validation results, and try the simulation.
+5. **Activate and share.** Publish the study, activate it, and share its public link. Participants see the study content without the website header or footer.
+6. **Follow the study and use its data.** Review participation, responses, communications, and audit records. Download datasets or connect an authorized R/Python workflow through the API.
 
-`eipsi-forms.php` conserva metadata y constantes y carga la composición en `includes/bootstrap/`. Registries específicos organizan hooks, assets, bloques, cron y lifecycle; las funciones globales y servicios de dominio conservan sus contratos. Coexisten recorridos actuales y legacy. M1 separó el bootstrap y M2 asignó ownership a Auth/Participants; M3 separó Forms/Submit y el runtime; M4 asignó ownership a Longitudinal; M5 y M6 asignan ownership a Notifications y Storage/Privacy/Export; M7 y M8 asignan ownership a Pools/Randomization y Schema/Migrations. Véase [arquitectura actual](docs/architecture.md).
+## Main sections
 
-La composición está en `includes/bootstrap/`; Auth y Participants tienen owners en `includes/auth/` e `includes/participants/`, con facades compatibles en `admin/services/`. Forms tiene owners en `includes/forms/`; el runtime clásico se compone desde `src/frontend/forms/manifest.json` durante `npm run build`, manteniendo `assets/js/eipsi-forms.js` como URL pública. Longitudinal tiene owners en `includes/longitudinal/`, con facades compatibles y un comando de submit; Notifications tiene owners en `includes/notifications/`; Storage, Privacy y Export tienen owners en `includes/storage/`, `includes/privacy/` e `includes/export/`.
+| Section | What it is for | Guide |
+| --- | --- | --- |
+| Configuration | Language, storage, SMTP, privacy, schema status, API, scheduler, and fallback messages | [Configuration](docs/user-guide/configuration.md) |
+| Email Templates | Reusable subjects and rich-text email bodies with study variables | [Emails](docs/user-guide/email-templates.md) |
+| Assessment Editor | Questions, pages, validation, appearance, previews, and published versions | [Assessments](docs/user-guide/assessments.md) |
+| Study Engine | Study design, scheduling, randomization, conditions, simulation, and publication | [Studies](docs/user-guide/studies.md) |
+| Study management | Participation, responses, audit, and consistent manual/API exports | [Data and management](docs/user-guide/data-and-api.md) |
 
-## Requisitos
+Start with [your first study](docs/user-guide/getting-started.md), or browse the [documentation index](docs/README.md).
 
-- WordPress: el header heredado declara 5.8; los bloques usan `apiVersion: 3`. La compatibilidad con versiones antiguas no está certificada. Referencia comprobada: WordPress 7.1.2.
-- PHP: mínimo declarado 7.4, con acceso mysqli para las pruebas SQL. Referencia comprobada: PHP 8.3.35; no hay una matriz completa de compatibilidad.
-- MariaDB/MySQL con JSON y funciones de ventana (`ROW_NUMBER()`); MySQL 8.0 o MariaDB 10.2 son el piso técnico por esas funciones, no una matriz certificada. MySQL 5.7 no alcanza para este último recorrido. MariaDB 11 es la referencia comprobada. El usuario de base necesita permisos de creación y modificación de schema durante instalación/migraciones.
-- Build: Node compatible con las dependencias bloqueadas; `jsdom` admite Node 20.x desde 20.19, 22.x desde 22.12 o versiones 24+. Referencia comprobada: Node 22.23.3 / npm 10.9.9. Node/npm no son necesarios para ejecutar un build ya generado.
+## Language and content
 
-Los mínimos históricos declarados no equivalen a compatibilidad funcional validada.
+The administration interface is available in **English** (default) and **Spanish**, selected in Configuration. This setting also supplies the initial default texts for new content; it does not limit the language of your research.
 
-## Instalación para desarrollo
+You can write and edit participant-facing content in **any language**, including assessment questions, instructions, buttons, messages, study screens, and email templates. Changing the interface language does not translate existing content or published versions.
 
-Ubicar este repositorio en `wp-content/plugins/EIPSI-Forms-Plugin`, instalar dependencias y generar los bloques antes de activar el plugin. La activación crea/verifica el schema; usar una base descartable para pruebas de instalación. Véase [desarrollo](docs/development.md).
+Participant-facing text is edited in its corresponding section: assessment messages in Assessment Editor, study messages in Study Engine, and email content in Email Templates.
 
-## Build Gutenberg
+## Technologies
 
-```sh
-npm ci --no-audit --no-fund
-npm run build
-```
+EIPSI Forms runs inside WordPress. It uses PHP for server-side operations, JavaScript and CSS for its visual editors and participant interface, WordPress editor/media tools for rich content, and MySQL/MariaDB for persistence. Its external API supports authorized connections to analysis tools such as R and Python.
 
-El proceso ejecuta `wp-scripts`, corrige referencias CSS de los metadatos y compone el runtime Forms clásico. Debe generar `build/blocks/` con 13 bloques. `build/` y `node_modules/` están ignorados por Git.
+For installation, builds, and automated checks, see the [developer setup](docs/development.md) and [test guide](tests/ci/README.md). These details are separate from the user guides.
 
-## Tests
+## Project and license
 
-| Suite | Pruebas |
-|---|---:|
-| P0 | 22 |
-| P1-A | 40 |
-| P1-B | 40 |
-| P1-C | 45 |
-| M0 | 36 |
-| M1 | 31 |
-| M2 | 54 |
-| M3 | 80 |
-| M4 | 55 |
-| Total | 403 |
+Maintained by [EIPSI](https://equipoeipsi.com/). Source code and issue tracking: [GitHub](https://github.com/EIPSI/EIPSI-Forms-Plugin).
 
-Comandos y límites en [testing](docs/testing.md). Nueve pruebas M0 caracterizan discrepancias UI→handler: pasar esas pruebas no demuestra que esas acciones funcionen.
-
-## Entorno local Docker
-
-El workspace usa `wp-eco-wordpress-1` y `wp-eco-db-1`. M0 usa una instalación independiente, `eipsi-m0-wordpress` / `eipsi-m0-db`, con puerto local 18080, correo interceptado y cron automático desactivado. [Instrucciones reproducibles y aislamiento](tests/m0/README.md).
-
-## Ramas
-
-- `main` / `origin/main`: referencia de integración; no implica release ni certificación de producción.
-- `develop`: estabilización y desarrollo actual.
-- `feature/*`: convención propuesta para cambios acotados a partir de `develop`.
-
-## Versionado
-
-PHP/header/constante/assets usan `2.6.1`; npm y lockfile usan `1.5.5`. Son numeraciones internas heredadas sin política pública demostrada. Se preservan sin renumeración arbitraria. Las versiones JSON describen formatos, no releases del plugin.
-
-Política propuesta: acordar una única versión del plugin antes de publicar, alinear los metadatos de distribución y registrar cada publicación con tag, artefacto reproducible, changelog y validación. Hasta entonces, identificar trabajo por rama y commit. El número de la primera release pública queda pendiente de decisión; no se declara aquí. [Evidencia y política](docs/development.md).
-
-## Licencia
-
-GPL-2.0-or-later según los metadatos del proyecto. Se conserva la [licencia GPL](LICENSE).
-
-## Estado de madurez
-
-P0/P1, M0–M8, PURGA FINAL y normalización S0–S4/S4.1 completados. T0 incorpora CI mínimo. Persisten deuda UI, recorridos legacy y límites de cron/exportación; E2E completo y un proceso de releases quedan fuera del gate diario. Las pruebas actuales no certifican preparación para producción institucional.
-
-Notifications tiene owners en `includes/notifications/` para policy, scheduling, queue/worker, email/templates/logs y reminders; las APIs históricas delegan conservando firmas. [Arquitectura](docs/architecture.md) y [pruebas M5](tests/m5/README.md).
-
-M6 separa persistencia, CapturePolicy/cleanup y datasets/files/download, manteniendo facades y cobertura local incompleta. Véanse [pruebas M6](tests/m6/README.md) y [arquitectura](docs/architecture.md).
-
-
-Pools and Randomization domain owners live in `includes/pools/` and `includes/randomization/`; historical callback files remain compatibility facades. See [architecture](docs/architecture.md) and [M7 tests](tests/m7/README.md).
-
-Schema actual y upgrades tienen owners en `includes/schema/`, `includes/migrations/` e `includes/storage/external/`. Véase [schema y migraciones](docs/schema.md) y [pruebas M8](tests/m8/README.md).
-
-## Study Engine P1-D
-
-Persistencia interna y Execution Owner: [contrato técnico](docs/study-engine/persistence-execution.md). Nuevos runners `tests/run-study-engine-persistence-unit.php` (30 puros) y `tests/run-study-engine-persistence.php` (85 MariaDB). Cierre histórico P1-D: **1440 únicos (1372 PHP + 68 JS)**; FAST P1-D: 1432. Sin endpoints/UI/SMTP ni conversión legacy.
-
-## Study Engine P1-E
-
-Slice público/anónimo opt-in: [Content Adapter y runtime cross-sectional](docs/study-engine/content-cross-sectional.md). Snapshot pinneado, recuperación HttpOnly, páginas/conditions/order del engine y Storage local+journal en la misma transacción. 44 tests de contenido,66 HTTP/DB y10 DOM nuevos; FULL1560 únicos (1482 PHP+78 JS), FAST1552. Sin migración legacy, emails, workflow longitudinal ni Builder.
-
-## Study Engine P1-F
-
-[Acceso longitudinal y notificaciones](docs/study-engine/longitudinal-access-notifications.md): EMAIL_LONGITUDINAL opt-in, identidad Study-scoped, sesiones provisionales/autenticadas, capabilities de un uso, verificación y outbox integrado a S2. P1-F agrega 123 DB/HTTP y 6 DOM; FULL 1689 únicos (1605 PHP +84 JS), FAST 1681. Retiro completo y Builder quedan fuera de esta fase. Deploy requiere keyrings, HTTPS, cron y validación operacional de SMTP.
-
-## Study Engine P1-G
-
-[Retiro, privacidad y export](docs/study-engine/withdrawal-privacy-export.md): B1/B2 con AccessContext, exclusión analítica inmediata y cleanup local recuperable. Adapter de export versionado, coverage y tombstones explícitos. Agrega 106 únicos (12 PHP puros +84 DB/HTTP +10 DOM); FULL 1795 (1701 PHP +94 JS), FAST 1787. Sin Builder/P1-H; deploy condicionado a upgrade v14, secrets, HTTPS y cron.
-
-## P1-H — Visual Study Builder
-
-El Builder administrativo añade 124 casos (51 DB/API/HTTP, 33 puros, 40 DOM). Total vigente FULL: **1919 únicos: 1785 PHP +134 JS**; FAST: **1911**. Gate estricto RCT, build, clean smoke y lifecycle verdes. Los totales anteriores documentan fases históricas. [Arquitectura, uso, límites y verificación](docs/study-engine/study-builder.md). Sin migración legacy automática ni certificación institucional/SMTP real.
-
-## P1-I — piloto y operación (abierto)
-
-FULL vigente **1944 únicos:1810 PHP +134 JS**, FAST1936; añade25 casos de integración (10 Builder→runtime→export,5 canje HTTP,10 operación). GET de email ya no consume la capability: requiere confirmación POST explícita tras redirect limpio. Gate/RCT/build/smoke/lifecycle verdes. **P1-I no cerrado: smoke humano Builder/participante/accesibilidad/visual pendiente por decisión del responsable.** Readiness: CONDITIONAL GO sólo tras checklist operacional y humano; no deploy institucional certificado. [Evidencias de alcance, runbook y límites](docs/study-engine/pilot-readiness.md). Sin commit/push/tag/release.
+Licensed under [GPL-2.0-or-later](LICENSE).

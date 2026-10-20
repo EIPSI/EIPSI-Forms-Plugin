@@ -27,6 +27,7 @@ function pf_link($mail,$purpose=0){preg_match_all('/href="([^"]+)"/',$mail['mess
 function pf_dispatch($frame,$kind,$data=array(),$id=null){$view=pf_owner()->view($frame['access']['execution_id']);$r=pf_owner()->dispatch($frame['access']['execution_id'],array('id'=>$id??'F_CMD_'.bin2hex(random_bytes(6)),'kind'=>$kind,'expected_revision'=>$view['revision'],'data'=>$data));pe_assert(isset($r['revision']),Canonical::json($r));return $r;}
 /** Follow the transparent cookie handoff by default; raw exchange remains available for assertions. */
 function pf_http($public,$cookies=array(),$body=null,$cap=null,$headers=array(),$confirm=true){
+ if(is_file(ABSPATH.'wp-content/sec1-test-clock'))file_put_contents(ABSPATH.'wp-content/sec1-test-clock',(string)strtotime($GLOBALS['pf_now']));
  if($cap===null)return pe_http($public,$cookies,$body,$headers);
  $r=wp_remote_get('http://127.0.0.1/?eipsi_study='.rawurlencode($public).'&eipsi_cap='.rawurlencode($cap),array('timeout'=>15,'redirection'=>0,'headers'=>array_merge(array('Host'=>'127.0.0.1:18080','Accept'=>'application/json'),$headers),'cookies'=>$cookies));pe_assert(!is_wp_error($r),'HTTP failed');
  $out=array('status'=>wp_remote_retrieve_response_code($r),'cookies'=>wp_remote_retrieve_cookies($r),'headers'=>wp_remote_retrieve_headers($r),'body'=>wp_remote_retrieve_body($r),'data'=>json_decode(wp_remote_retrieve_body($r),true));

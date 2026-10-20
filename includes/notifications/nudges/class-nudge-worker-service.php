@@ -131,12 +131,7 @@ public static function execute_nudge_0($payload) {
             global $wpdb;
 
             // Log ANTES del update
-            error_log(sprintf(
-                '[EIPSI STATE TRANSITION] BEFORE UPDATE: assignment=%d, reminder_count=%d, status=%s',
-                $assignment_id,
-                $assignment->reminder_count,
-                $assignment->status
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L134'), 'debug');
 
             $rows_affected = $wpdb->update(
                 $wpdb->prefix . 'survey_assignments',
@@ -150,12 +145,7 @@ public static function execute_nudge_0($payload) {
             );
 
             // Log DESPUÉS del update
-            error_log(sprintf(
-                '[EIPSI STATE TRANSITION] AFTER UPDATE: assignment=%d, reminder_count=1, rows_affected=%d, last_nudge_sent_at=%s',
-                $assignment_id,
-                $rows_affected,
-                current_time('mysql')
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L153'), 'debug');
 
             // Verificar que el update funcionó
             $updated_assignment = $wpdb->get_row($wpdb->prepare(
@@ -163,29 +153,15 @@ public static function execute_nudge_0($payload) {
                 $assignment_id
             ));
 
-            error_log(sprintf(
-                '[EIPSI STATE VERIFICATION] assignment=%d, reminder_count=%d, status=%s',
-                $assignment_id,
-                $updated_assignment ? $updated_assignment->reminder_count : 'NULL',
-                $updated_assignment ? $updated_assignment->status : 'NULL'
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L166'), 'debug');
 
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log(sprintf(
-                    '[EIPSI JobQueue] Nudge 0 email ENVIADO: assignment=%d, participant=%d, reminder_count=1 a las %s',
-                    $assignment_id,
-                    $assignment->participant_id,
-                    current_time('mysql')
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L174'), 'debug');
             }
             return array('success' => true, 'message' => 'Nudge 0 email sent successfully');
         } else {
             $reason = isset($result['reason']) ? $result['reason'] : 'unknown';
-            error_log(sprintf(
-                '[EIPSI JobQueue] Nudge 0 email FALLÓ: assignment=%d, reason=%s',
-                $assignment_id,
-                $reason
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L184'), 'debug');
             return array('success' => false, 'error' => $reason);
         }
     }
@@ -259,13 +235,7 @@ public static function execute_nudge_followup($payload, $stage) {
 
         if ($email_sent) {
             // Log ANTES del update
-            error_log(sprintf(
-                '[EIPSI STATE TRANSITION] NUDGE %d BEFORE UPDATE: assignment=%d, reminder_count=%d, status=%s',
-                $stage,
-                $assignment_id,
-                $assignment->reminder_count,
-                $assignment->status
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L262'), 'debug');
 
             // Actualizar contador solo si el email se envió realmente
             $rows_affected = $wpdb->update(
@@ -286,14 +256,7 @@ public static function execute_nudge_followup($payload, $stage) {
             );
 
             // Log DESPUÉS del update
-            error_log(sprintf(
-                '[EIPSI STATE TRANSITION] NUDGE %d AFTER UPDATE: assignment=%d, reminder_count=%d, rows_affected=%d, last_nudge_sent_at=%s',
-                $stage,
-                $assignment_id,
-                $stage + 1,
-                $rows_affected,
-                current_time('mysql')
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L289'), 'debug');
 
             // Verificar que el update funcionó
             $updated_assignment = $wpdb->get_row($wpdb->prepare(
@@ -301,13 +264,7 @@ public static function execute_nudge_followup($payload, $stage) {
                 $assignment_id
             ));
 
-            error_log(sprintf(
-                '[EIPSI STATE VERIFICATION] NUDGE %d: assignment=%d, reminder_count=%d, status=%s',
-                $stage,
-                $assignment_id,
-                $updated_assignment ? $updated_assignment->reminder_count : 'NULL',
-                $updated_assignment ? $updated_assignment->status : 'NULL'
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L304'), 'debug');
 
             // Invalidar cache
             if (class_exists('EIPSI_Nudge_Cache')) {
@@ -315,29 +272,18 @@ public static function execute_nudge_followup($payload, $stage) {
             }
 
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log(sprintf(
-                    '[EIPSI JobQueue] Nudge %d email ENVIADO: assignment=%d, participant=%d a las %s',
-                    $stage,
-                    $assignment_id,
-                    $full_assignment->participant_id,
-                    current_time('mysql')
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L318'), 'debug');
             }
 
             return array('success' => true, 'message' => "Nudge {$stage} email sent successfully");
         } else {
-            error_log(sprintf(
-                '[EIPSI JobQueue] Nudge %d email FALLÓ: assignment=%d, participant=%d',
-                $stage,
-                $assignment_id,
-                $full_assignment->participant_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L329'), 'debug');
             return array('success' => false, 'error' => 'Email sending failed');
         }
     }
 public static function execute_scheduled_nudge($args) {
         if (!is_array($args) || !isset($args['assignment_id']) || !isset($args['stage'])) {
-            error_log('[EIPSI EventScheduler] Invalid event arguments');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L340'), 'debug');
             return;
         }
 
@@ -356,7 +302,7 @@ public static function execute_scheduled_nudge($args) {
         ));
 
         if (!$assignment) {
-            error_log(sprintf('[EIPSI EventScheduler] Assignment %d no longer exists', $assignment_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L359'), 'debug');
             return;
         }
 
@@ -378,33 +324,16 @@ public static function execute_scheduled_nudge($args) {
         }
 
         if (defined('WP_DEBUG') || $is_catch_up) {
-            error_log(sprintf(
-                '[EIPSI EventScheduler] Executing scheduled nudge %d for assignment %d (now: %s, catch-up: %s)',
-                $stage,
-                $assignment_id,
-                date('Y-m-d H:i:s', $now),
-                $is_catch_up ? 'YES' : 'NO'
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L381'), 'debug');
         }
 
         // Log estado actual del assignment
-        error_log(sprintf(
-            '[EIPSI EventScheduler] Assignment %d state: status=%s, reminder_count=%d, expected_count=%d',
-            $assignment_id,
-            $assignment->status,
-            $assignment->reminder_count,
-            $stage
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L391'), 'debug');
 
         // Si ya completó la toma, no enviar
         if ($assignment->status !== 'pending') {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log(sprintf(
-                    '[EIPSI EventScheduler] Assignment %d is %s, skipping nudge %d',
-                    $assignment_id,
-                    $assignment->status,
-                    $stage
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L402'), 'debug');
             }
             return;
         }
@@ -412,10 +341,7 @@ public static function execute_scheduled_nudge($args) {
         // Verificar que reminders estén habilitados para follow-ups
         if ($stage > 0 && empty($assignment->follow_up_reminders_enabled)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log(sprintf(
-                    '[EIPSI EventScheduler] Follow-up reminders disabled for assignment %d',
-                    $assignment_id
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L415'), 'debug');
             }
             return;
         }
@@ -423,12 +349,7 @@ public static function execute_scheduled_nudge($args) {
         // Verificar stage correcto (no enviar nudge 2 si nunca se envió el 1)
         $expected_reminder_count = $stage; // Nudge 1 espera reminder_count = 1
         if (intval($assignment->reminder_count) != $expected_reminder_count) {
-            error_log(sprintf(
-                '[EIPSI EventScheduler] Invalid stage for assignment %d: expected reminder_count=%d, got %d',
-                $assignment_id,
-                $expected_reminder_count,
-                $assignment->reminder_count
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L426'), 'debug');
             return;
         }
 
@@ -455,19 +376,14 @@ public static function execute_scheduled_nudge($args) {
 
             if (!$locked_assignment) {
                 $wpdb->query('ROLLBACK');
-                error_log(sprintf('[EIPSI EventScheduler] Assignment %d no longer exists (locked check)', $assignment_id));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L458'), 'debug');
                 return;
             }
 
             // Verificar que sigue pendiente
             if ($locked_assignment->status !== 'pending') {
                 $wpdb->query('ROLLBACK');
-                error_log(sprintf(
-                    '[EIPSI EventScheduler] Assignment %d is %s (locked check), skipping nudge %d',
-                    $assignment_id,
-                    $locked_assignment->status,
-                    $stage
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L465'), 'debug');
                 return;
             }
 
@@ -478,13 +394,7 @@ public static function execute_scheduled_nudge($args) {
                 // Determinar si es duplicado o el anterior aún no terminó
                 if ($actual_count < $expected_reminder_count) {
                     // Nudge anterior aún no completó, re-encolar para 1 minuto (timing más cercano que 5 min)
-                    error_log(sprintf(
-                        '[EIPSI EventScheduler] LOCK: Nudge %d for assignment %d waiting - count is %d, expected %d. Re-enqueuing for 1 min',
-                        $stage,
-                        $assignment_id,
-                        $actual_count,
-                        $expected_reminder_count
-                    ));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L481'), 'debug');
 
                     EIPSI_Nudge_Job_Queue::enqueue(
                         "send_nudge_{$stage}",
@@ -500,13 +410,7 @@ public static function execute_scheduled_nudge($args) {
                     );
                 } else {
                     // Ya se envió este nudge (count > expected)
-                    error_log(sprintf(
-                        '[EIPSI EventScheduler] LOCK: Nudge %d for assignment %d already sent (count=%d > expected=%d)',
-                        $stage,
-                        $assignment_id,
-                        $actual_count,
-                        $expected_reminder_count
-                    ));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L503'), 'debug');
                 }
 
                 $wpdb->query('ROLLBACK');
@@ -528,11 +432,7 @@ public static function execute_scheduled_nudge($args) {
 
                 if ($result['success']) {
                     $wpdb->query('COMMIT');
-                    error_log(sprintf(
-                        '[EIPSI EventScheduler] LOCK: Nudge %d executed and COMMITTED for assignment %d',
-                        $stage,
-                        $assignment_id
-                    ));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L531'), 'debug');
 
                     // v2.5.4 - CATCH-UP: If this nudge was delayed, reschedule next nudge with proper interval from 'now'
                     if ($is_catch_up && $stage < 4) {
@@ -541,12 +441,7 @@ public static function execute_scheduled_nudge($args) {
                 } else {
                     // Falló el envío - rollback para que se reintente
                     $wpdb->query('ROLLBACK');
-                    error_log(sprintf(
-                        '[EIPSI EventScheduler] LOCK: Nudge %d FAILED for assignment %d: %s - ROLLBACK',
-                        $stage,
-                        $assignment_id,
-                        $result['error'] ?? 'unknown'
-                    ));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L544'), 'debug');
 
                     // Re-encolar para reintento en 1 minuto
                     EIPSI_Nudge_Job_Queue::enqueue("send_nudge_{$stage}", $payload, 10);
@@ -561,12 +456,7 @@ public static function execute_scheduled_nudge($args) {
             if ($transaction_started) {
                 $wpdb->query('ROLLBACK');
             }
-            error_log(sprintf(
-                '[EIPSI EventScheduler] LOCK: EXCEPTION for assignment %d nudge %d: %s',
-                $assignment_id,
-                $stage,
-                $e->getMessage()
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L564'), 'debug');
         }
     }
 private static function send_nudge_direct($assignment, $stage) {
@@ -627,7 +517,7 @@ public static function process_job($job) {
             elseif ($outcome==='failed') { $stats['failed']=1; }
             else { $stats['persistence_failed']=1; }
         }
-        if ($stats['persistence_failed']) { error_log('[EIPSI JobWorker] terminal_persistence_uncertain job='.intval($job->id)); }
+        if ($stats['persistence_failed']) { EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_nudge_worker_service_L630'), 'debug'); }
         return $stats;
     } finally { EIPSI_Notification_Nudge_Queue_Service::release_processing($job->id); }
 }

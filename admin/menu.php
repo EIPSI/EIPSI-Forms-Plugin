@@ -34,21 +34,21 @@ function eipsi_forms_menu() {
     // Submenú: Configuration
     add_submenu_page(
         'eipsi-results-experience',
-        __('Configuration', 'eipsi-forms'),
-        __('Configuration', 'eipsi-forms'),
+        eipsi_admin_translate('Configuration'),
+        eipsi_admin_translate('Configuration'),
         $capabilities['configuration'],
         'eipsi-configuration',
         'eipsi_display_configuration_page'
     );
 
-    add_submenu_page('eipsi-results-experience', 'Templates de Emails', 'Templates de Emails', 'manage_options', 'eipsi-email-templates', static function() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/builder.php'; \EIPSI\StudyEngine\Builder\EmailLibrary::screen(); });
+    add_submenu_page('eipsi-results-experience', eipsi_admin_translate('Email Templates'), eipsi_admin_translate('Email Templates'), 'manage_options', 'eipsi-email-templates', static function() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/builder.php'; \EIPSI\StudyEngine\Builder\EmailLibrary::screen(); });
 
-    add_submenu_page('eipsi-results-experience', 'Assessment Editor', 'Assessment Editor', 'manage_options', 'eipsi-assessment-editor', static function () {
+    add_submenu_page('eipsi-results-experience', eipsi_admin_translate('Assessment Editor'), eipsi_admin_translate('Assessment Editor'), 'manage_options', 'eipsi-assessment-editor', static function () {
         require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/assessment-editor/bootstrap.php';
         \EIPSI\AssessmentEditor\Admin::screen();
     });
 
-    add_submenu_page('eipsi-results-experience', 'Study Engine', 'Study Engine', 'manage_options', 'eipsi-study-builder', static function() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/builder.php'; \EIPSI\StudyEngine\Builder\Admin::screen(); });
+    add_submenu_page('eipsi-results-experience', eipsi_admin_translate('Study Engine'), eipsi_admin_translate('Study Engine'), 'manage_options', 'eipsi-study-builder', static function() { require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/builder.php'; \EIPSI\StudyEngine\Builder\Admin::screen(); });
 
 
 

@@ -42,6 +42,7 @@ final class Runtime {
         if(!$session)return $this->entry($study,$token,null);
         if($session['kind']==='WITHDRAWAL_OPTIONS')return $this->shell($study,$token,$session,$session['kind']);
         if(!in_array($session['kind'],array('AUTHENTICATED','PROVISIONAL'),true))throw new R\AccessDenied('ACCESS_REQUIRED');
+        if(R\PausePolicy::paused($study)&&!R\PausePolicy::portal($this->db,$study,$session))throw new R\StudyPaused();
         $metadata=$request['metadata']??array();if(!is_array($metadata))throw new \DomainException('INVALID_METADATA');
         $metadata=$this->metadata($metadata);$owner=$this->owner($session,$token,$public,$metadata);$view=$owner->view($session['execution_id']);$this->loaded($view);
         if($view['snapshot']['execution']['first_access_at']===null){
@@ -86,6 +87,7 @@ final class Runtime {
             $study=$this->study($public,true);$receipt=$this->db->row($this->db->prepare('SELECT * FROM '.$this->db->table('enrollment_receipts').' WHERE id=%s',$key));
             if($receipt){if(!hash_equals($receipt['request_hash'],$hash))throw new P\PersistenceConflict('ENROLLMENT_KEY_REUSED');return P\Database::json($receipt['response_json']);}
             $p=$this->identity->byEmail($study['study_id'],$email,true);$new=$p===null;
+            if(R\PausePolicy::paused($study)){if($p===null||empty($p['execution_id']))return array('generic'=>true);$e=(new P\StudyExecutionRepository($this->db))->find($p['execution_id']);if(!$e||!R\PausePolicy::continuation($this->db,$e,$this->definition($e['study_version_id'])))return array('generic'=>true);}
             $entryDefinition=$this->definition($study['active_version_id']);$entryConfig=Configuration::read($entryDefinition);
             $membership=$entryConfig['initial_screen']['authentication']['membership_enabled']??false;
             if(isset($request['membership'])&&(!is_string($request['membership'])||!in_array($request['membership'],array('0','1'),true)))throw new \DomainException('INVALID_MEMBERSHIP');

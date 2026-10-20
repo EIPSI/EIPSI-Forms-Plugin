@@ -24,5 +24,7 @@ try{
   $out=array('status'=>$r['status'],'state'=>$r['data']['state']??null);
  }
 }catch(Throwable $e){$out=array('error'=>$e->getMessage());}
-file_put_contents($dir.'/result'.$index.'.json',json_encode($out));
+// Publish only complete JSON: the parent barrier observes file existence.
+$resultPath=$dir.'/result'.$index.'.json';
+file_put_contents($resultPath.'.tmp',json_encode($out));rename($resultPath.'.tmp',$resultPath);
 function pg_wait_worker($p){$end=microtime(true)+20;while(!file_exists($p)){if(microtime(true)>$end)throw new RuntimeException('Race timeout');usleep(10000);}}

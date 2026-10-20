@@ -28,14 +28,14 @@ public function assign_participant( $pool_id, $participant_id, $method = 'seeded
         // Verificar que el pool existe y está activo
         $pool = (new EIPSI_Pool_Repository())->get_pool( $pool_id );
         if ( ! $pool || $pool->status !== 'active' ) {
-            error_log( "[EIPSI-POOL] Pool {$pool_id} no existe o no está activo" );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_assignment_service_L31'), 'debug');
             return false;
         }
 
         // Obtener config del pool
         $config = json_decode( $pool->config, true );
         if ( empty( $config['studies'] ) ) {
-            error_log( "[EIPSI-POOL] Pool {$pool_id} no tiene estudios configurados" );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_assignment_service_L38'), 'debug');
             return false;
         }
 
@@ -50,19 +50,19 @@ public function assign_participant( $pool_id, $participant_id, $method = 'seeded
         if ( $existing ) {
             // Si no permite re-asignación o no completó, devolver existente
             if ( ! $allow_reassignment || ! $existing->completed ) {
-                error_log( "[EIPSI] Usando asignación existente para participante {$participant_id} en pool {$pool_id}, estudio {$existing->study_id}" );
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_assignment_service_L53'), 'debug');
                 (new EIPSI_Pool_Repository())->record_access( $existing->id );
                 return $this->format_assignment( $existing, true );
             }
             // Si permite re-asignación y completó, continuar para crear nueva
-            error_log( "[EIPSI] Re-asignando participante {$participant_id} en pool {$pool_id} (estudio previo {$existing->study_id} completado)" );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_assignment_service_L58'), 'debug');
         }
 
         // Weighted random assignment
         $selected_study = $this->weighted_random_assign( $pool_id, $participant_id, $method, $studies );
 
         if ( ! $selected_study ) {
-            error_log( "[EIPSI-POOL] Error en weighted random para pool {$pool_id}" );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_assignment_service_L65'), 'debug');
             return false;
         }
 
@@ -72,11 +72,11 @@ public function assign_participant( $pool_id, $participant_id, $method = 'seeded
         $assignment_id = (new EIPSI_Pool_Repository())->create_assignment( $pool_id, $participant_id, $study_id );
 
         if ( ! $assignment_id ) {
-            error_log( "[EIPSI] ERROR: Falló creación de asignación para participante {$participant_id} en pool {$pool_id}" );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_assignment_service_L75'), 'debug');
             return false;
         }
 
-        error_log( "[EIPSI] Asignación creada exitosamente: ID {$assignment_id}, participante {$participant_id}, pool {$pool_id}, estudio {$study_id}" );
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_assignment_service_L79'), 'debug');
 
         // Obtener la asignación recién creada
         $assignment = $wpdb->get_row(

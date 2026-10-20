@@ -43,7 +43,7 @@ public function mark_completed( $pool_id, $participant_id, $completion_form_id =
         );
 
         if ( $result !== false && $result > 0 && $study_id ) {
-            error_log( "[EIPSI] Pool {$pool_id} marcado como completado por participante {$participant_id}, estudio {$study_id}" );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_completion_service_L46'), 'debug');
             // Actualizar analytics diarios de completions
             (new EIPSI_Pool_Analytics_Service())->update_daily_analytics_completions( $pool_id, $study_id );
             $pool = (new EIPSI_Pool_Repository())->get_pool($pool_id);
@@ -53,7 +53,7 @@ public function mark_completed( $pool_id, $participant_id, $completion_form_id =
         }
 
         if ( $result === false ) {
-            error_log( "[EIPSI] ERROR: Falló al marcar completado para participante {$participant_id} en pool {$pool_id}: " . $wpdb->last_error );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_completion_service_L56'), 'debug');
         }
 
         return $result !== false && $result > 0;

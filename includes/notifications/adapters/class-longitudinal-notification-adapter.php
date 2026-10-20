@@ -7,12 +7,7 @@ public static function notify_available_context($context) {
         // Only send if the wave is actually available now
         if ($now < $available_at) {
             $wait_hours = ceil(($available_at - $now) / 3600);
-            error_log(sprintf(
-                "[Wave_Service] Next wave not available yet. Scheduling event for assignment %d at %s (~%d hours)",
-                $next_assignment->id,
-                date('Y-m-d H:i:s', $available_at),
-                $wait_hours
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_notification_adapter_L10'), 'debug');
 
             // Schedule exact event when wave becomes available
             wp_clear_scheduled_hook('eipsi_wave_available', array($next_assignment->id));
@@ -21,7 +16,7 @@ public static function notify_available_context($context) {
         }
 
         // Wave is NOW available - trigger event-driven nudge system
-        error_log("[Wave_Service] Next wave is NOW available - triggering event-driven nudge sequence");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_notification_adapter_L24'), 'debug');
         do_action('eipsi_wave_available', $next_assignment->id);
 
 }
@@ -33,8 +28,7 @@ public static function notify_next_wave($next_wave,$study_id,$longitudinal_parti
                 $available_timestamp = intval($available_at);
                 $current_timestamp = current_time('timestamp');
                 if ($available_timestamp <= $current_timestamp) {
-                    error_log(sprintf('[EIPSI-DIAG] NEXT WAVE AVAILABLE NOW: wave_id=%d, available_at=%s, current=%s - Triggering immediate Nudge 0 email',
-                        $next_wave['wave_id'], date('Y-m-d H:i:s', $available_timestamp), date('Y-m-d H:i:s', $current_timestamp)));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_notification_adapter_L36'), 'debug');
 
                     // Asegurar que la clase esté cargada
                     if (!class_exists('EIPSI_Wave_Availability_Email_Service')) {
@@ -69,7 +63,7 @@ public static function notify_next_wave($next_wave,$study_id,$longitudinal_parti
                                 $participant_obj,
                                 $study_id
                             );
-                            error_log(sprintf('[EIPSI-DIAG] Immediate Nudge 0 email result: %s', json_encode($email_result)));
+                            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_notification_adapter_L72'), 'debug');
 
                             // Guardar para agregar al success_response después
                             if ($email_result['success'] && $email_result['sent']) {
@@ -77,10 +71,7 @@ public static function notify_next_wave($next_wave,$study_id,$longitudinal_parti
                                 $nudge_0_message = __('Email de siguiente toma enviado inmediatamente', 'eipsi-forms');
                             }
                         } else {
-                            error_log(sprintf('[EIPSI-DIAG] Could not trigger immediate Nudge 0: Missing objects. Assignment: %s, Wave: %s, Participant: %s',
-                                $assignment_obj ? 'OK' : 'MISSING',
-                                $wave_obj ? 'OK' : 'MISSING',
-                                $participant_obj ? 'OK' : 'MISSING'));
+                            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_notification_adapter_L80'), 'debug');
                         }
                     }
                 }
@@ -93,20 +84,11 @@ public static function after_auto_skip($next_assignment,$next_index) {
 
                 if ($available_at <= $now_ts) {
                     // Wave disponible AHORA - trigger inmediato
-                    error_log(sprintf(
-                        '[EIPSI Auto-Skip] Triggering eipsi_wave_available for assignment %d (T%d now available)',
-                        $next_assignment->id,
-                        $next_index
-                    ));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_notification_adapter_L96'), 'debug');
                     do_action('eipsi_wave_available', $next_assignment->id);
                 } else {
                     // Wave disponible en el FUTURO - programar evento
-                    error_log(sprintf(
-                        '[EIPSI Auto-Skip] Scheduling eipsi_wave_available for assignment %d (T%d available at %s)',
-                        $next_assignment->id,
-                        $next_index,
-                        date('Y-m-d H:i:s', $available_at)
-                    ));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_notification_adapter_L104'), 'debug');
                     wp_clear_scheduled_hook('eipsi_wave_available', array($next_assignment->id));
                     wp_schedule_single_event($available_at, 'eipsi_wave_available', array($next_assignment->id));
                 }

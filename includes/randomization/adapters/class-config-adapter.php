@@ -7,12 +7,12 @@ class EIPSI_Randomization_Config_Adapter {
 public static function eipsi_save_randomization_config() {
     // Verificar nonce de seguridad
     if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'eipsi_randomization_config' ) ) {
-        wp_send_json_error( array( 'message' => 'Token de seguridad inválido' ) );
+        wp_send_json_error( array( 'message' => 'Token de seguridad inválido' ), 403 );
     }
 
     // Verificar permisos del usuario
-    if ( ! current_user_can( 'edit_posts' ) ) {
-        wp_send_json_error( array( 'message' => 'No tienes permisos para realizar esta acción' ) );
+    if ( ! EIPSI_Randomization_Resource_Policy::can_edit($_POST['post_id'] ?? 0) ) {
+        wp_send_json_error( array( 'message' => 'No tienes permisos para realizar esta acción' ), 403 );
     }
 
     // Obtener y sanitizar datos
@@ -47,11 +47,9 @@ public static function eipsi_save_randomization_config() {
         ) );
     }
 
-    // Validar que todos los formularios existan
-    foreach ( $formularios as $formulario ) {
-        if ( ! isset( $formulario['exists'] ) || ! $formulario['exists'] ) {
-            wp_send_json_error( array( 'message' => 'Algunos formularios no existen. Verificá los IDs ingresados.' ) );
-        }
+    $authorized = EIPSI_Randomization_Resource_Policy::sources($formularios);
+    if (is_wp_error($authorized)) {
+        wp_send_json_error(array('message' => $authorized->get_error_message()), 403);
     }
 
     // ✅ v1.3.19 - Config ID estable y determinístico (basado SOLO en post_id)
@@ -124,6 +122,8 @@ public static function eipsi_save_randomization_config() {
 }
 
 public static function eipsi_randomization_config_rest_handler( $request ) {
+    $authorized = EIPSI_Randomization_Resource_Policy::permission($request);
+    if (is_wp_error($authorized)) { return $authorized; }
     $post_id = $request->get_param( 'post_id' );
     $shortcodes = $request->get_param( 'shortcodes' ) ?: array();
     $formularios = $request->get_param( 'formularios' ) ?: array();
@@ -165,19 +165,8 @@ public static function eipsi_randomization_config_rest_handler( $request ) {
         ), 400 );
     }
 
-    // Validar que todos los formularios existan (backend validation)
-    foreach ( $formularios as $formulario ) {
-        $form_id = intval( $formulario['id'] ?? 0 );
-        $post = get_post( $form_id );
-
-        // Validar tipo y estado (permite draft, private, pending, etc., pero no trash)
-        if ( ! $post || $post->post_type !== 'eipsi_form_template' || $post->post_status === 'trash' ) {
-            return new WP_REST_Response( array(
-                'success' => false,
-                'message' => sprintf( 'El formulario con ID %d no existe o fue eliminado.', $form_id )
-            ), 400 );
-        }
-    }
+    $authorized = EIPSI_Randomization_Resource_Policy::sources($formularios);
+    if (is_wp_error($authorized)) { return $authorized; }
 
     // ✅ v1.3.19 - Config ID estable y determinístico (basado SOLO en post_id)
     // ANTES: 'config_456_1706270400_aB3Cd' (cambiaba cada save por time())
@@ -253,6 +242,8 @@ public static function eipsi_randomization_config_rest_handler( $request ) {
 }
 
 public static function eipsi_randomization_detect_rest_handler( $request ) {
+    $authorized = EIPSI_Randomization_Resource_Policy::permission($request);
+    if (is_wp_error($authorized)) { return $authorized; }
     $post_id = $request->get_param( 'post_id' );
     $shortcodes_input = $request->get_param( 'shortcodes_input' );
 
@@ -273,6 +264,9 @@ public static function eipsi_randomization_detect_rest_handler( $request ) {
         ), 400 );
     }
 
+    $authorized = EIPSI_Randomization_Resource_Policy::sources($formularios);
+    if (is_wp_error($authorized)) { return $authorized; }
+
     // Validar que los formularios existan
     $formularios_validados = array();
     foreach ( $formularios as $formulario ) {
@@ -287,14 +281,6 @@ public static function eipsi_randomization_detect_rest_handler( $request ) {
                 $post ? $post->post_status : 'null',
                 $post ? 'true' : 'false'
             ) );
-        }
-
-        // Validar tipo y estado (permite draft, private, pending, etc., pero no trash)
-        if ( ! $post || $post->post_type !== 'eipsi_form_template' || $post->post_status === 'trash' ) {
-            return new WP_REST_Response( array(
-                'success' => false,
-                'message' => sprintf( 'El formulario con ID %d no existe o fue eliminado.', $formulario['id'] )
-            ), 400 );
         }
 
         $formularios_validados[] = array(

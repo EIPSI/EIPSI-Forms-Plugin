@@ -23,7 +23,7 @@ final class ResponsePolicy {
         $db->query($db->prepare('INSERT IGNORE INTO `'.$wpdb->options.'` (option_name,option_value,autoload) VALUES (%s,%s,%s)',$key,$value,'off'));
         $row=$db->row($db->prepare('SELECT option_value FROM `'.$wpdb->options.'` WHERE option_name=%s FOR UPDATE',$key));if(!$row||$row['option_value']!==$value)throw new \RuntimeException('Ya se registró una respuesta desde esta IP para este estudio.',409);
     }
-    public static function repeatAllowed(P\Database $db,array $binding): bool {
+    public static function repeatAllowed(P\Database $db,array $binding): bool {if(isset($binding['public_id'])&&PausePolicy::paused((new PublicStudyRepository($db))->find($binding['public_id'])))return false;
         if(($binding['kind']??null)!=='STUDY_SESSION'||!isset($binding['block_execution_id']))return false;
         $repo=new P\StudyVersionRepository($db);$v=$repo->find($binding['study_version_id']);if(!$v)return false;
         $block=$db->row($db->prepare('SELECT * FROM '.$db->table('block_executions').' WHERE id=%s AND execution_id=%s',$binding['block_execution_id'],$binding['execution_id']));if(!$block||$block['state']!=='COMPLETED')return false;

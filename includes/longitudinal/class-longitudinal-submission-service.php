@@ -20,25 +20,14 @@ public static function handle_submission($context) {
 
         // ✅ v1.5.6 - DEBUG: Log para verificar variables de contexto longitudinal
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf(
-                '[EIPSI] Longitudinal context check: wave_id=%s, study_id=%s, longitudinal_participant_id=%s, user_email=%s',
-                $wave_id ?: 'NULL',
-                $study_id ?: 'NULL',
-                $longitudinal_participant_id ?: 'NULL',
-                $user_data['email'] ?: 'NULL'
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L23'), 'debug');
         }
 
         // v1.5.6 - Si hay contexto longitudinal (wave_id detectable), actualizar assignment
         // Usar longitudinal_participant_id (INT) y study_id en lugar de participant_id (string) y survey_id
 
         // ✅ DIAGNÓSTICO: Siempre loguear variables críticas
-        error_log(sprintf(
-            '[EIPSI-DIAG] Pre-check: wave_id=%s, study_id=%s, longitudinal_participant_id=%s',
-            $wave_id ?: 'NULL',
-            $study_id ?: 'NULL',
-            $longitudinal_participant_id ?: 'NULL'
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L36'), 'debug');
 
         if (!empty($wave_id) && $study_id && $longitudinal_participant_id) {
             // Cargar Wave_Service
@@ -47,15 +36,15 @@ public static function handle_submission($context) {
             // ✅ FIX: Si el assignment no existe, crearlo primero (fallback defensivo)
             // Cargar el servicio si no está disponible (verificar función, no clase)
             $func_exists_before = function_exists('eipsi_create_assignments_for_participant');
-            error_log('[EIPSI-DIAG] Función eipsi_create_assignments_for_participant existe ANTES: ' . ($func_exists_before ? 'SÍ' : 'NO'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L50'), 'debug');
 
             if (!$func_exists_before) {
                 $assignment_service_path = EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-assignment-service.php';
                 $file_exists = file_exists($assignment_service_path);
-                error_log('[EIPSI-DIAG] Archivo class-assignment-service.php existe: ' . ($file_exists ? 'SÍ' : 'NO'));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L55'), 'debug');
                 if ($file_exists) {
                     require_once $assignment_service_path;
-                    error_log('[EIPSI-DIAG] Archivo cargado. Función existe DESPUÉS: ' . (function_exists('eipsi_create_assignments_for_participant') ? 'SÍ' : 'NO'));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L58'), 'debug');
                 }
             }
 
@@ -67,31 +56,22 @@ public static function handle_submission($context) {
                 $longitudinal_participant_id
             ));
 
-            error_log(sprintf('[EIPSI-DIAG] Assignment existente para wave_id=%d, participant_id=%d: %s',
-                $wave_id, $longitudinal_participant_id, $existing_assignment ?: 'NO ENCONTRADO'
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L70'), 'debug');
 
             // Si no existe, crearlo primero
             if (!$existing_assignment && function_exists('eipsi_create_assignments_for_participant')) {
-                error_log(sprintf('[EIPSI-DIAG] Creando assignments para participant_id=%d, study_id=%d',
-                    $longitudinal_participant_id, $study_id));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L76'), 'debug');
                 $create_result = eipsi_create_assignments_for_participant($longitudinal_participant_id, $study_id);
-                error_log(sprintf(
-                    '[EIPSI-DIAG] Resultado creación: created=%d, skipped=%d, errors=%d',
-                    $create_result['created'],
-                    $create_result['skipped'],
-                    count($create_result['errors'])
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L79'), 'debug');
                 if (!empty($create_result['errors'])) {
-                    error_log('[EIPSI-DIAG] Errores: ' . implode(', ', $create_result['errors']));
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L86'), 'debug');
                 }
             } elseif (!$existing_assignment) {
-                error_log('[EIPSI-DIAG] ERROR: Función eipsi_create_assignments_for_participant NO disponible');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L89'), 'debug');
             }
 
             // Marcar assignment como submitted usando study_id (columna correcta en wp_survey_assignments)
-            error_log(sprintf('[EIPSI-DIAG] Marcando como submitted: participant_id=%d, study_id=%d, wave_id=%d',
-                $longitudinal_participant_id, $study_id, $wave_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L93'), 'debug');
 
             // ========== PHASE 5 T1-ANCHOR: TRANSACCIÓN CRÍTICA ==========
             // Submit + t1_completed_at deben ser atómicos
@@ -107,7 +87,7 @@ public static function handle_submission($context) {
                 }
 
                 try {
-                    error_log("[EIPSI T1-Anchor] Starting wave recalculation (post-commit)");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L110'), 'debug');
                     $t1_timestamp = current_time('mysql');
                     $result = EIPSI_Wave_Recalculator::recalculate_after_t1(
                         $longitudinal_participant_id,
@@ -116,10 +96,10 @@ public static function handle_submission($context) {
                         'system'
                     );
                     $affected_count = count($result['affected_waves'] ?? array());
-                    error_log("[EIPSI T1-Anchor] Successfully recalculated {$affected_count} waves");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L119'), 'debug');
                 } catch (Exception $e) {
                     // No revertir el submit - solo loggear el error
-                    error_log("[EIPSI T1-Anchor] WARNING: Wave recalculation failed (submit was successful): " . $e->getMessage());
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L122'), 'debug');
                     // El submit fue exitoso, continuar con el flujo normal
                 }
             }
@@ -133,7 +113,7 @@ public static function handle_submission($context) {
             // Obtener próxima toma pendiente usando study_id
             $next_wave = Wave_Service::get_next_pending_wave($longitudinal_participant_id, $study_id);
 
-            error_log(sprintf('[EIPSI-DIAG] Próxima wave pendiente: %s', $next_wave ? 'ENCONTRADA (index=' . $next_wave['wave_index'] . ')' : 'NO ENCONTRADA'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L136'), 'debug');
 
             if ($next_wave) {
                 $has_next_wave = true;
@@ -145,12 +125,7 @@ public static function handle_submission($context) {
                 ), ARRAY_A);
 
                 // DEBUG: Log raw values from database
-                error_log(sprintf('[EIPSI-DIAG] Raw wave_config from DB: wave_id=%d, offset_minutes=%s, interval_days=%s, time_unit=%s',
-                    $next_wave['wave_id'],
-                    $wave_config['offset_minutes'] ?? 'NULL',
-                    $wave_config['interval_days'] ?? 'NULL',
-                    $wave_config['time_unit'] ?? 'NULL'
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L148'), 'debug');
 
                 // FIX: Ensure time_unit is a valid string value
                 $raw_time_unit = $wave_config['time_unit'] ?? 'days';
@@ -205,17 +180,14 @@ public static function handle_submission($context) {
                     'available_at' => $available_at * 1000 // Convert to milliseconds for JS
                 );
 
-                error_log(sprintf('[EIPSI-DIAG] Prepared next_wave_data: %s', json_encode($next_wave_data)));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L208'), 'debug');
 
                 $notification=EIPSI_Notification_Longitudinal_Adapter::notify_next_wave($next_wave,$study_id,$longitudinal_participant_id,$available_at);
                 $nudge_0_sent=$notification['nudge_0_sent'];$nudge_0_message=$notification['nudge_0_message'];
 
             }
         } else {
-            error_log('[EIPSI-DIAG] CONDICIÓN NO CUMPLIDA - No se procesa assignment. Faltan: ' .
-                (empty($wave_id) ? 'wave_id ' : '') .
-                (!$study_id ? 'study_id ' : '') .
-                (!$longitudinal_participant_id ? 'longitudinal_participant_id' : ''));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_longitudinal_submission_service_L215'), 'debug');
         }
 
 

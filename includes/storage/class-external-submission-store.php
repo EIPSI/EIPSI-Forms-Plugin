@@ -156,7 +156,7 @@ class EIPSI_Storage_External_Submission_Store {
             return array(
                 'success' => false,
                 'message' => sprintf(
-                    __('Connection failed: %s', 'eipsi-forms'),
+                    eipsi_admin_translate('Connection failed: %s'),
                     $mysqli->connect_error
                 ),
                 'error_code' => $mysqli->connect_errno
@@ -171,7 +171,7 @@ class EIPSI_Storage_External_Submission_Store {
             return array(
                 'success' => false,
                 'message' => sprintf(
-                    __('Schema validation failed: %s', 'eipsi-forms'),
+                    eipsi_admin_translate('Schema validation failed: %s'),
                     $schema_result['error']
                 ),
                 'error_code' => 'SCHEMA_ERROR'
@@ -186,7 +186,7 @@ class EIPSI_Storage_External_Submission_Store {
             return array(
                 'success' => false,
                 'message' => sprintf(
-                    __('La base de datos externa no tiene columnas críticas requeridas para EIPSI Forms: %s', 'eipsi-forms'),
+                    eipsi_admin_translate('The external database is missing critical columns required by EIPSI Forms: %s'),
                     implode(', ', $column_validation['missing'])
                 ),
                 'error_code' => 'SCHEMA_MISSING_COLUMNS'
@@ -200,7 +200,7 @@ class EIPSI_Storage_External_Submission_Store {
         
         return array(
             'success' => true,
-            'message' => __('Connection successful! Schema validated.', 'eipsi-forms'),
+            'message' => eipsi_admin_translate('Connection successful! Schema validated.'),
             'db_name' => $db_name,
             'record_count' => $record_count,
             'table_exists' => true

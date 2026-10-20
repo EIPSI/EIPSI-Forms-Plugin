@@ -24,10 +24,20 @@ final class Worker {
         foreach($jobs as $job){$r=\EIPSI_Notification_Nudge_Worker_Service::process_job($job);foreach($stats as $k=>$v)$stats[$k]+=$r[$k];}return $stats;
     }
     public function advanceBatch(int $limit=25): int {
-        $rows=$this->db->rows($this->db->prepare('SELECT e.id FROM '.$this->db->table('study_executions').' e JOIN '.$this->db->table('public_studies')." s ON s.study_id=e.study_id WHERE e.participant_id IS NOT NULL AND e.finalized_at IS NULL AND e.state IN ('ACTIVE','WAITING') AND s.enrollment_mode='EMAIL_LONGITUDINAL' AND s.enrollment_state<>'FINALIZED' ORDER BY e.updated_at,e.id LIMIT %d",max(1,min(100,$limit))));$count=0;
-        foreach($rows as $row){$owner=$this->owner();$view=$owner->view($row['id']);if(!isset($view['snapshot']))continue;if($view['snapshot']['clock']<$this->clock->now()){
-                $result=$owner->dispatch($row['id'],array('id'=>'TICK_'.substr(hash('sha256',$row['id'].'|'.$this->clock->now()),0,32),'kind'=>'ADVANCE_TIME','expected_revision'=>$view['revision'],'data'=>array('at'=>$this->clock->now())));if(isset($result['revision']))$count++;
-            }}return $count;
+        $rows=$this->db->rows($this->db->prepare('SELECT e.id,s.enrollment_state,s.lifecycle_revision FROM '.$this->db->table('study_executions').' e JOIN '.$this->db->table('public_studies')." s ON s.study_id=e.study_id WHERE e.participant_id IS NOT NULL AND e.finalized_at IS NULL AND e.state IN ('ACTIVE','WAITING') AND s.enrollment_mode='EMAIL_LONGITUDINAL' AND s.enrollment_state='OPEN' ORDER BY e.updated_at,e.id LIMIT %d",max(1,min(100,$limit))));$count=0;
+        foreach($rows as $row){$owner=$this->owner();$view=$owner->view($row['id']);if(isset($view['snapshot'])&&$this->catchUp($owner,$row['id'],$view,$row))$count++;}return $count;
+    }
+    /** Resume must refresh a fenced checkpoint even when its clock already equals now. */
+    private function catchUp(ExecutionOwner $owner,string $execution,array $view,?array $study=null): bool {
+        if(($view['study_finalized_at']??null)!==null||!in_array($view['snapshot']['execution']['state'],array('ACTIVE','WAITING'),true))return false;
+        $at=$this->clock->now();$clock=$view['snapshot']['clock'];if($clock>$at)return false;
+        $study=$study??R\PausePolicy::study($this->db,$view['snapshot']['execution']['study_id']);
+        if($clock===$at&&(R\PausePolicy::paused($study)||(int)($study['lifecycle_revision']??0)<=1))return false;
+        $id='TICK_'.substr(hash('sha256',$execution.'|'.$at.'|'.($study['lifecycle_revision']??0)),0,32);
+        // A same-time replay has a newer expected_revision; reuse its durable receipt by skipping it.
+        if($clock===$at&&(new P\CommandRepository($this->db))->find($execution,$id))return false;
+        $result=$owner->dispatch($execution,array('id'=>$id,'kind'=>'ADVANCE_TIME','expected_revision'=>$view['revision'],'data'=>array('at'=>$at)));
+        return isset($result['revision']);
     }
     private function owner(): ExecutionOwner {return new ExecutionOwner($this->db,$this->vault,null,null,function(){return $this->clock->now();});}
     public function execute($job): array {
@@ -44,9 +54,7 @@ final class Worker {
         if(!$claim||$claim['status']!=='processing'||(string)($owner['id']??'')!==(string)$connection)return array('success'=>false,'error'=>'Study Engine claim required');
         $intent=$this->intent($payload['intent_id']);if(!$intent||$intent['queue_job_id']!=(string)$job->id)return array('success'=>false,'error'=>'Invalid payload JSON');
         $owner=$this->owner();$view=$owner->view($intent['execution_id']);if(!isset($view['snapshot']))return array('success'=>false,'error'=>'Study Engine unavailable');
-        if(($view['study_finalized_at']??null)===null&&in_array($view['snapshot']['execution']['state'],array('ACTIVE','WAITING'),true)&&$view['snapshot']['clock']<$this->clock->now()){
-            $r=$owner->dispatch($intent['execution_id'],array('id'=>'DELIVERY_TIME_'.substr(hash('sha256',$intent['id'].'|'.$this->clock->now()),0,24),'kind'=>'ADVANCE_TIME','expected_revision'=>$view['revision'],'data'=>array('at'=>$this->clock->now())));if(!isset($r['revision']))return array('success'=>false,'error'=>'Study Engine unavailable');
-        }
+        $this->catchUp($owner,$intent['execution_id'],$view);
         $prepared=$owner->admit(function()use($owner,$intent,$job){
             $view=$owner->view($intent['execution_id']);if(!isset($view['snapshot']))throw new P\IntegrityFailure('EXECUTION_LOAD_FAILED');$current=$this->intent($intent['id'],true);
             if(in_array($current['state'],array('SENT','CANCELLED','FAILED_FINAL'),true))return array('skip'=>true);
@@ -58,7 +66,7 @@ final class Worker {
             $withdrawal=$this->caps->mint($context['participant'],$context['study'],$context['execution'],'WITHDRAWAL_OPTIONS',null,$current['id'],$c['capability_hours']);
             $block=$context['block'];$zone=$context['execution']['timezone'];$d=$context['definition'];$template=InitialScreen::v2($c)&&$current['purpose']==='VERIFY_PARTICIPANT'&&$block!==null?$c['availability_template']:($current['purpose']==='ASSESSMENT_AVAILABLE'?$c['availability_template']:($current['purpose']==='ASSESSMENT_REMINDER'?$c['reminder_template']:$current['purpose']));
             $assessmentName=$block['definition_id']??'';if(InitialScreen::v2($c)&&$block!==null)foreach($d['nodes'] as $node)if($node['id']===$block['definition_id']){$assessmentName=$node['metadata']['label']??$assessmentName;break;}
-            $message=(new EmailTemplate())->render($template,array('study_name'=>$d['protocol_metadata']['study_name']??$d['study']['logical_id'],'assessment_name'=>$assessmentName,'available_time'=>EmailTemplate::local($block['available_at']??null,$zone,\EIPSI\StudyEngine\Runtime\DateFormat::read($d)),'due_time'=>EmailTemplate::local($block['due_at']??null,$zone,\EIPSI\StudyEngine\Runtime\DateFormat::read($d)),'direct_link'=>Capability::url($context['study']['public_id'],$cap),'withdrawal_link'=>Capability::url($context['study']['public_id'],$withdrawal)),EmailTemplate::configured($c['initial_screen']['templates']??array()));
+            $message=(new EmailTemplate())->render($template,array('study_name'=>$d['protocol_metadata']['study_name']??$d['study']['logical_id'],'assessment_name'=>$assessmentName,'available_time'=>EmailTemplate::local($block['available_at']??null,$zone,\EIPSI\StudyEngine\Runtime\DateFormat::read($d)),'due_time'=>EmailTemplate::local($block['due_at']??null,$zone,\EIPSI\StudyEngine\Runtime\DateFormat::read($d)),'direct_link'=>Capability::url($context['study']['public_id'],$cap),'withdrawal_link'=>Capability::url($context['study']['public_id'],$withdrawal)),EmailTemplate::configured($c['initial_screen']['templates']??array()),\EIPSI\I18n\ContentDefaults::language($d));
             return array('to'=>$context['participant']['email'],'message'=>$message);
         });
         if(isset($prepared['skip']))return array('success'=>true,'message'=>'Study Engine intent resolved');if(isset($prepared['defer']))return array('success'=>false,'defer_until'=>get_date_from_gmt($this->clock->later(300)),'error'=>'Study Engine paused');
@@ -80,6 +88,7 @@ final class Worker {
         if(in_array($intent['purpose'],array('ACCESS','WITHDRAWAL_OPTIONS'),true))return array('cancel'=>'EMAIL_TYPE_REMOVED');
         $execution=(new P\StudyExecutionRepository($this->db))->find($intent['execution_id']);$p=(new Identity($this->db,$this->clock))->participant($execution['participant_id'],true);$study=$this->db->row($this->db->prepare('SELECT * FROM '.$this->db->table('public_studies').' WHERE study_id=%s',$execution['study_id']));
         if($execution['finalized_at']!==null||!$p||!$study||!(bool)$p['active']||$p['privacy_state']!=='ACTIVE'||$execution['state']==='WITHDRAWN')return array('cancel'=>'PARTICIPANT_INACTIVE');if($study['enrollment_state']==='FINALIZED')return array('cancel'=>'STUDY_FINALIZED');
+        if(R\PausePolicy::paused($study)){if($intent['purpose']==='ASSESSMENT_AVAILABLE'||($intent['block_execution_id']!==null&&!isset(R\PausePolicy::openBlocks($this->db,$execution,(new P\StudyVersionRepository($this->db))->compiled((new P\StudyVersionRepository($this->db))->find($execution['study_version_id']))->definition(),true)[$intent['block_execution_id']])))return array('defer'=>true);}
         $versions=new P\StudyVersionRepository($this->db);$definition=$versions->compiled($versions->find($execution['study_version_id']))->definition();$config=Configuration::read($definition);$block=$intent['block_execution_id']===null?null:($s['instances'][$intent['block_execution_id']]??null);
         $confirmation=EmailConfirmation::read($this->db,$intent['execution_id']);$confirmIntent=$confirmation!==null&&$confirmation['intent_id']===$intent['id'];
         if($confirmIntent){

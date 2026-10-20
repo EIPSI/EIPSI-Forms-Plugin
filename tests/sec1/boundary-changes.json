@@ -1,0 +1,24 @@
+{
+  "assets": {
+    "assets/js/eipsi-save-continue.js": {
+      "before_sha256": "ab4aa66eca1ac26921ee5dc23469c6da385da691f4272c92729f8988695519f0",
+      "after_sha256": "f3a80ea9b9793c8467539aefab4ac7c7bb97d52e89e245f93900a27f22dac9a8"
+    }
+  },
+  "functions": {
+    "eipsi_forms_enqueue_frontend_assets": {
+      "before_sha256": "7178f68fa387df810d9380021c44efc5e3ae9a4a866f3d7f979f69559a3c5deb",
+      "after_sha256": "4194dc457b15a789912269ed86d2360b9285e56acb6fe480429c868f63d0de87"
+    }
+  },
+  "files": {
+    "includes/bootstrap/asset-callbacks.php": {
+      "before_sha256": "80d524d75b6974aa5f578fba71cd9de19c617ce1ad2777649f3312ea7dfe7420",
+      "after_sha256": "86756dc5afcf560d224e74e7646d961574d0a2e73bc856bb70c8aad46c938601"
+    },
+    "admin/data-safety-system.php": {
+      "before_sha256": "63158ca344ba94a574810376af78422c3f15d986f4abe6b31bfc0ca60b5eec78",
+      "after_sha256": "a157401fcb813c7afe0c9e34a8a6d9b618dc7386eecae98103b09d4ca486fb15"
+    }
+  }
+}

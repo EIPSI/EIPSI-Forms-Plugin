@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('fs'),path=require('path'),assert=require('assert/strict'),{JSDOM}=require('jsdom'),{webcrypto}=require('crypto');
-const root=path.resolve(__dirname,'../..'),dom=new JSDOM('<div id="root"></div>',{url:'https://local.invalid/wp-admin/',runScripts:'outside-only'}),w=dom.window;Object.defineProperty(w,'crypto',{value:webcrypto});w.confirm=()=>true;w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.dispatchEvent(new w.Event('close'));};
+const root=path.resolve(__dirname,'../..'),dom=new JSDOM('<div id="root"></div>',{url:'https://local.invalid/wp-admin/',runScripts:'outside-only'}),w=dom.window;
+require("../i18n1b/admin-language.js")(dom.window);Object.defineProperty(w,'crypto',{value:webcrypto});w.confirm=()=>true;w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.dispatchEvent(new w.Event('close'));};
 for(const [dir,file] of [['assessment-editor','manifest.json'],['study-builder','manifest.json']])for(const f of JSON.parse(fs.readFileSync(path.join(root,'src/admin',dir,file))).entry_order)w.eval(fs.readFileSync(path.join(root,'src/admin',dir,f),'utf8'));
 const A=w.EIPSIAssessment,B=w.EIPSIBuilder,host=w.document.getElementById('root');let tests=0,failures=0;const tick=()=>new Promise(r=>setImmediate(r)),button=(node,label)=>[...node.querySelectorAll('button')].find(b=>b.textContent===label&&!b.hidden),select=(node,label)=>[...node.querySelectorAll('label')].find(n=>n.querySelector('span')?.textContent===label)?.querySelector('select');
 async function test(name,fn){tests++;try{await fn();console.log('PASS '+name);}catch(e){failures++;console.log('FAIL '+name+': '+e.stack);}}

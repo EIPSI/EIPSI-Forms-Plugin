@@ -5,13 +5,14 @@ use EIPSI\StudyEngine\Contracts as C;
 use EIPSI\StudyEngine\Engine as E;
 /** Authoring contracts use the scientific definition verbatim; incomplete closure is publish-only. */
 final class Draft {
-    public static function create(string $study,string $public,int $number=1): array {
-        return array('contract_version'=>'P1B_V1','study'=>array('logical_id'=>$study,'public_id'=>$public),'id'=>'VERSION_'.$number,'version_number'=>$number,'state'=>'DRAFT','timezone'=>array('policy'=>'STUDY_TIMEZONE','default'=>'UTC'),'root_block_ids'=>array('M_ROOT'),'nodes'=>array(self::block('M_ROOT','VERSION_'.$number,'VERSION_'.$number,'MACRO',0)),'condition_rules'=>array(),'compiler_contract_version'=>'P1C_V1','protocol_metadata'=>array('execution_planning'=>'DEPENDENCY_PLAN_V1','content_adapter'=>'P1E_V1','storage_mode'=>'WORDPRESS_LOCAL','enrollment_mode'=>'ANONYMOUS','allow_back'=>true,'completion_title'=>'Gracias por participar','completion_message'=>'Tus respuestas quedaron guardadas.'),'closure'=>array('kind'=>'ALL_SELECTED_OPPORTUNITIES_TERMINAL'));
+    public static function create(string $study,string $public,int $number=1,?string $language=null): array {
+        $d=array('contract_version'=>'P1B_V1','study'=>array('logical_id'=>$study,'public_id'=>$public),'id'=>'VERSION_'.$number,'version_number'=>$number,'state'=>'DRAFT','timezone'=>array('policy'=>'STUDY_TIMEZONE','default'=>'UTC'),'root_block_ids'=>array('M_ROOT'),'nodes'=>array(self::block('M_ROOT','VERSION_'.$number,'VERSION_'.$number,'MACRO',0)),'condition_rules'=>array(),'compiler_contract_version'=>'P1C_V1','protocol_metadata'=>array('execution_planning'=>'DEPENDENCY_PLAN_V1','content_adapter'=>'P1E_V1','storage_mode'=>'WORDPRESS_LOCAL','enrollment_mode'=>'ANONYMOUS','allow_back'=>true,'completion_title'=>'Gracias por participar','completion_message'=>'Tus respuestas quedaron guardadas.'),'closure'=>array('kind'=>'ALL_SELECTED_OPPORTUNITIES_TERMINAL'));
+        if($language!==null){\EIPSI\I18n\ContentDefaults::valid($language);$d['protocol_metadata']=array_replace($d['protocol_metadata'],\EIPSI\I18n\ContentDefaults::get('study',$language),array('content_language'=>$language,'public_messages'=>\EIPSI\I18n\ContentDefaults::get('public_messages',$language)));}return $d;
     }
     /** Upgrade authoring drafts only; published definitions and running checkpoints stay frozen. */
     public static function planning(array $d): array {
         $d['protocol_metadata']['execution_planning']='DEPENDENCY_PLAN_V1';
-        if(($d['protocol_metadata']['enrollment_mode']??null)==='EMAIL_LONGITUDINAL'&&!isset($d['protocol_metadata']['longitudinal']['initial_screen']))$d['protocol_metadata']['longitudinal']['initial_screen']=\EIPSI\StudyEngine\Longitudinal\InitialScreen::defaults();
+        if(($d['protocol_metadata']['enrollment_mode']??null)==='EMAIL_LONGITUDINAL'&&!isset($d['protocol_metadata']['longitudinal']['initial_screen']))$d['protocol_metadata']['longitudinal']['initial_screen']=\EIPSI\StudyEngine\Longitudinal\InitialScreen::defaults($d['protocol_metadata']['content_language']??null);
         if(isset($d['protocol_metadata']['longitudinal']['initial_screen']))$d['protocol_metadata']['longitudinal']['initial_screen']['contract']='INITIAL_SCREEN_V2';
         foreach($d['protocol_metadata']['trajectory_conditions']??array() as $i=>$r){
             $d['protocol_metadata']['trajectory_conditions'][$i]['reference_scope']='TRACK_PAST_V1';
@@ -26,6 +27,7 @@ final class Draft {
         return array('kind'=>'BLOCK','id'=>$id,'logical_id'=>$id,'version_id'=>$version,'parent_id'=>$parent,'scope'=>$scope,'position'=>$position,'children_strategy'=>'SEQUENTIAL','randomization'=>null,'schedule'=>$internal?null:self::schedule($parent===$version?'EXECUTION_CREATED':'BLOCK_AVAILABLE',$parent===$version?null:$parent),'completion_boundary'=>$scope==='MACRO'?'NONE':($internal?'GROUP':'ASSESSMENT'),'metadata'=>array('label'=>$scope==='MACRO'?'Macro':'Evaluación'));
     }
     public static function validate(array $d): array {
+        if(array_key_exists('content_language',$d['protocol_metadata']??array()))\EIPSI\I18n\ContentDefaults::valid($d['protocol_metadata']['content_language']);
         if(strlen(C\Canonical::json($d))>2097152||count($d['nodes']??array())>2000)throw new \DomainException('DRAFT_SIZE_LIMIT');
         if(($d['state']??null)!=='DRAFT')throw new \DomainException('DRAFT_REQUIRED');
         $check=$d;if(($d['nodes']??null)===array()&&($d['root_block_ids']??null)===array()){$check['nodes']=array(self::block('EMPTY_ROOT',$d['id'],$d['id'],'MACRO',0));$check['root_block_ids']=array('EMPTY_ROOT');}

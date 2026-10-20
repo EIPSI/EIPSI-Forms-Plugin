@@ -16,7 +16,7 @@ public static function eipsi_process_reminders($frequency) {
     global $wpdb;
 
     // Log inicio
-    error_log("[EIPSI Forms] Processing {$frequency} reminders - " . current_time('mysql'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L19'), 'debug');
 
     // Obtener formularios con aleatorización activa
     $forms = get_posts(array(
@@ -33,7 +33,7 @@ public static function eipsi_process_reminders($frequency) {
     ));
 
     if (empty($forms)) {
-        error_log("[EIPSI Forms] No forms with randomization found.");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L36'), 'debug');
         return;
     }
 
@@ -42,7 +42,7 @@ public static function eipsi_process_reminders($frequency) {
 
     foreach ($forms as $form_id) {
         if ($reminders_sent >= $rate_limit) {
-            error_log("[EIPSI Forms] Rate limit reached: {$rate_limit} emails. Stopping.");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L45'), 'debug');
             break;
         }
 
@@ -79,7 +79,7 @@ public static function eipsi_process_reminders($frequency) {
             // Verificar intentos fallidos (max 3)
             $failed_attempts = get_post_meta($form_id, "_eipsi_reminder_fails_{$take['email']}", true);
             if ($failed_attempts && intval($failed_attempts) >= 3) {
-                error_log("[EIPSI Forms] Max failed attempts reached for {$take['email']}");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L82'), 'debug');
                 continue;
             }
 
@@ -92,7 +92,7 @@ public static function eipsi_process_reminders($frequency) {
         }
     }
 
-    error_log("[EIPSI Forms] {$frequency} reminders process completed. Sent: {$reminders_sent}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L95'), 'debug');
 }
 
 public static function eipsi_get_pending_takes($form_id) {
@@ -217,14 +217,14 @@ public static function eipsi_send_take_reminder($form_id, $take) {
         // Reset failed attempts counter
         delete_post_meta($form_id, "_eipsi_reminder_fails_{$email}");
 
-        error_log("[EIPSI Forms] Reminder sent to {$email} for take {$take_num}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L220'), 'debug');
     } else {
         // Incrementar contador de fallos
         $fails = get_post_meta($form_id, "_eipsi_reminder_fails_{$email}", true);
         $fails = $fails ? intval($fails) + 1 : 1;
         update_post_meta($form_id, "_eipsi_reminder_fails_{$email}", $fails);
 
-        error_log("[EIPSI Forms] Failed to send reminder to {$email}. Attempt {$fails}/3");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L227'), 'debug');
     }
 
     return $sent;
@@ -281,11 +281,11 @@ public static function eipsi_send_manual_reminder_handler($email, $reminder_link
 
     wp_mail($email, $subject, $body, $headers);
 
-    error_log("[EIPSI Forms] Manual reminder sent to {$email}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L284'), 'debug');
 }
 
 public static function eipsi_run_send_wave_reminders() {
-    error_log('[EIPSI Cron] Wave reminders started at ' . current_time('mysql'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L288'), 'debug');
 
     if (!class_exists('EIPSI_Email_Service')) {
         require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-email-service.php';
@@ -306,7 +306,7 @@ public static function eipsi_run_send_wave_reminders() {
     ));
 
     if (empty($surveys)) {
-        error_log('[EIPSI Cron] No surveys found for wave reminders');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L309'), 'debug');
         return;
     }
 
@@ -406,11 +406,11 @@ public static function eipsi_run_send_wave_reminders() {
                         set_transient($transient_key, true, DAY_IN_SECONDS);
                         $survey_sent++;
                         $total_sent++;
-                        error_log("[EIPSI Cron] Wave reminder sent to participant {$participant_id} for wave {$wave['id']}");
+                        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L409'), 'debug');
                     } else {
                         $survey_failed++;
                         $total_failed++;
-                        error_log("[EIPSI Cron] Failed to send wave reminder to participant {$participant_id}");
+                        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L413'), 'debug');
                     }
 
                     // Respetar max emails por survey
@@ -435,11 +435,11 @@ public static function eipsi_run_send_wave_reminders() {
         }
     }
 
-    error_log("[EIPSI Cron] Wave reminders completed. Sent: {$total_sent}, Failed: {$total_failed}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L438'), 'debug');
 }
 
 public static function eipsi_run_send_dropout_recovery() {
-    error_log('[EIPSI Cron] Dropout recovery started at ' . current_time('mysql'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L442'), 'debug');
 
     if (!class_exists('EIPSI_Email_Service')) {
         require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-email-service.php';
@@ -460,7 +460,7 @@ public static function eipsi_run_send_dropout_recovery() {
     ));
 
     if (empty($surveys)) {
-        error_log('[EIPSI Cron] No surveys found for dropout recovery');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L463'), 'debug');
         return;
     }
 
@@ -550,11 +550,11 @@ public static function eipsi_run_send_dropout_recovery() {
                     if ($sent) {
                         $survey_sent++;
                         $total_sent++;
-                        error_log("[EIPSI Cron] Dropout recovery sent to participant {$participant_id} for wave {$wave['id']}");
+                        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L553'), 'debug');
                     } else {
                         $survey_failed++;
                         $total_failed++;
-                        error_log("[EIPSI Cron] Failed to send dropout recovery to participant {$participant_id}");
+                        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L557'), 'debug');
                     }
 
                     // Respetar max emails por survey
@@ -579,7 +579,7 @@ public static function eipsi_run_send_dropout_recovery() {
         }
     }
 
-    error_log("[EIPSI Cron] Dropout recovery completed. Sent: {$total_sent}, Failed: {$total_failed}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L582'), 'debug');
 }
 
 public static function eipsi_send_investigator_alert($survey_id, $stats) {
@@ -617,7 +617,7 @@ public static function eipsi_send_investigator_alert($survey_id, $stats) {
 
     wp_mail($investigator_email, $subject, $message, $headers);
 
-    error_log("[EIPSI Cron] Investigator alert sent to {$investigator_email} for survey {$survey_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_legacy_reminder_service_L620'), 'debug');
 }
 
 public static function eipsi_cron_action_send_reminders($study_id) {

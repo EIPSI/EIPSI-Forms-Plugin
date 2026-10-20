@@ -113,7 +113,7 @@ class EIPSI_Survey_Access_Handler {
         // Send welcome email with magic link FIRST
         if ( class_exists( 'EIPSI_Email_Service' ) ) {
             EIPSI_Email_Service::send_welcome_after_confirmation( $survey_id, $participant_id );
-            error_log(sprintf('[EIPSI-DIAG-EMAIL] Welcome email sent FIRST for participant_id=%d', $participant_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L116'), 'debug');
         }
 
         // v1.5.7 - Create wave assignments for the participant after email confirmation
@@ -121,25 +121,24 @@ class EIPSI_Survey_Access_Handler {
         // ✅ FIX: Verificar función global, no la clase (ambos están en el mismo archivo)
         
         // ✅ DIAGNÓSTICO: Loguear inicio del proceso
-        error_log(sprintf('[EIPSI-DIAG-EMAIL] Iniciando creación de assignments para participant_id=%d, survey_id=%d', 
-            $participant_id, $survey_id));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L124'), 'debug');
         
         $assignment_service_loaded = false;
         if ( ! function_exists( 'eipsi_create_assignments_for_participant' ) ) {
             $assignment_service_path = EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-assignment-service.php';
             $file_exists = file_exists( $assignment_service_path );
-            error_log('[EIPSI-DIAG-EMAIL] Archivo class-assignment-service.php existe: ' . ($file_exists ? 'SÍ' : 'NO'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L131'), 'debug');
             
             if ( $file_exists ) {
                 require_once $assignment_service_path;
                 $assignment_service_loaded = true;
-                error_log('[EIPSI-DIAG-EMAIL] Archivo cargado. Función existe: ' . (function_exists('eipsi_create_assignments_for_participant') ? 'SÍ' : 'NO'));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L136'), 'debug');
             } else {
-                error_log( '[EIPSI-DIAG-EMAIL] ERROR: Assignment service file not found at: ' . $assignment_service_path );
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L138'), 'debug');
             }
         } else {
             $assignment_service_loaded = true;
-            error_log('[EIPSI-DIAG-EMAIL] Función ya existía previamente');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L142'), 'debug');
         }
 
         // Create assignments for all active waves of the study (AFTER welcome email)
@@ -147,18 +146,13 @@ class EIPSI_Survey_Access_Handler {
             $assignment_result = eipsi_create_assignments_for_participant( $participant_id, $survey_id );
             
             // ✅ DEBUG: Siempre loguear el resultado
-            error_log( sprintf(
-                '[EIPSI-DIAG-EMAIL] Resultado: created=%d, skipped=%d, errors=%d',
-                $assignment_result['created'],
-                $assignment_result['skipped'],
-                count( $assignment_result['errors'] )
-            ) );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L150'), 'debug');
             
             if ( ! empty( $assignment_result['errors'] ) ) {
-                error_log( '[EIPSI-DIAG-EMAIL] Errores: ' . implode( ', ', $assignment_result['errors'] ) );
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L158'), 'debug');
             }
         } else {
-            error_log( '[EIPSI-DIAG-EMAIL] ERROR: eipsi_create_assignments_for_participant function not available!' );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L161'), 'debug');
         }
 
         // Redirect to login with confirmation message.

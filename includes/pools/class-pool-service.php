@@ -179,21 +179,21 @@ public static function eipsi_pool_randomize($pool_code, $participant_id, $pool_d
     
     // Verificar si pool está activo
     if (!$pool_data || $pool_data['status'] !== 'active') {
-        error_log('[EIPSI-POOL] Pool no activo: ' . $pool_code);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L182'), 'debug');
         return false;
     }
     
     // Verificar si ya tiene asignación (idempotencia)
     $existing = eipsi_get_pool_assignment($pool_code, $participant_id);
     if ($existing) {
-        error_log('[EIPSI-POOL] Participante ya asignado: ' . $participant_id);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L189'), 'debug');
         return $existing;
     }
     
     // Obtener estudios del config
     $studies = $pool_data['config']['studies'] ?? array();
     if (empty($studies)) {
-        error_log('[EIPSI-POOL] No hay estudios configurados: ' . $pool_code);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L196'), 'debug');
         return false;
     }
     
@@ -209,7 +209,7 @@ public static function eipsi_pool_randomize($pool_code, $participant_id, $pool_d
     
     if (empty($available_studies)) {
         // Pool saturado
-        error_log('[EIPSI-POOL] Pool saturado: ' . $pool_code);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L212'), 'debug');
         do_action('eipsi_pool_saturated', $pool_code, $participant_id);
         return false;
     }
@@ -236,7 +236,7 @@ public static function eipsi_pool_randomize($pool_code, $participant_id, $pool_d
     $result = eipsi_save_pool_assignment($assignment);
     
     if (!$result) {
-        error_log('[EIPSI-POOL] Error guardando asignación');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L239'), 'debug');
         return false;
     }
     
@@ -244,13 +244,7 @@ public static function eipsi_pool_randomize($pool_code, $participant_id, $pool_d
     eipsi_increment_study_count($pool_code, $study_code);
     
     // Log para auditoría
-    error_log(sprintf(
-        '[EIPSI-POOL] Asignación exitosa: pool=%s, participant=%s, study=%s, method=%s',
-        $pool_code,
-        $participant_id,
-        $study_code,
-        'simple_equiprobable'
-    ));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L247'), 'debug');
     
     return array(
         'assignment_id' => $result,
@@ -280,7 +274,7 @@ public static function eipsi_save_pool_assignment($assignment) {
     );
     
     if ($result === false) {
-        error_log('[EIPSI-POOL] Error insertando asignación: ' . $wpdb->last_error);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L283'), 'debug');
         return false;
     }
     
@@ -550,7 +544,7 @@ public static function configure($params) {
                 }
                 
                 if ($critical_fields_changed) {
-                    error_log("[EIPSI POOL EDIT] BLOQUEADO: Intentaron cambiar campos críticos (" . implode(', ', $changed_fields) . ") en pool {$pool_id} con {$existing_assignments} asignaciones existentes");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L553'), 'debug');
                     return self::configuration_result(array(
                         'success' => false,
                         'message' => 'No se pueden modificar los estudios, método de asignación o semilla aleatoria porque ya existen ' . $existing_assignments . ' participante(s) asignado(s). Estos campos afectan la integridad de las asignaciones existentes.',
@@ -581,7 +575,7 @@ public static function configure($params) {
             ), 500);
         }
         
-        error_log("[EIPSI POOL EDIT] Pool {$pool_id} actualizado correctamente");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_pool_service_L584'), 'debug');
 
         return self::configuration_result(array(
             'success' => true,

@@ -12,7 +12,7 @@ class EIPSI_Magic_Link_Service {
         $participant_id = intval($participant_id);
 
         if ($survey_id <= 0 || $participant_id <= 0) {
-            error_log('[EIPSI MagicLinksService] Invalid survey_id or participant_id: survey_id=' . $survey_id . ', participant_id=' . $participant_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L15'), 'debug');
             return false;
         }
 
@@ -25,19 +25,11 @@ class EIPSI_Magic_Link_Service {
         if (!$participant_exists) {
             // SISTEMA DE DIAGNÓSTICO: Detectar si se pasó assignment_id en lugar de participant_id
             $diagnostic_info = self::diagnose_participant_id_issue($participant_id, $survey_id);
-            error_log(sprintf(
-                '[EIPSI MagicLinksService] Participant not found: %d. Diagnóstico: %s',
-                $participant_id,
-                $diagnostic_info['message']
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L28'), 'debug');
 
             // Si detectamos el participant_id correcto, usarlo
             if ($diagnostic_info['correct_participant_id']) {
-                error_log(sprintf(
-                    '[EIPSI MagicLinksService] AUTO-CORRECCIÓN: Usando participant_id=%d en lugar de %d',
-                    $diagnostic_info['correct_participant_id'],
-                    $participant_id
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L36'), 'debug');
                 $participant_id = $diagnostic_info['correct_participant_id'];
                 $participant_exists = true;
             } else {
@@ -53,7 +45,7 @@ class EIPSI_Magic_Link_Service {
         ));
 
         if (!$study_exists) {
-            error_log('[EIPSI MagicLinksService] Study not found in survey_studies for survey_id: ' . $survey_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L56'), 'debug');
             return false;
         }
 
@@ -69,7 +61,7 @@ class EIPSI_Magic_Link_Service {
         );
 
         if ($deleted !== false && $deleted > 0) {
-            error_log('[EIPSI MagicLinksService] Deleted ' . $deleted . ' old unused tokens for participant ' . $participant_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L72'), 'debug');
         }
 
         // Generate UUID4 token
@@ -95,12 +87,12 @@ class EIPSI_Magic_Link_Service {
         );
 
         if ($inserted === false) {
-            error_log('[EIPSI MagicLinksService] Failed to insert magic link: ' . $wpdb->last_error);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L98'), 'debug');
             return false;
         }
 
         $ml_id = $wpdb->insert_id;
-        error_log('[EIPSI MagicLinksService] Generated magic link ID ' . $ml_id . ' for participant ' . $participant_id);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L103'), 'debug');
 
         return $token_plain;
     }
@@ -168,7 +160,7 @@ class EIPSI_Magic_Link_Service {
         $ml_id = intval($ml_id);
 
         if ($ml_id <= 0) {
-            error_log('[EIPSI MagicLinksService] Invalid ml_id: ' . $ml_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L171'), 'debug');
             return false;
         }
 
@@ -181,16 +173,16 @@ class EIPSI_Magic_Link_Service {
         );
 
         if ($updated === false) {
-            error_log('[EIPSI MagicLinksService] Failed to mark magic link as used: ' . $wpdb->last_error);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L184'), 'debug');
             return false;
         }
 
         if ($updated === 0) {
-            error_log('[EIPSI MagicLinksService] Magic link already used or not found: ' . $ml_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L189'), 'debug');
             return false;
         }
 
-        error_log('[EIPSI MagicLinksService] Marked magic link ' . $ml_id . ' as used');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L193'), 'debug');
         return true;
     }
 
@@ -222,7 +214,7 @@ class EIPSI_Magic_Link_Service {
         );
 
         if ($deleted > 0) {
-            error_log('[EIPSI MagicLinksService] Cleaned up ' . $deleted . ' expired magic links');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_magic_link_service_L225'), 'debug');
         }
 
         return $deleted;

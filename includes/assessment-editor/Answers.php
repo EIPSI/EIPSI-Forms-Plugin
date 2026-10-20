@@ -6,11 +6,20 @@ final class AnswerValidationFailure extends \InvalidArgumentException {public $e
 final class Answers {
     public static function errors(array $definition,array $answers,array $touched=array()): array {
         $definition=Definition::validate($definition);$errors=array();$keys=array();
-        $visit=function($items)use(&$visit,&$errors,&$keys,$answers,$touched,$definition){foreach($items as $e){if($e['type']==='matrix'){foreach($e['properties']['matrix_rows'] as $r){$row=array('type'=>'likert','options'=>$e['options'],'properties'=>array_merge($e['properties'],array('required'=>$e['properties']['required']||$r['required'])));$key=$r['response_key'];$keys[$key]=true;$message=self::error($row,$answers[$key]??null,true);if($message)$errors[]=array('id'=>$r['id'],'message'=>$message);}}elseif($e['response_key']){$key=$e['response_key'];$keys[$key]=true;$message=self::error($e,$answers[$key]??null,!empty($touched[$key]));if($message&&$e['type']==='textarea'&&isset($answers[$key])&&!is_string($answers[$key]))$message=$definition['flow']['messages']['invalid']??Flow::messages()['invalid'];if($message)$errors[]=array('id'=>$e['id'],'message'=>$message);} $visit($e['children']);}};
+        $visit=function($items)use(&$visit,&$errors,&$keys,$answers,$touched,$definition){foreach($items as $e){if($e['type']==='matrix'){foreach($e['properties']['matrix_rows'] as $r){$row=array('type'=>'likert','options'=>$e['options'],'properties'=>array_merge($e['properties'],array('required'=>$e['properties']['required']||$r['required'])));$key=$r['response_key'];$keys[$key]=true;$message=self::error($row,$answers[$key]??null,true,\EIPSI\I18n\ContentDefaults::language($definition));if($message)$errors[]=array('id'=>$r['id'],'message'=>$message);}}elseif($e['response_key']){$key=$e['response_key'];$keys[$key]=true;$message=self::error($e,$answers[$key]??null,!empty($touched[$key]),\EIPSI\I18n\ContentDefaults::language($definition));if($message&&$e['type']==='textarea'&&isset($answers[$key])&&!is_string($answers[$key]))$message=$definition['flow']['messages']['invalid']??Flow::messages()['invalid'];if($message)$errors[]=array('id'=>$e['id'],'message'=>$message);} $visit($e['children']);}};
         $visit($definition['elements']);foreach($answers as $key=>$value)if(!isset($keys[$key]))$errors[]=array('id'=>$key,'message'=>$definition['flow']['messages']['invalid']??Flow::messages()['invalid']);return $errors;
     }
     private static function numeric($v,$min,$max,$step,$base): bool {return (is_int($v)||is_float($v))&&is_finite((float)$v)&&($min===null||$v>=$min)&&($max===null||$v<=$max)&&abs(($v-$base)/$step-round(($v-$base)/$step))<=1e-7;}
-    private static function error(array $e,$value,bool $touched): string {
+    private static function error(array $e,$value,bool $touched,string $language='es'): string {
+        if($language!=='es'){
+            $format=$e['properties']['content_type']??$e['type'];$blankValidation=trim($e['properties']['validation_message']??'')==='';
+            $fallback=\EIPSI\I18n\ContentDefaults::question($e['type'],$language);
+            foreach($fallback as $key=>$v)if(substr($key,-8)==='_message'&&trim($e['properties'][$key]??'')==='')$e['properties'][$key]=$v;
+            if($blankValidation&&in_array($e['type'],array('text','email','tel','url','number'),true)){
+                $validation=\EIPSI\I18n\ContentDefaults::get('validation',$language);
+                $e['properties']['validation_message']=$validation[in_array($format,array('free','tel'),true)?'text':$format];
+            }
+        }
         $message=self::defaultError($e,$value,$touched);if($message==='')return '';
         $p=$e['properties'];
         if($e['type']==='multiple_choice'){

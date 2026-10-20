@@ -16,7 +16,7 @@ $tests['Plugin and canonical schema/version load'] = function () {
     m0_assert((int) get_option('eipsi_migration_version') === EIPSI_Migration_Runner::LATEST_VERSION, 'Migration version differs');
     m0_assert(get_option('eipsi_db_schema_version') === EIPSI_FORMS_VERSION, 'Schema version differs');
     $map = EIPSI_Schema_Registry::get_schema_map();
-    m0_assert(count($map) === 43, 'Expected 43 schema domains, including management');
+    m0_assert(count($map) === 50, 'Expected 50 schema domains, including management and external API');
     foreach (array_keys($map) as $slug) {
         $result = EIPSI_Schema_Inspector::inspect($slug);
         m0_assert(empty($result['issues']), 'Schema issues: ' . $slug);

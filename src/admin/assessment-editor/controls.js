@@ -158,8 +158,10 @@
     const out = JSON.parse(JSON.stringify(d));
     function visit(items) {
       items.forEach((e) => {
-        e.properties = { ...defaults(e.type, e.properties), ...e.properties };
+        const original=e.properties;
+        e.properties = { ...defaults(e.type, e.properties), ...(d.content_language?root.EIPSIContent.question(e.type,root.EIPSIContent.language(d)):{}), ...e.properties };
 
+        if(e.type==="vas"&&!Object.hasOwn(original,"labels"))e.properties.labels=[original.left_label??root.EIPSIContent.get("vas_endpoints",root.EIPSIContent.language(d))[0],original.right_label??root.EIPSIContent.get("vas_endpoints",root.EIPSIContent.language(d))[1]];
         if (e.type === "vas")
           e.properties.label_settings ??= e.properties.labels.map((_, i) => ({
             id: "L_" + e.id.slice(0, 70) + "_" + i,
@@ -195,7 +197,8 @@
         1e-7
     );
   }
-  function answerError(e,value,touched) {
+  function answerError(e,value,touched,language='es') {
+    if(language!=='es'){const fallback=root.EIPSIContent.question(e.type,language),p={...e.properties};for(const key in fallback)if(key.endsWith('_message')&&(!p[key]||!p[key].trim()))p[key]=fallback[key];const format=p.content_type||e.type;if(['text','email','tel','url','number'].includes(e.type)&&!e.properties.validation_message?.trim())p.validation_message=root.EIPSIContent.get('validation',language)[format==='free'||format==='tel'?'text':format];e={...e,properties:p};}
     const message=defaultAnswerError(e,value,touched);if(!message)return '';
     const p={...defaults(e.type,e.properties),...e.properties};
     if(e.type==='multiple_choice'&&value==null)value=[];

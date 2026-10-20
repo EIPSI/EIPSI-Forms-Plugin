@@ -37,9 +37,9 @@ function eipsi_save_wizard_step_handler() {
     
     $current_step = isset($_POST['current_step']) ? intval($_POST['current_step']) : 1;
     
-    // DEBUG: Log raw POST data for step 3
+    // Optional structural diagnostics; posted values are never recorded.
     if ($current_step === 3 && isset($_POST['timing_intervals'])) {
-        error_log('[EIPSI DEBUG] Step 3 POST data: ' . json_encode($_POST['timing_intervals']));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_wizard_L42'), 'debug');
     }
     
     // Include validators if not already loaded
@@ -292,7 +292,7 @@ function eipsi_pause_study_handler() {
     $result = EIPSI_Longitudinal_Study_Service::set_status($study_id,'paused');
     
     if ($result !== false) {
-        error_log("[EIPSI] Study {$study_id} paused by user " . get_current_user_id());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_wizard_L295'), 'debug');
         wp_send_json_success(array(
             'message' => 'Estudio pausado correctamente',
             'status' => 'paused'
@@ -321,7 +321,7 @@ function eipsi_resume_study_handler() {
     $result = EIPSI_Longitudinal_Study_Service::set_status($study_id,'active');
     
     if ($result !== false) {
-        error_log("[EIPSI] Study {$study_id} resumed by user " . get_current_user_id());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_wizard_L324'), 'debug');
         wp_send_json_success(array(
             'message' => 'Estudio reanudado correctamente',
             'status' => 'active'

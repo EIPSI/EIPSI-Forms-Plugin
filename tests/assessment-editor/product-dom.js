@@ -18,6 +18,7 @@ function env() {
     url: "http://localhost/wp-admin/",
     runScripts: "outside-only",
   });
+require("../i18n1b/admin-language.js")(dom.window);
   const w = dom.window;
   Object.defineProperty(w, "crypto", { value: webcrypto });
   w.confirm = () => true;

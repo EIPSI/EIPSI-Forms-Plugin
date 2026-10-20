@@ -49,12 +49,7 @@ public static function eipsi_check_pool_completion_on_submit($data) {
             $marked = $service->mark_completed($assignment->pool_id, $participant_id, $form_id);
 
             if ($marked) {
-                error_log(sprintf(
-                    '[EIPSI-POOL-COMPLETION] Pool %d: Participante %d completó estudio %d',
-                    $assignment->pool_id,
-                    $participant_id,
-                    $survey_id
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_completion_adapter_L52'), 'debug');
 
                 // Disparar hook de completitud para extensibilidad futura
 
@@ -177,11 +172,7 @@ public static function eipsi_notify_researcher_on_pool_completion($data) {
     }
 
     if ($sent) {
-        error_log(sprintf(
-            '[EIPSI-POOL-NOTIFICATION] Email enviado a %s por completitud en pool %d',
-            $admin_email,
-            $pool_id
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_completion_adapter_L180'), 'debug');
     }
 }
 }

@@ -11,6 +11,7 @@ const root = path.resolve(__dirname, "../.."),
   }),
   w = dom.window,
   doc = w.document;
+require("../i18n1b/admin-language.js")(dom.window);
 Object.defineProperty(w, "crypto", { value: webcrypto });
 w.confirm = () => true;
 JSON.parse(

@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__).'/security/Csv.php';
 /** M6 owner; existing public adapters retain their contracts. */
 if (!defined('ABSPATH')) { exit; }
 
@@ -14,7 +15,7 @@ public static function strip_credentials($data) {
     }
 
 public static function write_csv_row($stream, $row) {
-        if (fputcsv($stream,$row) === false) { throw new RuntimeException('No se pudo escribir el export CSV.'); }
+        if (EIPSI_Csv_Serializer::row($stream,$row) === false) { throw new RuntimeException('No se pudo escribir el export CSV.'); }
     }
 
 public static function directory() {
@@ -41,7 +42,7 @@ public static function directory() {
 
     public static function xlsx($data) {
         if (!class_exists('\\Shuchkin\\SimpleXLSXGen')) { require_once EIPSI_FORMS_PLUGIN_DIR . 'lib/SimpleXLSXGen.php'; }
-        return \Shuchkin\SimpleXLSXGen::fromArray($data);
+        return \Shuchkin\SimpleXLSXGen::fromArray(EIPSI_Csv_Serializer::xlsx($data));
     }
 
 private function get_fields_by_form_id($form_id) {
@@ -211,7 +212,7 @@ public function export_to_excel($data, $survey_id) {
             wp_mkdir_p($export_dir);
         }
 
-        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($xlsx_data);
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray(EIPSI_Csv_Serializer::xlsx($xlsx_data));
         if (!$xlsx->saveAs($export_dir . '/' . $filename) || !is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('No se pudo crear el export XLSX.'); }
 
         if (!is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('El archivo de export no fue generado.'); }
@@ -397,7 +398,7 @@ private function build_participants_wide_headers($waves) {
     }
 
 private function build_participants_wide_row($row, $waves) {
-        error_log("[EIPSI-EXPORT-DIAG] build_participants_wide_row START: participant_id=" . ($row['id'] ?? 'N/A') . ", submissions_count=" . count($row['submissions'] ?? array()));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_export_file_service_L400'), 'debug');
 
         // Determine Estado based on consent_decision and consent_context
         $estado = 'Inactivo';
@@ -533,7 +534,7 @@ public function export_participants_wide_excel($study_id, $filters = array()) {
             wp_mkdir_p($export_dir);
         }
 
-        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($xlsx_data);
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray(EIPSI_Csv_Serializer::xlsx($xlsx_data));
         if (!$xlsx->saveAs($export_dir . '/' . $filename) || !is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('No se pudo crear el export XLSX.'); }
 
         if (!is_file($export_dir . '/' . $filename) || !filesize($export_dir . '/' . $filename)) { throw new RuntimeException('El archivo de export no fue generado.'); }
@@ -603,7 +604,7 @@ public static function stream_pool_roster_dashboard($pool_id, $dataset) {
 
     $output = fopen( 'php://output', 'w' );
 
-    fputcsv( $output, array(
+    EIPSI_Csv_Serializer::row( $output, array(
         'Pool',
         'Assignment ID',
         'Participant ID',
@@ -621,7 +622,7 @@ public static function stream_pool_roster_dashboard($pool_id, $dataset) {
             $participant_name = $row['email'];
         }
 
-        fputcsv( $output, array(
+        EIPSI_Csv_Serializer::row( $output, array(
             $pool_name,
             $row['assignment_id'],
             $row['participant_id'],
@@ -648,13 +649,13 @@ public static function stream_pool_roster_hub($pool_id, $dataset) {
     $output = fopen('php://output', 'w');
     fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
-    fputcsv($output, array(
+    EIPSI_Csv_Serializer::row($output, array(
         'participant_id', 'email', 'participant_name', 'study_id', 'study_name',
         'assigned_at', 'last_access', 'access_count', 'completed', 'completed_at'
     ));
 
     foreach ($assignments as $row) {
-        fputcsv($output, array(
+        EIPSI_Csv_Serializer::row($output, array(
             $row['participant_id'],
             $row['email'],
             $row['participant_name'],

@@ -35,6 +35,7 @@ final class CleanupAdapter {
             $this->observer->reached('cleanup_after_storage');
             $this->db->query($this->db->prepare('DELETE FROM '.$this->db->table('management_events').' WHERE execution_id=%s',$id));
             $this->db->query($this->db->prepare("UPDATE ".$this->db->table('management_exports')." SET state='INVALIDATED',payload_json=NULL,plan_json='[]',manifest_json=NULL,error_code='DATA_POLICY_CHANGED' WHERE study_id=%s",$e['study_id']));
+            \EIPSI\ExternalApi\ExportStorage::invalidateStudy($e['study_id']);
             // Only exact engine execution IDs; shared fingerprint/IP/email never select rows.
             foreach(array('vas_form_events','eipsi_partial_responses','eipsi_emergency_submissions') as $table){
                 global $wpdb;$cols=$this->db->rows($this->db->prepare('SELECT COLUMN_NAME AS Field FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s',$wpdb->prefix.$table));$names=array_column($cols,'Field');

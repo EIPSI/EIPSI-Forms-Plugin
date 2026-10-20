@@ -5,14 +5,20 @@ function m1_callback_contract($row) {
     return array_intersect_key($row, array_flip(array('callback','callable','deprecated')));
 }
 function m1_contracts($inventory) {
+    require_once dirname(__DIR__).'/sec1/contracts.php';
+    require_once dirname(__DIR__).'/api0/contracts.php';
+    require_once dirname(__DIR__).'/i18n1b/contracts.php';
     $baseline = json_decode(file_get_contents(__DIR__ . '/baseline.json'), true);
     $includes = array();
     foreach ($inventory['included'] as $row) {
+        if(api0_include($row['file']) || i18n1b_include($row['file']))continue;
+        if (in_array($row['file'],array('includes/security/bootstrap.php','includes/security/Csv.php','includes/security/Log.php','includes/security/RateLimiter.php','includes/security/Http.php','includes/security/Maintenance.php'),true)) { continue; }
         if (in_array($row['file'], $baseline['allowlist']['additional_includes'], true)) { continue; }
         $includes[] = $baseline['allowlist']['include_path_migrations'][$row['file']] ?? $row['file'];
     }
     $hooks = array();
     foreach ($inventory['hooks'] as $row) {
+        if (api0_hook($row) || sec1_new_hook($row) || i18n1b_hook($row)) { continue; }
         if (m1_s3_added_hook($row) || m1_builder_added_hook($row) || m1_native_assessment_added_hook($row)) { continue; }
         if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
         if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
@@ -20,6 +26,7 @@ function m1_contracts($inventory) {
     }
     $hook_locations = array();
     foreach ($inventory['hooks'] as $row) {
+        if (api0_hook($row) || sec1_new_hook($row) || i18n1b_hook($row)) { continue; }
         if (m1_s3_added_hook($row) || m1_builder_added_hook($row) || m1_native_assessment_added_hook($row)) { continue; }
         if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
         if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
@@ -29,12 +36,13 @@ function m1_contracts($inventory) {
     foreach ($inventory['shortcodes'] as $name => $row) { $shortcodes[$name] = m1_callback_contract($row); }
     $rest = array();
     foreach ($inventory['rest'] as $row) {
+        if(in_array($row['route'],array('/eipsi-external/v1/status','/eipsi-external/v1/studies','/eipsi-external/v1/studies/(?P<code>[^/]+)','/eipsi-external/v1/studies/(?P<code>[^/]+)/data','/eipsi-external/v1/studies/(?P<code>[^/]+)/dictionary','/eipsi-external/v1/studies/(?P<code>[^/]+)/exports','/eipsi-external/v1/exports/(?P<export_id>[^/]+)','/eipsi-external/v1/exports/(?P<export_id>[^/]+)/data','/eipsi-external/v1/exports/(?P<export_id>[^/]+)/download','/eipsi-external/v1/exports/(?P<export_id>[^/]+)/dictionary','/eipsi-external/v1/exports/(?P<export_id>[^/]+)/manifest'),true))continue;
         $rest[] = array('route'=>$row['route'],'methods'=>$row['methods'],'callback'=>m1_callback_contract($row['callback']),'permission'=>m1_callback_contract($row['permission']));
     }
     $cron = array();
     foreach ($inventory['cron'] as $row) { $cron[] = array_intersect_key($row, array_flip(array('hook','schedule','interval','args','callback_registered'))); }
     usort($cron, function ($a, $b) { return strcmp($a['hook'], $b['hook']); });
-    $assets = $inventory['assets'];
+    $assets = i18n1b_assets($inventory['assets']);
     foreach ($assets as &$row) {
         if ($row['kind'] === 'script' && $row['handle'] === 'eipsi-privacy-dashboard') {
             // Checkout timestamps vary; retain the actual filemtime cache-busting contract.

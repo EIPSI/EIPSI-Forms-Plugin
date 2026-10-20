@@ -6,6 +6,8 @@ use EIPSI\StudyEngine\Contracts\Check;
 use EIPSI\StudyEngine\Contracts\StudyExecution;
 use EIPSI\StudyEngine\Engine\Simulator;
 use EIPSI\StudyEngine\Engine\CompiledStudy;
+require_once dirname(__DIR__).'/runtime/PausePolicy.php';
+use EIPSI\StudyEngine\Runtime\PausePolicy;
 
 /** Sole transition owner. No HTTP/auth/render/mail or duplicated engine decisions. */
 final class ExecutionOwner {
@@ -39,7 +41,7 @@ final class ExecutionOwner {
         });
     }
     public function __construct(P\Database $db,P\SeedVault $vault,?P\TransitionObserver $observer=null,?P\FinalResponseSink $responseSink=null,?callable $clock=null) {
-        $this->clock=$clock??static function(){return gmdate('Y-m-d\TH:i:s\Z');};
+        $this->clock=$clock??static function(){return gmdate('Y-m-d\TH:i:s\Z',function_exists('apply_filters')?(int)apply_filters('eipsi_runtime_timestamp',time()):time());};
         $this->db=$db;$this->vault=$vault;$this->responseSink=$responseSink;$this->observer=$observer??new P\TransitionObserver();
         $this->versions=new P\StudyVersionRepository($db);$this->executions=new P\StudyExecutionRepository($db);$this->blocks=new P\BlockExecutionRepository($db);$this->events=new P\ExecutionEventRepository($db);$this->random=new P\RandomDecisionRepository($db);$this->commands=new P\CommandRepository($db);$this->intents=new P\NotificationIntentRepository($db);$this->withdrawals=new P\WithdrawalRepository($db);$this->journal=new P\SubmissionJournalRepository($db);
     }
@@ -56,10 +58,11 @@ final class ExecutionOwner {
             $v=$this->versions->find($versionId,true);if(!$v)throw new P\IntegrityFailure('VERSION_NOT_FOUND');
             $prior=$this->executions->request($key);if($prior)return $this->createResult($prior,$hash);
             if($v['state']!=='PUBLISHED')throw new P\PersistenceConflict('VERSION_NOT_PUBLISHED');
+            $public=PausePolicy::study($this->db,$v['study_id'],true);PausePolicy::admission($public);if(($public['enrollment_state']??null)==='FINALIZED')throw new P\PersistenceConflict('STUDY_FINALIZED');
             $graph=$this->versions->compiled($v);$id='SE_'.bin2hex(random_bytes(16));$seed=$this->vault->create($id);
             $ctx=$context;$ctx['execution_id']=$id;$ctx['created_at']=$context['created_at']??gmdate('Y-m-d\TH:i:s\Z');$ctx['seed_hex']=$seed['seed_hex'];$ctx['seed_ref']='SEED_'.$id;
             $sim=new Simulator($graph,$ctx);$s=$sim->snapshot();$result=array('execution_id'=>$id,'revision'=>0,'next_action'=>$sim->nextAction(),'event_count'=>count($s['events']));
-            $public=$this->db->row($this->db->prepare('SELECT enrollment_state,study_cycle FROM '.$this->db->table('public_studies').' WHERE study_id=%s',$v['study_id']));if(($public['enrollment_state']??null)==='FINALIZED')throw new P\PersistenceConflict('STUDY_FINALIZED');
+
             $row=$this->executionRow($sim);$row['study_cycle']=(int)($public['study_cycle']??1);$row+=array('id'=>$id,'study_id'=>$v['study_id'],'study_version_id'=>$versionId,'participant_id'=>$subject['kind']==='PARTICIPANT'?$subject['id']:null,'anonymous_identity_id'=>$subject['kind']==='ANONYMOUS'?$subject['id']:null,'seed_key_id'=>$seed['key_id'],'seed_ciphertext'=>$seed['ciphertext'],'create_key'=>$key,'create_hash'=>$hash,'create_result_json'=>Canonical::json($result));
             $this->executions->create($row);$this->persist(null,$sim,$subject,null,array(),null,$versionId);
             $this->observer->reached('before_commit');return $result;
@@ -110,7 +113,7 @@ final class ExecutionOwner {
     public function view(string $id): array {
         try{$work=function()use($id){$row=$this->locked($id);$this->observer->reached('read_authorization');
             if(!empty($row['privacy_tombstone']))return $this->tombstone($row);
-            $sim=$this->hydrate($row);return array('study_finalized_at'=>$row['finalized_at'],'study_cycle'=>(int)$row['study_cycle'],'revision'=>$sim->snapshot()['execution']['revision'],'next_action'=>$sim->nextAction(),'outcome'=>$sim->outcome(),'snapshot'=>$sim->snapshot(),'presentation'=>$sim->nextAction()['kind']==='OPEN_ASSESSMENT'?$sim->presentation($sim->nextAction()['payload']['assessment_execution_id']):null);};return $this->joiningAdmission?$work():$this->db->transactional($work);}
+            $sim=$this->hydrate($row);$study=PausePolicy::study($this->db,$row['study_id'],true);if(PausePolicy::paused($study))PausePolicy::fence($this->db,$row,$sim);return array('study_finalized_at'=>$row['finalized_at'],'study_cycle'=>(int)$row['study_cycle'],'revision'=>$sim->snapshot()['execution']['revision'],'next_action'=>$sim->nextAction(),'outcome'=>$sim->outcome(),'snapshot'=>$sim->snapshot(),'presentation'=>$sim->nextAction()['kind']==='OPEN_ASSESSMENT'?$sim->presentation($sim->nextAction()['payload']['assessment_execution_id']):null);};return $this->joiningAdmission?$work():$this->db->transactional($work);}
         catch(P\IntegrityFailure $e){return $this->operational($e->getMessage());}
         catch(P\DatabaseFailure $e){return $this->operational('STUDY_ENGINE_DATABASE_ERROR',true);}
     }
@@ -147,7 +150,8 @@ final class ExecutionOwner {
             }
             if(!empty($row['privacy_tombstone']))throw new P\PersistenceConflict('PRIVACY_TOMBSTONE_TERMINAL');
             if($withdrawal&&($row['data_policy']??'USE_ALLOWED')!=='USE_ALLOWED'&&$command['kind']!=='WITHDRAW_EXECUTION'&&!$readOnly)throw new P\PersistenceConflict('EXECUTION_WITHDRAWN');
-            $sim=$this->hydrate($row);$before=$sim->snapshot();
+            $sim=$this->hydrate($row);$study=PausePolicy::study($this->db,$row['study_id'],true);if(PausePolicy::paused($study))PausePolicy::fence($this->db,$row,$sim);$before=$sim->snapshot();
+            if(PausePolicy::paused($study)&&!$readOnly&&!in_array($command['kind'],array('ADVANCE_TIME','VERIFY_PARTICIPANT','FIRST_ACCESS','WITHDRAW_EXECUTION'),true)){ $target=$command['data']['block_execution_id']??null;if($target===null||!$sim->activationAllowed($target))throw new \EIPSI\StudyEngine\Runtime\StudyPaused(); }
             if(in_array($command['kind'],array('SUBMIT_ASSESSMENT','SUBMIT_PAGE'),true)){
                 $blockId=$command['data']['block_execution_id']??null;$instance=$before['instances'][$blockId]??null;
                 if($instance===null&&isset($command['data']['node_id']))foreach($before['instances'] as $candidate)if($candidate['definition_id']===$command['data']['node_id']&&isset($sim->compiled()->node($candidate['definition_id'])['metadata']['native_version_id']))throw new \DomainException('NATIVE_ASSESSMENT_COMPLETION_REQUIRED');

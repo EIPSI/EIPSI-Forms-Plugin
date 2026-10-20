@@ -70,9 +70,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
 
     try {
         // ✅ DEBUG: Ver qué datos estamos recibiendo
-        error_log('[EIPSI SYNC-DEBUG] Data received: participant_id=' . ($data['participant_id'] ?? 'NULL') . 
-                  ', longitudinal_id=' . ($data['longitudinal_participant_id'] ?? 'NULL') . 
-                  ', survey_id=' . ($data['survey_id'] ?? 'NULL'));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L73'), 'debug');
         
         // ✅ FIX: Usar longitudinal_participant_id (ID real de tabla) en lugar de participant_id (fingerprint)
         $participant_id = $data['longitudinal_participant_id'] ?? null;
@@ -87,7 +85,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
                 sanitize_email($email)
             ));
             if ($participant_id) {
-                error_log('[EIPSI SYNC] Found participant by email: ' . $participant_id);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L90'), 'debug');
             }
         }
         
@@ -117,13 +115,13 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
                 
                 if ($insert_result) {
                     $participant_id = $wpdb->insert_id;
-                    error_log('[EIPSI SYNC] Created new participant with ID: ' . $participant_id);
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L120'), 'debug');
                 }
             }
         }
         
         if (empty($participant_id)) {
-            error_log('[EIPSI SYNC] No participant_id found (tried longitudinal_id, email, fingerprint, and creation), skipping sync');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L126'), 'debug');
             return;
         }
         
@@ -146,7 +144,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
         $form_responses = $data['form_responses'] ?? '{}';
         $responses = json_decode($form_responses, true);
         if (json_last_error() !== JSON_ERROR_NONE || empty($responses)) {
-            error_log('[EIPSI SYNC] Invalid form_responses JSON, skipping sync');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L149'), 'debug');
             return;
         }
         
@@ -158,7 +156,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
         ));
         
         if (!$participant_exists) {
-            error_log('[EIPSI SYNC] Participant not found: ' . $participant_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L161'), 'debug');
             return;
         }
         
@@ -213,19 +211,14 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
             );
             
             if ($result !== false) {
-                error_log(sprintf(
-                    '[EIPSI SYNC] Successfully synced %d fields for participant %d (T%d)',
-                    count($update_data),
-                    $participant_id,
-                    $wave_number
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L216'), 'debug');
             } else {
-                error_log('[EIPSI SYNC] Failed to update participant: ' . $wpdb->last_error);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L223'), 'debug');
             }
         }
         
     } catch (Exception $e) {
-        error_log('[EIPSI SYNC] Exception during sync: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L228'), 'debug');
     }
 }
 
@@ -251,9 +244,9 @@ function eipsi_ensure_participant_column_exists($column_name, $data_type = 'TEXT
         $result = $wpdb->query($sql);
         
         if ($result !== false) {
-            error_log("[EIPSI SYNC] Created column: {$column_name}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L254'), 'debug');
         } else {
-            error_log("[EIPSI SYNC] Failed to create column {$column_name}: " . $wpdb->last_error);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L256'), 'debug');
         }
     }
 }

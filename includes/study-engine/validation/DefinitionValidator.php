@@ -17,6 +17,7 @@ final class DefinitionValidator {
             foreach (array('nodes','condition_rules','root_block_ids') as $k) { C\Check::listOf($data[$k],$k); }
             if (!$data['nodes']||!$data['root_block_ids']) { C\Check::fail('EMPTY_STUDY','root_block_ids','At least one root Macro required'); }
             if (!is_array($data['protocol_metadata'])) { C\Check::fail('INVALID_METADATA','protocol_metadata','JSON metadata required'); }
+            if(array_key_exists('content_language',$data['protocol_metadata'])&&!in_array($data['protocol_metadata']['content_language'],array('en','es'),true))C\Check::fail('INVALID_CONTENT_LANGUAGE','protocol_metadata.content_language','English or Spanish content language required');
             C\Check::fields($data['closure'],array('kind'),array('duration'));
             if ($data['closure']['kind']==='OVERALL_DURATION') { C\Check::fields($data['closure'],array('kind','duration')); C\Shape::duration($data['closure']['duration']); }
             elseif ($data['closure']['kind']!=='ALL_SELECTED_OPPORTUNITIES_TERMINAL' || isset($data['closure']['duration'])) { C\Check::fail('INVALID_CLOSURE','closure','Explicit structural or overall closure required'); }

@@ -17,9 +17,9 @@ class EIPSI_Notification_Email_Delivery_Service {
             $config=$smtp?$smtp->get_config():null;
             if($config){foreach($sender as $key=>$value)if($value!=='')$config[$key]=$value;$result=$smtp->send_message($to,$subject,$content,$config);$sent=!empty($result['success']);}
             else{$headers=array('Content-Type: text/html; charset=UTF-8');if($sender['from_email']!=='')$headers[]='From: '.($sender['from_name']!==''?'"'.addcslashes($sender['from_name'],"\\\"").'" ':'').'<'.$sender['from_email'].'>';$nameFilter=static function($name)use($sender){return $sender['from_name']!==''?$sender['from_name']:$name;};add_filter('wp_mail_from_name',$nameFilter,PHP_INT_MAX);try{$sent=wp_mail($to,$subject,$content,$headers);}finally{remove_filter('wp_mail_from_name',$nameFilter,PHP_INT_MAX);}}
-            error_log('[EIPSI STUDY EMAIL] intent='.preg_replace('/[^A-Za-z0-9_]/','',(string)$intent_id).' result='.($sent?'ACCEPTED':'RETRYABLE'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L20'), 'debug');
             return (bool)$sent;
-        }catch(Throwable $e){error_log('[EIPSI STUDY EMAIL] intent='.preg_replace('/[^A-Za-z0-9_]/','',(string)$intent_id).' result=RETRYABLE');return false;}
+        }catch(Throwable $e){EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L22'), 'debug');return false;}
     }
 
 public static function send_email($survey_id, $participant_id, $to, $type, $subject, $content, $metadata = array()) {
@@ -32,23 +32,23 @@ public static function send_email($survey_id, $participant_id, $to, $type, $subj
 
             if ($smtp_config) {
                 // Use SMTP service
-                error_log("[EIPSI Email] Sending via SMTP to: $to");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L35'), 'debug');
                 $result = $smtp_service->send_message($to, $subject, $content, $smtp_config);
 
                 if (!empty($result['success'])) {
                     $log_id = EIPSI_Notification_Email_Log_Service::log_email($survey_id, $participant_id, $type, 'sent', null, $subject, $metadata);
-                    error_log("[EIPSI Email] SMTP send successful to: $to (log_id={$log_id})");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L40'), 'debug');
                     return $log_id;
                 }
 
                 $error = $result['error'] ?? 'SMTP send failed';
-                error_log("[EIPSI Email] SMTP send failed: $error");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L45'), 'debug');
                 EIPSI_Notification_Email_Log_Service::log_email($survey_id, $participant_id, $type, 'failed', $error, $subject, $metadata);
                 return false;
             }
 
             // Use wp_mail with enhanced error handling
-            error_log("[EIPSI Email] Sending via wp_mail to: $to");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L51'), 'debug');
 
             // Set default From name and email if not already set
             add_filter('wp_mail_from_name', function($name) {
@@ -79,24 +79,24 @@ public static function send_email($survey_id, $participant_id, $to, $type, $subj
 
             if ($sent) {
                 $log_id = EIPSI_Notification_Email_Log_Service::log_email($survey_id, $participant_id, $type, 'sent', null, $subject, $metadata);
-                error_log("[EIPSI Email] wp_mail successful to: $to (log_id={$log_id})");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L82'), 'debug');
                 return $log_id;
             }
 
             // Get detailed error via wp_mail_failed hook
             $error_msg = $wp_mail_last_error ?? 'wp_mail returned false (no SMTP error captured)';
-            error_log("[EIPSI Email] wp_mail failed to $to: $error_msg");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L88'), 'debug');
             EIPSI_Notification_Email_Log_Service::log_email($survey_id, $participant_id, $type, 'failed', $error_msg, $subject, $metadata);
             return false;
 
         } catch (Exception $e) {
             $error_msg = 'Exception: ' . $e->getMessage();
-            error_log("[EIPSI Email] Exception during send: $error_msg");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L94'), 'debug');
             EIPSI_Notification_Email_Log_Service::log_email($survey_id, $participant_id, $type, 'failed', $error_msg, $subject);
             return false;
         } catch (Error $e) {
             $error_msg = 'Fatal Error: ' . $e->getMessage();
-            error_log("[EIPSI Email] Fatal error during send: $error_msg");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_delivery_service_L99'), 'debug');
             EIPSI_Notification_Email_Log_Service::log_email($survey_id, $participant_id, $type, 'failed', $error_msg, $subject);
             return false;
         }

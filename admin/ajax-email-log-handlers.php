@@ -54,7 +54,7 @@ function eipsi_ajax_get_email_logs() {
         $result = EIPSI_Email_Service::get_email_log_entries($survey_id, $sanitized_filters, $limit, $offset);
         wp_send_json_success($result);
     } catch (Exception $e) {
-        error_log('[EIPSI Email Logs] Error: ' . $e->getMessage());
+        EIPSI_Security_Log::event('EMAIL_LOG_OPERATION_FAILED');
         wp_send_json_error(__('Error al cargar los logs de email: ', 'eipsi-forms') . $e->getMessage(), 500);
     }
 }
@@ -183,7 +183,7 @@ function eipsi_ajax_email_log_export() {
     $output = fopen('php://output', 'w');
 
     // CSV headers
-    fputcsv($output, array(
+    EIPSI_Csv_Serializer::row($output, array(
         'ID',
         'Fecha',
         'Tipo',
@@ -195,7 +195,7 @@ function eipsi_ajax_email_log_export() {
 
     // CSV rows
     foreach ($result['logs'] as $log) {
-        fputcsv($output, array(
+        EIPSI_Csv_Serializer::row($output, array(
             $log->id,
             $log->sent_at,
             $log->email_type,
@@ -514,7 +514,7 @@ function eipsi_ajax_execute_bulk_action() {
                     $results['failed']++;
             }
         } catch (Exception $e) {
-            error_log('[EIPSI] Bulk action error: ' . $e->getMessage());
+            EIPSI_Security_Log::event('EMAIL_LOG_OPERATION_FAILED');
             $results['failed']++;
         }
     }

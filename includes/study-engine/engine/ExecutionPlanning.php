@@ -47,9 +47,9 @@ trait ExecutionPlanning {
     }
     private function refreshDependencyPlan(): void {
         if(!$this->dependencyPlanning())return;
-        $plan=array('contract'=>'DEPENDENCY_PLAN_V1','randomizations'=>array(),'opportunities'=>array());
+        $plan=$this->activationScope===null?array('contract'=>'DEPENDENCY_PLAN_V1','randomizations'=>array(),'opportunities'=>array()):($this->context['dependency_plan']??array('contract'=>'DEPENDENCY_PLAN_V1','randomizations'=>array(),'opportunities'=>array()));
         foreach($this->graph->order() as $definition){$node=$this->graph->node($definition);if($node['kind']!=='BLOCK')continue;
-            foreach($this->state->instances as $id=>$instance){if($instance['definition_id']!==$definition)continue;
+            foreach($this->state->instances as $id=>$instance){if($instance['definition_id']!==$definition||!$this->activationAllowed($id))continue;
                 if($node['randomization']!==null&&!self::terminal($instance['state'])&&$this->planningBranchSelected($instance)){
                     $pending=$this->planningPending($definition,$instance);$plan['randomizations'][$id]=array('owner_id'=>$definition,'pending_conditions'=>$pending,'status'=>$pending?'PENDING_CONDITION':'RESOLVED');if(!$pending)$this->decide($id);
                 }

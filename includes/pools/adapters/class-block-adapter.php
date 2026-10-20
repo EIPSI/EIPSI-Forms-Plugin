@@ -174,14 +174,14 @@ class EIPSI_Pool_Block_Adapter {
     private static function render_pool_content($pool_id, $method, $button_text, $redirect_mode) {
         global $wpdb;
         
-        error_log("[EIPSI POOL] === INICIO render_pool_content === pool_id={$pool_id}, method={$method}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L177'), 'debug');
 
         // Encolar assets necesarios para el pool (login, dashboard, etc.)
         self::enqueue_pool_assets();
 
         // Verificar que el pool existe y está activo
         $pool = self::get_pool_info($pool_id);
-        error_log("[EIPSI POOL] Pool info: " . ($pool ? "ENCONTRADO (status={$pool->status})" : "NO ENCONTRADO"));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L184'), 'debug');
         if (!$pool) {
             return sprintf(
                 '<div class="eipsi-pool-wrapper"><div class="eipsi-pool-error">' .
@@ -210,24 +210,24 @@ class EIPSI_Pool_Block_Adapter {
             $current_study_id = EIPSI_Auth_Service::get_current_survey();
         }
         
-        error_log("[EIPSI POOL] Auth check: participant_id={$participant_id}, current_study_id={$current_study_id}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L213'), 'debug');
 
         // Si no está autenticado, mostrar formulario de login
         if (!$participant_id) {
-            error_log("[EIPSI POOL] Usuario NO autenticado → mostrando login");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L217'), 'debug');
             return self::render_login_required($pool_id);
         }
         
-        error_log("[EIPSI POOL] Usuario autenticado: participant_id={$participant_id}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L221'), 'debug');
 
         // Verificar si ya tiene asignación existente
-        error_log("[EIPSI POOL] Verificando asignación existente...");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L224'), 'debug');
         $assignment = self::get_existing_assignment($pool_id, $participant_id);
         
         if ($assignment) {
-            error_log("[EIPSI POOL] Asignación EXISTENTE encontrada: study_id={$assignment['study_id']}, completed=" . ($assignment['completed'] ? 'SÍ' : 'NO'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L228'), 'debug');
         } else {
-            error_log("[EIPSI POOL] NO tiene asignación existente");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L230'), 'debug');
         }
 
         // Si ya tiene asignación y está completada
@@ -289,7 +289,7 @@ class EIPSI_Pool_Block_Adapter {
         $assignments_table = $wpdb->prefix . 'eipsi_pool_assignments';
         $service = new EIPSI_Pool_Assignment_Service();
 
-        error_log("[EIPSI POOL] Buscando asignación existente: pool_id={$pool_id}, participant_id={$participant_id}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L292'), 'debug');
 
         $assignment = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$assignments_table} 
@@ -301,11 +301,11 @@ class EIPSI_Pool_Block_Adapter {
         ));
 
         if (!$assignment) {
-            error_log("[EIPSI POOL] No se encontró asignación existente");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L304'), 'debug');
             return null;
         }
 
-        error_log("[EIPSI POOL] Asignación encontrada: assignment_id={$assignment->id}, study_id={$assignment->study_id}, completed={$assignment->completed}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_block_adapter_L308'), 'debug');
 
         return array(
             'study_id'    => $assignment->study_id,

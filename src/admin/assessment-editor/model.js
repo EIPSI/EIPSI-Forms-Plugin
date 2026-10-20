@@ -26,10 +26,11 @@
   function element(type, d = null) {
     if (!d || typeof d !== "object" || !Array.isArray(d.elements)) d = null;
     if (!types.includes(type)) throw Error("Tipo desconocido");
-    const p = { label: labels[type] };
+    const lang=root.EIPSIContent.language(d),content=root.EIPSIContent.get('authoring',lang),endpoints=root.EIPSIContent.get('vas_endpoints',lang);
+    const p = { label: content.labels[type] };
     if (questions.includes(type))
       Object.assign(p, {
-        label: "Escribí tu pregunta",
+        label: content.question,
         helper: "",
         required: false,
       });
@@ -43,19 +44,19 @@
         max: 100,
         step: 1,
         initial: 50,
-        left_label: "Nada",
-        right_label: "Mucho",
+        left_label: endpoints[0],
+        right_label: endpoints[1],
         show_value: true,
       });
     if (type === "randomization") Object.assign(p, {mode: "all", count: 1, order: "random", algorithm:"selection_uniform_order"});
     if (type === "instruction")
-      p.label = "Escribí las instrucciones de esta evaluación.";
+      p.label = content.instruction;
     if (type === "image") Object.assign(p, { alt: "", caption: "" });
     const node = {
       id: id("EL"),
       type,
       response_key: questions.includes(type) ? id("R") : null,
-      properties: { ...C.defaults(type, p), ...p },
+      properties: { ...C.defaults(type, p), ...(d?.content_language?root.EIPSIContent.question(type,lang):{}), ...p },
       options: [
         "single_choice",
         "multiple_choice",
@@ -64,8 +65,8 @@
         "matrix",
       ].includes(type)
         ? (["likert", "matrix"].includes(type)
-            ? ["Muy mal", "Mal", "Neutral", "Bien", "Muy bien"]
-            : ["Opción 1", "Opción 2"]
+            ? content.likert
+            : content.option
           ).map(option)
         : [],
       children: [],
@@ -80,7 +81,7 @@
         position: null,
       }));
     if (type === "matrix")
-      node.properties.matrix_rows = [row("Item 1"), row("Item 2")];
+      node.properties.matrix_rows = content.rows.map(label=>row(label));
     if (node.response_key) {
       if (d) V.allocate(d, node);
       else pending.add(node);
@@ -105,14 +106,16 @@
       required: false,
     };
   }
-  function assessment() {
+  function assessment(language = root.EIPSIAdminI18n?.language??'en') {
+    root.EIPSIContent.valid(language);
     return root.EIPSIAssessmentFlow.normalize({
       contract: "EIPSI_ASSESSMENT_V1",
       id: id("AE"),
-      title: "Nueva evaluación",
+      title: root.EIPSIContent.get("authoring",language).title,
+      content_language: language,
       elements: [],
       authoring: V.metadata(),
-      flow: root.EIPSIAssessmentFlow.defaults(),
+      flow: root.EIPSIAssessmentFlow.defaults(language),
     });
   }
   function find(d, target, parent = null) {
@@ -276,6 +279,7 @@
               row,
               this.answers[r.response_key],
               true,
+              root.EIPSIContent.language(this.definition),
             );
             if (message) errors.push({ id: r.id, message });
           });
@@ -283,7 +287,7 @@
         }
         if (!e.response_key) return;
         const value = this.answers[e.response_key];
-        const message = C.answerError(e, value, this.touched[e.response_key]);
+        const message = C.answerError(e, value, this.touched[e.response_key],root.EIPSIContent.language(this.definition));
         if (message) errors.push({ id: e.id, message });
       });
       return errors;

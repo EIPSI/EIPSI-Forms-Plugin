@@ -99,21 +99,6 @@ function eipsi_get_cron_diagnostic() {
 }
 
 /**
- * AJAX handler for cron diagnostic
- */
-add_action('wp_ajax_eipsi_get_cron_diagnostic', 'eipsi_ajax_get_cron_diagnostic');
-function eipsi_ajax_get_cron_diagnostic() {
-    check_ajax_referer('eipsi_admin_nonce', 'nonce');
-    
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized');
-    }
-    
-    $diagnostics = eipsi_get_cron_diagnostic();
-    wp_send_json_success($diagnostics);
-}
-
-/**
  * Force run a specific cron job (for testing)
  * Note: This function is similar to the one in ajax-phase3-handlers.php
  * but uses the existing hook name, so we don't redeclare it.

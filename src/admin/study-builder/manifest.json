@@ -1,5 +1,8 @@
 {
   "entry_order": [
+    "../i18n/runtime.js",
+    "../i18n/content-catalog.js",
+    "../i18n/content.js",
     "../../frontend/study/interactions.js",
     "model.js",
     "controls.js",

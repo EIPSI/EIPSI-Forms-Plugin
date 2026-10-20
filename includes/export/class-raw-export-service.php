@@ -491,7 +491,7 @@ public static function eipsi_export_to_excel() {
     $xlsx->downloadAs($filename);
     exit;
     } catch (Exception $e) {
-        error_log('EIPSI Forms Export Error (Excel): ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_raw_export_service_L494'), 'debug');
         wp_die(__('An error occurred while exporting to Excel. Please try again or contact support if the problem persists.', 'eipsi-forms'));
     }
 }
@@ -820,7 +820,7 @@ public static function eipsi_export_to_csv() {
     fclose($output);
     exit;
     } catch (Exception $e) {
-        error_log('EIPSI Forms Export Error (CSV): ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_raw_export_service_L823'), 'debug');
         if (isset($output) && is_resource($output)) {
             fclose($output);
         }
@@ -1078,6 +1078,6 @@ public static function study_engine_csv($dataset, $stream) {
     if(!current_user_can('manage_options'))throw new RuntimeException('EXPORT_AUTHORIZATION_REQUIRED');
     if(($dataset['contract']??null)!=='P1G_EXPORT_V1'||!is_resource($stream))throw new InvalidArgumentException('INVALID_ENGINE_EXPORT');
     if(!$dataset['rows'])return 0;$columns=array_keys($dataset['rows'][0]);EIPSI_Export_File_Service::write_csv_row($stream,$columns);$count=0;
-    foreach($dataset['rows'] as $row){$values=array();foreach($columns as $column){$value=$row[$column];$value=is_array($value)?wp_json_encode($value,JSON_UNESCAPED_UNICODE):$value;if(is_string($value)&&preg_match('/^[\s\x{FEFF}\x{200B}]*[=+\-@]/u',$value))$value="'".$value;$values[]=$value;}EIPSI_Export_File_Service::write_csv_row($stream,$values);$count++;}return $count;
+    foreach($dataset['rows'] as $row){$values=array();foreach($columns as $column){$value=$row[$column];$value=is_array($value)?wp_json_encode($value,JSON_UNESCAPED_UNICODE):$value;$values[]=$value;}EIPSI_Export_File_Service::write_csv_row($stream,$values);$count++;}return $count;
 }
 }

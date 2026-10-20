@@ -1,6 +1,6 @@
 (function (root) {
   "use strict";
-  const messages = {"expired": "La sesión anterior venció. Empezá nuevamente desde la primera página.", "expired_saved": "Las respuestas parciales de la sesión anterior quedaron guardadas. Empezá nuevamente desde la primera página.", "processing": "Actualizando sesión…", "updated": "Sesión actualizada.", "completed": "Respuestas guardadas correctamente.", "invalid": "No se pudieron procesar tus respuestas. Volvé a intentarlo.", "delivery_error": "No se pudo confirmar el guardado de tus respuestas. Volvé a intentarlo con el mismo botón.", "discard_label": "Descartar respuesta", "discard_confirm": "¿Descartar esta respuesta? Se eliminarán la sesión y las respuestas de esta evaluación para comenzar desde cero.", "discarded": "Respuesta descartada. Podés empezar desde el comienzo.", "progress": "Página [ACTUAL] de [TOTAL]", "progress_accessible": "Progreso por páginas", "discard_accept": "Aceptar", "discard_cancel": "Cancelar"};
+  const messages = root.EIPSIContent.get('flow_messages','es');
   const units = {
     minutes: 60,
     hours: 3600,
@@ -8,23 +8,7 @@
     weeks: 604800,
     months: 2592000,
   };
-  function defaults() {
-    return {
-      pages: [],
-      allow_back: true,
-      navigation_labels: { back: "", next: "", finish: "" },
-      progress: "pages",
-      completion: {
-        title: "Gracias por responder",
-        message_html: "<p>Gracias por completar la evaluación.</p>",
-        image_url: "",
-        button_label: "",
-        allow_restart: true,
-      },
-      save_continue: { enabled: false, window: { value: 7, unit: "days" } },
-      metadata_profile: "basic",
-    };
-  }
+  function defaults(language=null) {return root.EIPSIContent.get(language===null?'flow_legacy':'flow',language??'es');}
   function pageId(id) {
     if (id.length <= 97) return "PG_" + id;
     let h = 2166136261;
@@ -33,7 +17,8 @@
     return "PG_" + id.slice(0, 80) + "_" + h.toString(16).padStart(8, "0");
   }
   function normalize(d) {
-    d.flow ??= defaults();
+    d.flow ??= defaults(d.content_language??null);
+    if(d.content_language){const base=defaults(d.content_language);d.flow={...base,...d.flow,messages:{...base.messages,...d.flow.messages}};}
     d.flow.navigation_labels ??= { back: "", next: "", finish: "" };
     const old = new Map(d.flow.pages.map((p) => [p.id, p]));
     const boundaries = [

@@ -160,12 +160,12 @@ function eipsi_enqueue_admin_light_theme($hook) {
 
             // Localize configuration panel script
             wp_localize_script('eipsi-configuration-panel', 'eipsiConfigL10n', array(
-                'fillAllFields' => __('Por favor completa todos los campos requeridos.', 'eipsi-forms'),
-                'connectionError' => __('Error de conexión al probar la conexión.', 'eipsi-forms'),
-                'testFirst' => __('Por favor prueba la conexión primero.', 'eipsi-forms'),
-                'saveError' => __('Error al guardar la configuración.', 'eipsi-forms'),
-                'disableExternal' => __('Deshabilitar Base de Datos Externa', 'eipsi-forms'),
-                'loading' => __('Cargando...', 'eipsi-forms')
+                'fillAllFields' => eipsi_admin_translate('Please complete all required fields.'),
+                'connectionError' => eipsi_admin_translate('Connection error during the connection test.'),
+                'testFirst' => eipsi_admin_translate('Please test the connection first.'),
+                'saveError' => eipsi_admin_translate('Error saving configuration.'),
+                'disableExternal' => eipsi_admin_translate('Disable external database'),
+                'loading' => eipsi_admin_translate('Loading...')
             ));
 
             // Get active tab
@@ -451,38 +451,38 @@ function eipsi_forms_enqueue_admin_assets($hook) {
         );
 
         wp_localize_script('eipsi-config-panel-script', 'eipsiConfigL10n', array(
-            'connected' => __('Connected', 'eipsi-forms'),
-            'disconnected' => __('Disconnected', 'eipsi-forms'),
-            'currentDatabase' => __('Current Database:', 'eipsi-forms'),
-            'records' => __('Records:', 'eipsi-forms'),
-            'noExternalDB' => __('No external database configured. Form submissions will be stored in the WordPress database.', 'eipsi-forms'),
-            'fillAllFields' => __('Please fill in all required fields.', 'eipsi-forms'),
-            'connectionError' => __('Connection test failed. Please check your credentials.', 'eipsi-forms'),
-            'testFirst' => __('Please test the connection before saving.', 'eipsi-forms'),
-            'saveError' => __('Failed to save configuration.', 'eipsi-forms'),
-            'disableError' => __('Failed to disable external database.', 'eipsi-forms'),
-            'confirmDisable' => __('Are you sure you want to disable the external database? Form submissions will be stored in the WordPress database.', 'eipsi-forms'),
-            'disableExternal' => __('Disable External Database', 'eipsi-forms'),
+            'connected' => eipsi_admin_translate('Connected'),
+            'disconnected' => eipsi_admin_translate('Disconnected'),
+            'currentDatabase' => eipsi_admin_translate('Current Database:'),
+            'records' => eipsi_admin_translate('Records:'),
+            'noExternalDB' => eipsi_admin_translate('No external database configured. Form submissions will be stored in the WordPress database.'),
+            'fillAllFields' => eipsi_admin_translate('Please fill in all required fields.'),
+            'connectionError' => eipsi_admin_translate('Connection test failed. Please check your credentials.'),
+            'testFirst' => eipsi_admin_translate('Please test the connection before saving.'),
+            'saveError' => eipsi_admin_translate('Failed to save configuration.'),
+            'disableError' => eipsi_admin_translate('Failed to disable external database.'),
+            'confirmDisable' => eipsi_admin_translate('Are you sure you want to disable the external database? Form submissions will be stored in the WordPress database.'),
+            'disableExternal' => eipsi_admin_translate('Disable External Database'),
             'confirmDeleteTitle' => __('⚠️ Delete All Clinical Data?', 'eipsi-forms'),
             'confirmDeleteMessage' => __('This action will PERMANENTLY delete all form responses, session data, and event logs from EIPSI Forms.\n\nThis CANNOT be undone.\n\nAre you absolutely sure?', 'eipsi-forms'),
             'confirmDeleteYes' => __('Yes, delete all data', 'eipsi-forms'),
-            'confirmDeleteNo' => __('Cancel', 'eipsi-forms'),
+            'confirmDeleteNo' => eipsi_admin_translate('Cancel'),
             'deleteSuccess' => __('All clinical data has been successfully deleted.', 'eipsi-forms'),
             'deleteError' => __('Failed to delete data. Please check the error logs.', 'eipsi-forms'),
-            'smtpFillAllFields' => __('Completa servidor, puerto y usuario SMTP.', 'eipsi-forms'),
-            'smtpTestError' => __('Error al probar SMTP. Verificá las credenciales.', 'eipsi-forms'),
-            'smtpTestFirst' => __('Probá el SMTP antes de guardar.', 'eipsi-forms'),
-            'smtpSaveError' => __('No se pudo guardar la configuración SMTP.', 'eipsi-forms'),
-            'smtpDisableError' => __('No se pudo desactivar el SMTP.', 'eipsi-forms'),
-            'smtpConfirmDisable' => __('¿Seguro que querés desactivar el SMTP? Se usará wp_mail().', 'eipsi-forms'),
-            'smtpDisableLabel' => __('Desactivar SMTP', 'eipsi-forms'),
-            'smtpActive' => __('SMTP activo', 'eipsi-forms'),
-            'smtpInactive' => __('SMTP inactivo', 'eipsi-forms'),
-            'smtpNoConfig' => __('No hay configuración SMTP activa. Los correos se enviarán con wp_mail().', 'eipsi-forms'),
-            'smtpHostLabel' => __('Servidor:', 'eipsi-forms'),
-            'smtpPortLabel' => __('Puerto:', 'eipsi-forms'),
-            'smtpUserLabel' => __('Usuario:', 'eipsi-forms'),
-            'smtpEncryptionLabel' => __('Seguridad:', 'eipsi-forms')
+            'smtpFillAllFields' => eipsi_admin_translate('Complete SMTP server, port and username.'),
+            'smtpTestError' => eipsi_admin_translate('SMTP test failed. Check credentials.'),
+            'smtpTestFirst' => eipsi_admin_translate('Test SMTP before saving.'),
+            'smtpSaveError' => eipsi_admin_translate('Could not save SMTP configuration.'),
+            'smtpDisableError' => eipsi_admin_translate('Could not disable SMTP.'),
+            'smtpConfirmDisable' => eipsi_admin_translate('Disable SMTP? Emails will use wp_mail().'),
+            'smtpDisableLabel' => eipsi_admin_translate('Disable SMTP'),
+            'smtpActive' => eipsi_admin_translate('SMTP active'),
+            'smtpInactive' => eipsi_admin_translate('SMTP inactive'),
+            'smtpNoConfig' => eipsi_admin_translate('No active SMTP configuration. Emails will be sent using wp_mail().'),
+            'smtpHostLabel' => eipsi_admin_translate('Server:'),
+            'smtpPortLabel' => eipsi_admin_translate('Port:'),
+            'smtpUserLabel' => eipsi_admin_translate('Username:'),
+            'smtpEncryptionLabel' => eipsi_admin_translate('Security:')
         ));
     }
 
@@ -644,11 +644,6 @@ function eipsi_forms_enqueue_frontend_assets() {
         EIPSI_FORMS_VERSION,
         true
     );
-    if (current_user_can('manage_options')) {
-        wp_localize_script('eipsi-save-continue-js', 'eipsiPartialDebugConfig', array(
-            'nonce' => wp_create_nonce('eipsi_admin_nonce'),
-        ));
-    }
     // === FIN SAVE & CONTINUE ===
 
     // Enqueue Randomization Public System styles (Fase 3)

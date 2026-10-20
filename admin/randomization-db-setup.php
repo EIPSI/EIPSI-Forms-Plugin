@@ -148,7 +148,7 @@ function eipsi_register_randomization_rest_endpoint() {
             'methods'             => 'POST',
             'callback'            => 'eipsi_rest_save_randomization_config',
             'permission_callback' => function() {
-                return current_user_can( 'edit_posts' );
+                return current_user_can( 'manage_options' );
             },
         )
     );

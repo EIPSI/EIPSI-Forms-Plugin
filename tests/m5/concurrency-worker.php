@@ -11,7 +11,7 @@ touch($dir.'/ready'.$slot);$deadline=microtime(true)+20;
 while(!file_exists($dir.'/start')){if(microtime(true)>$deadline){exit(3);}usleep(10000);}
 try {
  switch($input['mode']){
- case 'worker':$result=EIPSI_Notification_Nudge_Worker_Service::process_job($job);break;
+ case 'worker':$result=EIPSI_Notification_Nudge_Worker_Service::process_job($job);if(!$result['processed'])$result['fixture_clock']=array('mysql'=>current_time('mysql'),'epoch'=>time(),'timezone'=>get_option('timezone_string'),'offset'=>get_option('gmt_offset'),'scheduled'=>$job->scheduled_at,'sql_error'=>$wpdb->last_error,'lock_owner'=>$wpdb->get_var($wpdb->prepare('SELECT IS_USED_LOCK(%s)','eipsi_job_'.md5(DB_NAME.':'.$wpdb->prefix.':'.intval($job->id)))));break;
  case 'claim':$result=EIPSI_Nudge_Job_Queue::mark_processing($job->id);break;
  case 'schedule':$result=EIPSI_Nudge_Event_Scheduler::schedule_nudge_sequence(992231);break;
  case 'reschedule':
@@ -20,6 +20,6 @@ try {
  $result=EIPSI_Nudge_Event_Scheduler::refresh_wave_follow_ups(992221,992231);break;
  default:throw new RuntimeException('Unknown mode');
  }
- file_put_contents($dir.'/result'.$slot.'.json',wp_json_encode(array('result'=>$result)));
-}catch(Throwable $e){file_put_contents($dir.'/result'.$slot.'.json',wp_json_encode(array('error'=>$e->getMessage())));}
+ file_put_contents($dir.'/result'.$slot.'.tmp',wp_json_encode(array('result'=>$result)));rename($dir.'/result'.$slot.'.tmp',$dir.'/result'.$slot.'.json');
+}catch(Throwable $e){file_put_contents($dir.'/result'.$slot.'.tmp',wp_json_encode(array('error'=>$e->getMessage())));rename($dir.'/result'.$slot.'.tmp',$dir.'/result'.$slot.'.json');}
 ob_end_clean();

@@ -16,18 +16,18 @@ public static function log_email($survey_id, $participant_id, $type, $status, $e
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
             $caller = isset($backtrace[1]) ? $backtrace[1]['function'] : 'unknown';
             $file = isset($backtrace[1]) ? basename($backtrace[1]['file']) : 'unknown';
-            error_log("[EIPSI Email] WARNING: email_type was empty, defaulting to 'custom'. Called from: {$caller} in {$file}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_log_service_L19'), 'debug');
         }
 
         // Log para debug
-        error_log("[EIPSI Email] log_email called - type: '$type', status: '$status', participant: $participant_id");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_log_service_L23'), 'debug');
 
         // Validate survey_id - allow 0 but cast to int for safe insert
         $survey_id = intval($survey_id);
 
         // Skip logging if participant_id is invalid
         if ($participant_id <= 0) {
-            error_log("[EIPSI Email] log_email skipped: invalid participant_id: $participant_id");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_log_service_L30'), 'debug');
             return;
         }
 
@@ -52,7 +52,7 @@ public static function log_email($survey_id, $participant_id, $type, $status, $e
         );
 
         if ($result === false) {
-            error_log("[EIPSI Email] log_email failed: " . $wpdb->last_error);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_log_service_L55'), 'debug');
             return 0;
         }
 

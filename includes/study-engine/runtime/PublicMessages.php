@@ -1,10 +1,11 @@
 <?php
 namespace EIPSI\StudyEngine\Runtime;
 require_once __DIR__.'/DateFormat.php';
+require_once (defined('EIPSI_FORMS_PLUGIN_DIR')?EIPSI_FORMS_PLUGIN_DIR.'includes/i18n/ContentDefaults.php':dirname(__DIR__,2).'/i18n/ContentDefaults.php');
 /** Public text only; never interprets HTML, PHP or arbitrary shortcodes. */
 final class PublicMessages {
     public static function catalog(): array {static $rows;if($rows===null)$rows=json_decode(file_get_contents(__DIR__.'/public-messages.json'),true,32,JSON_THROW_ON_ERROR);return $rows;}
-    public static function defaults(): array {return array_column(self::catalog(),'default','key');}
+    public static function defaults(string $language='es'): array {$out=array_column(self::catalog(),'default','key');return array_replace($out,\EIPSI\I18n\ContentDefaults::get('public_messages',$language));}
     public static function validate($messages): array {
         if(!is_array($messages))throw new \DomainException('INVALID_PUBLIC_MESSAGES');$keys=self::defaults();
         foreach($messages as $key=>$value)if(!array_key_exists($key,$keys)||!is_string($value)||strlen($value)>16000||preg_match('//u',$value)!==1||strpos($value,"\0")!==false)throw new \DomainException('INVALID_PUBLIC_MESSAGE');return $messages;
@@ -12,7 +13,7 @@ final class PublicMessages {
     public static function all(array $definition=array()): array {
         $custom=$definition['protocol_metadata']['public_messages']??array();
         if(!$definition)$custom=get_option('eipsi_study_public_fallback_messages',array());
-        $defaults=self::defaults();foreach(array('finished_title'=>'completion_title','finished_body'=>'completion_message') as $key=>$source)if(isset($definition['protocol_metadata'][$source])&&is_string($definition['protocol_metadata'][$source]))$defaults[$key]=$definition['protocol_metadata'][$source];
+        $defaults=self::defaults($definition?\EIPSI\I18n\ContentDefaults::language($definition):(function_exists('eipsi_forms_language')?eipsi_forms_language():'en'));foreach(array('finished_title'=>'completion_title','finished_body'=>'completion_message') as $key=>$source)if(isset($definition['protocol_metadata'][$source])&&is_string($definition['protocol_metadata'][$source]))$defaults[$key]=$definition['protocol_metadata'][$source];
         return array_replace($defaults,self::validate($custom));
     }
     public static function text(array $definition,string $key,array $values=array()): string {

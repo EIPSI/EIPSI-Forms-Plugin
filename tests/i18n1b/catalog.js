@@ -1,0 +1,36 @@
+'use strict';
+const fs=require('fs'),vm=require('vm'),rawAssert=require('node:assert/strict');
+let checks=0;const assert=new Proxy(rawAssert,{get(target,key){return (...args)=>{checks++;return target[key](...args);};}});
+const {validateCatalog,parseCatalog}=require('../../scripts/check-admin-i18n');
+assert.throws(()=>validateCatalog({'Save':''}),/Missing/);
+assert.throws(()=>validateCatalog({'%s items':'Elementos'}),/placeholders/);
+assert.throws(()=>validateCatalog({'':'Guardar'}),/Missing/);
+assert.throws(()=>parseCatalog('{"Save":"Guardar","Save":"Otro"}'),/Duplicate/);
+assert.throws(()=>validateCatalog({'%d item':{one:'%d elemento',other:'Elementos',plural:'%d items'}}),/placeholders/);
+assert.throws(()=>validateCatalog({'%d item':{one:'%d elemento',plural:'%d items'}}),/plural/);
+assert.throws(()=>validateCatalog({'[variable]':'[otra]'}),/placeholders/);
+assert.throws(()=>validateCatalog({'%s %%':'%s'}),/placeholders/);
+const messages=parseCatalog(fs.readFileSync('includes/i18n/admin-catalog.json','utf8'));
+validateCatalog(messages);checks++;
+const source=fs.readFileSync('src/admin/i18n/runtime.js','utf8');
+const run=language=>{const window={eipsiAdminLanguage:{language,messages,fields:JSON.parse(fs.readFileSync('includes/i18n/admin-fields.json','utf8'))}};vm.runInNewContext(source,{window});return window.EIPSIAdminI18n;};
+assert.equal(run('es').t('Configuration'),'Configuración');
+assert.equal(run('en').t('Configuration'),'Configuration');
+assert.equal(run(undefined).t('Configuration'),'Configuration');
+assert.equal(run('es').t('UNSUPPORTED_BLOCK'),'UNSUPPORTED_BLOCK');
+assert.equal(run('fr').language,'en');
+for (const [language,one,many] of [['en','item','items'],['es','elemento','elementos']]) {
+    const i=run(language);for(const n of [0,1,2])assert.equal(i.n('%d item',n),n+' '+(n===1?one:many));
+    assert.equal(i.f('%2$s: %1$d',3,'ID'),'ID: 3');
+    assert.equal(i.f('%s %%','A'),'A %');
+}
+assert.throws(()=>run('en').n('Unknown',2),/PLURAL/);
+assert.equal(run('en').h('<script>'),'&lt;script&gt;');
+assert.equal(run('es').field('email_required'),'Email obligatorio');
+assert.equal(fs.readFileSync('assets/js/admin-i18n.js','utf8').includes('EIPSIAdminI18n'),true);
+assert.equal(run('en').error('Tipo desconocido'),'Unknown type');
+assert.equal(run('es').error('Assessment not found'),'No se encontró la evaluación');
+assert.deepEqual([run('en').error('Referencias pendientes: A_123'),run('en').error('Mostrar N requiere entre 1 y 4 candidatos; Mostrar siempre se agrega aparte.')],['Pending references: A_123','Show N requires between 1 and 4 candidates; Always show is added separately.']);
+assert.equal(run('es').error('INTERNAL_CODE'),'INTERNAL_CODE');
+console.log(`PASS ${Object.keys(messages).length} catalog entries; duplicate/missing/tokens/plural checks and both runtime languages`);
+console.log(`${checks} tests, 0 failures`);

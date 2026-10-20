@@ -47,6 +47,7 @@ trait StudyManagement {
         $this->db->transactional(function()use($study){
             global $wpdb;$versions=$this->db->rows($this->db->prepare('SELECT id FROM '.$this->db->table('study_versions').' WHERE study_id=%s FOR UPDATE',$study));
             if(!$versions)return; // Idempotent retry after a lost response.
+            \EIPSI\ExternalApi\ExportStorage::invalidateStudy($study);
             $names=array();foreach(array('study_versions','study_executions','block_executions','execution_events','random_decisions','execution_commands','withdrawal_records','notification_intents','submission_journal','participants','public_studies','participant_sessions','access_capabilities','enrollment_receipts','anonymous_access') as $table)$names[]=$this->db->prepare('%s',$wpdb->prefix.'eipsi_engine_'.$table);
             $engines=$this->db->rows('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('.implode(',',$names).')');if(count($engines)!==count($names))throw new P\IntegrityFailure('STUDY_DELETE_SCHEMA_REQUIRED');foreach($engines as $engine)if(strcasecmp($engine['ENGINE'],'InnoDB')!==0)throw new P\IntegrityFailure('STUDY_DELETE_TRANSACTION_REQUIRED');
             $executions=$this->db->rows($this->db->prepare('SELECT id FROM '.$this->db->table('study_executions').' WHERE study_id=%s FOR UPDATE',$study));

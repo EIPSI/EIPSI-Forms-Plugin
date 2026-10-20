@@ -2,11 +2,12 @@
   "use strict";
   const A = root.EIPSIAssessment;
   const defaults = {preset: "Clinical Blue", primary: "#3b6caa", background: "#ffffff", text: "#2c3e50", button_text: "#ffffff", font: "system", font_size: 16, width: 800, padding: 40, gap: 24, radius: 12, shadow: true, navigation_alignment: "edges"};
-  const presets = {
-    "Clinical Blue": {},
-    "Minimal White": {primary: "#475569", text: "#0f172a", padding: 56, gap: 32, radius: 6, shadow: false},
-    "Warm Neutral": {primary: "#8b6f47", background: "#fdfcfa", text: "#3d3935", gap: 28, radius: 14},
-    "Serene Teal": {primary: "#0e7490", text: "#0c4a6e", padding: 44, gap: 28, radius: 16},
+  // Persisted keys remain unchanged; labels are presentation only.
+  const presets = A.designPresets = {
+    "Clinical Blue": {label: "Clinical Blue", values: {}},
+    "Minimal White": {label: "Minimal White", values: {primary: "#475569", text: "#0f172a", padding: 56, gap: 32, radius: 6, shadow: false}},
+    "Warm Neutral": {label: "Warm Neutral", values: {primary: "#8b6f47", background: "#fdfcfa", text: "#3d3935", gap: 28, radius: 14}},
+    "Serene Teal": {label: "Serene Teal", values: {primary: "#0e7490", text: "#0c4a6e", padding: 44, gap: 28, radius: 16}},
   };
   A.designDefaults = () => ({...defaults});
   A.applyDesign = (node, design) => {
@@ -21,12 +22,12 @@
   };
   A.designInspector = (definition, host, onchange, field) => {
     const group = A.el("details", {class: "ae-design-settings"});
-    group.append(A.el("summary", {}, "Diseño"));
+    group.append(A.el("summary", {}, root.EIPSIAdminI18n.t("Design")));
     // Old published definitions remain byte-for-byte unchanged until an explicit author edit.
     const current = {...defaults, ...definition.flow.design};
     const change = () => {definition.flow.design = {...current}; onchange();};
-    field(group, current, "preset", "Estilo base", () => {
-      Object.assign(current, defaults, presets[current.preset], {preset: current.preset});
+    field(group, current, "preset", root.EIPSIAdminI18n.t("Base style"), () => {
+      Object.assign(current, defaults, presets[current.preset].values, {preset: current.preset});
       change();
       const sibling = group.nextSibling;
       group.remove();
@@ -34,16 +35,16 @@
       const fresh = host.querySelector(".ae-design-settings");
       host.insertBefore(fresh, sibling);
       fresh.open = true;
-    }, "text", Object.keys(presets).map(name => [name, name]));
-    for (const [key, label] of [["primary","Color principal y botones"],["background","Fondo"],["text","Texto"],["button_text","Texto de botones"]])
+    }, "text", Object.entries(presets).map(([id, preset]) => [id, root.EIPSIAdminI18n.t(preset.label)]));
+    for (const [key, label] of [["primary",root.EIPSIAdminI18n.t("Primary and button color")],["background",root.EIPSIAdminI18n.t("Background")],["text",root.EIPSIAdminI18n.t("Text")],["button_text",root.EIPSIAdminI18n.t("Button text")]])
       field(group, current, key, label, change, "color");
-    field(group, current, "font", "Tipografía", change, "text", [["system","Sistema"],["sans","Sans serif"],["serif","Serif"]]);
-    for (const [key, label, min, max] of [["font_size","Tamaño de texto (px)",12,32],["width","Ancho máximo (px)",320,1400],["padding","Espacio interior (px)",0,96],["gap","Separación de preguntas (px)",8,80],["radius","Redondeado de bordes (px)",0,32]]) {
+    field(group, current, "font", root.EIPSIAdminI18n.t("Font family"), change, "text", [["system",root.EIPSIAdminI18n.t("System")],["sans",root.EIPSIAdminI18n.t("Sans serif")],["serif",root.EIPSIAdminI18n.t("Serif")]]);
+    for (const [key, label, min, max] of [["font_size",root.EIPSIAdminI18n.t("Text size (px)"),12,32],["width",root.EIPSIAdminI18n.t("Maximum width (px)"),320,1400],["padding",root.EIPSIAdminI18n.t("Inner spacing (px)"),0,96],["gap",root.EIPSIAdminI18n.t("Question spacing (px)"),8,80],["radius",root.EIPSIAdminI18n.t("Corner radius (px)"),0,32]]) {
       const input = field(group, current, key, label, change, "number");
       input.min = min; input.max = max; input.step = 1;
     }
-    field(group, current, "shadow", "Sombra del cuestionario", change, "checkbox");
-    field(group, current, "navigation_alignment", "Posición de Atrás, Siguiente y Terminar", change, "text", [["edges","En los extremos"],["center","Centrados"]]);
+    field(group, current, "shadow", root.EIPSIAdminI18n.t("Questionnaire shadow"), change, "checkbox");
+    field(group, current, "navigation_alignment", root.EIPSIAdminI18n.t("Back, Next and Finish alignment"), change, "text", [["edges",root.EIPSIAdminI18n.t("At the edges")],["center",root.EIPSIAdminI18n.t("Centered")]]);
     host.append(group);
   };
 })(window);

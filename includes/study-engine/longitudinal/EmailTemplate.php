@@ -3,16 +3,13 @@ namespace EIPSI\StudyEngine\Longitudinal;
 
 /** WHAT owner: escaped named values, no PHP, shortcode interpreter or timing decisions. */
 final class EmailTemplate {
-    private const MESSAGES=array('VERIFY_PARTICIPANT'=>array('Confirmá tu email','Confirmá tu dirección para recibir los próximos avisos.'),'ASSESSMENT_AVAILABLE'=>array('Evaluación disponible','Tu próxima evaluación está disponible.'),'ASSESSMENT_REMINDER'=>array('Recordatorio de evaluación','Todavía podés completar tu evaluación.'));
-    public static function defaults(): array {
-        $out=array();foreach(self::MESSAGES as $key=>$message)$out[$key]=array('subject'=>$message[0],'html'=>'<h1>'.esc_html($message[0]).'</h1><p>[study_name]</p><p>'.esc_html($message[1]).'</p><p>[assessment_name]</p><p>Disponible: [available_time]</p><p>Vencimiento: [due_time]</p><p><a href="[direct_link]">Continuar</a></p><hr><p><a href="[withdrawal_link]">Abandonar estudio</a></p>');return $out;
-    }
+    public static function defaults(string $language='es'): array {return \EIPSI\I18n\ContentDefaults::get('emails',$language);}
     /** Empty configuration slots mean the visible default template, not an edited blank body. */
     public static function configured(array $templates): array {
         return array_filter($templates,static function($template){return $template!==array('subject'=>'','html'=>'')&&$template!==array('html'=>'','subject'=>'');});
     }
-    public function render(string $key,array $values,array $templates=array()): array {
-        $defaults=self::defaults();if(!isset($defaults[$key]))throw new \DomainException('UNKNOWN_EMAIL_TEMPLATE');
+    public function render(string $key,array $values,array $templates=array(),string $language='es'): array {
+        $defaults=self::defaults($language);if(!isset($defaults[$key]))throw new \DomainException('UNKNOWN_EMAIL_TEMPLATE');
         foreach(array('study_name','assessment_name','available_time','due_time','direct_link','withdrawal_link') as $k)if(!isset($values[$k])||!is_string($values[$k]))throw new \DomainException('INVALID_TEMPLATE_VARIABLE');
         $template=InitialScreen::template($templates[$key]??$defaults[$key]);
         $pattern='/\{\{([a-z_]+)\}\}|\[([a-z_]+)\]/';
@@ -31,7 +28,7 @@ final class EmailTemplate {
     }
     private function renderScreen(array $frame,?string $error=null): string {
         $action=add_query_arg('eipsi_study',$frame['study']['public_id'],home_url('/'));
-        $initial=isset($frame['definition'])?(Configuration::read($frame['definition'])['initial_screen']??InitialScreen::normalize(InitialScreen::defaults())):null;
+        $initial=isset($frame['definition'])?(Configuration::read($frame['definition'])['initial_screen']??InitialScreen::normalize(InitialScreen::defaults($frame['definition']['protocol_metadata']['content_language']??null))):null;
         if(isset($frame['assessment_completion_native_url']))return '<main id="eipsi-study" class="eipsi-study" data-state="ASSESSMENT_COMPLETED"><iframe class="eipsi-native-assessment-frame" title="'.esc_attr($this->m('document_title')).'" src="'.esc_url($frame['assessment_completion_native_url']).'" style="width:100%;min-height:85vh;border:0"></iframe></main>';
         if(isset($frame['assessment_completion_html']))return '<main id="eipsi-study" class="eipsi-study" data-state="ASSESSMENT_COMPLETED">'.$frame['assessment_completion_html'].(!empty($frame['email_confirmation']['pending'])?'<p role="status">'.$this->h('review_sent').'</p>':'').'</main>';
         if($initial!==null&&(isset($frame['entry'])||isset($frame['email_confirmation'])||isset($frame['shell'])||($frame['view']['next_action']['kind']??'EMAIL_ENTRY')!=='OPEN_ASSESSMENT'))return $this->initial($frame,$action,$initial,$error);
@@ -48,7 +45,7 @@ final class EmailTemplate {
         if(!empty($frame['message'])&&empty($frame['notice_keys']))$items[]=array('key'=>'entry','level'=>'info','text'=>$frame['message']);
         $view=$frame['portal_view']??$frame['view']??array();$kind=$view['next_action']['kind']??'EMAIL_ENTRY';
         if(!empty($frame['portal_closed']))$add(($frame['portal_state']??'FINALIZED')==='PAUSED'?'paused_body':'finalized_body');
-        elseif(isset($frame['withdrawal']))$items[]=array('key'=>'withdrawal','level'=>'info','html'=>InitialScreen::withdrawalCompletion($this->definition['protocol_metadata']['longitudinal']['initial_screen']['withdrawal']??array(),$frame['withdrawal']['mode']));
+        elseif(isset($frame['withdrawal']))$items[]=array('key'=>'withdrawal','level'=>'info','html'=>InitialScreen::withdrawalCompletion($this->definition['protocol_metadata']['longitudinal']['initial_screen']['withdrawal']??array(),$frame['withdrawal']['mode'],\EIPSI\I18n\ContentDefaults::language($this->definition)));
         elseif($kind==='WAIT'){
             if(!isset($keys['unavailable_title']))$add('wait_title','error');
             if($this->definition['protocol_metadata']['longitudinal']['email_enabled']??true)$add('email_future_notices');
@@ -83,7 +80,7 @@ final class EmailTemplate {
         $choices=$this->withdrawalChoices($w,$this->form($frame,$action).'<input type="hidden" name="action" value="withdraw"><input type="hidden" name="email" value=""><input type="hidden" name="expected_revision" value="'.esc_attr((string)($frame['withdrawal_revision']??0)).'">',true,true,$c['max_width']);
         // Confirmation is a sibling dialog, so closing the choice dialog does not hide it.
         $split=strpos($choices,'<dialog');$buttons=substr($choices,0,$split);$confirmation=substr($choices,$split);
-        $html.='<dialog class="eipsi-withdrawal-dialog" data-withdrawal-lookup="1"'.(!empty($frame['withdrawal_error'])?' data-withdrawal-error="1"':'').' style="width:min('.(int)$c['max_width'].'px,calc(100vw - 40px));max-width:none" aria-labelledby="eipsi-withdrawal-title"><div role="heading" aria-level="2" id="eipsi-withdrawal-title">'.(!empty($w['modal_title_html'])?InitialScreen::html($w['modal_title_html']):esc_html($w['modal_title'])).'</div>'.InitialScreen::html($w['modal_html']).'<p class="eipsi-withdrawal-error" role="alert"'.(empty($frame['withdrawal_error'])?' hidden':'').'>'.esc_html($frame['withdrawal_error']??'').'</p>'.$this->authenticationField($a,'withdrawal-email',$frame['withdrawal_entered_email']??'',false).$buttons.'<button type="button" data-close-withdrawal>'.esc_html($w['back_label']??'Volver').'</button></dialog>'.$confirmation.'</div></main>';
+        $html.='<dialog class="eipsi-withdrawal-dialog" data-withdrawal-lookup="1"'.(!empty($frame['withdrawal_error'])?' data-withdrawal-error="1"':'').' style="width:min('.(int)$c['max_width'].'px,calc(100vw - 40px));max-width:none" aria-labelledby="eipsi-withdrawal-title"><div role="heading" aria-level="2" id="eipsi-withdrawal-title">'.(!empty($w['modal_title_html'])?InitialScreen::html($w['modal_title_html']):esc_html($w['modal_title'])).'</div>'.InitialScreen::html($w['modal_html']).'<p class="eipsi-withdrawal-error" role="alert"'.(empty($frame['withdrawal_error'])?' hidden':'').'>'.esc_html($frame['withdrawal_error']??'').'</p>'.$this->authenticationField($a,'withdrawal-email',$frame['withdrawal_entered_email']??'',false).$buttons.'<button type="button" data-close-withdrawal>'.esc_html($w['back_label']??InitialScreen::defaults(\EIPSI\I18n\ContentDefaults::language($this->definition))['withdrawal']['back_label']).'</button></dialog>'.$confirmation.'</div></main>';
         if(isset($frame['availability_notice']))$html=preg_replace('/<main\b/','<main data-unavailable="1"',$html,1);
         if(!empty($frame['portal_closed'])||!empty($frame['portal_disabled']))$html=preg_replace('/<(input|button)\b/','<$1 disabled',$html);
         return $this->styledButtons($html,$c);
@@ -95,7 +92,7 @@ final class EmailTemplate {
             $style='background:'.($w[$key.'_background']??($key==='retain'?'#edf3fa':'#fff1f1')).';color:'.($w[$key.'_text_color']??($key==='retain'?'#243247':'#8a2424'));
             $buttons.='<button type="button" data-withdrawal-choice="'.$mode.'" data-confirm-phrase="'.esc_attr(InitialScreen::withdrawalPhrase($w,$mode)).'" style="'.esc_attr($style).'">'.esc_html($w[$key.'_label']).'</button>';
         }
-        $f=array_merge(InitialScreen::confirmationDefaults(),$w['confirmation']??array());
+        $f=array_merge(InitialScreen::confirmationDefaults(\EIPSI\I18n\ContentDefaults::language($this->definition)),$w['confirmation']??array());
         if(isset($w['confirmation']['body_html']))$body=$w['confirmation']['body_html'];
         elseif(isset($w['confirmation']['message_html'])||isset($w['confirmation']['instruction_html']))$body=$f['message_html'].$f['instruction_html'].'<p><strong>[CONFIRMACION]</strong></p>';
         else $body=$f['body_html'];

@@ -7,7 +7,7 @@ class EIPSI_Notification_Cron_Adapters {
 public static function eipsi_run_process_wave_availability() {
     global $wpdb;
 
-    error_log('[EIPSI Cron] Wave availability processor started at ' . current_time('mysql'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L10'), 'debug');
 
     $now = current_time('mysql');
     $assignments_table = $wpdb->prefix . 'survey_assignments';
@@ -16,7 +16,7 @@ public static function eipsi_run_process_wave_availability() {
     $newly_available=EIPSI_Longitudinal_Assignment_Repository::get_newly_available($now);
 
     if (empty($newly_available)) {
-        error_log('[EIPSI Cron] No waves newly available.');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L19'), 'debug');
         return;
     }
 
@@ -42,7 +42,7 @@ public static function eipsi_run_process_wave_availability() {
         ));
 
         if (!$wave || !$participant) {
-            error_log("[EIPSI Cron] Wave availability: Missing wave or participant data for assignment {$assignment->id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L45'), 'debug');
             continue;
         }
 
@@ -61,10 +61,7 @@ public static function eipsi_run_process_wave_availability() {
             // DEPRECATED: This cron is now redundant with event-driven system
             // Keeping for backward compatibility during transition
             // ========================================
-            error_log(sprintf(
-                '[EIPSI WaveAvail] DEPRECATED: Wave detected by cron for assignment %d. Event-driven system should handle this.',
-                $assignment->id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L64'), 'debug');
 
             // Trigger hook
             do_action('eipsi_wave_became_available', array(
@@ -77,10 +74,7 @@ public static function eipsi_run_process_wave_availability() {
         }
     }
 
-    error_log(sprintf(
-        '[EIPSI Cron] Wave availability processor completed. Notified: %d participants.',
-        $notified_count
-    ));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L80'), 'debug');
 }
 
 public static function eipsi_process_nudge_jobs_worker() {
@@ -92,31 +86,26 @@ public static function eipsi_process_nudge_jobs_worker() {
     // Check for process lock
     $lock_key = 'eipsi_job_worker_lock';
     if (get_transient($lock_key)) {
-        error_log('[EIPSI JobWorker] Another worker is running, skipping');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L95'), 'debug');
         return;
     }
 
     // Set lock for 5 minutes
     set_transient($lock_key, true, 5 * MINUTE_IN_SECONDS);
 
-    error_log('[EIPSI JobWorker] Starting job processing');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L102'), 'debug');
 
     // v2.1.5 - Process only 1 job per cron run to ensure reminder_count updates
     // between nudges and prevent race conditions where multiple nudges execute
     // before the database reflects the updated reminder_count
     $stats = EIPSI_Nudge_Job_Queue::process_batch(1); // Only 1 job at a time
 
-    if (!empty($stats['persistence_failed'])) { error_log('[EIPSI JobWorker] persistence_failed=' . intval($stats['persistence_failed'])); }
+    if (!empty($stats['persistence_failed'])) { EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L109'), 'debug'); }
     // Log result
     if ($stats['processed'] > 0) {
-        error_log(sprintf(
-            '[EIPSI JobWorker] Processed: %d completed, %d retried, %d failed (single job mode)',
-            $stats['completed'],
-            $stats['retried'],
-            $stats['failed']
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L112'), 'debug');
     } else {
-        error_log('[EIPSI JobWorker] No pending jobs to process');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_notification_cron_adapters_L119'), 'debug');
     }
 
     // Release lock

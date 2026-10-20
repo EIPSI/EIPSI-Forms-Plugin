@@ -1,7 +1,9 @@
 <?php
 require __DIR__ . '/m0/bootstrap.php';
 require __DIR__ . '/m1/contracts.php';
+require_once __DIR__.'/sec1/contracts.php';
 $baseline = json_decode(file_get_contents(__DIR__ . '/m1/baseline.json'), true);
+$baseline=sec1_expected($baseline);
 $tests = array();
 $observed = array();
 foreach (array('frontend','admin') as $profile) {
@@ -29,6 +31,8 @@ $tests['Includes: sin archivos repetidos y mismos puntos de inicialización'] = 
 };
 $tests['Compatibilidad: 44 implementaciones globales preservadas'] = function () use ($baseline) {
     foreach ($baseline['callback_token_hashes'] as $function=>$hash) {
+        $delta=json_decode(file_get_contents(__DIR__.'/sec1/boundary-changes.json'),true)['functions'][$function]??null;if($delta){m0_assert($hash===$delta['before_sha256'],'SEC1 callback predecessor mismatch');$hash=$delta['after_sha256'];}
+        $hash=i18n1b_fingerprint('functions',$function,$hash);
         m0_assert(function_exists($function) && m1_token_hash($function) === $hash, 'Callback implementation changed: '.$function);
     }
 };

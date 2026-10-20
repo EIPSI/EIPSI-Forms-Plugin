@@ -16,14 +16,14 @@ final class CrossSectionalRuntime {
         $studies=new PublicStudyRepository($this->db);$study=$studies->find($public);if(!$study)throw new AccessDenied('STUDY_UNAVAILABLE');if($study['enrollment_state']==='FINALIZED')throw new AccessDenied('STUDY_FINALIZED');
         $accesses=new AnonymousAccess($this->db);$new=false;
         if($token!==null&&$token!==''){$access=$accesses->recover($public,$token);if(!$access)throw new AccessDenied('ACCESS_REQUIRED');}
-        else{if($request!==null)throw new AccessDenied('ACCESS_REQUIRED');$token=AnonymousAccess::token();$access=$accesses->reserve($public,$token);$new=true;}
+        else{PausePolicy::admission($study);if($request!==null)throw new AccessDenied('ACCESS_REQUIRED');$token=AnonymousAccess::token();$access=$accesses->reserve($public,$token);$new=true;}
         if($request!==null){
             Check::fields($request,array('action','command_id','expected_revision','csrf'),array('execution_id','block_execution_id','responses','metadata'));
             if(!is_string($request['csrf'])||!hash_equals(AnonymousAccess::csrf($public,$token),$request['csrf']))throw new AccessDenied('CSRF_REJECTED');
             Check::id($request['command_id'],'command');Check::integer($request['expected_revision'],'revision');
         }
         $metadata=$this->metadata($request['metadata']??array());$owner=new ExecutionOwner($this->db,$this->vault,$this->observer,new LocalResponseSink($metadata));
-        if($access['execution_id']===null){
+        if($access['execution_id']===null){PausePolicy::admission($study);
             $created=$owner->create($access['study_version_id'],array('kind'=>'ANONYMOUS','id'=>$access['id']),'ADMISSION_'.$access['id'],array('created_at'=>str_replace(' ','T',$access['created_at']).'Z'));
             if(!isset($created['execution_id']))throw new P\IntegrityFailure('EXECUTION_CREATION_FAILED');$accesses->link($access,$created['execution_id']);$access['execution_id']=$created['execution_id'];
         }
@@ -31,7 +31,7 @@ final class CrossSectionalRuntime {
         $execution=(new P\StudyExecutionRepository($this->db))->find($access['execution_id']);
         if(!$execution||$execution['anonymous_identity_id']!==$access['id']||$execution['study_version_id']!==$access['study_version_id']||$execution['study_id']!==$study['study_id'])throw new AccessDenied('ACCESS_BINDING_INVALID');
         $v=(new P\StudyVersionRepository($this->db))->find($access['study_version_id']);if(!$v)throw new P\IntegrityFailure('VERSION_UNAVAILABLE');
-        $compiled=(new P\StudyVersionRepository($this->db))->compiled($v);$definition=$compiled->definition();
+        $compiled=(new P\StudyVersionRepository($this->db))->compiled($v);$definition=$compiled->definition();if(PausePolicy::paused($study)&&!PausePolicy::portal($this->db,$study,$access))throw new StudyPaused();
         if(($definition['protocol_metadata']['content_adapter']??null)!=='P1E_V1')throw new P\IntegrityFailure('CONTENT_ADAPTER_REQUIRED');
         $view=$owner->view($access['execution_id']);if(!isset($view['snapshot']))throw new P\IntegrityFailure('EXECUTION_LOAD_FAILED');
         $receipt=null;

@@ -3,17 +3,17 @@
   const A = root.EIPSIAssessment,
     el = A.el;
   A.openPreview = function (definition, options = {}) {
-    const message=key=>definition.flow.messages?.[key] ?? root.EIPSIAssessmentFlow.messages[key];
+    const message=key=>definition.flow.messages?.[key] ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(definition))[key];
     let elapsed = 0;
     const session = new A.PreviewSession(definition),
       recovery = new A.RecoverySimulation(() => Date.now() + elapsed),
       previousFocus = document.activeElement,
       dialog = el("dialog", {
         class: "ae-preview",
-        "aria-label": "Preview de la evaluación",
+        "aria-label": root.EIPSIAdminI18n.t("Assessment preview"),
       }),
       toolbar = el("div", { class: "ae-preview-toolbar" }),
-      frame = el("div", { class: "ae-preview-frame", "data-width": "desktop" }),
+      frame = el("div", { class: "ae-preview-frame", lang: root.EIPSIContent.language(definition), "data-width": "desktop" }),
       body = el("div"),
       foot = el("div", { class: "ae-preview-actions" }),
       audit = el("details", {class:"ae-randomization-audit"});
@@ -30,15 +30,15 @@
       dialog.remove();
       if (previousFocus) previousFocus.focus();
     }
-    toolbar.append(el("strong", {}, "Preview · respuestas temporales"));
+    toolbar.append(el("strong", {}, root.EIPSIAdminI18n.t("Preview · temporary responses")));
     function group(label) {
       const box = el("fieldset", { class: "ae-preview-control-group" });
       box.append(el("legend", {}, label));
       toolbar.append(box);
       return box;
     }
-    const displayGroup = group("Tamaño de pantalla"),
-      sessionGroup = group("Sesión de prueba");
+    const displayGroup = group(root.EIPSIAdminI18n.t("Screen size")),
+      sessionGroup = group(root.EIPSIAdminI18n.t("Test session"));
     function reset(message = "", rerandomize = false) {
       recovery.clear();
       suspended = false;
@@ -64,28 +64,28 @@
       };
       displayGroup.append(b);
     });
-    const exit = el("button", { type: "button" }, "Cerrar preview");
+    const exit = el("button", { type: "button" }, root.EIPSIAdminI18n.t("Close preview"));
     exit.onclick = close;
     sessionGroup.append(exit);
     if (root.EIPSIAssessmentRandomization.hasState(session.randomization)) {
-      const reroll = el("button", {type:"button"}, "Volver a simular randomización");
-      reroll.onclick = () => reset("Nueva selección simulada. Las respuestas de prueba se reiniciaron.", true);
-      group("Randomización de prueba").append(reroll);
+      const reroll = el("button", {type:"button"}, root.EIPSIAdminI18n.t("Simulate randomization again"));
+      reroll.onclick = () => reset(root.EIPSIAdminI18n.t("New simulated selection. Test responses were reset."), true);
+      group(root.EIPSIAdminI18n.t("Test randomization")).append(reroll);
     }
     if (options.exporter) {
       const exportButton = el(
         "button",
         { type: "button" },
-        "Exportar respuestas simuladas",
+        root.EIPSIAdminI18n.t("Export simulated responses"),
       );
       exportButton.onclick = async () => {
         try {
           if (session.errors().length)
             throw Error(
-              "Completá las respuestas requeridas antes de exportar.",
+              root.EIPSIAdminI18n.t("Complete required responses before exporting."),
             );
           const result = await options.exporter(session);
-          debug.replaceChildren(el("p",{},"Exportación simulada preparada."));
+          debug.replaceChildren(el("p",{},root.EIPSIAdminI18n.t("Simulated export prepared.")));
           diagnostics.open = true;
           const blob = new Blob([result.csv], {
               type: "text/csv;charset=utf-8",
@@ -94,7 +94,7 @@
             link = el(
               "a",
               { href: url, download: "native-preview.csv" },
-              "Descargar CSV simulado",
+              root.EIPSIAdminI18n.t("Download simulated CSV"),
             );
           body.append(link);
           link.click();
@@ -106,19 +106,19 @@
           body.append(el("p", { role: "alert" }, error.message));
         }
       };
-      group("Exportación de prueba").append(exportButton);
+      group(root.EIPSIAdminI18n.t("Test export")).append(exportButton);
     }
 
-    const recoveryGroup = group("Salir y volver al cuestionario"),
-      timeInput = el("input", {type: "number", min: "0", step: "any", value: "0", "aria-label": "Tiempo transcurrido fuera"}),
-      timeUnit = el("select", {"aria-label": "Unidad del tiempo transcurrido"}),
-      leave = el("button", {type: "button", class: "ae-preview-save"}, "Salir del cuestionario"),
-      resume = el("button", {type: "button", class: "ae-preview-resume"}, "Volver al cuestionario");
-    for (const [value, label] of [["minutes","Minutos"],["hours","Horas"],["days","Días"],["weeks","Semanas"],["months","Meses (30 días)"]]) timeUnit.append(el("option", {value}, label));
-    const timeLabel = el("label", {}, "Tiempo transcurrido fuera ");
+    const recoveryGroup = group(root.EIPSIAdminI18n.t("Leave and return to the questionnaire")),
+      timeInput = el("input", {type: "number", min: "0", step: "any", value: "0", "aria-label": root.EIPSIAdminI18n.t("Time spent away")}),
+      timeUnit = el("select", {"aria-label": root.EIPSIAdminI18n.t("Elapsed time unit")}),
+      leave = el("button", {type: "button", class: "ae-preview-save"}, root.EIPSIAdminI18n.t("Leave questionnaire")),
+      resume = el("button", {type: "button", class: "ae-preview-resume"}, root.EIPSIAdminI18n.t("Return to questionnaire"));
+    for (const [value, label] of [["minutes",root.EIPSIAdminI18n.t("Minutes")],["hours",root.EIPSIAdminI18n.t("Hours")],["days",root.EIPSIAdminI18n.t("Days")],["weeks",root.EIPSIAdminI18n.t("Weeks")],["months",root.EIPSIAdminI18n.t("Months (30 days)")]]) timeUnit.append(el("option", {value}, label));
+    const timeLabel = el("label", {}, root.EIPSIAdminI18n.t("Time spent away "));
     timeLabel.append(timeInput, timeUnit);
     recoveryGroup.append(timeLabel, leave, resume,
-      el("p", {class: "ae-preview-group-help"}, "La sesión vigente conserva el progreso. Si vence, empezás desde cero; el guardado parcial conserva un registro anterior, sin reanudarlo."));
+      el("p", {class: "ae-preview-group-help"}, root.EIPSIAdminI18n.t("A valid session retains progress. On expiration, you start again; partial saving retains a previous record without resuming it.")));
     leave.onclick = () => {
       if (suspended) return;
       if (!session.finished) {
@@ -135,18 +135,18 @@
       if (!suspended) return;
       const value = Number(timeInput.value);
       if (timeInput.value.trim() === "" || !Number.isFinite(value) || value < 0 || value > 1e9) {
-        notice = "Ingresá un tiempo transcurrido válido, mayor o igual a cero.";
+        notice = root.EIPSIAdminI18n.t("Enter a valid elapsed time greater than or equal to zero.");
         render(); return;
       }
       elapsed += value * root.EIPSIAssessmentFlow.units[timeUnit.value] * 1000;
       if (session.finished) { suspended = false; notice = ""; render(); return; }
-      if (recovery.resume(session)) { suspended = false; notice = "La sesión sigue vigente. Podés continuar donde estabas."; render(); }
+      if (recovery.resume(session)) { suspended = false; notice = root.EIPSIAdminI18n.t("The session is still valid. You can continue where you left off."); render(); }
       else reset(recovery.previousPartialSaved
         ? message("expired_saved")
         : message("expired"));
     };
     const diagnostics = el("details", { class: "ae-metadata-debug" }),
-      summary = el("summary", {}, "Diagnóstico de metadata (sólo autoría)"),
+      summary = el("summary", {}, root.EIPSIAdminI18n.t("Metadata diagnostics (authoring only)")),
       debug = el("div");
     diagnostics.append(summary, debug);
     dialog.append(diagnostics);
@@ -200,25 +200,25 @@
     }
     function renderAudit() {
       audit.hidden = !root.EIPSIAssessmentRandomization.hasState(session.randomization);
-      audit.replaceChildren(el("summary", {}, "Resolución de randomizaciones · sólo Preview"));
+      audit.replaceChildren(el("summary", {}, root.EIPSIAdminI18n.t("Randomization resolution · preview only")));
       const r = session.randomization, names = new Map();
       A.walk(session.definition.elements, e => {names.set(e.id, e.properties.label || e.type);e.options.forEach(o => names.set(o.id,o.label));});
       const name = id => (names.get(id) || id) + " [" + id + "]";
-      audit.append(el("p", {}, "Referencia / seed: " + r.seed + " · " + r.resolved_at));
+      audit.append(el("p", {}, root.EIPSIAdminI18n.f("Reference / seed: %1$s \u00b7 %2$s",r.seed,r.resolved_at)));
       for (const block of Object.values(r.blocks || {})) {
         const section = el("section"), table = el("table", {class:"ae-audit-table"});
-        section.append(el("h4", {}, "Randomización: " + name(block.block_id)));
-        const head = el("tr");["Candidato", "Peso", "Fijo", "Mostrar siempre", "Seleccionado", "Orden resultante"].forEach(t => head.append(el("th", {}, t)));table.append(head);
+        section.append(el("h4", {}, root.EIPSIAdminI18n.f("Randomization: %s",name(block.block_id))));
+        const head = el("tr");[root.EIPSIAdminI18n.t("Candidate"), root.EIPSIAdminI18n.t("Weight"), root.EIPSIAdminI18n.t("Fixed"), root.EIPSIAdminI18n.t("Always show"), root.EIPSIAdminI18n.t("Selected"), root.EIPSIAdminI18n.t("Resulting order")].forEach(t => head.append(el("th", {}, t)));table.append(head);
         for (const id of block.candidates) {
           const row = el("tr"), fixed = (block.fixed || []).includes(id), always = (block.always_show || (block.algorithm ? [] : block.fixed) || []).includes(id), index = block.order.indexOf(id);
-          [name(id), String(block.weights?.[id] ?? 1), fixed ? "Sí" : "No", always ? "Sí" : "No", always ? "Mostrar siempre" : block.selected.includes(id) ? "Sí" : "No", index < 0 ? "—" : String(index + 1)].forEach(t => row.append(el("td", {}, t)));table.append(row);
+          [name(id), String(block.weights?.[id] ?? 1), fixed ? root.EIPSIAdminI18n.t("Yes") : root.EIPSIAdminI18n.t("No"), always ? root.EIPSIAdminI18n.t("Yes") : root.EIPSIAdminI18n.t("No"), always ? root.EIPSIAdminI18n.t("Always show") : block.selected.includes(id) ? root.EIPSIAdminI18n.t("Yes") : root.EIPSIAdminI18n.t("No"), index < 0 ? "—" : String(index + 1)].forEach(t => row.append(el("td", {}, t)));table.append(row);
         }
         section.append(table);audit.append(section);
       }
       for (const o of Object.values(r.option_orders || {})) {
-        const section = el("section");section.append(el("h4", {}, "Orden de opciones: " + name(o.question_id)));
-        section.append(el("p", {}, "Candidatas: " + o.candidates.map(name).join(" · ")));
-        section.append(el("p", {}, "Posición fija: " + (o.fixed.map(name).join(" · ") || "Ninguna")));
+        const section = el("section");section.append(el("h4", {}, root.EIPSIAdminI18n.f("Option order: %s",name(o.question_id))));
+        section.append(el("p", {}, root.EIPSIAdminI18n.f("Candidates: %s",o.candidates.map(name).join(' · '))));
+        section.append(el("p", {}, root.EIPSIAdminI18n.f("Fixed position: %s",(o.fixed.map(name).join(' · ')||root.EIPSIAdminI18n.t('None')))));
         const list = el("ol");o.order.forEach(id => list.append(el("li", {}, name(id))));section.append(list);audit.append(section);
       }
     }
@@ -240,7 +240,7 @@
           el(
             "p",
             { role: "status" },
-            "Saliste del cuestionario. Indicá cuánto tiempo pasó y pulsá Volver al cuestionario.",
+            root.EIPSIAdminI18n.t("You left the questionnaire. Enter the elapsed time and press Return to questionnaire."),
           ),
         );
         debugUpdate();
@@ -275,7 +275,7 @@
           el(
             "p",
             { class: "ae-page-count" },
-            (flow.messages?.progress ?? root.EIPSIAssessmentFlow.messages.progress).replaceAll("[ACTUAL]",String(session.page+1)).replaceAll("[TOTAL]",String(session.pages.length)),
+            (flow.messages?.progress ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(session.definition)).progress).replaceAll("[ACTUAL]",String(session.page+1)).replaceAll("[TOTAL]",String(session.pages.length)),
           ),
         );
       if (["bar", "both"].includes(flow.progress))
@@ -283,14 +283,14 @@
           el("progress", {
             max: session.pages.length,
             value: session.page + 1,
-            "aria-label": flow.messages?.progress_accessible ?? root.EIPSIAssessmentFlow.messages.progress_accessible,
+            "aria-label": flow.messages?.progress_accessible ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(session.definition)).progress_accessible,
           }),
         );
       renderElements(session.pages[session.page], body);
       const back = el(
         "button",
         { type: "button", class: "ae-nav-back", disabled: session.page === 0 },
-        session.definition.flow.navigation_labels.back || "Anterior",
+        session.definition.flow.navigation_labels.back || root.EIPSIContent.get('flow',root.EIPSIContent.language(session.definition)).navigation_labels.back,
       );
       back.onclick = () => {
         session.previous();
@@ -299,7 +299,7 @@
       const next = el(
         "button",
         { type: "button", class: "ae-primary ae-nav-forward" },
-        session.page === session.pages.length - 1 ? (session.definition.flow.navigation_labels.finish || "Terminar") : (session.definition.flow.navigation_labels.next || "Siguiente"),
+        session.page === session.pages.length - 1 ? (session.definition.flow.navigation_labels.finish || root.EIPSIContent.get('flow',root.EIPSIContent.language(session.definition)).navigation_labels.finish) : (session.definition.flow.navigation_labels.next || root.EIPSIContent.get('flow',root.EIPSIContent.language(session.definition)).navigation_labels.next),
       );
       next.onclick = () => {
         if (showErrors().length) return;

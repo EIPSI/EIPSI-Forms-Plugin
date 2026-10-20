@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs'), path = require('path'), assert = require('assert/strict'), { JSDOM } = require('jsdom'), { webcrypto } = require('crypto');
 const root = path.resolve(__dirname, '../../..'), dom = new JSDOM('<div id="root"></div>', { url: 'https://local.invalid/wp-admin/admin.php', runScripts: 'outside-only' });
+require("../../i18n1b/admin-language.js")(dom.window);
 Object.defineProperty(dom.window, 'crypto', { value: webcrypto });dom.window.confirm = () => true;dom.window.open = () => {};const manifest = JSON.parse(fs.readFileSync(path.join(root, 'src/admin/study-builder/manifest.json')));manifest.entry_order.forEach(file => dom.window.eval(fs.readFileSync(path.join(root, 'src/admin/study-builder', file), 'utf8')));
 const B = dom.window.EIPSIBuilder, document = dom.window.document;let tests = 0, failures = 0;const plain = x => JSON.parse(JSON.stringify(x));
 async function test(name, fn) { tests++;try { await fn();console.log('PASS H ' + name); } catch (e) { failures++;console.log('FAIL H ' + name + ': ' + e.stack); } }

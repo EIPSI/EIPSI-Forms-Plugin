@@ -31,7 +31,7 @@ $tests['Shortcodes: nueve callbacks válidos'] = function () {
     }
 };
 $tests['Actions activas: submit, debug, retiro, export wide, dashboard y schema'] = function () {
-    foreach (array('eipsi_forms_submit_form','eipsi_debug_partial_response','eipsi_abandon_study','eipsi_export_participants_wide_excel','eipsi_export_participants_wide_csv','eipsi_get_study_overview','eipsi_repair_single_table') as $action) {
+    foreach (array('eipsi_forms_submit_form','eipsi_abandon_study','eipsi_export_participants_wide_excel','eipsi_export_participants_wide_csv','eipsi_get_study_overview','eipsi_repair_single_table') as $action) {
         m0_assert(has_action('wp_ajax_' . $action) !== false, 'Missing action: ' . $action);
     }
 };
@@ -167,7 +167,7 @@ $tests['HTTP repair: sin autorización y tabla ajena rechazados'] = function () 
     m0_assert(wp_remote_retrieve_response_code(m0_http('/wp-admin/admin-ajax.php',$body,true))===400,'Foreign table allowed');
 };
 $tests['HTTP público: debug parcial y REST pool denegados'] = function () {
-    m0_assert(wp_remote_retrieve_response_code(m0_http('/wp-admin/admin-ajax.php',array('action'=>'eipsi_debug_partial_response')))===403,'Debug exposed');
+    m0_assert(wp_remote_retrieve_response_code(m0_http('/wp-admin/admin-ajax.php',array('action'=>'eipsi_debug_partial_response')))==400,'Debug exposed');
     $response=wp_remote_post('http://127.0.0.1/?rest_route=/eipsi/v1/pool-assign',array('headers'=>array('Content-Type'=>'application/json'),'body'=>'{"pool_id":1,"participant_id":7}'));
     m0_assert(wp_remote_retrieve_response_code($response)===401,'HTTP REST public allowed');
 };

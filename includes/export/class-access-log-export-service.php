@@ -82,7 +82,7 @@ private static function export_to_excel($data, $filename, $count) {
         $full_filename = EIPSI_Export_File_Service::reserve_filename($full_filename);
         $file_path = $export_dir . '/' . $full_filename;
 
-        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($data);
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray(EIPSI_Csv_Serializer::xlsx($data));
         if (!$xlsx->saveAs($file_path) || !is_file($file_path) || !filesize($file_path)) { return array('success'=>false,'message'=>'No se pudo crear el archivo XLSX.'); }
 
         return array(
@@ -110,7 +110,7 @@ private static function export_to_csv($data, $filename, $count) {
         fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         foreach ($data as $row) {
-            if (fputcsv($file,$row) === false) { fclose($file); return array('success'=>false,'message'=>'No se pudo escribir el export CSV.'); }
+            if (EIPSI_Csv_Serializer::row($file,$row) === false) { fclose($file); return array('success'=>false,'message'=>'No se pudo escribir el export CSV.'); }
         }
 
         if (!fclose($file) || !is_file($file_path) || filesize($file_path)===0) {

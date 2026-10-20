@@ -57,7 +57,7 @@ class EIPSI_Participant_Password_Service {
         );
 
         if ($result === false) {
-            error_log('EIPSI Password change failed: ' . $wpdb->last_error);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_password_service_L60'), 'debug');
             return array(
                 'success' => false,
                 'error' => 'db_error'

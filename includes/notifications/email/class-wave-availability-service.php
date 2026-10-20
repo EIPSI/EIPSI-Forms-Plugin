@@ -15,15 +15,7 @@ public static function ensure_wave_availability_email_sent($assignment, $wave, $
         $already_sent = self::was_nudge_zero_already_sent($participant_id, $wave_id);
         $retry_status = self::get_retry_status($participant_id, $wave_id);
 
-        error_log(sprintf(
-            '[EIPSI WaveEmail] Verificando p=%d w=%d | disponible=%s | enviado=%s | reintentos=%d/%d',
-            $participant_id,
-            $wave_id,
-            $is_available ? 'SÍ' : 'NO',
-            $already_sent ? 'SÍ' : 'NO',
-            $retry_status['attempts'],
-            self::MAX_RETRY_ATTEMPTS
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L18'), 'debug');
 
         if (!$is_available) {
             return array(
@@ -48,7 +40,7 @@ public static function ensure_wave_availability_email_sent($assignment, $wave, $
         }
 
         if ($retry_status['attempts'] >= self::MAX_RETRY_ATTEMPTS) {
-            error_log("[EIPSI WaveEmail] ✗ Máximo reintentos alcanzado ({$retry_status['attempts']}/" . self::MAX_RETRY_ATTEMPTS . ")");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L51'), 'debug');
             return array(
                 'success' => false,
                 'sent' => false,
@@ -65,7 +57,7 @@ public static function ensure_wave_availability_email_sent($assignment, $wave, $
             $minutes_since_last = (time() - $retry_status['last_attempt']) / 60;
             if ($minutes_since_last < self::RETRY_DELAY_MINUTES) {
                 $wait = round(self::RETRY_DELAY_MINUTES - $minutes_since_last);
-                error_log("[EIPSI WaveEmail] ⏳ COOLDOWN ACTIVO: Esperar {$wait} minutos antes de reintentar");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L68'), 'debug');
                 return array(
                     'success' => false,
                     'sent' => false,
@@ -90,7 +82,7 @@ public static function ensure_wave_availability_email_sent($assignment, $wave, $
 
         if ($send_result['success']) {
             self::mark_nudge_zero_sent($participant_id, $wave_id, $send_result['log_id']);
-            error_log("[EIPSI WaveEmail] ✓ Enviado p={$participant_id} w={$wave_id} (log_id={$send_result['log_id']})");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L93'), 'debug');
 
             return array(
                 'success' => true,
@@ -107,7 +99,7 @@ public static function ensure_wave_availability_email_sent($assignment, $wave, $
 
             // Log detallado solo para errores críticos
             if ($send_result['error'] !== 'retry_cooldown') {
-                error_log("[EIPSI WaveEmail] ✗ Fallo p={$participant_id} w={$wave_id}: {$send_result['error']} (intento {$attempt})");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L110'), 'debug');
             }
 
             return array(
@@ -170,15 +162,10 @@ private static function was_nudge_zero_already_sent($participant_id, $wave_id) {
                     if (isset($metadata['nudge_stage']) && (int) $metadata['nudge_stage'] === 0) {
                         // Logging para auditoría
                         if (empty($log->email_type)) {
-                            error_log(sprintf(
-                                '[EIPSI WaveEmail] Deduplicación por fallback metadata: participant=%d wave_id=%d log_id=%d',
-                                $participant_id,
-                                $wave_id,
-                                $log->id
-                            ));
+                            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L173'), 'debug');
                         } else {
                             if (defined('WP_DEBUG') && WP_DEBUG) {
-                                error_log("[EIPSI WaveEmail] Nudge 0 ya enviado (log_id={$log->id}, type={$log->email_type})");
+                                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L181'), 'debug');
                             }
                         }
                         return true;
@@ -192,7 +179,7 @@ private static function was_nudge_zero_already_sent($participant_id, $wave_id) {
             // usar el email_type como única señal
             if (!empty($log->email_type) && $log->email_type !== '') {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("[EIPSI WaveEmail] Nudge 0 detectado por email_type legacy (log_id={$log->id})");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L195'), 'debug');
                 }
                 return true;
             }
@@ -210,7 +197,7 @@ private static function was_nudge_zero_already_sent($participant_id, $wave_id) {
 
         if ($already_accessed > 0) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("[EIPSI WaveEmail] Usuario ya accedió a wave {$wave_id} - no necesita Nudge 0");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L213'), 'debug');
             }
             return true;
         }
@@ -225,7 +212,7 @@ private static function was_nudge_zero_already_sent($participant_id, $wave_id) {
 
         if (in_array($assignment_status, array('submitted', 'in_progress'))) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("[EIPSI WaveEmail] Assignment en '{$assignment_status}' - no necesita Nudge 0");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L228'), 'debug');
             }
             return true;
         }
@@ -264,7 +251,7 @@ private static function record_failed_attempt($participant_id, $wave_id, $error)
 
         // Solo loguear errores críticos, no cooldowns
         if ($error !== 'retry_cooldown' && (defined('WP_DEBUG') && WP_DEBUG)) {
-            error_log("[EIPSI WaveEmail] Intento fallido registrado: {$status['attempts']}/" . self::MAX_RETRY_ATTEMPTS);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L267'), 'debug');
         }
     }
 
@@ -294,13 +281,7 @@ private static function mark_nudge_zero_sent($participant_id, $wave_id, $log_id)
         ));
 
         if ($assignment) {
-            error_log(sprintf(
-                "[EIPSI NUDGE 0 UPDATE] BEFORE: assignment_id=%d, reminder_count=%d, last_nudge_sent_at=%s, status=%s",
-                $assignment->id,
-                $assignment->reminder_count,
-                $assignment->last_nudge_sent_at ?: 'NULL',
-                $assignment->status
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L297'), 'debug');
 
             $now = current_time('mysql');
             $rows_affected = $wpdb->update(
@@ -318,18 +299,9 @@ private static function mark_nudge_zero_sent($participant_id, $wave_id, $log_id)
             );
 
             if ($rows_affected === false) {
-                error_log(sprintf(
-                    "[EIPSI NUDGE 0 UPDATE] ❌ ERROR: Failed to update assignment_id=%d. DB Error: %s",
-                    $assignment->id,
-                    $wpdb->last_error
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L321'), 'debug');
             } else {
-                error_log(sprintf(
-                    "[EIPSI NUDGE 0 UPDATE] ✅ SUCCESS: assignment_id=%d updated. reminder_count=1, last_nudge_sent_at=%s, rows_affected=%d",
-                    $assignment->id,
-                    $now,
-                    $rows_affected
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L327'), 'debug');
 
                 // Verificar que el UPDATE funcionó
                 $updated = $wpdb->get_row($wpdb->prepare(
@@ -337,40 +309,28 @@ private static function mark_nudge_zero_sent($participant_id, $wave_id, $log_id)
                     $assignment->id
                 ));
 
-                error_log(sprintf(
-                    "[EIPSI NUDGE 0 UPDATE] AFTER: assignment_id=%d, reminder_count=%d, last_nudge_sent_at=%s",
-                    $assignment->id,
-                    $updated->reminder_count,
-                    $updated->last_nudge_sent_at
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L340'), 'debug');
 
                 // ========================================
                 // TRIGGER 1: Programar nudges 1-4 inmediatamente después de Nudge 0
                 // ========================================
-                error_log(sprintf(
-                    "[EIPSI NUDGE0→FOLLOWUP] TRIGGER 1: Attempting to schedule follow-up nudges for assignment %d",
-                    $assignment->id
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L350'), 'debug');
 
                 self::schedule_followup_nudges_after_nudge_zero($assignment->id);
             }
         } else {
-            error_log(sprintf(
-                "[EIPSI NUDGE 0 UPDATE] ❌ ERROR: Assignment not found for participant_id=%d, wave_id=%d",
-                $participant_id,
-                $wave_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L358'), 'debug');
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("[EIPSI WaveEmail] Nudge 0 marcado como enviado. Log ID: {$log_id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L366'), 'debug');
         }
     }
 
 private static function send_wave_availability_email_with_retry($assignment, $wave, $participant, $study_id, $attempt_number) {
         // Log simplificado solo en debug
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("[EIPSI WaveEmail] Enviando email (intento #{$attempt_number})");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L373'), 'debug');
         }
         global $wpdb;
 
@@ -385,7 +345,7 @@ private static function send_wave_availability_email_with_retry($assignment, $wa
         ));
 
         if (!$study) {
-            error_log("[EIPSI WaveEmail] ERROR: Study {$study_id} no encontrado");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L388'), 'debug');
             return array(
                 'success' => false,
                 'error' => 'study_not_found',
@@ -409,7 +369,7 @@ private static function send_wave_availability_email_with_retry($assignment, $wa
         }
 
         if (!$study_page) {
-            error_log("[EIPSI WaveEmail] ERROR: Página no encontrada para study: {$study_slug}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L412'), 'debug');
             return array(
                 'success' => false,
                 'error' => 'study_page_not_found',
@@ -419,7 +379,7 @@ private static function send_wave_availability_email_with_retry($assignment, $wa
 
         $study_url = get_permalink($study_page->ID);
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("[EIPSI WaveEmail] Study URL: {$study_url}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L422'), 'debug');
         }
 
         // Generate magic token
@@ -444,7 +404,7 @@ private static function send_wave_availability_email_with_retry($assignment, $wa
         ], $study_url);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("[EIPSI WaveEmail] Magic link generado para p={$participant->id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L447'), 'debug');
         }
 
         // Prepare email content
@@ -509,7 +469,7 @@ private static function send_wave_availability_email_with_retry($assignment, $wa
                 'message' => 'Email enviado correctamente'
             );
         } else {
-            error_log("[EIPSI WaveEmail] ERROR: Fallo SMTP al enviar a p={$participant->id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L512'), 'debug');
             return array(
                 'success' => false,
                 'error' => 'smtp_error',
@@ -554,7 +514,7 @@ private static function log_email_success($survey_id, $participant_id, $wave_id,
     }
 
 public static function force_send_nudge_zero($assignment, $wave, $participant, $study_id) {
-        error_log("[EIPSI WaveEmail] FORZANDO envío de Nudge 0 (bypass de verificaciones)");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L557'), 'debug');
 
         // Limpiar estado de reintentos
         $transient_key = "eipsi_wave_email_retries_{$assignment->participant_id}_{$wave->id}";
@@ -573,14 +533,11 @@ public static function force_send_nudge_zero($assignment, $wave, $participant, $
 private static function schedule_followup_nudges_after_nudge_zero($assignment_id) {
         global $wpdb;
 
-        error_log(sprintf(
-            "[EIPSI NUDGE0→FOLLOWUP] START: Scheduling follow-up nudges for assignment %d",
-            $assignment_id
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L576'), 'debug');
 
         // Verificar que la clase existe
         if (!class_exists('EIPSI_Nudge_Event_Scheduler')) {
-            error_log("[EIPSI NUDGE0→FOLLOWUP] Loading EIPSI_Nudge_Event_Scheduler class");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L583'), 'debug');
             require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-event-scheduler.php';
         }
 
@@ -592,60 +549,36 @@ private static function schedule_followup_nudges_after_nudge_zero($assignment_id
         ));
 
         if (!$fresh_assignment) {
-            error_log(sprintf(
-                "[EIPSI NUDGE0→FOLLOWUP] ❌ ERROR: Assignment %d not found in database",
-                $assignment_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L595'), 'debug');
             return false;
         }
 
-        error_log(sprintf(
-            "[EIPSI NUDGE0→FOLLOWUP] Assignment state: id=%d, reminder_count=%d, status=%s, last_nudge_sent_at=%s",
-            $fresh_assignment->id,
-            $fresh_assignment->reminder_count,
-            $fresh_assignment->status,
-            $fresh_assignment->last_nudge_sent_at
-        ));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L602'), 'debug');
 
         // Verificar que reminder_count sea 1 (Nudge 0 enviado)
         if ($fresh_assignment->reminder_count != 1) {
-            error_log(sprintf(
-                "[EIPSI NUDGE0→FOLLOWUP] ⚠️ WARNING: reminder_count=%d (expected 1). Skipping scheduling.",
-                $fresh_assignment->reminder_count
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L612'), 'debug');
             return false;
         }
 
         // Verificar que no esté submitted o expired
         if (in_array($fresh_assignment->status, ['submitted', 'expired', 'skipped'])) {
-            error_log(sprintf(
-                "[EIPSI NUDGE0→FOLLOWUP] ⚠️ WARNING: Assignment status=%s. Skipping scheduling.",
-                $fresh_assignment->status
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L621'), 'debug');
             return false;
         }
 
         // Programar nudges 1-4
         try {
-            error_log(sprintf(
-                "[EIPSI NUDGE0→FOLLOWUP] Calling EIPSI_Nudge_Event_Scheduler::schedule_follow_up_nudges_only(%d)",
-                $assignment_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L630'), 'debug');
 
             EIPSI_Nudge_Event_Scheduler::schedule_follow_up_nudges_only($fresh_assignment);
 
-            error_log(sprintf(
-                "[EIPSI NUDGE0→FOLLOWUP] ✅ SUCCESS: Follow-up nudges scheduled for assignment %d",
-                $assignment_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L637'), 'debug');
 
             return true;
 
         } catch (Exception $e) {
-            error_log(sprintf(
-                "[EIPSI NUDGE0→FOLLOWUP] ❌ EXCEPTION: %s",
-                $e->getMessage()
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_wave_availability_service_L645'), 'debug');
             return false;
         }
     }

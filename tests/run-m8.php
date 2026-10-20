@@ -20,7 +20,7 @@ try {
  m8_install();
  // Representative data in all domains, with matching logical relation IDs.
  foreach(EIPSI_Schema_Registry::get_schema_map()as$slug=>$definition){
-  if(strpos($slug,'eipsi_engine_')===0)continue; // P1-D structures have no pre-M8 historical rows.
+  if(strpos($slug,'eipsi_engine_')===0||strpos($slug,'eipsi_external_')===0)continue; // P1-D structures have no pre-M8 historical rows.
   $row=['id'=>88001];
   foreach($definition['columns']as$column=>$sql){
    if($column==='id')continue;
@@ -38,7 +38,7 @@ try {
   m8_check($wpdb->insert($wpdb->prefix.$slug,$row)!==false,'Seed '.$slug.': '.$wpdb->last_error);
  }
  $historical_rows=m8_rows();
- $tests['Registry contains 41 baseline tables and two management tables']=function(){m8_check(count(EIPSI_Schema_Registry::get_schema_map())===43&&isset(EIPSI_Schema_Registry::get_schema_map()['eipsi_engine_management_events'],EIPSI_Schema_Registry::get_schema_map()['eipsi_engine_management_exports']),'Table count');};
+ $tests['Registry contains 41 baseline tables, two management and seven external API tables']=function(){m8_check(count(EIPSI_Schema_Registry::get_schema_map())===50&&isset(EIPSI_Schema_Registry::get_schema_map()['eipsi_engine_management_events'],EIPSI_Schema_Registry::get_schema_map()['eipsi_engine_management_exports']),'Table count');};
  $tests['Creation order covers registry once']=function(){$a=array_keys(EIPSI_Schema_Registry::get_schema_map());$b=EIPSI_Schema_Registry::get_table_creation_order();sort($a);sort($b);m8_check($a===$b,'Order coverage');};
  foreach(EIPSI_Schema_Registry::get_schema_map() as $slug=>$def){if(strpos($slug,'eipsi_engine_')===0)continue; // New clean structures are counted once in the P1-D runner.
  $tests['Clean structure '.$slug]=function()use($slug){$r=EIPSI_Schema_Inspector::inspect($slug);m8_check($r['exists']&&!$r['issues'],wp_json_encode($r));};}

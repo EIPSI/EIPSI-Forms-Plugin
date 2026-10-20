@@ -89,6 +89,10 @@ final class Simulator {
     private $horizonDays;
     private $traversal;
     private $selectors=array();
+    private $activationScope=null;
+    /** A server admission fence, deliberately absent from scientific checkpoints. */
+    public function restrictActivation(array $ids): void {$this->activationScope=$ids;}
+    public function activationAllowed(string $id): bool {return $this->activationScope===null||isset($this->activationScope[$id]);}
     public function __construct(CompiledStudy $graph, array $context) {
         $this->graph=$graph;$this->context=$context;
         $this->clock=new SimulationClock($context['created_at'],$context['timezone']??$graph->definition()['timezone']['default']);
@@ -242,6 +246,7 @@ final class Simulator {
             $this->materialize();$this->logicalRefresh();$this->refreshDependencyPlan();
             foreach($this->state->skipIntents as $intent)$this->markSubtree($intent['definition_id'],$intent['context'],'SKIPPED_BY_RULE','RULE_WAIT',$intent['rule'],$intent['decision'],$intent['before_ordinal']??null);
             foreach(array_keys($this->state->instances) as $id) {
+                if(!$this->activationAllowed($id))continue;
                 $i=$this->state->instances[$id];$n=$this->graph->node($i['definition_id']);
                 if(self::terminal($i['state']))continue;
                 $parent=$i['parent_execution_id']===null?null:$this->state->instances[$i['parent_execution_id']];
@@ -289,6 +294,7 @@ final class Simulator {
         }
     }
     private function materialize(): void {
+        if($this->activationScope!==null)return;
         $materializer=new RecurrenceMaterializer($this->maxInstances);
         foreach($this->graph->order() as $definitionId) {
             $n=$this->graph->node($definitionId);if($n['kind']!=='BLOCK')continue;
@@ -331,6 +337,7 @@ final class Simulator {
     }
     /** Materialize one explicitly selected future path, without expanding every earlier slot. */
     private function ensureOccurrence(array $path): void {
+        if($this->activationScope!==null)return;
         new OccurrenceKey($path);$prefix=array();$parent=null;$previous=$this->graph->definition()['id'];
         foreach($path as $part) {
             $node=$this->graph->node($part['block_id']);
@@ -359,6 +366,7 @@ final class Simulator {
         }
     }
     private function decide(string $instanceId): void {
+        if(!$this->activationAllowed($instanceId))return;
         $i=$this->state->instances[$instanceId];$n=$this->graph->node($i['definition_id']);$config=$n['randomization'];if($config===null)return;if($this->dependencyPlanning()&&($this->planningPending($n['id'],$i)||!$this->planningBranchSelected($i)))return;
         foreach($this->graph->randomCandidates($n['id']) as $segment) {
             $scope=array('execution_id'=>$this->state->execution['id'],'version_id'=>$this->graph->definition()['id'],'owner_id'=>$n['id'],'segment_id'=>$segment['id'],'scope'=>$config['scope'],'occurrence_key'=>$config['scope']==='EXECUTION'?null:$i['occurrence_key']);
@@ -595,6 +603,7 @@ final class Simulator {
             $this->emit('EXECUTION_TERMINATED',null,$old,'TERMINATED_BY_RULE',$rule['id'],$decision,'RULE_TERMINATE');return;
         }
         $target=$rule['target'];$i=$this->targetInstance($target,$source);
+        if($i&&!$this->activationAllowed($i['id'])&&$rule['action']==='JUMP'){$rule['action']='WAIT';$rule['resume_target']=$rule['target'];$rule['on_target_unavailable']='CONTINUE';}
         $assessments=$this->orderedAssessments();$from=array_search($source['id'],$assessments,true);$to=array_search($i['id'],$assessments,true);
         for($index=$from+1;$index<$to;++$index){$skipped=$this->state->instances[$assessments[$index]];$this->markSubtree($skipped['definition_id'],$skipped,'SKIPPED_BY_RULE','RULE_'.$rule['action'],$rule,$decision);}
         if($rule['action']==='WAIT') {
@@ -624,7 +633,7 @@ final class Simulator {
     }
     private function resolveBarrier(): void {
         $barrier=$this->state->barrier;if($barrier===null)return;$i=$this->state->instances[$barrier['target_execution_id']];
-        if(in_array($i['state'],array('AVAILABLE','IN_PROGRESS'),true)){
+        if($this->activationAllowed($i['id'])&&in_array($i['state'],array('AVAILABLE','IN_PROGRESS'),true)){
             $this->state->barrier=null;$this->state->execution['state']='ACTIVE';$this->resume($i,$barrier['resume_target'],$barrier['rule'],$barrier['decision_id']);$this->emit('WAIT_RESOLVED',$i['id'],null,null,$barrier['rule_id'],$barrier['decision_id'],'TARGET_AVAILABLE');
         }elseif(self::terminal($i['state'])){
             $this->state->barrier=null;$this->state->execution['state']='ACTIVE';$this->emit('WAIT_RESOLVED',$i['id'],null,null,$barrier['rule_id'],$barrier['decision_id'],'CONTINUE_AFTER_TARGET');
@@ -690,7 +699,7 @@ final class Simulator {
         elseif($this->state->barrier!==null){$target=$this->state->instances[$this->state->barrier['target_execution_id']];$action=array('kind'=>'WAIT','payload'=>array('until'=>$target['available_at'],'target'=>$this->state->barrier['target']));}
         else {
             $candidates=array();$waiting=array();
-            foreach($this->orderedAssessments() as $id){$i=$this->state->instances[$id];if(self::terminal($i['state'])||$this->logicalPaused($i))continue;$waiting[]=$i;if(in_array($i['state'],array('AVAILABLE','IN_PROGRESS'),true)&&$this->traversal->eligible($this->graph,$i,$this->state->instances,$this->state->decisions))$candidates[]=$i;}
+            foreach($this->orderedAssessments() as $id){$i=$this->state->instances[$id];if(self::terminal($i['state'])||$this->logicalPaused($i))continue;$waiting[]=$i;if($this->activationAllowed($id)&&in_array($i['state'],array('AVAILABLE','IN_PROGRESS'),true)&&$this->traversal->eligible($this->graph,$i,$this->state->instances,$this->state->decisions))$candidates[]=$i;}
             if($candidates) {
                 usort($candidates,function($a,$b){return ((int)$this->mandatory($b)<=>(int)$this->mandatory($a))?:strcmp($a['available_at'],$b['available_at'])?:($this->graph->node($a['definition_id'])['position']<=>$this->graph->node($b['definition_id'])['position'])?:strcmp($a['id'],$b['id']);});$i=$candidates[0];$leaves=$this->leaves($i['id']);
                 $cursor=$this->state->cursor!==null&&$this->state->cursor['assessment_execution_id']===$i['id']?$this->state->cursor:array('assessment_execution_id'=>$i['id'],'node_id'=>$leaves[0]??$i['definition_id']);

@@ -2,7 +2,7 @@
 namespace EIPSI\AssessmentEditor\Runtime;
 /** Uses WordPress logged-in sessions or the existing Study session; never email or URL ownership. */
 final class Authorization {
-    public static function check(Store $store,array $binding,bool $mutation=false,?string $csrf=null,bool $logicalExit=false): void {
+    public static function check(Store $store,array $binding,bool $mutation=false,?string $csrf=null,bool $logicalExit=false,?callable $clock=null): void {
         if(($binding['kind']??'')==='ASSESSMENT_BROWSER'){
             $token=$_COOKIE['eipsi_assessment_session']??'';
             if(!is_string($token)||!preg_match('/^[a-f0-9]{64}$/D',$token)||!hash_equals($binding['session_hash'],hash('sha256',$token)))throw new \RuntimeException('Access required',403);
@@ -28,8 +28,10 @@ final class Authorization {
         }
         if(isset($binding['block_execution_id'])){
             $block=$db->row($db->prepare('SELECT state,definition_id,available_at,due_at FROM '.$db->table('block_executions').' WHERE id=%s AND execution_id=%s FOR UPDATE',$binding['block_execution_id'],$parent['id']));
-            if(!$block||!in_array($block['state'],$logicalExit?array('AVAILABLE','IN_PROGRESS','COMPLETED','SKIPPED_BY_RULE'):array('AVAILABLE','IN_PROGRESS','COMPLETED'),true)||(!$logicalExit&&$block['state']!=='COMPLETED'&&(($block['due_at']!==null&&strtotime($block['due_at'].' UTC')<=time())||strtotime($block['available_at'].' UTC')>time())))throw new \RuntimeException('Assessment unavailable',403);
+            $now=$clock===null?(function_exists('apply_filters')?(int)apply_filters('eipsi_runtime_timestamp',time()):time()):(int)$clock();
+            if(!$block||!in_array($block['state'],$logicalExit?array('AVAILABLE','IN_PROGRESS','COMPLETED','SKIPPED_BY_RULE'):array('AVAILABLE','IN_PROGRESS','COMPLETED'),true)||(!$logicalExit&&$block['state']!=='COMPLETED'&&(($block['due_at']!==null&&strtotime($block['due_at'].' UTC')<=$now)||strtotime($block['available_at'].' UTC')>$now)))throw new \RuntimeException('Assessment unavailable',403);
         }
+        \EIPSI\StudyEngine\Runtime\PausePolicy::native($db,$study,$parent,$binding);
         if($binding['kind']==='STUDY_SESSION'&&($block['state']??null)!=='COMPLETED'&&!$logicalExit){
             $repo=new \EIPSI\StudyEngine\Persistence\StudyVersionRepository($db);$definition=$repo->compiled($repo->find($parent['study_version_id']))->definition();$config=\EIPSI\StudyEngine\Longitudinal\Configuration::read($definition);$participant=(new \EIPSI\StudyEngine\Longitudinal\Identity($db))->participant($session['participant_id'],true);
             $instances=$db->rows($db->prepare('SELECT definition_id,state,available_at,due_at FROM '.$db->table('block_executions').' WHERE execution_id=%s',$parent['id']));

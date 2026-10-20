@@ -7,22 +7,18 @@ final class Admin {
         wp_enqueue_media();
         wp_enqueue_editor();
         wp_enqueue_style('eipsi-native-assessment-editor',$base.'assets/css/assessment-editor.css',array(),(string)filemtime(EIPSI_FORMS_PLUGIN_DIR.'assets/css/assessment-editor.css'));
-        wp_enqueue_script('eipsi-native-assessment-editor',$base.'assets/js/assessment-editor.js',array('media-editor'),(string)filemtime(EIPSI_FORMS_PLUGIN_DIR.'assets/js/assessment-editor.js'),true);
-        wp_add_inline_script('eipsi-native-assessment-editor','window.eipsiAssessmentEditorConfig='.wp_json_encode(array('url'=>admin_url('admin-ajax.php'),'nonce'=>wp_create_nonce('eipsi_native_assessment'))).';','before');
+        wp_enqueue_script('eipsi-native-assessment-editor',$base.'assets/js/assessment-editor.js',array('media-editor','eipsi-admin-i18n'),(string)filemtime(EIPSI_FORMS_PLUGIN_DIR.'assets/js/assessment-editor.js'),true);
+        wp_add_inline_script('eipsi-native-assessment-editor','window.eipsiAssessmentEditorConfig='.wp_json_encode(array('url'=>admin_url('admin-ajax.php'),'nonce'=>wp_create_nonce('eipsi_native_assessment'),'metadata_policy'=>\EIPSI\Dataset\EffectiveMetadataPolicy::resolve('detailed'))).';','before');
     }
     public static function screen(): void {
         if(!current_user_can('manage_options')) wp_die('Forbidden',403);
-        echo '<div class="wrap ae-root" id="eipsi-assessment-editor"><p>Cargando Assessment Editor…</p></div>';
+        echo '<div class="wrap ae-root" id="eipsi-assessment-editor" lang="'.esc_attr(eipsi_admin_language()).'"><p>'.esc_html(eipsi_admin_translate('Loading Assessment Editor…')).'</p></div>';
     }
     public static function ajax(): void {
         try {
-            if($_SERVER['REQUEST_METHOD']!=='POST') throw new \RuntimeException('POST required',405);
+            \EIPSI_Http_Policy::post(admin_url());
             if(!current_user_can('manage_options')) throw new \RuntimeException('Forbidden',403);
             if(!check_ajax_referer('eipsi_native_assessment','nonce',false)) throw new \RuntimeException('Sesión vencida. Recargá la página.',403);
-            if(!empty($_SERVER['HTTP_ORIGIN'])) {
-                $origin=wp_parse_url($_SERVER['HTTP_ORIGIN']); $expected=wp_parse_url(admin_url());
-                foreach(array('scheme','host','port') as $k) if(($origin[$k]??null)!==($expected[$k]??null)) throw new \RuntimeException('Invalid origin',403);
-            }
             $operation=isset($_POST['operation'])&&is_string($_POST['operation'])?$_POST['operation']:'';
             switch($operation) {
                 case 'import_question':
@@ -58,7 +54,7 @@ final class Admin {
             wp_send_json_success($result);
         } catch(\Throwable $e) {
             $code=(int)$e->getCode(); if(!in_array($code,array(403,404,405,409),true)) $code=400;
-            wp_send_json_error(array('message'=>$code===400?'Definición inválida: '.$e->getMessage():$e->getMessage()),$code);
+            wp_send_json_error(array('message'=>$code===400?eipsi_admin_format('Invalid definition: %s',eipsi_admin_error($e->getMessage())):eipsi_admin_error($e->getMessage())),$code);
         }
     }
 }

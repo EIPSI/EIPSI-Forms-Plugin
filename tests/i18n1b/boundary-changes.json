@@ -1,0 +1,7 @@
+{
+  "includes/bootstrap/asset-callbacks.php": {
+    "before_sha256": "86756dc5afcf560d224e74e7646d961574d0a2e73bc856bb70c8aad46c938601",
+    "after_sha256": "a6c23d9328341e9532fbc2d4225cc2cd21635c8a68ceae1720c0099e00fbdeb9",
+    "reason": "I18N-1B: only current Configuration/SMTP localization payloads use EIPSI per-user catalog; keys, handles and participant callbacks unchanged."
+  }
+}

@@ -11,6 +11,7 @@ const base = path.resolve(__dirname, "../.."),
   }),
   w = dom.window,
   doc = w.document;
+require("../i18n1b/admin-language.js")(dom.window);
 Object.defineProperty(w, "crypto", { value: webcrypto });
 w.confirm = () => true;
 for (const f of JSON.parse(
@@ -206,7 +207,7 @@ test("restart disabled removes restart and custom button closes Preview", () => 
   click(p.dialog, "Siguiente");
   click(p.dialog, "Siguiente");
   click(p.dialog, "Terminar");
-  click(p.dialog, "Cerrar preview");
+  click(p.dialog, dom.window.EIPSIAdminI18n.t("Close preview"));
   assert(!p.dialog.isConnected);
 });
 test("Partial saving OFF still retains temporary questionnaire session", () => {
@@ -482,6 +483,7 @@ test("standalone shared widget artifact runs without authoring UI or network", (
     url: "http://localhost/",
     runScripts: "outside-only",
   });
+require("../i18n1b/admin-language.js")(isolated.window);
   Object.defineProperty(isolated.window, "crypto", { value: webcrypto });
   isolated.window.fetch = () => {
     throw Error("Unexpected transport");

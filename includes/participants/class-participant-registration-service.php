@@ -72,7 +72,7 @@ class EIPSI_Participant_Registration_Service {
 
             if ($result === false) {
                 // Log error pero no mostrar al usuario
-                error_log('EIPSI Participant creation failed: ' . $wpdb->last_error);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_registration_service_L75'), 'debug');
                 return array(
                     'success' => false,
                     'participant_id' => null,
@@ -87,7 +87,7 @@ class EIPSI_Participant_Registration_Service {
             );
 
         } catch (Exception $e) {
-            error_log('EIPSI Participant creation exception: ' . $e->getMessage());
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_registration_service_L90'), 'debug');
             return array(
                 'success' => false,
                 'participant_id' => null,
@@ -162,7 +162,7 @@ class EIPSI_Participant_Registration_Service {
             );
 
             if ($result === false) {
-                error_log('EIPSI Participant creation failed: ' . $wpdb->last_error);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_registration_service_L165'), 'debug');
                 return array(
                     'success' => false,
                     'participant_id' => null,
@@ -177,7 +177,7 @@ class EIPSI_Participant_Registration_Service {
             );
 
         } catch (Exception $e) {
-            error_log('EIPSI Participant creation exception: ' . $e->getMessage());
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_registration_service_L180'), 'debug');
             return array(
                 'success' => false,
                 'participant_id' => null,
@@ -245,7 +245,7 @@ class EIPSI_Participant_Registration_Service {
             );
 
             if ($result === false) {
-                error_log('EIPSI Participant creation for magic link failed: ' . $wpdb->last_error);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_registration_service_L248'), 'debug');
                 return array(
                     'success' => false,
                     'participant_id' => null,
@@ -262,7 +262,7 @@ class EIPSI_Participant_Registration_Service {
             );
 
         } catch (Exception $e) {
-            error_log('EIPSI Participant creation for magic link exception: ' . $e->getMessage());
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_registration_service_L265'), 'debug');
             return array(
                 'success' => false,
                 'participant_id' => null,
@@ -314,7 +314,7 @@ class EIPSI_Participant_Registration_Service {
 
         if (!$token_result['success']) {
             // Token generation failed - log but still return success to user
-            error_log('[EIPSI] Failed to generate confirmation token for participant ' . $participant_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_registration_service_L317'), 'debug');
         } else {
             // Send confirmation email
             $email_sent = EIPSI_Email_Service::send_confirmation_email(
@@ -324,7 +324,7 @@ class EIPSI_Participant_Registration_Service {
             );
 
             if (!$email_sent) {
-                error_log('[EIPSI] Failed to send confirmation email to ' . $email);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_participant_registration_service_L327'), 'debug');
             }
         }
 

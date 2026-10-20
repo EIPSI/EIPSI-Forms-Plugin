@@ -78,28 +78,28 @@ class EIPSI_SMTP_Service {
         if (empty($host) || empty($user) || empty($port)) {
             return array(
                 'valid' => false,
-                'message' => __('Por favor completa todos los campos obligatorios.', 'eipsi-forms')
+                'message' => eipsi_admin_translate('Please complete all mandatory fields.')
             );
         }
 
         if (!is_email($user)) {
             return array(
                 'valid' => false,
-                'message' => __('El usuario SMTP debe ser un correo válido.', 'eipsi-forms')
+                'message' => eipsi_admin_translate('The SMTP username must be a valid email address.')
             );
         }
 
         if ($port < 1 || $port > 65535) {
             return array(
                 'valid' => false,
-                'message' => __('El puerto SMTP no es válido.', 'eipsi-forms')
+                'message' => eipsi_admin_translate('The SMTP port is invalid.')
             );
         }
 
         if (!$allow_empty_password && empty($password)) {
             return array(
                 'valid' => false,
-                'message' => __('La contraseña SMTP es obligatoria.', 'eipsi-forms')
+                'message' => eipsi_admin_translate('The SMTP password is required.')
             );
         }
 
@@ -107,7 +107,7 @@ class EIPSI_SMTP_Service {
         if (!in_array($encryption, $allowed_encryption, true)) {
             return array(
                 'valid' => false,
-                'message' => __('Selecciona un tipo de seguridad válido.', 'eipsi-forms')
+                'message' => eipsi_admin_translate('Select a valid encryption type.')
             );
         }
 

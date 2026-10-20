@@ -1211,7 +1211,10 @@ public static function get_schema_map() {
             'status'=>"ENUM('active','revoked','expired') DEFAULT 'active'", 'expires_at'=>'DATETIME DEFAULT NULL'),
             'indices'=>array('PRIMARY KEY  (id)', 'UNIQUE KEY unique_override (randomization_id,user_fingerprint)', 'KEY randomization_id (randomization_id)', 'KEY user_fingerprint (user_fingerprint)', 'KEY status (status)', 'KEY expires_at (expires_at)', 'KEY created_by (created_by)'));
         require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/management/Schema.php';
-        return array_merge($map, self::get_study_engine_schema(), \EIPSI\StudyEngine\Management\Schema::definitions());
+        require_once dirname(__DIR__).'/external-api/Schema.php';
+        require_once dirname(__DIR__).'/external-api/ExportSchema.php';
+        require_once dirname(__DIR__).'/external-api/OperationsSchema.php';
+        return array_merge($map, self::get_study_engine_schema(), \EIPSI\StudyEngine\Management\Schema::definitions(), \EIPSI\ExternalApi\Schema::definitions(), \EIPSI\ExternalApi\ExportSchema::definitions(), \EIPSI\ExternalApi\OperationsSchema::definitions());
     }
 
 
@@ -1511,7 +1514,7 @@ public static function get_table_creation_order() {
             'eipsi_device_data',
 
             'survey_data_requests', 'eipsi_manual_overrides',
-'eipsi_engine_study_versions', 'eipsi_engine_study_executions', 'eipsi_engine_block_executions', 'eipsi_engine_execution_events', 'eipsi_engine_random_decisions', 'eipsi_engine_execution_commands', 'eipsi_engine_withdrawal_records', 'eipsi_engine_notification_intents', 'eipsi_engine_submission_journal', 'eipsi_engine_public_studies', 'eipsi_engine_anonymous_access', 'eipsi_engine_participants', 'eipsi_engine_participant_sessions', 'eipsi_engine_access_capabilities', 'eipsi_engine_enrollment_receipts', 'eipsi_engine_management_events', 'eipsi_engine_management_exports'
+'eipsi_engine_study_versions', 'eipsi_engine_study_executions', 'eipsi_engine_block_executions', 'eipsi_engine_execution_events', 'eipsi_engine_random_decisions', 'eipsi_engine_execution_commands', 'eipsi_engine_withdrawal_records', 'eipsi_engine_notification_intents', 'eipsi_engine_submission_journal', 'eipsi_engine_public_studies', 'eipsi_engine_anonymous_access', 'eipsi_engine_participants', 'eipsi_engine_participant_sessions', 'eipsi_engine_access_capabilities', 'eipsi_engine_enrollment_receipts', 'eipsi_engine_management_events', 'eipsi_engine_management_exports', 'eipsi_external_keys', 'eipsi_external_grants', 'eipsi_external_audit', 'eipsi_external_exports', 'eipsi_external_export_sources', 'eipsi_external_export_chunks', 'eipsi_external_metrics'
 
         );
 

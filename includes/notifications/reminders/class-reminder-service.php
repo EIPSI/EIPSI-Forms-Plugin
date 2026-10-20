@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) { exit; }
 class EIPSI_Notification_Reminder_Service {
 
 public static function eipsi_send_wave_reminders_hourly($specific_study_id = null) {
-    error_log('[EIPSI Cron] Starting hourly wave reminders' . ($specific_study_id ? " for study {$specific_study_id}" : ' for all studies'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L8'), 'debug');
 
     global $wpdb;
 
@@ -18,7 +18,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
     $lock_timeout = 5 * MINUTE_IN_SECONDS; // 5 minutes max execution time
 
     if (get_transient($lock_key)) {
-        error_log('[EIPSI Cron] LOCKED: Another instance is running. Aborting.');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L21'), 'debug');
         return array(
             'processed_studies' => 0,
             'total_emails_queued' => 0,
@@ -41,7 +41,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         $lock_data = get_transient($lock_key);
         if ($lock_data && isset($lock_data['pid']) && $lock_data['pid'] === getmypid()) {
             delete_transient($lock_key);
-            error_log('[EIPSI Cron] Lock released via shutdown handler');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L44'), 'debug');
         }
     });
 
@@ -50,12 +50,12 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
     $now_ts = time();
     if ($last_cron) {
         $minutes_since = round(($now_ts - $last_cron) / 60);
-        error_log("[EIPSI Cron] Last execution was {$minutes_since} minutes ago");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L53'), 'debug');
         if ($minutes_since > 10) {
-            error_log("[EIPSI Cron] WARNING: Cron delay detected (>10 min). WP-Cron depends on site traffic. Consider server cron: */5 * * * * curl -s " . site_url('/wp-cron.php?doing_wp_cron') . " > /dev/null 2>&1");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L55'), 'debug');
         }
     } else {
-        error_log("[EIPSI Cron] First execution tracked (no previous history)");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L58'), 'debug');
     }
     update_option('eipsi_last_cron_run', $now_ts);
 
@@ -72,7 +72,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         $max_execution_time = 20; // 20 seconds for WP-Cron HTTP requests
     }
 
-    error_log("[EIPSI Cron] Process started at {$start_time}, max execution: {$max_execution_time}s, CLI: " . ($is_cli ? 'YES' : 'NO'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L75'), 'debug');
 
     // 3. BATCH LIMITING - Process max emails per run to avoid timeouts
     $batch_size = 5; // Maximum emails to send per cron run
@@ -84,7 +84,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
     $memory_limit_bytes = wp_convert_hr_to_bytes($memory_limit);
     $max_memory_usage = $memory_limit_bytes * 0.8; // 80% of available memory
 
-    error_log("[EIPSI Cron] Memory: {$start_memory} bytes / {$memory_limit} ({$memory_limit_bytes} bytes limit)");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L87'), 'debug');
 
     // Get studies to process
     if ($specific_study_id) {
@@ -101,7 +101,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
     }
 
     if (empty($studies)) {
-        error_log('[EIPSI Cron] No active studies found');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L104'), 'debug');
         return array(
             'processed_studies' => 0,
             'total_emails_queued' => 0,
@@ -118,7 +118,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         // Check time limit before processing each study
         $elapsed = microtime(true) - $start_time;
         if ($elapsed > $max_execution_time) {
-            error_log("[EIPSI Cron] TIMEOUT WARNING: {$elapsed}s elapsed, aborting gracefully. Processed {$emails_processed} emails.");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L121'), 'debug');
             $aborted_due_to_time = true;
             break;
         }
@@ -126,7 +126,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         // Check memory usage
         $current_memory = memory_get_usage(true);
         if ($current_memory > $max_memory_usage) {
-            error_log("[EIPSI Cron] MEMORY WARNING: {$current_memory} bytes used, aborting gracefully.");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L129'), 'debug');
             $aborted_due_to_time = true; // Actually memory, but same handling
             break;
         }
@@ -154,7 +154,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         $now = current_time('Y-m-d H:i:s');
         $now_date = current_time('Y-m-d');
 
-        error_log("[EIPSI Cron] Processing study {$study->id} - Now: {$now}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L157'), 'debug');
 
         // DEBUG: First check all pending assignments for this study
         $all_pending = $wpdb->get_results($wpdb->prepare(
@@ -169,9 +169,9 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
              AND p.is_active = 1",
             $study->id
         ));
-        error_log("[EIPSI Cron] Total pending assignments: " . count($all_pending));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L172'), 'debug');
         foreach ($all_pending as $pend) {
-            error_log("[EIPSI Cron] Pending: assignment_id={$pend->id}, wave_id={$pend->wave_id}, time_unit={$pend->time_unit}, interval={$pend->interval_days}, reminder_count={$pend->reminder_count}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L174'), 'debug');
         }
 
         // v2.2.0: Get pending assignments for follow-up nudges (stages 1-4)
@@ -206,29 +206,29 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         ));
 
         // Filter Nudge 0 assignments to only those where wave is NOW available
-        error_log("[EIPSI Cron] NUDGE 0 DIAGNOSTIC: Found " . count($nudge_zero_assignments) . " pending assignments with reminder_count=0");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L209'), 'debug');
         $available_now_assignments = array();
         $now = current_time('timestamp');
-        error_log("[EIPSI Cron] NUDGE 0 FILTER: Current time (timestamp)={$now}, formatted=" . date('Y-m-d H:i:s', $now));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L212'), 'debug');
         foreach ($nudge_zero_assignments as $assignment) {
-            error_log("[EIPSI Cron] NUDGE 0 CHECK: assignment_id={$assignment->id}, participant_id={$assignment->participant_id}, wave_id={$assignment->wave_id}, wave_name={$assignment->wave_name}, last_submission_date={$assignment->last_submission_date}, interval_days={$assignment->interval_days}, time_unit={$assignment->time_unit}, available_at_db={$assignment->available_at}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L214'), 'debug');
 
             $available_at=EIPSI_Longitudinal_Notification_Context_Service::resolve_legacy_availability($assignment);
-            error_log("[EIPSI Cron] NUDGE 0 EVAL: assignment_id={$assignment->id}, available_at_timestamp={$available_at}, now={$now}, condition_met=" . ($available_at && $now >= $available_at ? 'YES' : 'NO'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L217'), 'debug');
             if ($available_at && $now >= $available_at) {
                 $available_now_assignments[] = $assignment;
-                error_log("[EIPSI Cron] Nudge 0 READY: participant={$assignment->participant_id}, wave={$assignment->wave_name}, available_at=" . date('Y-m-d H:i:s', $available_at));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L220'), 'debug');
 
                 // v2.5.0 - Trigger event-driven scheduling for follow-up nudges
-                error_log("[EIPSI Cron] NUDGE 0 TRIGGER: Firing eipsi_wave_available action for assignment_id={$assignment->id}");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L223'), 'debug');
                 do_action('eipsi_wave_available', $assignment->id);
-                error_log("[EIPSI Cron] NUDGE 0 TRIGGER: eipsi_wave_available action completed for assignment_id={$assignment->id}");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L225'), 'debug');
             } else {
-                error_log("[EIPSI Cron] NUDGE 0 BLOCKED: assignment_id={$assignment->id}, reason=NOT_YET_AVAILABLE, available_at=" . ($available_at ? date('Y-m-d H:i:s', $available_at) : 'N/A') . ", now=" . date('Y-m-d H:i:s', $now));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L227'), 'debug');
             }
         }
 
-        error_log("[EIPSI Cron] Nudge 0 assignments ready for email: " . count($available_now_assignments));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L231'), 'debug');
 
         // SECOND: Handle Nudges 1-4 - Follow-up reminders
         $pending_assignments = $wpdb->get_results($wpdb->prepare(
@@ -254,13 +254,13 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
             $max_emails
         ));
 
-        error_log("[EIPSI Cron] Assignments ready for email: " . count($pending_assignments));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L257'), 'debug');
 
         // Combine Nudge 0 (initial availability) with Nudges 1-4 (follow-up reminders)
         $all_assignments_to_process = array_merge($available_now_assignments, $pending_assignments);
 
         if (empty($all_assignments_to_process)) {
-            error_log("[EIPSI Cron] No pending assignments ready for email");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L263'), 'debug');
             continue;
         }
 
@@ -278,7 +278,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         foreach ($all_assignments_to_process as $assignment) {
             // BATCH LIMITING: Check if we've reached max emails for this run
             if ($emails_processed >= $batch_size) {
-                error_log("[EIPSI Cron] BATCH LIMIT REACHED: {$emails_processed} emails processed. Stopping gracefully.");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L281'), 'debug');
                 $aborted_due_to_time = true; // Actually batch limit, but same handling
                 break 2; // Break out of both loops
             }
@@ -287,7 +287,7 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
             if ($emails_processed % 3 === 0) {
                 $elapsed = microtime(true) - $start_time;
                 if ($elapsed > $max_execution_time) {
-                    error_log("[EIPSI Cron] TIMEOUT WARNING: {$elapsed}s elapsed after {$emails_processed} emails. Stopping.");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L290'), 'debug');
                     $aborted_due_to_time = true;
                     break 2; // Break out of both loops
                 }
@@ -297,25 +297,15 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
             $has_due_date = !empty($assignment->due_date);
 
             // FIX 3: Logging completo para diagnóstico
-            error_log(sprintf(
-                '[EIPSI NUDGE] Evaluando assignment %d | wave %d | participante %d | status: %s | reminder_count: %d | available_at: %s | due_date: %s | follow_up_enabled: %s',
-                $assignment->id,
-                $assignment->wave_id,
-                $assignment->participant_id,
-                $assignment->status,
-                $assignment->reminder_count,
-                $assignment->available_at ?? 'NULL',
-                $assignment->due_date ?? 'NULL',
-                $assignment->follow_up_reminders_enabled ? 'SÍ' : 'NO'
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L300'), 'debug');
 
             // Verificar status
             if ($assignment->status !== 'pending') {
-                error_log("[EIPSI NUDGE] SKIP: status no es pending ({$assignment->status}) para assignment {$assignment->id}");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L314'), 'debug');
                 continue;
             }
 
-            error_log("[EIPSI Cron] Processing assignment {$assignment->id}, participant {$assignment->participant_id}, wave {$assignment->wave_id}, stage {$current_stage}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L318'), 'debug');
 
             // v2.3.0 - Load nudge config from wave's nudge_config JSON column
             $custom_config = null;
@@ -327,23 +317,23 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
             $nudge_key = "nudge_{$current_stage}";
             if ($custom_config && isset($custom_config[$nudge_key])) {
                 if (empty($custom_config[$nudge_key]['enabled'])) {
-                    error_log("[EIPSI NUDGE] SKIP: nudge_{$current_stage} desactivado en config de wave {$assignment->wave_id} (participante {$assignment->participant_id})");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L330'), 'debug');
                     continue;
                 }
             } elseif ($current_stage > 0) {
                 // FIX 3: Log cuando no hay config personalizada para nudges 1-4
-                error_log("[EIPSI NUDGE] SKIP: nudge_{$current_stage} no tiene config personalizada para wave {$assignment->wave_id} (participante {$assignment->participant_id})");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L335'), 'debug');
                 continue;
             }
 
             // Check if we should send this nudge now
             $should_send = EIPSI_Nudge_Service::should_send_nudge($assignment, (object) $assignment, $current_stage, $custom_config);
-            error_log("[EIPSI Cron] should_send_nudge result for stage {$current_stage}: " . ($should_send ? 'YES' : 'NO'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L341'), 'debug');
             if (!$should_send) {
                 // FIX 3: Log detallado de por qué no se envía
                 $now = current_time('timestamp');
                 $available_ts = !empty($assignment->available_at) ? strtotime($assignment->available_at) : 0;
-                error_log("[EIPSI NUDGE] SKIP: nudge_{$current_stage} aún no vence. Now: " . date('Y-m-d H:i:s', $now) . " | available_at: " . ($available_ts ? date('Y-m-d H:i:s', $available_ts) : 'N/A') . " (participante {$assignment->participant_id})");
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L346'), 'debug');
                 continue;
             }
 
@@ -359,10 +349,10 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
                 ], 5); // Prioridad 5 (alta) para Nudge 0
 
                 if ($job_id) {
-                    error_log("[EIPSI Cron] Nudge 0 encolado: job_id={$job_id}, participant={$assignment->participant_id}");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L362'), 'debug');
                     $total_emails_queued++;
                 } else {
-                    error_log("[EIPSI Cron] ERROR: Fallo al encolar Nudge 0 para participant={$assignment->participant_id}");
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L365'), 'debug');
                 }
 
                 continue; // Skip old logic for Nudge 0
@@ -376,22 +366,22 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         // v2.5.3 - Nudges 1-4 ahora son manejados por Event Scheduler, no por cron handler
         // El cron handler solo procesa Nudge 0 (wave availability)
         if ($current_stage > 0) {
-            error_log("[EIPSI Cron] SKIPPED: Nudge {$current_stage} - delegated to Event Scheduler");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L379'), 'debug');
             continue;
         }
 
         // Nudges 1-4 only send if reminders_enabled is set
         if (!$reminders_enabled) {
-            error_log("[EIPSI Cron] SKIPPED: Nudge {$current_stage} - reminders disabled for study {$study->id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L385'), 'debug');
             continue;
         }
 
         // Check rate limiting - max 1 email per participant per wave per 24 hours
         $rate_limit_key = "eipsi_reminder_{$assignment->participant_id}_{$assignment->wave_id}_{$current_stage}";
         $is_rate_limited = get_transient($rate_limit_key);
-        error_log("[EIPSI Cron] Rate limit check: key={$rate_limit_key}, limited=" . ($is_rate_limited ? 'YES' : 'NO'));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L392'), 'debug');
         if ($is_rate_limited) {
-            error_log("[EIPSI Cron] SKIPPED: Rate limited for participant {$assignment->participant_id}, wave {$assignment->wave_id}, nudge {$current_stage}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L394'), 'debug');
             continue;
         }
 
@@ -406,23 +396,13 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
         ], 10); // Prioridad 10 (normal) para follow-ups
 
         if ($job_id) {
-            error_log(sprintf(
-                '[EIPSI Cron] Nudge %d encolado: job_id=%d, participant=%d, wave=%d',
-                $current_stage,
-                $job_id,
-                $assignment->participant_id,
-                $assignment->wave_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L409'), 'debug');
             $total_emails_queued++;
 
             // Set rate limit para prevenir duplicados mientras el job está en cola
             set_transient($rate_limit_key, true, DAY_IN_SECONDS);
         } else {
-            error_log(sprintf(
-                '[EIPSI Cron] ERROR: Fallo al encolar Nudge %d para participant=%d',
-                $current_stage,
-                $assignment->participant_id
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L421'), 'debug');
         }
     } // end foreach
 
@@ -432,21 +412,21 @@ public static function eipsi_send_wave_reminders_hourly($specific_study_id = nul
     $end_memory = memory_get_usage(true);
     $memory_used = round(($end_memory - $start_memory) / 1024 / 1024, 2); // MB
 
-    error_log("[EIPSI Cron] ========== RESUMEN EJECUCIÓN v2.5.0 (Job Queue) ==========");
-    error_log("[EIPSI Cron] Estudios procesados: {$studies_processed} / " . count($studies));
-    error_log("[EIPSI Cron] Jobs encolados (Nudge 0 + otros): {$total_emails_queued}");
-    error_log("[EIPSI Cron] Total emails enviados (Nudge 0 + otros): {$total_emails_sent}");
-    error_log("[EIPSI Cron] Emails procesados en batch: {$emails_processed} / {$batch_size}");
-    error_log("[EIPSI Cron] Tiempo de ejecución: {$execution_time}s / {$max_execution_time}s");
-    error_log("[EIPSI Cron] Memoria usada: {$memory_used} MB");
-    error_log("[EIPSI Cron] Estado: " . ($aborted_due_to_time ? 'ABORTADO (timeout/batch limit)' : 'COMPLETADO'));
-    error_log("[EIPSI Cron] Verificar en base de datos: SELECT * FROM wp_survey_assignments WHERE reminder_count = 0 AND status = 'pending'");
-    error_log("[EIPSI Cron] ==================================");
-    error_log('[EIPSI Cron] Completed hourly wave reminders' . ($specific_study_id ? " for study {$specific_study_id}" : ''));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L435'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L436'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L437'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L438'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L439'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L440'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L441'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L442'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L443'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L444'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L445'), 'debug');
 
     // RELEASE LOCK - Always release at the end
     delete_transient($lock_key);
-    error_log('[EIPSI Cron] Lock released');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_reminder_service_L449'), 'debug');
 
     // Return summary for manual cron
     return array(

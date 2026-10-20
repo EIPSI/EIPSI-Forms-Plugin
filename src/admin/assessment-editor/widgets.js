@@ -28,10 +28,10 @@
     const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);if(!m)return raw;
     return m[3]+'-'+(format==='DD/MM/YYYY'?m[2]:m[1])+'-'+(format==='DD/MM/YYYY'?m[1]:m[2]);
   }
-  function calendar(e,input,change){
+  function calendar(e,input,change,language){
     const p=e.properties,label=(key,fallback)=>p[key]??fallback,open=el('button',{type:'button',class:'ae-calendar-open'},label('date_open_label','Elegir fecha')),dialog=el('dialog',{class:'ae-control-dialog ae-calendar','aria-label':p.label}),content=el('div'),close=el('button',{type:'button'},label('date_close_label','Cerrar'));
     const names=(key,fallback,count)=>{const parts=(typeof p[key]==='string'?p[key].trim():'').split('|');return parts.length===count?parts:fallback.split('|');};
-    const monthNames=names('date_month_names','Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre',12),weekdays=names('date_weekday_names','Domingo|Lunes|Martes|Miércoles|Jueves|Viernes|Sábado',7);let cursor=new Date();
+    const defaults=root.EIPSIContent.question('date',language),monthNames=names('date_month_names',defaults.date_month_names,12),weekdays=names('date_weekday_names',defaults.date_weekday_names,7);let cursor=new Date();
     const date=(year,month,day)=>{const d=new Date();d.setHours(12,0,0,0);d.setFullYear(year,month,day);return d;};
     const finish=()=>{modalClose(dialog);open.focus();};close.onclick=finish;dialog.addEventListener('cancel',event=>{event.preventDefault();finish();});
     function render(){content.replaceChildren();const year=cursor.getFullYear(),month=cursor.getMonth(),header=el('div',{class:'ae-calendar-navigation'}),previous=el('button',{type:'button'},label('date_previous_label','Anterior')),next=el('button',{type:'button'},label('date_next_label','Siguiente')),title=el('strong',{'aria-live':'polite'},monthNames[month]+' '+year);previous.disabled=year<=1&&month===0;next.disabled=year>=9999&&month===11;previous.onclick=()=>{cursor=date(year,month-1,1);render();};next.onclick=()=>{cursor=date(year,month+1,1);render();};header.append(previous,title,next);const table=el('table'),head=el('tr'),body=el('tbody');weekdays.forEach(name=>head.append(el('th',{scope:'col'},name)));const thead=el('thead');thead.append(head);table.append(thead,body);const start=date(year,month,1).getDay(),days=date(year,month+1,0).getDate();let row;
@@ -39,7 +39,7 @@
     }
     open.onclick=()=>{const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(dateValue(input.value,p.date_format));cursor=match&&Number(match[1])>=1&&Number(match[1])<=9999&&Number(match[2])>=1&&Number(match[2])<=12?date(Number(match[1]),Number(match[2])-1,1):date(new Date().getFullYear(),new Date().getMonth(),1);render();modalOpen(dialog);close.focus();};dialog.append(content,close);return [open,dialog];
   }
-  function widget(e, session = null, edit = null) {
+  function widget(e, session = null, edit = null, definition = session?.definition) {
     const p = { ...C.defaults(e.type, e.properties), ...e.properties },
       box = el("div", { class: "ae-widget", "data-widget": e.type }),
       value = session ? session.answers[e.response_key] : undefined;
@@ -74,7 +74,7 @@
         change(numeric&&Number.isFinite(number)?number:raw);
       });
       box.append(control);
-      if(e.type==="date")box.append(...calendar(e,control,change));
+      if(e.type==="date")box.append(...calendar(e,control,change,root.EIPSIContent.language(definition)));
     }
     if (e.type === "matrix") {
       box.classList.add("ae-matrix");
@@ -136,7 +136,7 @@
     if (e.type === "select") {
       const select = el("select", { "aria-label": p.label });
       select.append(
-        el("option", { value: "" }, p.placeholder || "Seleccioná una opción"),
+        el("option", { value: "" }, p.placeholder ?? root.EIPSIContent.question("select",root.EIPSIContent.language(definition)).placeholder),
       );
       e.options.forEach((o) =>
         select.append(el("option", { value: o.id }, o.label)),
@@ -289,7 +289,7 @@
         if (edit) {
           label.setAttribute("contenteditable", "plaintext-only");
           label.setAttribute("role", "textbox");
-          label.setAttribute("aria-label", "Etiqueta semántica " + (index + 1));
+          label.setAttribute("aria-label", root.EIPSIAdminI18n.f("Semantic label %d",index+1));
           label.tabIndex = 0;
           label.oninput = () => {
             edit.semantic(index, label.textContent);
@@ -368,12 +368,12 @@
             node.title = p.labels[i];
             node.setAttribute(
               "aria-label",
-              edit ? "Etiqueta semántica " + (i + 1) : p.labels[i],
+              edit ? root.EIPSIAdminI18n.f("Semantic label %d",i+1) : p.labels[i],
             );
             if (g.compact && edit)
               node.setAttribute(
                 "aria-description",
-                "Espacio reducido: editar texto completo en el inspector",
+                root.EIPSIAdminI18n.t("Limited space: edit the full text in Properties"),
               );
             const estimatedLines = Math.max(
               p.labels[i].split("\n").length,

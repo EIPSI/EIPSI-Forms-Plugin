@@ -247,6 +247,9 @@ public static function anchor_participant_timeline($study_id, $participant_id) {
     }
 
 public static function get_participant_anchored_timeline($study_id, $participant_id) {
+        if (!current_user_can('manage_options')) {
+            return array('success' => false, 'error' => 'No tienes permisos para ver esta información.');
+        }
         global $wpdb;
 
         $study_id = absint($study_id);
