@@ -1,0 +1,104 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "09-nested-macros",
+  "scenarios": [
+    {
+      "id": "S_NESTED",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_PRACTICE",
+              "at": "2026-10-12T11:30:00Z",
+              "responses": {
+                "Q_PRACTICE": "PASS"
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "WINDOW",
+              "node_id": "E_MEASURE_1",
+              "slot": "single",
+              "available_at": "2026-10-12T11:45:00Z",
+              "due_at": "2026-10-12T12:45:00Z"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_MEASURE_1",
+              "at": "2026-10-12T12:00:00Z",
+              "responses": {
+                "Q_SCORE_1": 3
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_MEASURE_1",
+              "slot": "single",
+              "state": "COMPLETED"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "M_PHASE_2",
+              "slot": "single",
+              "state": "SCHEDULED"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CLOCK_ADVANCED",
+            "data": {
+              "at": "2026-10-13T12:00:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_MEASURE_2",
+              "slot": "single",
+              "state": "AVAILABLE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S_TRAINING_FAILED",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_PRACTICE",
+              "responses": {
+                "Q_PRACTICE": "FAILED"
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "TERMINATED_BY_RULE"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

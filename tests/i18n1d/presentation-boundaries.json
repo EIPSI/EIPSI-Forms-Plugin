@@ -1,0 +1,18 @@
+{
+  "reason": "User-approved global language configuration card and dedicated fallback messages tab. Existing CSS prefix is byte-for-byte identical to the frozen baseline; only new scoped presentation selectors are appended. No handles, dependencies, enqueue conditions, versions or runtime logic changed. User-approved follow-up: consistent help paragraph/list typography and spacing in configuration.",
+  "assets": {
+    "assets/css/configuration-panel.css": {
+      "before_sha256": "c36d021a674d95b05b4b51ecf3bac3a9ebfac564529c7289584a960ad9048b39",
+      "after_sha256": "3d050058b5cd4a476aad55bdccd0c14a56011f23269da036b007e8a62157c0b1",
+      "scope": [
+        "eipsi-admin-language",
+        "eipsi-language-heading",
+        "eipsi-language-controls",
+        "eipsi-backup-messages",
+        "eipsi-fallback-form",
+        "eipsi-config-wrap .eipsi-help-box"
+      ],
+      "historical_prefix_sha256": "c36d021a674d95b05b4b51ecf3bac3a9ebfac564529c7289584a960ad9048b39"
+    }
+  }
+}

@@ -103,7 +103,7 @@ if ($survey_id) {
         <div class="eipsi-survey-login-pane active" id="eipsi-login-pane">
             <div class="eipsi-pane-header">
                 <p class="eipsi-pane-description">
-                    <?php esc_html_e('Ingresá con tu email para continuar.', 'eipsi-forms'); ?>
+                    <?php esc_html_e('Ingresá tu email para recibir un enlace seguro de acceso.', 'eipsi-forms'); ?>
                 </p>
             </div>
 
@@ -135,7 +135,7 @@ if ($survey_id) {
                 </div>
 
                 <button type="submit" class="eipsi-button-primary">
-                    <span class="button-text"><?php esc_html_e('Ingresar al estudio', 'eipsi-forms'); ?></span>
+                    <span class="button-text"><?php esc_html_e('Recibir enlace de acceso', 'eipsi-forms'); ?></span>
                     <span class="eipsi-spinner" style="display: none;"></span>
                 </button>
 

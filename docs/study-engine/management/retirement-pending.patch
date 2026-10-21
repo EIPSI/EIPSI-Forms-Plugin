@@ -1,0 +1,21 @@
+--- a/includes/study-engine/management/Admin.php
++++ b/includes/study-engine/management/Admin.php
+@@ -1,6 +1,8 @@
+ <?php
+ namespace EIPSI\StudyEngine\Management;
+ final class Admin {
++    public const RETIRED_ACTIONS=array('eipsi_add_participant','eipsi_assign_participants','eipsi_close_study','eipsi_create_manual_override','eipsi_create_rct_page','eipsi_create_study_page','eipsi_deactivate_participant','eipsi_delete_manual_override','eipsi_delete_participant','eipsi_delete_wave','eipsi_download_assignments_csv','eipsi_download_assignments_excel','eipsi_edit_participant','eipsi_email_log_export','eipsi_execute_bulk_action','eipsi_extend_deadline','eipsi_extend_magic_link','eipsi_extend_wave_deadline','eipsi_generate_magic_link','eipsi_get_at_risk_participants','eipsi_get_available_participants','eipsi_get_distribution_stats','eipsi_get_email_details','eipsi_get_email_logs','eipsi_get_magic_link_preview','eipsi_get_manual_overrides','eipsi_get_participant','eipsi_get_participant_detail','eipsi_get_participant_email_history','eipsi_get_participants_list','eipsi_get_pending_confirmations','eipsi_get_pending_participants','eipsi_get_randomization_details','eipsi_get_randomization_users','eipsi_get_randomizations','eipsi_get_reminder_config','eipsi_get_response_details','eipsi_get_study_cron_config','eipsi_get_study_email_logs','eipsi_get_study_overview','eipsi_get_study_participants','eipsi_get_wave','eipsi_get_wave_details','eipsi_get_wave_email_preview','eipsi_import_csv_participants','eipsi_mark_wave_completed','eipsi_preview_wave_email','eipsi_recalculate_preview','eipsi_recalculate_waves','eipsi_redistribute_nudges','eipsi_remove_participant','eipsi_remove_wave_deadline','eipsi_resend_confirmation','eipsi_resend_email','eipsi_resend_magic_link','eipsi_resend_participant_email','eipsi_revoke_manual_override','eipsi_save_randomization','eipsi_save_reminder_config','eipsi_save_study_cron_config','eipsi_save_study_settings','eipsi_save_wave','eipsi_save_wave_nudges','eipsi_send_dropout_reminder','eipsi_send_global_reminder','eipsi_send_individual_reminder','eipsi_send_magic_link','eipsi_send_reminder','eipsi_send_wave_reminder_manual','eipsi_sync_submissions','eipsi_test_deadline','eipsi_test_no_nonce','eipsi_toggle_follow_up_reminders','eipsi_toggle_participant_status','eipsi_validate_csv_participants','eipsi_validate_wave_dates');
++
+     public static function handle(array $p): array {
+         if(!current_user_can('manage_options'))throw new \DomainException('BUILDER_FORBIDDEN');
+         if(($p['operation']??null)==='manage'){global $wpdb;$db=new \EIPSI\StudyEngine\Persistence\Database($wpdb);$db->query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');return $db->transactional(function()use($p){return self::dispatch($p);});}
+--- a/admin/menu.php
++++ b/admin/menu.php
+@@ -60,6 +60,7 @@
+  */
+ function eipsi_admin_menu_redirects() {
+     if (!is_admin()) return;
++    if(wp_doing_ajax()){require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/management/Admin.php';$action=isset($_REQUEST['action'])&&is_string($_REQUEST['action'])?$_REQUEST['action']:'';if(in_array($action,\EIPSI\StudyEngine\Management\Admin::RETIRED_ACTIONS,true))wp_send_json_error(array('code'=>'ADMIN_SECTION_RETIRED'),current_user_can('manage_options')?410:403);return;}
+     $page=isset($_GET['page'])?sanitize_key($_GET['page']):'';
+     if($page==='eipsi-results-experience'){wp_safe_redirect(admin_url('admin.php?page=eipsi-study-builder'));exit;}
+     if(in_array($page,array('eipsi-longitudinal-study','eipsi-randomization','eipsi-longitudinal-pools','eipsi-pool-dashboard','eipsi-notifications'),true))wp_die('Esta sección fue retirada.',410);

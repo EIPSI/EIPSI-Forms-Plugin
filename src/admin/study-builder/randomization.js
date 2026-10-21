@@ -1,0 +1,16 @@
+(function (B) {
+    'use strict';
+    B.randomConfig = (d, n, strategy) => {
+        if (!strategy.startsWith('RANDOM') && strategy !== 'WEIGHTED_RANDOM') return null;
+        const children = B.children(d, n.id), candidates = children.filter(x => x.kind !== 'DIRECTIVE').map(x => x.id), config = { strategy, scope: n.scope === 'MACRO' ? 'EXECUTION' : 'BLOCK_INSTANCE', candidates, select_n: strategy === 'RANDOM_SELECT_N' ? 1 : null, draw_count: strategy === 'WEIGHTED_RANDOM' ? 1 : null, weights: strategy === 'WEIGHTED_RANDOM' ? Object.fromEntries(candidates.map(x => [x, 1])) : [], order: 'DRAW', algorithm_version: 'EIPSI_RANDOM_V1' };
+        if (children.some(x => x.kind === 'DIRECTIVE')) { const groups = []; let part = []; children.forEach(x => { if (x.kind === 'DIRECTIVE') { if (part.length) groups.push(part); part = []; } else part.push(x.id); }); if (part.length) groups.push(part); config.segments = groups.map((ids, i) => ({ id: 'segment_' + i, candidates: ids })); }return config;
+    };
+    B.randomEditor = (d, n, change) => {
+        const box = B.el('section', {}, B.el('h3', { text: window.EIPSIAdminI18n.t("Child order and selection") }), B.select(window.EIPSIAdminI18n.t("Strategy"), n.children_strategy, [['SEQUENTIAL', window.EIPSIAdminI18n.t("Sequential")], ['PARALLEL_AVAILABLE', window.EIPSIAdminI18n.t("Available in parallel")], ['RANDOM_ORDER', window.EIPSIAdminI18n.t("Random order")], ['RANDOM_SELECT_ONE', window.EIPSIAdminI18n.t("Choose one (for example, an RCT arm)")], ['RANDOM_SELECT_N', window.EIPSIAdminI18n.t("Select N")], ['WEIGHTED_RANDOM', window.EIPSIAdminI18n.t("Weighted selection")]], children_strategy => change({ children_strategy, randomization: B.randomConfig(d, n, children_strategy) })));
+        if (!n.randomization) return box; const r = n.randomization, patch = p => change({ randomization: { ...r, ...p } });
+        box.append(B.select(window.EIPSIAdminI18n.t("When to randomize"), r.scope, [['EXECUTION', window.EIPSIAdminI18n.t("Once per participant/execution")], ['BLOCK_INSTANCE', window.EIPSIAdminI18n.t("On each block occurrence")]], scope => patch({ scope })), B.select(window.EIPSIAdminI18n.t("Selected item order"), r.order, [['DRAW', window.EIPSIAdminI18n.t("Draw order")], ['DEFINITION', window.EIPSIAdminI18n.t("Structural order")]], order => patch({ order })), B.note(r.candidates.length + ' hijos elegibles. PageBreak queda fuera de cada pool y separa segmentos.'));
+        if (r.strategy === 'RANDOM_SELECT_N') box.append(B.field(window.EIPSIAdminI18n.t("Select N"), r.select_n, select_n => patch({ select_n }), 'number', { min: 1, max: r.candidates.length }));
+        if (r.strategy === 'WEIGHTED_RANDOM') { box.append(B.field(window.EIPSIAdminI18n.t("Number of selections"), r.draw_count, draw_count => patch({ draw_count }), 'number', { min: 1 }));r.candidates.forEach(id => box.append(B.field('Peso: ' + B.path(d, id), r.weights[id], v => patch({ weights: { ...r.weights, [id]: v } }), 'number', { min: 0 })));box.append(B.note(window.EIPSIAdminI18n.t("Weights express relative proportions; they do not guarantee exact final sizes."))); }
+        if (r.segments) box.append(B.note('Segmentos: ' + r.segments.map(x => x.candidates.map(id => B.label(B.node(d, id))).join(', ')).join(' | ')));return box;
+    };
+})(window.EIPSIBuilder);

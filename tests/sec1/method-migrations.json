@@ -1,0 +1,12 @@
+{
+  "m4_wave_body": {
+    "before_tokens_sha256": "99a061470664d3027b37b8a0e3836cf4893d7fcc1cbce34b8a9841a12f7b4055",
+    "after_tokens_sha256": "f8618a98fd537d95c018eaa5f766a1c3fc9d86919075ab00cba5b565761f200e",
+    "reason": "SEC-1: replace sensitive diagnostic logging only"
+  },
+  "m5_enqueue": {
+    "before_tokens_sha256": "3ae1b0f801fa64621b2c475acfb82b4c865ad93725f312ca8fc0fda8ec09bc3e",
+    "after_tokens_sha256": "16d00d52c1ed83501bb66bb2e64edc9aaccdf76c98e7b0aa95b93b29fa659f0a",
+    "reason": "SEC-1: replace sensitive diagnostic logging only"
+  }
+}

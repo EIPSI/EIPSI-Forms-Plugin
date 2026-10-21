@@ -640,3 +640,6 @@ select:focus {
         --eipsi-primary: #0047AB;
     }
 }
+/* EIPSI configuration checkboxes; authored assessments and their previews are excluded. */
+body[class*="eipsi-"] .wrap label:has(>input[type="checkbox"]):not(:where(.ae-root label,.ae-preview label,.eipsi-form label,.vas-dinamico-form label)) {display:inline-flex;flex-direction:row;align-items:flex-start;gap:8px;max-width:100%}
+body[class*="eipsi-"] .wrap label:has(>input[type="checkbox"]):not(:where(.ae-root label,.ae-preview label,.eipsi-form label,.vas-dinamico-form label))>input[type="checkbox"] {flex-shrink:0;margin:2px 0 0}

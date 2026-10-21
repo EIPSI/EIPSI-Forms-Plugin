@@ -1,0 +1,61 @@
+{
+  "EIPSI_Database_Schema_Manager": {
+    "get_schema_map": "public static function get_schema_map() ",
+    "get_table_sql": "public static function get_table_sql( $slug ) ",
+    "sync_local_table": "public static function sync_local_table( $slug ) ",
+    "repair_local_schema": "public static function repair_local_schema() ",
+    "verify_and_sync_schema": "public static function verify_and_sync_schema( $mysqli = null ) ",
+    "periodic_verification": "public static function periodic_verification() ",
+    "on_credentials_changed": "public static function on_credentials_changed() ",
+    "get_verification_status": "public static function get_verification_status() ",
+    "get_all_tables_status": "public static function get_all_tables_status() ",
+    "get_detailed_table_status": "public static function get_detailed_table_status( $slug ) ",
+    "get_schema_health_summary": "public static function get_schema_health_summary() ",
+    "fix_collations": "public static function fix_collations() "
+  },
+  "EIPSI_Partial_Responses": {
+    "create_table": "public static function create_table() ",
+    "save": "public static function save($form_id, $participant_id, $session_id, $page_index, $responses) ",
+    "load": "public static function load($form_id, $participant_id, $session_id) ",
+    "mark_completed": "public static function mark_completed($form_id, $participant_id, $session_id) ",
+    "discard": "public static function discard($form_id, $participant_id, $session_id) ",
+    "cleanup_old_responses": "public static function cleanup_old_responses() "
+  },
+  "EIPSI_Cron_Health_Service": {
+    "get_cron_health": "public static function get_cron_health() ",
+    "record_execution": "public static function record_execution($hook, $metadata = array()) ",
+    "get_execution_history": "public static function get_execution_history($hook = '', $limit = 20) ",
+    "force_run_cron": "public static function force_run_cron($hook) ",
+    "reschedule_cron": "public static function reschedule_cron($hook) ",
+    "get_dashboard_widget_data": "public static function get_dashboard_widget_data() ",
+    "needs_attention": "public static function needs_attention() "
+  },
+  "EIPSI_Migration_Runner": {
+    "init": "public static function init() ",
+    "run": "public function run() "
+  },
+  "EIPSI_Privacy_Data_Request_Service": {
+    "submit_request": "public static function submit_request($participant_id, $request_type, $reason = '') ",
+    "get_requests": "public static function get_requests($filters = array(), $limit = 20, $offset = 0) ",
+    "process_request": "public static function process_request($request_id, $action, $admin_notes = '') ",
+    "get_request_counts": "public static function get_request_counts() ",
+    "create_table": "public static function create_table() "
+  },
+  "EIPSI_Storage_External_Submission_Store": {
+    "save_credentials": "public function save_credentials($host, $user, $password, $db_name) ",
+    "get_credentials": "public function get_credentials() ",
+    "test_connection": "public function test_connection($host, $user, $password, $db_name) ",
+    "get_connection": "public function get_connection() ",
+    "get_record_count": "public function get_record_count() ",
+    "insert_form_submission": "public function insert_form_submission($data) ",
+    "record_error": "public function record_error($error_message, $error_code) ",
+    "clear_errors": "public function clear_errors() ",
+    "disable": "public function disable() ",
+    "is_enabled": "public function is_enabled() ",
+    "insert_form_event": "public function insert_form_event($data) ",
+    "check_table_status": "public function check_table_status() ",
+    "get_local_table_status": "public function get_local_table_status() ",
+    "get_status": "public function get_status() ",
+    "delete_all_data": "public function delete_all_data() "
+  }
+}

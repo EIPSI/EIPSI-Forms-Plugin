@@ -1,0 +1,12 @@
+{
+  "contract": "NATIVE_ASSESSMENT_ADMIN_MENU_V1",
+  "added_hooks": [{
+    "hook": "eipsi-forms_page_eipsi-assessment-editor",
+    "callback": "{closure}",
+    "file": "admin/menu.php",
+    "priority": 10,
+    "order_at_priority": 1,
+    "accepted_args": 1,
+    "callable": true
+  }]
+}

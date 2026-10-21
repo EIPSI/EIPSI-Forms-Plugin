@@ -1,0 +1,109 @@
+{
+  "wordpress_tests": 1884,
+  "pure_php_tests": 428,
+  "js_tests": 598,
+  "clean_smoke_unique": 6,
+  "activation_unique": 2,
+  "total_unique": 2918,
+  "rct_strict": "PASS (repeats an existing case; not added to unique total)",
+  "php_evidence": {
+    "php-p0": ".cache/ci/20261015-142029-bf4dd5df/php-p0.log",
+    "php-p1": ".cache/ci/20261015-142029-bf4dd5df/php-p1.log",
+    "php-p1b": ".cache/ci/20261015-142029-bf4dd5df/php-p1b.log",
+    "php-p1c": ".cache/ci/20261015-142029-bf4dd5df/php-p1c.log",
+    "php-m0": ".cache/ci/20261015-142029-bf4dd5df/php-m0.log",
+    "php-m1": ".cache/ci/20261015-142029-bf4dd5df/php-m1.log",
+    "php-m2": ".cache/ci/20261015-142029-bf4dd5df/php-m2.log",
+    "php-m3": ".cache/ci/20261015-142029-bf4dd5df/php-m3.log",
+    "php-m4": ".cache/ci/20261015-142029-bf4dd5df/php-m4.log",
+    "php-m5": ".cache/ci/20261015-142029-bf4dd5df/php-m5.log",
+    "php-m6": ".cache/ci/20261015-142029-bf4dd5df/php-m6.log",
+    "php-m6-live": ".cache/ci/20261015-142029-bf4dd5df/php-m6-live.log",
+    "php-m7": ".cache/ci/20261015-142029-bf4dd5df/php-m7.log",
+    "php-m8": ".cache/ci/20261015-142029-bf4dd5df/php-m8.log",
+    "php-purga-final": ".cache/ci/20261015-142029-bf4dd5df/php-purga-final.log",
+    "php-s0": ".cache/ci/20261015-142029-bf4dd5df/php-s0.log",
+    "php-s1": ".cache/ci/20261015-142029-bf4dd5df/php-s1.log",
+    "php-s2": ".cache/ci/20261015-142029-bf4dd5df/php-s2.log",
+    "php-s3": ".cache/ci/20261015-142029-bf4dd5df/php-s3.log",
+    "php-s4": ".cache/ci/20261015-142029-bf4dd5df/php-s4.log",
+    "php-s41": ".cache/ci/20261015-142029-bf4dd5df/php-s41.log",
+    "php-debug-off": ".cache/ci/20261015-142029-bf4dd5df/php-debug-off.log",
+    "php-study-engine-persistence": ".cache/ci/20261015-142403-27bad155/php-study-engine-persistence.log",
+    "php-study-engine-content-unit": ".cache/ci/20261015-142403-27bad155/php-study-engine-content-unit.log",
+    "php-study-engine-cross-sectional": ".cache/ci/20261015-142403-27bad155/php-study-engine-cross-sectional.log",
+    "php-study-engine-longitudinal": ".cache/ci/20261015-142403-27bad155/php-study-engine-longitudinal.log",
+    "php-study-engine-privacy": ".cache/ci/20261015-142834-d4e298f8/php-study-engine-privacy.log",
+    "php-study-engine-builder": ".cache/ci/20261015-142834-d4e298f8/php-study-engine-builder.log",
+    "php-study-engine-pilot": ".cache/ci/20261015-142403-27bad155/php-study-engine-pilot.log",
+    "php-study-engine-readiness": ".cache/ci/20261015-142403-27bad155/php-study-engine-readiness.log",
+    "php-study-engine-operations": ".cache/ci/20261015-142403-27bad155/php-study-engine-operations.log",
+    "php-assessment-editor": ".cache/ci/20261015-142403-27bad155/php-assessment-editor.log",
+    "php-assessment-controls": ".cache/ci/20261015-142403-27bad155/php-assessment-controls.log",
+    "php-assessment-authoring": ".cache/ci/20261015-142403-27bad155/php-assessment-authoring.log",
+    "php-assessment-corrections": ".cache/ci/20261015-142403-27bad155/php-assessment-corrections.log",
+    "php-assessment-functional": ".cache/ci/20261015-142403-27bad155/php-assessment-functional.log",
+    "php-assessment-product": ".cache/ci/20261015-142403-27bad155/php-assessment-product.log",
+    "php-assessment-product-http": ".cache/ci/20261015-142403-27bad155/php-assessment-product-http.log",
+    "php-study-engine-authoring": ".cache/ci/20261015-142403-27bad155/php-study-engine-authoring.log",
+    "php-email-templates": ".cache/ci/20261015-142403-27bad155/php-email-templates.log",
+    "php-study-engine-experience": ".cache/ci/20261015-142403-27bad155/php-study-engine-experience.log",
+    "php-study-lifecycle": ".cache/ci/20261015-142834-d4e298f8/php-study-lifecycle.log",
+    "php-study-management": ".cache/ci/20261015-142834-d4e298f8/php-study-management.log"
+  },
+  "latest_management_evidence": ".cache/ci/20261015-142834-d4e298f8/php-study-management.log",
+  "build_evidence": ".cache/ci/20261015-142221-9a08296d/build-artifacts.log",
+  "smoke_evidence": {
+    "smoke-activation-clean": ".cache/ci/20261015-142834-d4e298f8/smoke-activation-clean.log",
+    "smoke-checks": ".cache/ci/20261015-142834-d4e298f8/smoke-checks.log",
+    "smoke-lifecycle": ".cache/ci/20261015-142834-d4e298f8/smoke-lifecycle.log",
+    "smoke-reactivation-clean": ".cache/ci/20261015-142834-d4e298f8/smoke-reactivation-clean.log",
+    "smoke-checks-after-lifecycle": ".cache/ci/20261015-142834-d4e298f8/smoke-checks-after-lifecycle.log"
+  },
+  "volume_synthetic_sql_only": [
+    {
+      "participations": 100,
+      "seconds": 0.0086,
+      "queries": 11,
+      "allocated_delta_bytes": 0,
+      "timing": {
+        "summary": 0.0027,
+        "participants": 0.0002,
+        "opportunities": 0.0003,
+        "attempts": 0.0042
+      },
+      "page_size": 25,
+      "native_opportunities": 200
+    },
+    {
+      "participations": 1000,
+      "seconds": 0.0594,
+      "queries": 11,
+      "allocated_delta_bytes": 0,
+      "timing": {
+        "summary": 0.0082,
+        "participants": 0.0003,
+        "opportunities": 0.0004,
+        "attempts": 0.0499
+      },
+      "page_size": 25,
+      "native_opportunities": 2000
+    },
+    {
+      "participations": 10000,
+      "seconds": 5.1367,
+      "queries": 11,
+      "allocated_delta_bytes": 0,
+      "timing": {
+        "summary": 3.063,
+        "participants": 0.0062,
+        "opportunities": 0.0024,
+        "attempts": 2.0632
+      },
+      "page_size": 25,
+      "native_opportunities": 20000
+    }
+  ],
+  "human_review": "PENDING",
+  "retired_ajax_block": "NOT_APPLIED_AUTO_REVIEW_REJECTED"
+}

@@ -23,36 +23,35 @@ function eipsi_ajax_check_wave_state() {
         wp_send_json_error('Auth service not available');
     }
     
-    $participant_id = EIPSI_Auth_Service::get_current_participant();
-    if (!$participant_id) {
-        wp_send_json_error('Not authenticated');
+    if (!is_string($_POST['nonce'] ?? null) || !wp_verify_nonce($_POST['nonce'], 'eipsi_auto_refresh')) {
+        wp_send_json_error('Invalid nonce', 403);
     }
-    
+    $access = EIPSI_Authorization_Policy::authorize_session_context($_POST);
+    if (!$access['success']) { wp_send_json_error('Not authenticated', 403); }
+    $participant_id = $access['participant_id'];
+    $study_id = $access['study_id'];
+    $record = EIPSI_Authorization_Policy::authorize_participant($participant_id, $study_id);
+    if (!$record['success']) { wp_send_json_error('Not authenticated', 403); }
+
     $wave_id = isset($_POST['wave_id']) ? intval($_POST['wave_id']) : 0;
     
     if (!$wave_id) {
         wp_send_json_error('Invalid wave_id');
     }
     
-    // Get wave info
-    $wave = $wpdb->get_row($wpdb->prepare(
-        "SELECT id, study_id, wave_index, wave_name, offset_minutes
-        FROM {$wpdb->prefix}survey_waves
-        WHERE id = %d",
-        $wave_id
-    ));
-    
-    if (!$wave) {
-        wp_send_json_error('Wave not found');
-    }
-    
+    // Longitudinal owns wave lookup; schema name maps to public wave_name.
+    $wave = EIPSI_Longitudinal_Wave_Definition_Service::get_wave($wave_id);
+    if (!$wave) { wp_send_json_error('Wave not found'); }
+    if ((int)$wave->study_id !== $study_id) { wp_send_json_error('Not authorized', 403); }
+
     // Get assignment for this wave
     $assignment = $wpdb->get_row($wpdb->prepare(
         "SELECT status, available_at, due_at, submitted_at
         FROM {$wpdb->prefix}survey_assignments
-        WHERE participant_id = %d AND wave_id = %d",
+        WHERE participant_id = %d AND wave_id = %d AND study_id = %d",
         $participant_id,
-        $wave_id
+        $wave_id,
+        $study_id
     ));
     
     if (!$assignment) {
@@ -114,7 +113,7 @@ function eipsi_ajax_check_wave_state() {
     // Return state
     wp_send_json_success(array(
         'wave_id' => $wave_id,
-        'wave_name' => $wave->wave_name,
+        'wave_name' => $wave->name,
         'status' => $assignment->status,
         'is_locked' => $is_locked,
         'seconds_until_available' => $seconds_until_available,

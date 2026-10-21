@@ -57,6 +57,12 @@ class EIPSI_Participant_Access_Log_Service {
         $ip_address = self::get_client_ip();
         $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : 'unknown';
         
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+        $config=get_global_privacy_defaults();
+        if (empty($config['ip_address'])) { $ip_address=''; }
+        if (empty($config['user_agent_full'])) { $user_agent=''; }
+        $metadata=eipsi_filter_capture_data($metadata,$config);
+
         // Insertar en la tabla
         $table_name = $wpdb->prefix . 'survey_participant_access_log';
         

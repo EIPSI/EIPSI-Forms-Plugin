@@ -1,0 +1,290 @@
+{
+  "contract": "EIPSI_ASSESSMENT_V1",
+  "id": "AE_PARITY",
+  "title": "Revisión de preguntas y controles",
+  "elements": [
+    {
+      "id": "EL_text",
+      "type": "text",
+      "response_key": "R_text",
+      "properties": {
+        "placeholder": "Ejemplo text",
+        "max_length": 100,
+        "min_length": 2,
+        "label": "Pregunta text",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_textarea",
+      "type": "textarea",
+      "response_key": "R_textarea",
+      "properties": {
+        "placeholder": "Ejemplo textarea",
+        "max_length": 100,
+        "min_length": 2,
+        "rows": 8,
+        "label": "Pregunta textarea",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_email",
+      "type": "email",
+      "response_key": "R_email",
+      "properties": {
+        "placeholder": "Ejemplo email",
+        "max_length": 254,
+        "min_length": 2,
+        "label": "Pregunta email",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_number",
+      "type": "number",
+      "response_key": "R_number",
+      "properties": {
+        "placeholder": "Ejemplo number",
+        "min": -2.5,
+        "max": 7.5,
+        "step": 0.25,
+        "label": "Pregunta number",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_tel",
+      "type": "tel",
+      "response_key": "R_tel",
+      "properties": {
+        "placeholder": "Ejemplo tel",
+        "max_length": 100,
+        "min_length": 2,
+        "label": "Pregunta tel",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_date",
+      "type": "date",
+      "response_key": "R_date",
+      "properties": {
+        "label": "Pregunta date",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_url",
+      "type": "url",
+      "response_key": "R_url",
+      "properties": {
+        "placeholder": "Ejemplo url",
+        "max_length": 2048,
+        "min_length": 2,
+        "label": "Pregunta url",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_single_choice",
+      "type": "single_choice",
+      "response_key": "R_single_choice",
+      "properties": {
+        "label": "Pregunta single_choice",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "presentation": "vertical"
+      },
+      "options": [
+        {
+          "id": "O_single_choice_0",
+          "label": "Sí, a veces"
+        },
+        {
+          "id": "O_single_choice_1",
+          "label": "Dijo \"no\"; después"
+        },
+        {
+          "id": "O_single_choice_2",
+          "label": "Dos\nlíneas"
+        },
+        {
+          "id": "O_single_choice_3",
+          "label": "Duplicada"
+        },
+        {
+          "id": "O_single_choice_4",
+          "label": "Duplicada"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_multiple_choice",
+      "type": "multiple_choice",
+      "response_key": "R_multiple_choice",
+      "properties": {
+        "min_selected": 2,
+        "max_selected": 3,
+        "label": "Pregunta multiple_choice",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "presentation": "horizontal"
+      },
+      "options": [
+        {
+          "id": "O_multiple_choice_0",
+          "label": "Sí, a veces"
+        },
+        {
+          "id": "O_multiple_choice_1",
+          "label": "Dijo \"no\"; después"
+        },
+        {
+          "id": "O_multiple_choice_2",
+          "label": "Dos\nlíneas"
+        },
+        {
+          "id": "O_multiple_choice_3",
+          "label": "Duplicada"
+        },
+        {
+          "id": "O_multiple_choice_4",
+          "label": "Duplicada"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_select",
+      "type": "select",
+      "response_key": "R_select",
+      "properties": {
+        "placeholder": "Ejemplo select",
+        "label": "Pregunta select",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true
+      },
+      "options": [
+        {
+          "id": "O_select_0",
+          "label": "Sí, a veces"
+        },
+        {
+          "id": "O_select_1",
+          "label": "Dijo \"no\"; después"
+        },
+        {
+          "id": "O_select_2",
+          "label": "Dos\nlíneas"
+        },
+        {
+          "id": "O_select_3",
+          "label": "Duplicada"
+        },
+        {
+          "id": "O_select_4",
+          "label": "Duplicada"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_likert",
+      "type": "likert",
+      "response_key": "R_likert",
+      "properties": {
+        "min": -3,
+        "preset": "custom",
+        "reversed": true,
+        "gradient": "improvement-left",
+        "gradient_start": "#112233",
+        "gradient_end": "#ddeeff",
+        "label": "Pregunta likert",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "presentation": "horizontal"
+      },
+      "options": [
+        {
+          "id": "O_likert_0",
+          "label": "Sí, a veces"
+        },
+        {
+          "id": "O_likert_1",
+          "label": "Dijo \"no\"; después"
+        },
+        {
+          "id": "O_likert_2",
+          "label": "Dos\nlíneas"
+        },
+        {
+          "id": "O_likert_3",
+          "label": "Duplicada"
+        },
+        {
+          "id": "O_likert_4",
+          "label": "Duplicada"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_vas",
+      "type": "vas",
+      "response_key": "R_vas",
+      "properties": {
+        "gradient": "custom",
+        "gradient_start": "#112233",
+        "gradient_end": "#ddeeff",
+        "labels": [
+          "Nada",
+          "Un\npoco",
+          "Moderado",
+          "Mucho",
+          "Extremo"
+        ],
+        "label_font_size": 36,
+        "value_font_size": 72,
+        "bold_labels": false,
+        "label_boxes": true,
+        "label_alignment": 35,
+        "value_position": "above",
+        "label": "Pregunta vas",
+        "helper": "Primera línea\nSegunda línea",
+        "required": true,
+        "min": -2.5,
+        "max": 7.5,
+        "step": 0.25,
+        "initial": 2.5,
+        "left_label": "Nada",
+        "right_label": "Mucho",
+        "show_value": true
+      },
+      "options": [],
+      "children": []
+    }
+  ]
+}

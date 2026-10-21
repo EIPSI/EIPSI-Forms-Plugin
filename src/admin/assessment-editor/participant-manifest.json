@@ -1,0 +1,19 @@
+{
+  "entry_order": [
+    "../../frontend/study/interactions.js",
+    "../i18n/content-catalog.js",
+    "../i18n/content.js",
+    "flow.js",
+    "variables.js",
+    "controls.js",
+    "randomization.js",
+    "model.js",
+    "metadata.js",
+    "authoring.js",
+    "vas-geometry.js",
+    "widgets.js",
+    "design.js",
+    "participant.js",
+    "product-runtime.js"
+  ]
+}

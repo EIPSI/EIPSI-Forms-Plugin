@@ -21,323 +21,40 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/storage/bootstrap.php';
+
+
 /**
  * Pre-flight data validation
  * Verifica que todos los campos requeridos estén presentes antes de procesar
  */
-function eipsi_safety_validate_submission($data) {
-    $errors = array();
-    $warnings = array();
-    
-    // Verificar campos críticos de identificación
-    if (empty($data['form_id'])) {
-        $errors[] = 'Missing critical: form_id';
-    }
-    
-    if (empty($data['participant_id'])) {
-        $warnings[] = 'Missing participant_id, will generate fingerprint';
-    }
-    
-    // Verificar que form_responses no esté vacío si hay campos enviados
-    if (isset($data['form_responses']) && empty($data['form_responses'])) {
-        $warnings[] = 'Empty form_responses - possible field name issue';
-    }
-    
-    // Log para auditoría
-    if (!empty($warnings)) {
-        error_log('[EIPSI SAFETY] Submission warnings: ' . implode(' | ', $warnings));
-    }
-    
-    return array(
-        'valid' => empty($errors),
-        'errors' => $errors,
-        'warnings' => $warnings,
-        'timestamp' => current_time('mysql'),
-    );
-}
+function eipsi_safety_validate_submission($data) { return EIPSI_Submission_Storage_Service::eipsi_safety_validate_submission($data); }
 
 /**
  * Guardar submission con retry automático
  */
-function eipsi_safety_save_with_retry($data, $max_retries = 3) {
-    $attempt = 0;
-    $last_error = null;
-    
-    while ($attempt < $max_retries) {
-        $attempt++;
-        
-        try {
-            $result = eipsi_safety_attempt_save($data);
-            
-            if ($result['success']) {
-                // Log éxito
-                error_log(sprintf(
-                    '[EIPSI SAFETY] Submission saved successfully on attempt %d. ID: %s',
-                    $attempt,
-                    $result['insert_id'] ?? 'unknown'
-                ));
-                
-                // ✅ AUTO-SYNC: Sincronizar campos del formulario a survey_participants
-                eipsi_auto_sync_participant_fields($data, $result['insert_id']);
-                
-                return $result;
-            }
-            
-            $last_error = $result['error'] ?? 'Unknown error';
-            error_log(sprintf('[EIPSI SAFETY] Save attempt %d failed: %s', $attempt, $last_error));
-            
-            // Esperar antes de reintentar (backoff exponencial)
-            if ($attempt < $max_retries) {
-                usleep($attempt * 500000); // 0.5s, 1s, 1.5s
-            }
-            
-        } catch (Exception $e) {
-            $last_error = $e->getMessage();
-            error_log('[EIPSI SAFETY] Exception on attempt ' . $attempt . ': ' . $last_error);
-        }
-    }
-    
-    // Todos los intentos fallaron - activar modo emergencia
-    return eipsi_safety_emergency_save($data, $last_error);
-}
+function eipsi_safety_save_with_retry($data, $max_retries = 3) { return EIPSI_Submission_Storage_Service::eipsi_safety_save_with_retry($data, $max_retries); }
 
 /**
  * Intento de guardado normal
  */
-function eipsi_safety_attempt_save($data) {
-    global $wpdb;
-    
-    // Intentar DB externa primero si está configurada
-    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
-    $db_helper = new EIPSI_External_Database();
-    
-    if ($db_helper->is_enabled()) {
-        $result = $db_helper->insert_form_submission($data);
-        if ($result['success']) {
-            return array(
-                'success' => true,
-                'insert_id' => $result['insert_id'],
-                'storage' => 'external_db',
-                'timestamp' => current_time('mysql'),
-            );
-        }
-    }
-    
-    // Fallback a WordPress DB
-    $table_name = $wpdb->prefix . 'vas_form_results';
-    
-    $wpdb_result = $wpdb->insert($table_name, $data);
-    
-    if ($wpdb_result !== false) {
-        return array(
-            'success' => true,
-            'insert_id' => $wpdb->insert_id,
-            'storage' => 'wordpress_db',
-            'timestamp' => current_time('mysql'),
-        );
-    }
-    
-    return array(
-        'success' => false,
-        'error' => $wpdb->last_error,
-        'error_code' => 'DB_INSERT_FAILED',
-    );
-}
+function eipsi_safety_attempt_save($data) { return EIPSI_Submission_Storage_Service::attempt($data); }
 
 /**
  * Modo emergencia: Guardar datos críticos cuando todo falla
  * Usa la base de datos configurada (WordPress o External según configuración del usuario)
  */
-function eipsi_safety_emergency_save($data, $original_error) {
-    global $wpdb;
-    
-    error_log('[EIPSI SAFETY] ACTIVATING EMERGENCY SAVE MODE');
-    
-    // Determinar qué base de datos usar según la configuración del usuario
-    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
-    $db_helper = new EIPSI_External_Database();
-    
-    $using_external = $db_helper->is_enabled();
-    $emergency_id = null;
-    $emergency_table = $wpdb->prefix . 'eipsi_emergency_submissions';
-    
-    // Datos a guardar
-    $emergency_data = array(
-        'form_id' => $data['form_id'] ?? 'unknown',
-        'participant_id' => $data['participant_id'] ?? null,
-        'form_responses' => $data['form_responses'] ?? null,
-        'metadata' => $data['metadata'] ?? null,
-        'raw_post_data' => wp_json_encode($_POST),
-        'error_message' => $original_error,
-    );
-    
-    // Intentar guardar en la DB configurada (External o WordPress)
-    if ($using_external) {
-        $mysqli = $db_helper->get_connection();
-        if ($mysqli) {
-            // Crear tabla de emergencia en DB externa
-            $create_sql = "CREATE TABLE IF NOT EXISTS {$emergency_table} (
-                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                form_id VARCHAR(50) NOT NULL,
-                participant_id VARCHAR(255),
-                form_responses LONGTEXT,
-                metadata LONGTEXT,
-                raw_post_data LONGTEXT,
-                error_message TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                resolved TINYINT DEFAULT 0,
-                resolved_at DATETIME NULL,
-                KEY form_id (form_id),
-                KEY created_at (created_at),
-                KEY resolved (resolved)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-            
-            $mysqli->query($create_sql);
-            
-            // Insertar datos
-            $stmt = $mysqli->prepare(
-                "INSERT INTO {$emergency_table} 
-                (form_id, participant_id, form_responses, metadata, raw_post_data, error_message, created_at, resolved) 
-                VALUES (?, ?, ?, ?, ?, ?, NOW(), 0)"
-            );
-            
-            if ($stmt) {
-                $stmt->bind_param(
-                    'ssssss',
-                    $emergency_data['form_id'],
-                    $emergency_data['participant_id'],
-                    $emergency_data['form_responses'],
-                    $emergency_data['metadata'],
-                    $emergency_data['raw_post_data'],
-                    $emergency_data['error_message']
-                );
-                
-                if ($stmt->execute()) {
-                    $emergency_id = $mysqli->insert_id;
-                    error_log('[EIPSI SAFETY] Emergency data saved to EXTERNAL DB');
-                }
-                $stmt->close();
-            }
-            $mysqli->close();
-        }
-    }
-    
-    // Fallback a WordPress DB si no se pudo guardar en externa o si no está configurada
-    if (!$emergency_id) {
-        $wpdb->query("CREATE TABLE IF NOT EXISTS {$emergency_table} (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            form_id VARCHAR(50) NOT NULL,
-            participant_id VARCHAR(255),
-            form_responses LONGTEXT,
-            metadata LONGTEXT,
-            raw_post_data LONGTEXT,
-            error_message TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            resolved TINYINT DEFAULT 0,
-            resolved_at DATETIME NULL,
-            KEY form_id (form_id),
-            KEY created_at (created_at),
-            KEY resolved (resolved)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-        
-        $wpdb->insert($emergency_table, $emergency_data);
-        $emergency_id = $wpdb->insert_id;
-        error_log('[EIPSI SAFETY] Emergency data saved to WORDPRESS DB');
-    }
-    
-    // Notificar al admin CRÍTICO
-    eipsi_safety_alert_admin_critical($emergency_id, $data, $original_error, $using_external ? 'external' : 'wordpress');
-    
-    return array(
-        'success' => true, // Retornamos éxito porque guardamos en emergencia
-        'emergency_mode' => true,
-        'emergency_id' => $emergency_id,
-        'message' => __('Tu respuesta fue guardada en modo seguro. El administrador será notificado.', 'eipsi-forms'),
-        'storage' => $using_external ? 'emergency_table_external' : 'emergency_table_wp',
-    );
-}
+function eipsi_safety_emergency_save($data, $original_error) { return EIPSI_Emergency_Submission_Store::save($data, $original_error); }
 
 /**
  * Alerta crítica al administrador
  */
-function eipsi_safety_alert_admin_critical($emergency_id, $data, $error, $db_type = 'wordpress') {
-    $to = get_option('admin_email');
-    $subject = sprintf(
-        '[CRÍTICO] Pérdida de datos prevenida - Formulario: %s',
-        $data['form_id'] ?? 'unknown'
-    );
-    
-    $body = sprintf(
-        "Se activó el modo de emergencia de datos.\n\n" .
-        "ID de Emergencia: %d\n" .
-        "Formulario: %s\n" .
-        "Participante: %s\n" .
-        "Error original: %s\n" .
-        "Base de datos usada: %s\n" .
-        "Fecha: %s\n\n" .
-        "Los datos fueron guardados en la tabla: %s\n" .
-        "Acción requerida: Verificar tabla de emergencias en %s y recuperar datos.",
-        $emergency_id,
-        $data['form_id'] ?? 'unknown',
-        $data['participant_id'] ?? 'N/A',
-        $error,
-        $db_type === 'external' ? 'External DB (configurada por usuario)' : 'WordPress DB',
-        current_time('mysql'),
-        $GLOBALS['wpdb']->prefix . 'eipsi_emergency_submissions',
-        $db_type === 'external' ? 'la base de datos externa configurada' : 'la base de datos de WordPress'
-    );
-    
-    wp_mail($to, $subject, $body);
-    
-    // También loguear
-    error_log(sprintf(
-        '[EIPSI SAFETY] EMERGENCY ALERT SENT - ID: %d, Form: %s, DB: %s',
-        $emergency_id,
-        $data['form_id'] ?? 'unknown',
-        $db_type
-    ));
-}
+function eipsi_safety_alert_admin_critical($emergency_id, $data, $error, $db_type = 'wordpress') { return EIPSI_Emergency_Submission_Store::eipsi_safety_alert_admin_critical($emergency_id, $data, $error, $db_type); }
 
 /**
  * Verificación post-submit: Confirmar que los datos realmente se guardaron
  */
-function eipsi_safety_verify_submission($insert_id, $storage_type, $data) {
-    global $wpdb;
-    
-    if ($storage_type === 'emergency_table') {
-        // En modo emergencia, ya verificamos con el insert_id
-        return true;
-    }
-    
-    // Verificar que el registro existe
-    if ($storage_type === 'wordpress_db') {
-        $table = $wpdb->prefix . 'vas_form_results';
-        $record = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$table} WHERE id = %d",
-            $insert_id
-        ));
-        
-        if ($record) {
-            // Verificación adicional: comprobar que form_responses no está vacío
-            $responses = $wpdb->get_var($wpdb->prepare(
-                "SELECT form_responses FROM {$table} WHERE id = %d",
-                $insert_id
-            ));
-            
-            if (empty($responses) || $responses === '[]' || $responses === '{}') {
-                error_log(sprintf(
-                    '[EIPSI SAFETY] WARNING: Submission %d saved but form_responses is empty!',
-                    $insert_id
-                ));
-                return false;
-            }
-            
-            return true;
-        }
-    }
-    
-    return false;
-}
+function eipsi_safety_verify_submission($insert_id, $storage_type, $data) { return EIPSI_Submission_Verification_Service::eipsi_safety_verify_submission($insert_id, $storage_type, $data); }
 
 /**
  * AUTO-SYNC: Sincroniza automáticamente campos del formulario a survey_participants
@@ -346,11 +63,14 @@ function eipsi_safety_verify_submission($insert_id, $storage_type, $data) {
 function eipsi_auto_sync_participant_fields($data, $insert_id) {
     global $wpdb;
     
+    // Anonymous answers/email must not mutate a longitudinal participant record.
+    if (empty($data['longitudinal_participant_id'])) {
+        return;
+    }
+
     try {
         // ✅ DEBUG: Ver qué datos estamos recibiendo
-        error_log('[EIPSI SYNC-DEBUG] Data received: participant_id=' . ($data['participant_id'] ?? 'NULL') . 
-                  ', longitudinal_id=' . ($data['longitudinal_participant_id'] ?? 'NULL') . 
-                  ', survey_id=' . ($data['survey_id'] ?? 'NULL'));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L73'), 'debug');
         
         // ✅ FIX: Usar longitudinal_participant_id (ID real de tabla) en lugar de participant_id (fingerprint)
         $participant_id = $data['longitudinal_participant_id'] ?? null;
@@ -365,7 +85,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
                 sanitize_email($email)
             ));
             if ($participant_id) {
-                error_log('[EIPSI SYNC] Found participant by email: ' . $participant_id);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L90'), 'debug');
             }
         }
         
@@ -395,19 +115,19 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
                 
                 if ($insert_result) {
                     $participant_id = $wpdb->insert_id;
-                    error_log('[EIPSI SYNC] Created new participant with ID: ' . $participant_id);
+                    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L120'), 'debug');
                 }
             }
         }
         
         if (empty($participant_id)) {
-            error_log('[EIPSI SYNC] No participant_id found (tried longitudinal_id, email, fingerprint, and creation), skipping sync');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L126'), 'debug');
             return;
         }
         
         // Determinar wave desde wave_id o inferir desde el contexto
         $wave_id = $data['wave_id'] ?? null;
-        $wave_number = 1; // Default a T1
+        $wave_number = isset($data['wave_index']) && (int) $data['wave_index'] > 0 ? (int) $data['wave_index'] : 1; // Validated one-based submission context
         
         if ($wave_id) {
             // Buscar wave_index desde la tabla
@@ -416,7 +136,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
                 $wave_id
             ));
             if ($wave_index !== null) {
-                $wave_number = intval($wave_index) + 1; // 0-based a 1-based
+                $wave_number = intval($wave_index); // Persisted convention: T1=1, T2=2, T3=3
             }
         }
         
@@ -424,7 +144,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
         $form_responses = $data['form_responses'] ?? '{}';
         $responses = json_decode($form_responses, true);
         if (json_last_error() !== JSON_ERROR_NONE || empty($responses)) {
-            error_log('[EIPSI SYNC] Invalid form_responses JSON, skipping sync');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L149'), 'debug');
             return;
         }
         
@@ -436,7 +156,7 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
         ));
         
         if (!$participant_exists) {
-            error_log('[EIPSI SYNC] Participant not found: ' . $participant_id);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L161'), 'debug');
             return;
         }
         
@@ -491,19 +211,14 @@ function eipsi_auto_sync_participant_fields($data, $insert_id) {
             );
             
             if ($result !== false) {
-                error_log(sprintf(
-                    '[EIPSI SYNC] Successfully synced %d fields for participant %d (T%d)',
-                    count($update_data),
-                    $participant_id,
-                    $wave_number
-                ));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L216'), 'debug');
             } else {
-                error_log('[EIPSI SYNC] Failed to update participant: ' . $wpdb->last_error);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L223'), 'debug');
             }
         }
         
     } catch (Exception $e) {
-        error_log('[EIPSI SYNC] Exception during sync: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L228'), 'debug');
     }
 }
 
@@ -529,9 +244,9 @@ function eipsi_ensure_participant_column_exists($column_name, $data_type = 'TEXT
         $result = $wpdb->query($sql);
         
         if ($result !== false) {
-            error_log("[EIPSI SYNC] Created column: {$column_name}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L254'), 'debug');
         } else {
-            error_log("[EIPSI SYNC] Failed to create column {$column_name}: " . $wpdb->last_error);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'data_safety_system_L256'), 'debug');
         }
     }
 }
@@ -539,61 +254,7 @@ function eipsi_ensure_participant_column_exists($column_name, $data_type = 'TEXT
 /**
  * Dashboard de salud para admin
  */
-function eipsi_safety_get_health_status() {
-    global $wpdb;
-    
-    $status = array(
-        'healthy' => true,
-        'issues' => array(),
-        'stats' => array(),
-    );
-    
-    // Verificar si hay emergencias sin resolver
-    $emergency_table = $wpdb->prefix . 'eipsi_emergency_submissions';
-    $unresolved = $wpdb->get_var("SELECT COUNT(*) FROM {$emergency_table} WHERE resolved = 0");
-    
-    if ($unresolved > 0) {
-        $status['healthy'] = false;
-        $status['issues'][] = sprintf(
-            '%d submission(s) en modo emergencia sin resolver',
-            $unresolved
-        );
-    }
-    
-    // Verificar submissions recientes con respuestas vacías
-    $recent_empty = $wpdb->get_var(
-        "SELECT COUNT(*) FROM {$wpdb->prefix}vas_form_results 
-         WHERE submitted_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-         AND (form_responses IS NULL OR form_responses = '[]' OR form_responses = '{}')"
-    );
-    
-    if ($recent_empty > 0) {
-        $status['healthy'] = false;
-        $status['issues'][] = sprintf(
-            '%d submission(s) recientes con respuestas vacías',
-            $recent_empty
-        );
-    }
-    
-    $status['stats']['unresolved_emergencies'] = $unresolved;
-    $status['stats']['recent_empty_responses'] = $recent_empty;
-    
-    // Verificar sincronizaciones recientes (silencioso - solo para diagnóstico)
-    $last_sync_check = get_transient('eipsi_last_sync_check');
-    if ($last_sync_check === false) {
-        // Contar participantes con datos sincronizados recientemente
-        $synced_count = $wpdb->get_var(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_participants 
-             WHERE updated_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)"
-        );
-        set_transient('eipsi_last_sync_check', $synced_count, 300); // Cache 5 min
-        $status['stats']['recent_syncs'] = intval($synced_count);
-    } else {
-        $status['stats']['recent_syncs'] = intval($last_sync_check);
-    }
-    
-    return $status;
-}
+function eipsi_safety_get_health_status() { return EIPSI_Submission_Storage_Service::eipsi_safety_get_health_status(); }
 
 /**
  * AJAX handler: Verificación de salud del sistema

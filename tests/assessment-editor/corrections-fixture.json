@@ -1,0 +1,429 @@
+{
+  "contract": "EIPSI_ASSESSMENT_V1",
+  "id": "AE_CORRECTIONS",
+  "title": "Revisión de correcciones de autoría",
+  "elements": [
+    {
+      "id": "EL_text",
+      "type": "text",
+      "response_key": "R_text",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "content_type": "free",
+        "display_mode": "single",
+        "placeholder": "",
+        "max_length": 2000,
+        "min_length": 0,
+        "label": "Pregunta text",
+        "helper": "",
+        "required": false,
+        "variable_name": "text_1"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_textarea",
+      "type": "textarea",
+      "response_key": "R_textarea",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "content_type": "free",
+        "display_mode": "multiline",
+        "placeholder": "",
+        "max_length": 2000,
+        "min_length": 0,
+        "rows": 4,
+        "label": "Pregunta textarea",
+        "helper": "",
+        "required": false,
+        "variable_name": "text_2"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_email",
+      "type": "email",
+      "response_key": "R_email",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "content_type": "email",
+        "display_mode": "single",
+        "placeholder": "",
+        "max_length": 2000,
+        "min_length": 0,
+        "label": "Pregunta email",
+        "helper": "",
+        "required": false,
+        "variable_name": "text_3"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_number",
+      "type": "number",
+      "response_key": "R_number",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "integer_only": false,
+        "placeholder": "",
+        "min": null,
+        "max": null,
+        "step": 1,
+        "label": "Pregunta number",
+        "helper": "",
+        "required": false,
+        "variable_name": "text_4"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_tel",
+      "type": "tel",
+      "response_key": "R_tel",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "content_type": "tel",
+        "display_mode": "single",
+        "placeholder": "",
+        "max_length": 2000,
+        "min_length": 0,
+        "label": "Pregunta tel",
+        "helper": "",
+        "required": false,
+        "variable_name": "text_5"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_date",
+      "type": "date",
+      "response_key": "R_date",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "label": "Pregunta date",
+        "helper": "",
+        "required": false,
+        "variable_name": "date_1"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_url",
+      "type": "url",
+      "response_key": "R_url",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "content_type": "url",
+        "display_mode": "single",
+        "placeholder": "",
+        "max_length": 2000,
+        "min_length": 0,
+        "label": "Pregunta url",
+        "helper": "",
+        "required": false,
+        "variable_name": "text_6"
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_single_choice",
+      "type": "single_choice",
+      "response_key": "R_single_choice",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "columns": 1,
+        "label": "Pregunta single_choice",
+        "helper": "",
+        "required": false,
+        "presentation": "vertical",
+        "variable_name": "single_1"
+      },
+      "options": [
+        {
+          "id": "O_single_choice_0",
+          "label": "Opción 1"
+        },
+        {
+          "id": "O_single_choice_1",
+          "label": "Opción 2"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_multiple_choice",
+      "type": "multiple_choice",
+      "response_key": "R_multiple_choice",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "columns": 1,
+        "min_selected": 0,
+        "max_selected": null,
+        "label": "Pregunta multiple_choice",
+        "helper": "",
+        "required": false,
+        "presentation": "vertical",
+        "variable_name": "multiple_1"
+      },
+      "options": [
+        {
+          "id": "O_multiple_choice_0",
+          "label": "Opción 1"
+        },
+        {
+          "id": "O_multiple_choice_1",
+          "label": "Opción 2"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_select",
+      "type": "select",
+      "response_key": "R_select",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "placeholder": "Seleccioná una opción",
+        "label": "Pregunta select",
+        "helper": "",
+        "required": false,
+        "variable_name": "select_1"
+      },
+      "options": [
+        {
+          "id": "O_select_0",
+          "label": "Opción 1"
+        },
+        {
+          "id": "O_select_1",
+          "label": "Opción 2"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_likert",
+      "type": "likert",
+      "response_key": "R_likert",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "min": 1,
+        "preset": "custom",
+        "reversed": false,
+        "gradient": "none",
+        "gradient_start": "#f44336",
+        "gradient_end": "#4caf50",
+        "label": "Pregunta likert",
+        "helper": "",
+        "required": false,
+        "presentation": "horizontal",
+        "variable_name": "likert_1"
+      },
+      "options": [
+        {
+          "id": "O_likert_0",
+          "label": "Muy mal"
+        },
+        {
+          "id": "O_likert_1",
+          "label": "Mal"
+        },
+        {
+          "id": "O_likert_2",
+          "label": "Neutral"
+        },
+        {
+          "id": "O_likert_3",
+          "label": "Bien"
+        },
+        {
+          "id": "O_likert_4",
+          "label": "Muy bien"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "EL_vas",
+      "type": "vas",
+      "response_key": "R_vas",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "gradient": "none",
+        "gradient_start": "#f44336",
+        "gradient_end": "#4caf50",
+        "labels": [
+          "No",
+          "Poco",
+          "Moderadamente",
+          "Mucho",
+          "Texto largo\ncon varias líneas"
+        ],
+        "label_font_size": 16,
+        "label_scale": "normal",
+        "value_font_size": 36,
+        "bold_labels": true,
+        "label_boxes": false,
+        "label_alignment": 100,
+        "value_position": "below",
+        "label": "Pregunta vas",
+        "helper": "",
+        "required": false,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "initial": 50,
+        "left_label": "Nada",
+        "right_label": "Mucho",
+        "show_value": true,
+        "variable_name": "vas_1",
+        "label_settings": [
+          {
+            "id": "L_vas_0",
+            "position": 0
+          },
+          {
+            "id": "L_vas_1",
+            "position": 25
+          },
+          {
+            "id": "L_vas_2",
+            "position": 50
+          },
+          {
+            "id": "L_vas_3",
+            "position": 75
+          },
+          {
+            "id": "L_vas_4",
+            "position": 100
+          }
+        ]
+      },
+      "options": [],
+      "children": []
+    },
+    {
+      "id": "EL_matrix",
+      "type": "matrix",
+      "response_key": "R_matrix",
+      "properties": {
+        "label_html": null,
+        "helper_html": null,
+        "footer_html": "",
+        "matrix_kind": "likert",
+        "matrix_rows": [
+          {
+            "id": "ROW_0",
+            "response_key": "R_ROW_0",
+            "variable_name": "matrix_1_1",
+            "label": "Item 1",
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          },
+          {
+            "id": "ROW_1",
+            "response_key": "R_ROW_1",
+            "variable_name": "matrix_1_2",
+            "label": "Item 2",
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          },
+          {
+            "id": "ROW_2",
+            "response_key": "R_ROW_2",
+            "variable_name": "matrix_1_3",
+            "label": "Item 3",
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "required": false
+          }
+        ],
+        "presentation": "horizontal",
+        "min": 1,
+        "preset": "custom",
+        "reversed": false,
+        "gradient": "none",
+        "gradient_start": "#f44336",
+        "gradient_end": "#4caf50",
+        "label": "Pregunta matrix",
+        "helper": "",
+        "required": false,
+        "variable_name": "matrix_1"
+      },
+      "options": [
+        {
+          "id": "O_matrix_0",
+          "label": "Muy mal"
+        },
+        {
+          "id": "O_matrix_1",
+          "label": "Mal"
+        },
+        {
+          "id": "O_matrix_2",
+          "label": "Neutral"
+        },
+        {
+          "id": "O_matrix_3",
+          "label": "Bien"
+        },
+        {
+          "id": "O_matrix_4",
+          "label": "Muy bien"
+        }
+      ],
+      "children": []
+    }
+  ],
+  "authoring": {
+    "variable_policy": "MATRIX_ORDINAL_V1",
+    "variable_next": {
+      "text": 7,
+      "date": 2,
+      "single": 2,
+      "multiple": 2,
+      "select": 2,
+      "likert": 2,
+      "vas": 2,
+      "matrix": 2
+    },
+    "legacy_row_variables": []
+  }
+}

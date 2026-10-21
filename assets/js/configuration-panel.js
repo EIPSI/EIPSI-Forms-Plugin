@@ -364,7 +364,7 @@
                         html += '<table style="width: 100%; font-size: 13px;">';
                         html += '<tr><td style="padding: 4px 0; color: #666;">Tablas creadas:</td><td style="padding: 4px 0; font-weight: 600; text-align: right;">' + tablesCreated + '</td></tr>';
                         html += '<tr><td style="padding: 4px 0; color: #666;">Columnas agregadas:</td><td style="padding: 4px 0; font-weight: 600; text-align: right;">' + columnsAdded + '</td></tr>';
-                        html += '<tr><td style="padding: 4px 0; color: #666;">Estado:</td><td style="padding: 4px 0; font-weight: 600; color: #46b450; text-align: right;">✓ OK</td></tr>';
+                        html += ("<tr><td style=\"padding: 4px 0; color: #666;\">"+window.EIPSIAdminI18n.h("Status:")+"</td><td style=\"padding: 4px 0; font-weight: 600; color: #46b450; text-align: right;\">✓ OK</td></tr>");
                         html += '</table>';
 
                         // Show tables created details
@@ -588,7 +588,7 @@
                         '</div>';
                     html +=
                         '<div class="eipsi-table-info">' +
-                        '<span class="detail-label">Records:</span> ' +
+                        ("<span class=\"detail-label\">"+window.EIPSIAdminI18n.h("Records:")+"</span> ") +
                         '<span class="detail-value">' +
                         data.results_table.row_count.toLocaleString() +
                         '</span>' +
@@ -637,7 +637,7 @@
                         '</div>';
                     html +=
                         '<div class="eipsi-table-info">' +
-                        '<span class="detail-label">Records:</span> ' +
+                        ("<span class=\"detail-label\">"+window.EIPSIAdminI18n.h("Records:")+"</span> ") +
                         '<span class="detail-value">' +
                         data.events_table.row_count.toLocaleString() +
                         '</span>' +
@@ -716,10 +716,10 @@
 
             // Database info
             html += '<div style="margin-bottom: 15px;">';
-            html += '<strong>Base de datos:</strong> ' + data.db_name + ' @ ' + data.db_host + '<br>';
+            html += ("<strong>"+window.EIPSIAdminI18n.h("Database:")+"</strong> ") + data.db_name + ' @ ' + data.db_host + '<br>';
             html += '<strong>Total registros:</strong> ' + data.total_records.toLocaleString() + '<br>';
             if ( data.last_verified ) {
-                html += '<strong>Última verificación:</strong> ' + data.last_verified;
+                html += ("<strong>"+window.EIPSIAdminI18n.h("Last verification:")+"</strong> ") + data.last_verified;
             }
             html += '</div>';
 
@@ -728,7 +728,7 @@
             html += '<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">';
             html += '<thead><tr style="background: #f0f0f0;">';
             html += '<th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Tabla</th>';
-            html += '<th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Estado</th>';
+            html += ("<th style=\"padding: 8px; text-align: center; border: 1px solid #ddd;\">"+window.EIPSIAdminI18n.h("Status")+"</th>");
             html += '<th style="padding: 8px; text-align: right; border: 1px solid #ddd;">Registros</th>';
             html += '</tr></thead><tbody>';
 
@@ -796,17 +796,17 @@
                 html += '<table style="width: 100%; border-collapse: collapse;">';
                 html += '<thead><tr style="background: #f0f0f0;">';
                 html += '<th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Tabla</th>';
-                html += '<th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Estado</th>';
+                html += ("<th style=\"padding: 8px; text-align: center; border: 1px solid #ddd;\">"+window.EIPSIAdminI18n.h("Status")+"</th>");
                 html += '<th style="padding: 8px; text-align: right; border: 1px solid #ddd;">Registros</th>';
                 html += '</tr></thead><tbody>';
 
                 const tableLabels = {
-                    survey_studies: 'Estudios',
-                    survey_participants: 'Participantes',
+                    survey_studies: window.EIPSIAdminI18n.t("Studies"),
+                    survey_participants: window.EIPSIAdminI18n.t("Participants"),
                     survey_sessions: 'Sesiones',
-                    survey_waves: 'Tomas',
-                    survey_assignments: 'Asignaciones',
-                    survey_magic_links: 'Magic Links',
+                    survey_waves: window.EIPSIAdminI18n.t("Waves"),
+                    survey_assignments: window.EIPSIAdminI18n.t("Assignments"),
+                    survey_magic_links: window.EIPSIAdminI18n.t("Magic Links"),
                     survey_email_log: 'Email Log',
                     survey_audit_log: 'Audit Log'
                 };

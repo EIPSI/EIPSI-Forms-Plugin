@@ -26,7 +26,7 @@ add_action('wp_ajax_eipsi_get_pending_participants', 'wp_ajax_eipsi_get_pending_
 // Participant Management Handlers
 // Note: wp_ajax_eipsi_add_participant is defined in study-dashboard-api.php to avoid duplication
 add_action('wp_ajax_eipsi_edit_participant', 'wp_ajax_eipsi_edit_participant_handler');
-add_action('wp_ajax_eipsi_delete_participant', 'wp_ajax_eipsi_delete_participant_waves_handler');
+// Registration owned by the dashboard API's explicit nonce dispatcher.
 add_action('wp_ajax_eipsi_get_participant', 'wp_ajax_eipsi_get_participant_handler');
 add_action('wp_ajax_eipsi_validate_wave_dates', 'wp_ajax_eipsi_validate_wave_dates_handler');
 add_action('wp_ajax_eipsi_preview_wave_email', 'wp_ajax_eipsi_preview_wave_email_handler');
@@ -67,7 +67,7 @@ function wp_ajax_eipsi_save_wave_handler() {
     }
 
     // Handle unlimited time option
-    $has_time_limit = isset($_POST['has_time_limit']) ? 1 : 0;
+    $has_time_limit = filter_var($_POST['has_time_limit'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
     $completion_time_limit = isset($_POST['completion_time_limit']) ? absint($_POST['completion_time_limit']) : 0;
 
     // Validate time limit if enabled
@@ -80,14 +80,32 @@ function wp_ajax_eipsi_save_wave_handler() {
         'wave_index' => $wave_index,
         'form_id' => $form_id,
         'due_date' => sanitize_text_field($_POST['due_date'] ?? ''),
-        'description' => sanitize_textarea_field($_POST['description'] ?? ''),
-        'is_mandatory' => isset($_POST['is_mandatory']) ? 1 : 0,
+        'start_date' => sanitize_text_field($_POST['start_date'] ?? ''),
+        'is_mandatory' => filter_var($_POST['is_mandatory'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
         'has_time_limit' => $has_time_limit,
         'completion_time_limit' => $has_time_limit ? $completion_time_limit : null,
-        'status' => 'active' // Default to active for now
+        'status' => sanitize_text_field($_POST['status'] ?? 'active')
     );
 
+    foreach (array('start_date', 'due_date') as $field) {
+        if (!array_key_exists($field, $_POST)) { unset($wave_data[$field]); }
+    }
+    if (!in_array($wave_data['status'], array('draft', 'active', 'completed', 'paused'), true)) {
+        wp_send_json_error(array('message' => 'Estado de onda inválido.'));
+    }
+    if (!empty($_POST['description'])) {
+        wp_send_json_error(array('message' => 'La descripción no es editable en el modelo actual.'));
+    }
+    foreach (array('offset_minutes', 'window_minutes') as $field) {
+        if (array_key_exists($field, $_POST)) {
+            wp_send_json_error(array('message' => 'Este campo no se edita en Waves Manager: ' . $field));
+        }
+    }
     if ($wave_id) {
+        $existing = EIPSI_Wave_Service::get_wave($wave_id);
+        if (!$existing || (int) $existing->study_id !== $study_id) {
+            wp_send_json_error(array('message' => 'La onda no pertenece al estudio.'));
+        }
         $result = EIPSI_Wave_Service::update_wave($wave_id, $wave_data);
     } else {
         $result = EIPSI_Wave_Service::create_wave($study_id, $wave_data);
@@ -159,6 +177,10 @@ function wp_ajax_eipsi_get_wave_handler() {
         wp_send_json_error('Wave not found');
     }
 
+    global $wpdb;
+    $wave->has_assignments = (bool) $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d", $wave_id
+    ));
     wp_send_json_success($wave);
 }
 
@@ -790,6 +812,8 @@ function eipsi_toggle_follow_up_reminders_handler() {
     
     global $wpdb;
     
+    $wave = EIPSI_Wave_Service::get_wave($wave_id);
+    if (!$wave) { wp_send_json_error(array('message' => 'Wave no encontrada.')); }
     // Update the wave record
     $updated = $wpdb->update(
         $wpdb->prefix . 'survey_waves',
@@ -803,6 +827,9 @@ function eipsi_toggle_follow_up_reminders_handler() {
         wp_send_json_error(array('message' => __('Error al actualizar configuración', 'eipsi-forms')));
     }
     
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-event-scheduler.php';
+    $scheduled = EIPSI_Nudge_Event_Scheduler::refresh_wave_follow_ups($wave_id);
+    if (is_wp_error($scheduled)) { wp_send_json_error(array('message' => $scheduled->get_error_message())); }
     wp_send_json_success(array(
         'message' => $enabled 
             ? __('Recordatorios de seguimiento activados', 'eipsi-forms')
@@ -1000,7 +1027,7 @@ function wp_ajax_eipsi_save_reminder_config_handler() {
         if (isset($config[$stage])) {
             $stage_config = $config[$stage];
             $enabled = !empty($stage_config['enabled']);
-            $value = isset($stage_config['hours']) ? intval($stage_config['hours']) : 24 * $stage;
+            $value = isset($stage_config['hours']) ? $stage_config['hours'] : 24 * $stage;
             $unit = isset($stage_config['unit']) ? sanitize_text_field($stage_config['unit']) : 'hours';
             $subject = isset($stage_config['subject']) ? sanitize_text_field($stage_config['subject']) : '';
             
@@ -1019,23 +1046,8 @@ function wp_ajax_eipsi_save_reminder_config_handler() {
         }
     }
 
-    // Update wave with nudge config
-    $result = $wpdb->update(
-        $wpdb->prefix . 'survey_waves',
-        array(
-            'nudge_config' => wp_json_encode($nudge_config),
-            'follow_up_reminders_enabled' => $any_enabled ? 1 : 0
-        ),
-        array('id' => $wave_id),
-        array('%s', '%d'),
-        array('%d')
-    );
-
-    if ($result === false) {
-        wp_send_json_error(array('message' => __('Error saving configuration', 'eipsi-forms')));
-    }
-
-    wp_send_json_success(array(
-        'message' => __('Configuración guardada correctamente', 'eipsi-forms')
-    ));
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-service.php';
+    $result = EIPSI_Nudge_Service::save_wave_configuration($wave_id, $nudge_config);
+    if (is_wp_error($result)) { wp_send_json_error(array('message' => $result->get_error_message())); }
+    wp_send_json_success(array_merge(array('message' => __('Configuración guardada correctamente', 'eipsi-forms')), $result));
 }

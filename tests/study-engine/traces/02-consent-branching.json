@@ -1,0 +1,125 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "02-consent-branching",
+  "scenarios": [
+    {
+      "id": "S_DECLINE",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "EXECUTION_CREATED",
+            "data": {}
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_ENTRY",
+              "slot": "single",
+              "state": "AVAILABLE"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "RESPONSE_SAVED",
+            "data": {
+              "question_id": "Q_CONSENT",
+              "value": "NO"
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "TERMINATED_BY_RULE"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_ENTRY",
+              "slot": "single",
+              "state": "TERMINATED_BY_RULE"
+            },
+            {
+              "kind": "NO_WITHDRAWAL_RECORD"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S_BRANCH",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "RESPONSE_SAVED",
+            "data": {
+              "question_id": "Q_CONSENT",
+              "value": "YES"
+            }
+          },
+          "expected": []
+        },
+        {
+          "event": {
+            "kind": "RESPONSE_SAVED",
+            "data": {
+              "question_id": "Q_NEEDS_DETAIL",
+              "value": "NO"
+            }
+          },
+          "expected": [
+            {
+              "kind": "RESPONSE_COVERAGE",
+              "question_ids": [
+                "Q_DETAIL_4",
+                "Q_DETAIL_5"
+              ],
+              "state": "SKIPPED_BY_RULE"
+            },
+            {
+              "kind": "CURSOR",
+              "node_id": "Q_SUMMARY_8"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "RESPONSE_SAVED",
+            "data": {
+              "question_id": "Q_SUMMARY_8",
+              "value": "done"
+            }
+          },
+          "expected": []
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_ENTRY"
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_ENTRY",
+              "slot": "single",
+              "state": "COMPLETED"
+            },
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "COMPLETED"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

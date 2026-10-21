@@ -43,11 +43,11 @@ function eipsi_form_shortcode($atts) {
     if (isset($_GET['wave_id']) && function_exists('eipsi_is_participant_logged_in') && eipsi_is_participant_logged_in()) {
         global $wpdb;
         $wave_id = absint($_GET['wave_id']);
-        $participant_id = $_SESSION['eipsi_participant_id'] ?? $_COOKIE['eipsi_participant_id'] ?? 0;
+        $participant_id = EIPSI_Auth_Service::get_current_participant();
         
         if ($wave_id && $participant_id) {
             $assignment = $wpdb->get_row($wpdb->prepare(
-                "SELECT a.status, a.available_at, w.window_minutes, w.wave_index 
+                "SELECT a.id, a.study_id, a.status, a.available_at, a.due_at, w.window_minutes, w.wave_index
                  FROM {$wpdb->prefix}survey_assignments a
                  JOIN {$wpdb->prefix}survey_waves w ON a.wave_id = w.id
                  WHERE a.wave_id = %d AND a.participant_id = %d",
@@ -56,26 +56,16 @@ function eipsi_form_shortcode($atts) {
             ));
             
             if ($assignment) {
-                $is_t1 = (intval($assignment->wave_index) === 1);
-                // GAP 2: Auto-expire if window has passed (real-time check)
-                if (!$is_t1 && !empty($assignment->window_minutes) && !empty($assignment->available_at)) {
-                    $available_ts = strtotime($assignment->available_at);
-                    $window_seconds = intval($assignment->window_minutes) * 60;
-                    $expiration_ts = $available_ts + $window_seconds;
-                    
-                    if ($expiration_ts < time() && in_array($assignment->status, array('pending', 'in_progress'))) {
-                        $wpdb->update(
-                            $wpdb->prefix . 'survey_assignments',
-                            array('status' => 'expired', 'updated_at' => current_time('mysql')),
-                            array('wave_id' => $wave_id, 'participant_id' => $participant_id)
-                        );
+                // Preserve the render guard using the same deadline as submit.
+                $temporal = EIPSI_Longitudinal_Assignment_Transition_Service::precheck_submission(
+                    $participant_id, $assignment->study_id, $wave_id
+                );
+                if (!$temporal['success'] && ($temporal['data']['code'] ?? '') === 'deadline_passed') {
+                    if (EIPSI_Longitudinal_Assignment_Transition_Service::expire_snapshot($assignment, true) > 0) {
                         $assignment->status = 'expired';
-                        error_log(sprintf('[EIPSI Form Render] Auto-expired wave_id=%d, participant=%d (window passed)', 
-                            $wave_id, $participant_id));
                     }
                 }
-                
-                // Only allow pending or in_progress waves to be rendered
+
                 $allowed_statuses = array('pending', 'in_progress');
                 
                 if (!in_array($assignment->status, $allowed_statuses)) {
@@ -934,6 +924,10 @@ function eipsi_longitudinal_study_shortcode($atts) {
 
         if ($study) {
             $actual_study_id = (int) $study->id;
+            if ((int) $current_survey_id !== $actual_study_id) {
+                return eipsi_longitudinal_study_error(__('Unauthorized', 'eipsi-forms'), __('Tu sesión pertenece a otro estudio.', 'eipsi-forms'));
+            }
+
 
             // Check if form_id belongs to a wave in this study
             $form_belongs_to_study = $wpdb->get_var($wpdb->prepare(
@@ -962,7 +956,7 @@ function eipsi_longitudinal_study_shortcode($atts) {
                     $is_t1 = (intval($wave->wave_index) === 1);
                     // Check assignment for this participant
                     $wave_assignment = $wpdb->get_row($wpdb->prepare(
-                        "SELECT status, available_at
+                        "SELECT id, study_id, status, available_at, due_at
                          FROM {$wpdb->prefix}survey_assignments
                          WHERE wave_id = %d AND participant_id = %d",
                         $wave->id,
@@ -977,46 +971,18 @@ function eipsi_longitudinal_study_shortcode($atts) {
                         );
                     }
 
-                    // available_at comes ONLY from the assignment; empty => do NOT render
-                    $assign_avail = $wave_assignment->available_at;
-                    // T1-Anchor: T1 is immediately available, does not require available_at
-                    if (!$is_t1 && empty($assign_avail)) {
-                        return eipsi_longitudinal_study_error(
-                            __('Esta toma no está disponible.', 'eipsi-forms'),
-                            __('La ventana de respuesta de esta toma aún no está definida.', 'eipsi-forms')
-                        );
-                    }
-
-                    // Real-time auto-expiration check (assignment available_at + wave window)
-                    // T1-Anchor: T1 never expires based on available_at window
-                    $window_mins = intval($wave->window_minutes);
-
-                    if (!$is_t1 && $window_mins > 0) {
-                        $avail_ts = strtotime($assign_avail);
-                        $window_secs = $window_mins * 60;
-                        $exp_ts = $avail_ts + $window_secs;
-
-                        if ($exp_ts < time() && in_array($wave_assignment->status, array('pending', 'in_progress'))) {
-                            $wpdb->update(
-                                $wpdb->prefix . 'survey_assignments',
-                                array('status' => 'expired', 'updated_at' => current_time('mysql')),
-                                array('wave_id' => $wave->id, 'participant_id' => $participant_id)
-                            );
-                            error_log(sprintf('[EIPSI Long Study GAP1] Auto-expired assignment wave=%d, participant=%d', $wave->id, $participant_id));
-                            return eipsi_longitudinal_study_error(
-                                __('Esta toma ha expirado.', 'eipsi-forms'),
-                                __('El tiempo para responder esta toma ya pasó.', 'eipsi-forms')
-                            );
+                    $temporal = EIPSI_Longitudinal_Assignment_Transition_Service::precheck_submission(
+                        $participant_id, $actual_study_id, $wave->id
+                    );
+                    if (!$temporal['success']) {
+                        if (($temporal['data']['code'] ?? '') === 'deadline_passed') {
+                            EIPSI_Longitudinal_Assignment_Transition_Service::expire_snapshot($wave_assignment, true);
                         }
-                    }
-
-                    // Block if status is not allowed
-                    if (!in_array($wave_assignment->status, array('pending', 'in_progress'))) {
                         return eipsi_longitudinal_study_error(
-                            __('Esta toma no está disponible.', 'eipsi-forms'),
-                            sprintf(__('Estado: %s', 'eipsi-forms'), $wave_assignment->status)
+                            __('Esta toma no está disponible.', 'eipsi-forms'), $temporal['data']['message']
                         );
                     }
+
                 }
                 
                 // Render the form directly
@@ -1034,17 +1000,14 @@ function eipsi_longitudinal_study_shortcode($atts) {
         if (class_exists('EIPSI_MagicLinksService')) {
             $validation = EIPSI_MagicLinksService::validate_magic_link($magic_token);
             
-            if ($validation['valid']) {
-                // Create session for participant
+            if ($validation['valid'] && EIPSI_MagicLinksService::mark_magic_link_used($validation['ml_id'])) {
+                // Token possession and its single-use claim were verified before session creation.
                 $session_result = EIPSI_Auth_Service::create_session(
                     $validation['participant_id'],
                     $validation['survey_id']
                 );
                 
                 if ($session_result['success']) {
-                    // Mark magic link as used
-                    EIPSI_MagicLinksService::mark_magic_link_used($validation['ml_id']);
-                    
                     // Update authentication state
                     $is_participant_logged_in = true;
                     $current_participant_id = $validation['participant_id'];
@@ -1177,6 +1140,10 @@ function eipsi_longitudinal_study_shortcode($atts) {
     
     // Get the actual study ID from the fetched study
     $actual_study_id = (int) $study->id;
+    if ($is_participant_logged_in && (int) $current_survey_id !== $actual_study_id && $view_mode !== 'dashboard') {
+        return eipsi_longitudinal_study_error(__('Unauthorized', 'eipsi-forms'), __('Tu sesión pertenece a otro estudio.', 'eipsi-forms'));
+    }
+
     
     // Get waves for the study
     $waves = array();

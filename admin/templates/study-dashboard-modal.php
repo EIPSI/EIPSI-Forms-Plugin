@@ -961,8 +961,8 @@ function showReminderModal(participantId, email) {
     // Find active wave
     const activeWave = window.currentStudyWaves && window.currentStudyWaves.find(w => w.status === 'active');
     if (activeWave) {
-        jQuery('#reminder-wave-name').text(activeWave.wave_name || 'Toma activa');
-        jQuery('#reminder-wave-id').val(activeWave.wave_id || 0);
+        jQuery('#reminder-wave-name').text(activeWave.wave_name || activeWave.name || 'Toma activa');
+        jQuery('#reminder-wave-id').val(activeWave.wave_id || activeWave.id || 0);
     } else {
         jQuery('#reminder-wave-name').text('No hay toma activa');
         jQuery('#reminder-wave-id').val(0);
@@ -990,7 +990,7 @@ function sendIndividualReminderConfirmed() {
             action: 'eipsi_send_individual_reminder',
             participant_id: participantId,
             wave_id: waveId,
-            nonce: eipsi_dashboard_nonce
+            nonce: eipsiStudyDash.nonce
         },
         success: function(response) {
             jQuery('#eipsi-reminder-modal').hide();
@@ -1791,7 +1791,7 @@ table tbody tr:hover td {
 
     // Open modal
     $('#action-recalculate-times').on('click', function() {
-        currentStudyId = $(this).data('study-id') || 0;
+        currentStudyId = $(this).data('study-id') || window.currentStudyId || 0;
         $('#eipsi-recalculate-modal').show();
         loadRecalcPreview();
     });

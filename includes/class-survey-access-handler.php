@@ -99,16 +99,7 @@ class EIPSI_Survey_Access_Handler {
         $survey_id      = $validation_result['survey_id'];
         $email          = $validation_result['email']; // comes from the DB record, not the URL
 
-        $wpdb->update(
-            $wpdb->prefix . 'survey_participants',
-            array(
-                'is_active'  => 1,
-                'updated_at' => current_time( 'mysql' ),
-            ),
-            array( 'id' => $participant_id ),
-            array( '%d', '%s' ),
-            array( '%d' )
-        );
+        EIPSI_Participant_State_Service::confirm_email($participant_id);
 
         // v2.1.5 - Send welcome email FIRST, then create assignments (to ensure correct order)
         // Load email service
@@ -122,7 +113,7 @@ class EIPSI_Survey_Access_Handler {
         // Send welcome email with magic link FIRST
         if ( class_exists( 'EIPSI_Email_Service' ) ) {
             EIPSI_Email_Service::send_welcome_after_confirmation( $survey_id, $participant_id );
-            error_log(sprintf('[EIPSI-DIAG-EMAIL] Welcome email sent FIRST for participant_id=%d', $participant_id));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L116'), 'debug');
         }
 
         // v1.5.7 - Create wave assignments for the participant after email confirmation
@@ -130,25 +121,24 @@ class EIPSI_Survey_Access_Handler {
         // ✅ FIX: Verificar función global, no la clase (ambos están en el mismo archivo)
         
         // ✅ DIAGNÓSTICO: Loguear inicio del proceso
-        error_log(sprintf('[EIPSI-DIAG-EMAIL] Iniciando creación de assignments para participant_id=%d, survey_id=%d', 
-            $participant_id, $survey_id));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L124'), 'debug');
         
         $assignment_service_loaded = false;
         if ( ! function_exists( 'eipsi_create_assignments_for_participant' ) ) {
             $assignment_service_path = EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-assignment-service.php';
             $file_exists = file_exists( $assignment_service_path );
-            error_log('[EIPSI-DIAG-EMAIL] Archivo class-assignment-service.php existe: ' . ($file_exists ? 'SÍ' : 'NO'));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L131'), 'debug');
             
             if ( $file_exists ) {
                 require_once $assignment_service_path;
                 $assignment_service_loaded = true;
-                error_log('[EIPSI-DIAG-EMAIL] Archivo cargado. Función existe: ' . (function_exists('eipsi_create_assignments_for_participant') ? 'SÍ' : 'NO'));
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L136'), 'debug');
             } else {
-                error_log( '[EIPSI-DIAG-EMAIL] ERROR: Assignment service file not found at: ' . $assignment_service_path );
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L138'), 'debug');
             }
         } else {
             $assignment_service_loaded = true;
-            error_log('[EIPSI-DIAG-EMAIL] Función ya existía previamente');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L142'), 'debug');
         }
 
         // Create assignments for all active waves of the study (AFTER welcome email)
@@ -156,18 +146,13 @@ class EIPSI_Survey_Access_Handler {
             $assignment_result = eipsi_create_assignments_for_participant( $participant_id, $survey_id );
             
             // ✅ DEBUG: Siempre loguear el resultado
-            error_log( sprintf(
-                '[EIPSI-DIAG-EMAIL] Resultado: created=%d, skipped=%d, errors=%d',
-                $assignment_result['created'],
-                $assignment_result['skipped'],
-                count( $assignment_result['errors'] )
-            ) );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L150'), 'debug');
             
             if ( ! empty( $assignment_result['errors'] ) ) {
-                error_log( '[EIPSI-DIAG-EMAIL] Errores: ' . implode( ', ', $assignment_result['errors'] ) );
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L158'), 'debug');
             }
         } else {
-            error_log( '[EIPSI-DIAG-EMAIL] ERROR: eipsi_create_assignments_for_participant function not available!' );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_survey_access_handler_L161'), 'debug');
         }
 
         // Redirect to login with confirmation message.
@@ -397,6 +382,25 @@ class EIPSI_Survey_Access_Handler {
      * Handle magic link access request.
      */
     public function handle_request() {
+        // Mailed shortcode links must establish the HttpOnly cookie before template output.
+        // Retain the existing token format and 7-day shortcode TTL.
+        $shortcode_token = isset($_GET['eipsi_magic']) && is_string($_GET['eipsi_magic']) ? sanitize_text_field($_GET['eipsi_magic']) : '';
+        $post = get_post();
+        if ($shortcode_token !== '' && is_singular() && $post && has_shortcode($post->post_content, 'eipsi_longitudinal_study')) {
+            $validation = EIPSI_MagicLinksService::validate_magic_link($shortcode_token);
+            if ($validation['valid'] && EIPSI_MagicLinksService::mark_magic_link_used($validation['ml_id'])) {
+                nocache_headers();
+                $session = EIPSI_Auth_Service::create_session($validation['participant_id'], $validation['survey_id']);
+                if (empty($session['success'])) {
+                    $this->render_error('Acceso no autorizado', 'Solicitá un nuevo enlace para volver a intentar.');
+                    return;
+                }
+                wp_safe_redirect(remove_query_arg('eipsi_magic'));
+                exit;
+            }
+            return; // Invalid/used links may render the public login, never create a session.
+        }
+
         // Method 1: Rewrite rule.
         if ( get_query_var( 'eipsi_route' ) === 'survey_access' ) {
             $is_endpoint = true;
@@ -445,11 +449,18 @@ class EIPSI_Survey_Access_Handler {
             return;
         }
 
-        // FIX (v2.1.0): create session via EIPSI_Auth_Service, not raw $_SESSION.
-        $this->setup_session( $result, $wave_info );
+        if (!EIPSI_MagicLinksService::mark_magic_link_used($result['ml_id'])) {
+            $this->render_error('Acceso no autorizado', 'El enlace ya fue utilizado o no se pudo validar.');
+            return;
+        }
 
-        // Mark token as used.
-        EIPSI_MagicLinksService::mark_magic_link_used( $result['ml_id'] );
+        // FIX (v2.1.0): create session via EIPSI_Auth_Service, not raw $_SESSION.
+        $session_result = $this->setup_session( $result, $wave_info );
+        if ( empty( $session_result['success'] ) ) {
+            $this->render_error( 'Acceso no autorizado', 'No se pudo crear una sesión válida para este estudio.' );
+            return;
+        }
+
 
         // Redirect to participant portal.
         $participant_portal_url = apply_filters(
@@ -508,7 +519,7 @@ class EIPSI_Survey_Access_Handler {
      */
     private function setup_session( $auth_result, $wave_info ) {
         if ( class_exists( 'EIPSI_Auth_Service' ) ) {
-            EIPSI_Auth_Service::create_session(
+            return EIPSI_Auth_Service::create_session(
                 $auth_result['participant_id'],
                 $auth_result['survey_id'],
                 1 // 1 hour TTL for magic link sessions

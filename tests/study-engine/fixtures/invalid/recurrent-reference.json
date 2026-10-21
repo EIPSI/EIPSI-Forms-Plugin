@@ -1,0 +1,192 @@
+{
+  "expected_error": "AMBIGUOUS_RECURRENT_REFERENCE",
+  "definition": {
+    "contract_version": "P1B_V1",
+    "study": {
+      "logical_id": "STUDY_05-ema-thirty-five",
+      "public_id": "PUBLIC_05-ema-thirty-five"
+    },
+    "id": "VERSION_1",
+    "version_number": 1,
+    "state": "PUBLISHED",
+    "timezone": {
+      "policy": "PARTICIPANT_LOCAL",
+      "default": "America/Argentina/Buenos_Aires"
+    },
+    "root_block_ids": [
+      "M_ROOT"
+    ],
+    "nodes": [
+      {
+        "kind": "BLOCK",
+        "id": "M_ROOT",
+        "logical_id": "M_ROOT",
+        "version_id": "VERSION_1",
+        "parent_id": "VERSION_1",
+        "scope": "MACRO",
+        "position": 0,
+        "children_strategy": "PARALLEL_AVAILABLE",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "NONE",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_EMA",
+        "logical_id": "E_EMA",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "RECURRENCE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "DURATION",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 2700
+            }
+          },
+          "recurrence": {
+            "kind": "DAILY_LOCAL",
+            "days": 7,
+            "times": [
+              "08:00",
+              "11:00",
+              "14:00",
+              "17:00",
+              "20:00"
+            ],
+            "start_day": 1
+          },
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_AFFECT",
+        "version_id": "VERSION_1",
+        "parent_id": "E_EMA",
+        "position": 0,
+        "response_key": "RESPONSE_Q_AFFECT",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {
+          "min": 0,
+          "max": 10
+        },
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_AFFECT",
+          "version": 1,
+          "snapshot": "Q_AFFECT",
+          "sha256": "f0cb6d1045099ecb6171b3b23e60b8ffae5f0775177b07df0ce1cc75be7585f6"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_CONTEXT",
+        "version_id": "VERSION_1",
+        "parent_id": "E_EMA",
+        "position": 1,
+        "response_key": "RESPONSE_Q_CONTEXT",
+        "type": "CHOICE",
+        "options": [
+          {
+            "id": "HOME",
+            "label": "HOME"
+          },
+          {
+            "id": "WORK",
+            "label": "WORK"
+          },
+          {
+            "id": "OTHER",
+            "label": "OTHER"
+          }
+        ],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_CONTEXT",
+          "version": 1,
+          "snapshot": "Q_CONTEXT",
+          "sha256": "f2e24a1e147670265fcf4e231c8416335743adb2a7094444451f18e8b7f23e85"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_AFTER",
+        "logical_id": "E_AFTER",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MICRO",
+        "position": 1,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "SPECIFIC_BLOCK_COMPLETED",
+          "anchor_ref": "E_EMA",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          },
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      }
+    ],
+    "condition_rules": [],
+    "compiler_contract_version": "P1C_V1",
+    "protocol_metadata": {
+      "title": "05-ema-thirty-five",
+      "source": "P1-A P.5"
+    },
+    "closure": {
+      "kind": "ALL_SELECTED_OPPORTUNITIES_TERMINAL"
+    }
+  }
+}

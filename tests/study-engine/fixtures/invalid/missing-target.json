@@ -1,0 +1,368 @@
+{
+  "expected_error": "TARGET_NOT_FOUND",
+  "definition": {
+    "contract_version": "P1B_V1",
+    "study": {
+      "logical_id": "STUDY_02-consent-branching",
+      "public_id": "PUBLIC_02-consent-branching"
+    },
+    "id": "VERSION_1",
+    "version_number": 1,
+    "state": "PUBLISHED",
+    "timezone": {
+      "policy": "PARTICIPANT_LOCAL",
+      "default": "America/Argentina/Buenos_Aires"
+    },
+    "root_block_ids": [
+      "M_ROOT"
+    ],
+    "nodes": [
+      {
+        "kind": "BLOCK",
+        "id": "M_ROOT",
+        "logical_id": "M_ROOT",
+        "version_id": "VERSION_1",
+        "parent_id": "VERSION_1",
+        "scope": "MACRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "NONE",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_ENTRY",
+        "logical_id": "E_ENTRY",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "BLOCK_AVAILABLE",
+          "anchor_ref": "M_ROOT",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          },
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "DURATION",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 7200
+            }
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_CONSENT",
+        "logical_id": "m_CONSENT",
+        "version_id": "VERSION_1",
+        "parent_id": "E_ENTRY",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "CONTENT",
+        "id": "C_CONSENT",
+        "version_id": "VERSION_1",
+        "parent_id": "m_CONSENT",
+        "position": 0,
+        "type": "TEXT",
+        "content": {
+          "content_id": "CONTENT_C_CONSENT",
+          "version": 1,
+          "snapshot": "Consentimiento informado C1",
+          "sha256": "56f33c26adbc99ad7497bdca3bf4784fbcb06c824f66ddb434ed73689a7eb01d"
+        },
+        "durable_reference": null
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_CONSENT",
+        "version_id": "VERSION_1",
+        "parent_id": "m_CONSENT",
+        "position": 1,
+        "response_key": "RESPONSE_Q_CONSENT",
+        "type": "CHOICE",
+        "options": [
+          {
+            "id": "YES",
+            "label": "YES"
+          },
+          {
+            "id": "NO",
+            "label": "NO"
+          }
+        ],
+        "validation": {},
+        "required": true,
+        "semantic_role": "INFORMED_CONSENT",
+        "content": {
+          "content_id": "CONTENT_Q_CONSENT",
+          "version": 1,
+          "snapshot": "Q_CONSENT",
+          "sha256": "6d8a8549cbc2ef924768fcc2e8d0296faf3166b04c3f08512189c850a1d3408d"
+        }
+      },
+      {
+        "kind": "DIRECTIVE",
+        "id": "D_CONSENT_PAGE",
+        "version_id": "VERSION_1",
+        "parent_id": "E_ENTRY",
+        "position": 1,
+        "directive_kind": "PAGE_BREAK",
+        "target": null,
+        "resume_target": null,
+        "on_target_unavailable": null
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_NEEDS_DETAIL",
+        "version_id": "VERSION_1",
+        "parent_id": "E_ENTRY",
+        "position": 2,
+        "response_key": "RESPONSE_Q_NEEDS_DETAIL",
+        "type": "CHOICE",
+        "options": [
+          {
+            "id": "YES",
+            "label": "YES"
+          },
+          {
+            "id": "NO",
+            "label": "NO"
+          }
+        ],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_NEEDS_DETAIL",
+          "version": 1,
+          "snapshot": "Q_NEEDS_DETAIL",
+          "sha256": "d7baaf5394d85c4e9b942c6fa9f83d1e5617a88b4e549b7435f7caf46d2c287f"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_DETAILS",
+        "logical_id": "m_DETAILS",
+        "version_id": "VERSION_1",
+        "parent_id": "E_ENTRY",
+        "scope": "MICRO",
+        "position": 3,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_DETAIL_4",
+        "version_id": "VERSION_1",
+        "parent_id": "m_DETAILS",
+        "position": 0,
+        "response_key": "RESPONSE_Q_DETAIL_4",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_DETAIL_4",
+          "version": 1,
+          "snapshot": "Q_DETAIL_4",
+          "sha256": "bfa09e176a7106e1836c7eb0a9eac778c76208e889c607ed80db06bc477b86d8"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_DETAIL_5",
+        "version_id": "VERSION_1",
+        "parent_id": "m_DETAILS",
+        "position": 1,
+        "response_key": "RESPONSE_Q_DETAIL_5",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_DETAIL_5",
+          "version": 1,
+          "snapshot": "Q_DETAIL_5",
+          "sha256": "20c741a8473c43d5a4fafdd67bbe1fe1317e8d09d1638688bd94cddf253ac21f"
+        }
+      },
+      {
+        "kind": "DIRECTIVE",
+        "id": "D_DETAIL_PAGE",
+        "version_id": "VERSION_1",
+        "parent_id": "E_ENTRY",
+        "position": 4,
+        "directive_kind": "PAGE_BREAK",
+        "target": null,
+        "resume_target": null,
+        "on_target_unavailable": null
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_FINISH",
+        "logical_id": "m_FINISH",
+        "version_id": "VERSION_1",
+        "parent_id": "E_ENTRY",
+        "scope": "MICRO",
+        "position": 5,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_SUMMARY_8",
+        "version_id": "VERSION_1",
+        "parent_id": "m_FINISH",
+        "position": 0,
+        "response_key": "RESPONSE_Q_SUMMARY_8",
+        "type": "TEXT",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_SUMMARY_8",
+          "version": 1,
+          "snapshot": "Q_SUMMARY_8",
+          "sha256": "4d580252e0bc90a86bdf74084457240a18365d9ee60770b1a483a04bb221cff0"
+        }
+      }
+    ],
+    "condition_rules": [
+      {
+        "id": "R_DECLINE",
+        "version_id": "VERSION_1",
+        "trigger": "IMMEDIATE",
+        "source": {
+          "kind": "QUESTION",
+          "node_id": "Q_CONSENT",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          }
+        },
+        "order": 10,
+        "predicate": {
+          "op": "EQ",
+          "left": {
+            "kind": "REFERENCE",
+            "reference": {
+              "kind": "QUESTION",
+              "node_id": "Q_CONSENT",
+              "occurrence_selector": {
+                "kind": "SINGLE"
+              }
+            }
+          },
+          "right": {
+            "kind": "VALUE",
+            "type": "STRING",
+            "value": "NO"
+          }
+        },
+        "action": "TERMINATE",
+        "target": null,
+        "resume_target": null,
+        "on_target_unavailable": null,
+        "metadata": {}
+      },
+      {
+        "id": "R_SKIP_DETAIL",
+        "version_id": "VERSION_1",
+        "trigger": "IMMEDIATE",
+        "source": {
+          "kind": "QUESTION",
+          "node_id": "Q_NEEDS_DETAIL",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          }
+        },
+        "order": 20,
+        "predicate": {
+          "op": "EQ",
+          "left": {
+            "kind": "REFERENCE",
+            "reference": {
+              "kind": "QUESTION",
+              "node_id": "Q_NEEDS_DETAIL",
+              "occurrence_selector": {
+                "kind": "SINGLE"
+              }
+            }
+          },
+          "right": {
+            "kind": "VALUE",
+            "type": "STRING",
+            "value": "NO"
+          }
+        },
+        "action": "JUMP",
+        "target": {
+          "kind": "QUESTION",
+          "node_id": "Q_UNKNOWN",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          }
+        },
+        "resume_target": null,
+        "on_target_unavailable": null,
+        "metadata": {}
+      }
+    ],
+    "compiler_contract_version": "P1C_V1",
+    "protocol_metadata": {
+      "title": "02-consent-branching",
+      "source": "P1-A P.2"
+    },
+    "closure": {
+      "kind": "ALL_SELECTED_OPPORTUNITIES_TERMINAL"
+    }
+  }
+}

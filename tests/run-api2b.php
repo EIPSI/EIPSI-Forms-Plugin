@@ -1,0 +1,15 @@
+<?php
+/** Permanent API-2B regressions; CI-created disposable database only. */
+define('DOING_CRON',true);define('WP_ENVIRONMENT_TYPE','local');require __DIR__.'/m0/bootstrap.php';
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/builder.php';require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/privacy.php';
+require __DIR__.'/study-engine/cross-sectional/support.php';require __DIR__.'/study-engine/persistence/support.php';require __DIR__.'/study-engine/longitudinal/support.php';require __DIR__.'/api2a/support.php';
+use EIPSI\ExternalApi as A;use EIPSI\StudyEngine\Persistence as P;use EIPSI\StudyEngine\Management as M;
+$store=new A\Store();$keys=new A\Keys();$builder=new EIPSI\StudyEngine\Builder\Service(pf_db());$cases=array();$failed=0;$ownedStudies=array();$ownedKeys=array();$nativeFixtures=array();$priorEnabled=get_option(A\Store::ENABLED,null);$priorCron=_get_cron_array();$GLOBALS['pf_now']=gmdate('Y-m-d\TH:i:s\Z');
+$priorKeyring=getenv('EIPSI_STUDY_ENGINE_KEYRING');putenv('EIPSI_STUDY_ENGINE_KEYRING='.json_encode(array('current'=>'HTTP_TEST','keys'=>array('HTTP_TEST'=>str_repeat('6b',32)))));
+$mu=ABSPATH.'wp-content/mu-plugins/api2b-local.php';d2_assert(!file_exists($mu));wp_mkdir_p(dirname($mu));file_put_contents($mu,"<?php if(getenv('WORDPRESS_DB_NAME')==='m0')define('WP_ENVIRONMENT_TYPE','local');\n");
+try{
+ $store->setEnabled(true,1,A\Authenticator::requestId(),time());$p=d2_publish();d2_finish($p,'SNAPSHOT_VALUE');
+ require __DIR__.'/api2b/cases.php';require __DIR__.'/api2b/concurrency.php';
+ foreach($cases as$name=>$fn){try{$fn();echo 'PASS '.$name."\n";}catch(Throwable$e){$failed++;echo 'FAIL '.$name.': '.get_class($e).' '.$e->getMessage().' @'.basename($e->getFile()).':'.$e->getLine()."\n";}}
+}finally{putenv($priorKeyring===false?'EIPSI_STUDY_ENGINE_KEYRING':'EIPSI_STUDY_ENGINE_KEYRING='.$priorKeyring);wp_set_current_user(1);foreach($ownedKeys as$id){foreach($store->rows($store->prepare('SELECT id FROM '.$store->table('exports').' WHERE key_id=%s',$id))as$export){foreach(array('export_chunks','export_sources')as$t)$store->rows($store->prepare('DELETE FROM '.$store->table($t).' WHERE export_id=%s',$export['id']));}$store->rows($store->prepare('DELETE FROM '.$store->table('exports').' WHERE key_id=%s',$id));}foreach($ownedKeys as$id)foreach(array('grants','keys','audit')as$t)$store->rows($store->prepare('DELETE FROM '.$store->table($t).' WHERE '.($t==='keys'?'id':'key_id').'=%s',$id));foreach(array_unique($ownedStudies)as$id)$builder->deleteStudy($id,'ELIMINAR '.$id);foreach($nativeFixtures as$n){delete_option(EIPSI\AssessmentEditor\Repository::PREFIX.$n['assessment']);pf_db()->query(pf_db()->prepare('DELETE FROM '.pf_db()->table('native_versions').' WHERE id=%s',$n['version']));}if($priorEnabled===null)delete_option(A\Store::ENABLED);else update_option(A\Store::ENABLED,$priorEnabled,false);if(is_file($mu))unlink($mu);_set_cron_array($priorCron);}
+echo count($cases).' tests, '.$failed." failures\n";ob_end_flush();exit($failed?1:0);

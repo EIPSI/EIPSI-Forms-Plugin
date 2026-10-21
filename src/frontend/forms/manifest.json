@@ -1,0 +1,25 @@
+{
+  "format": "classic-shared-closure",
+  "entry_order": [
+    "capture.js.inc",
+    "conditional-logic.js.inc",
+    "timing.js.inc",
+    "runtime.js.inc",
+    "branching-events.js.inc",
+    "tracking.js.inc",
+    "device-capture.js.inc",
+    "consent-navigation.js.inc",
+    "navigation-init.js.inc",
+    "fields.js.inc",
+    "navigation.js.inc",
+    "validation.js.inc",
+    "submit-client.js.inc",
+    "messages.js.inc",
+    "navigation-compatibility.js.inc",
+    "completion.js.inc",
+    "consent.js.inc",
+    "bootstrap.js.inc"
+  ],
+  "baseline_sha256": "e6d8259936f4a2d77d7cc0fd4b7aee7bb91f3d6070020a7f9f1b9237e8a07bc3",
+  "baseline_commit": "74af0c1"
+}

@@ -1,0 +1,36 @@
+{
+  "reminder": {
+    "action": "eipsi_send_individual_reminder",
+    "nonce_action": "eipsi_study_dashboard_nonce",
+    "data": {
+      "participant_id": 999207,
+      "wave_id": 999222
+    }
+  },
+  "preview": {
+    "action": "eipsi_recalculate_preview",
+    "nonce_action": "eipsi_study_dashboard_nonce",
+    "data": {
+      "study_id": 999203
+    }
+  },
+  "apply": {
+    "action": "eipsi_recalculate_waves",
+    "nonce_action": "eipsi_study_dashboard_nonce",
+    "data": {
+      "study_id": 999203
+    }
+  },
+  "dashboard": {
+    "action": "eipsi_get_participant_dashboard",
+    "nonce_action": "eipsi_participant_dashboard",
+    "data": {}
+  },
+  "wave": {
+    "action": "eipsi_check_wave_state",
+    "nonce_action": "eipsi_auto_refresh",
+    "data": {
+      "wave_id": 999222
+    }
+  }
+}

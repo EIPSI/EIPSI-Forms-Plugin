@@ -17,7 +17,43 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/auth/class-authorization-policy.php';
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/auth/class-authentication-service.php';
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/auth/class-session-service.php';
+
 class EIPSI_Auth_Service {
+
+    /**
+     * Shared longitudinal access policy. An undecided participant may enter to
+     * consent; declined/withdrawn/inactive participants may never authorize access.
+     */
+    public static function authorize_participant($participant_id, $survey_id) {
+        return EIPSI_Authorization_Policy::authorize_participant($participant_id, $survey_id);
+    }
+
+    /** Read both identity and study from one token, revalidating state on every use. */
+    public static function get_current_session() {
+        return EIPSI_Session_Service::get_current_session();
+    }
+
+    /** Client IDs may confirm a session context, never replace it. */
+    public static function authorize_session_context($request = array()) {
+        return EIPSI_Authorization_Policy::authorize_session_context($request);
+    }
+
+    /** Resolve actual templates for a container form name, including older slug inputs. */
+    public static function get_form_template_ids($form_name) {
+        return EIPSI_Authorization_Policy::get_form_template_ids($form_name);
+    }
+
+    /**
+     * Authorize form identity before any persistence. Standalone submissions keep
+     * their anonymous fingerprint; longitudinal submissions use only the session.
+     * No timing/scheduling rules are changed here.
+     */
+    public static function authorize_form_operation($form_name, $request = array(), $query = array(), $operation = 'submit') {
+        return EIPSI_Authorization_Policy::authorize_form_operation($form_name, $request, $query, $operation);
+    }
     
     /**
      * Authenticate participant (login).
@@ -32,64 +68,14 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function authenticate($survey_id, $email, $password) {
-        // Sanitizar email
-        $email = sanitize_email($email);
-
-        // Obtener participante
-        $participant = EIPSI_Participant_Service::get_by_email($survey_id, $email);
-
-        if (!$participant) {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'user_not_found'
-            );
-        }
-
-        // Verificar si está activo
-        if (!$participant->is_active) {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'user_inactive'
-            );
-        }
-
-        // Verificar si rechazó el consentimiento
-        if (isset($participant->consent_decision) && $participant->consent_decision === 'declined') {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'consent_declined'
-            );
-        }
-
-        // Verificar password
-        $is_valid = EIPSI_Participant_Service::verify_password($participant->id, $password);
-
-        if (!$is_valid) {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'invalid_credentials'
-            );
-        }
-
-        // Actualizar último login
-        EIPSI_Participant_Service::update_last_login($participant->id);
-
-        return array(
-            'success' => true,
-            'participant_id' => $participant->id,
-            'error' => null
-        );
+        return EIPSI_Authentication_Service::authenticate($survey_id, $email, $password);
     }
 
     /**
-     * Authenticate participant (passwordless - email only).
+     * Compatibility API: email-only authentication is disabled.
      *
-     * Valida email y estado activo sin verificar contraseña.
-     * Usado para flujo de autenticación sin contraseña.
+     * Returns proof_required without resolving identity. Passwordless access requires
+     * a valid secret magic-link token, never a public nonce or an email lookup.
      *
      * @param int    $survey_id ID del survey.
      * @param string $email Email del participante.
@@ -98,59 +84,11 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function authenticate_passwordless($survey_id, $email) {
-        // Sanitizar email
-        $email = sanitize_email($email);
-
-        // Obtener participante
-        $participant = EIPSI_Participant_Service::get_by_email($survey_id, $email);
-
-        if (!$participant) {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'user_not_found'
-            );
-        }
-
-        // Verificar si está activo
-        if (!$participant->is_active) {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'user_inactive'
-            );
-        }
-
-        // Verificar si rechazó el consentimiento
-        if (isset($participant->consent_decision) && $participant->consent_decision === 'declined') {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'consent_declined'
-            );
-        }
-
-        // Verificar si abandonó el estudio (withdrawn)
-        if (isset($participant->consent_decision) && $participant->consent_decision === 'withdrawn') {
-            return array(
-                'success' => false,
-                'participant_id' => null,
-                'error' => 'study_withdrawn'
-            );
-        }
-
-        // Actualizar último login
-        EIPSI_Participant_Service::update_last_login($participant->id);
-
-        return array(
-            'success' => true,
-            'participant_id' => $participant->id,
-            'error' => null
-        );
+        return EIPSI_Authentication_Service::authenticate_passwordless($survey_id, $email);
     }
     
     /**
-     * Create session token and cookie.
+     * Create session token and cookie AFTER the trusted caller has authenticated.
      *
      * La sesión se almacena en:
      * 1. Cookie HTTP-only: EIPSI_SESSION_COOKIE_NAME
@@ -164,93 +102,7 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function create_session($participant_id, $survey_id, $ttl_hours = 168) {
-        global $wpdb;
-        
-        try {
-            // Generar token único
-            $token = wp_generate_password(64, true, true);
-            
-            // Hash token para almacenar en DB
-            $token_hash = hash('sha256', $token);
-            
-            // Calcular expires_at
-            $expires_at = date('Y-m-d H:i:s', strtotime("+{$ttl_hours} hours"));
-            
-            // Obtener IP
-            $ip_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '0.0.0.0';
-            
-            // Obtener User-Agent
-            $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : 'unknown';
-            
-            // Insertar en wp_survey_sessions
-            $table_name = $wpdb->prefix . 'survey_sessions';
-            $result = $wpdb->insert(
-                $table_name,
-                array(
-                    'token' => $token_hash, // Hash almacenado en DB
-                    'participant_id' => $participant_id,
-                    'survey_id' => $survey_id,
-                    'ip_address' => $ip_address,
-                    'user_agent' => $user_agent,
-                    'expires_at' => $expires_at,
-                    'created_at' => current_time('mysql')
-                ),
-                array('%s', '%d', '%d', '%s', '%s', '%s', '%s')
-            );
-            
-            if ($result === false) {
-                error_log('EIPSI Session creation failed: ' . $wpdb->last_error);
-                return array(
-                    'success' => false,
-                    'token' => null,
-                    'error' => 'db_error'
-                );
-            }
-            
-            // Setear cookie segura (HTTP-only, Secure, SameSite)
-            $cookie_expires = strtotime("+{$ttl_hours} hours");
-            
-            // Cookie name desde constante (definir en plugin principal)
-            $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
-            
-            // Setear cookie - usar setcookie() simple para compatibilidad PHP < 7.3
-            $secure = is_ssl(); // Solo HTTPS
-            
-            $cookie_set = false;
-            if ( ! headers_sent() ) {
-                if (version_compare(PHP_VERSION, '7.3.0', '>=')) {
-                    $cookie_options = array(
-                        'expires'  => $cookie_expires,
-                        'path'     => '/',
-                        'domain'   => '',
-                        'secure'   => $secure,
-                        'httponly' => true,
-                        'samesite' => 'Lax'
-                    );
-                    $cookie_set = setcookie($cookie_name, $token, $cookie_options);
-                } else {
-                    $cookie_set = setcookie($cookie_name, $token, $cookie_expires, '/', '', $secure, true);
-                }
-            } else {
-                error_log('EIPSI Auth: headers already sent, cookie fallback required for participant ' . $participant_id);
-            }
-            
-            return array(
-                'success'     => true,
-                'token'       => $token,
-                'cookie_name' => $cookie_name,
-                'cookie_set'  => $cookie_set,
-                'error'       => null
-            );
-            
-        } catch (Exception $e) {
-            error_log('EIPSI Session creation exception: ' . $e->getMessage());
-            return array(
-                'success' => false,
-                'token'   => null,
-                'error'   => 'db_error'
-            );
-        }
+        return EIPSI_Session_Service::create_session($participant_id, $survey_id, $ttl_hours);
     }
     
     /**
@@ -263,49 +115,7 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function get_current_participant() {
-        global $wpdb;
-        
-        // Cookie name
-        $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
-        
-        // Leer cookie
-        $token = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : null;
-        if (!$token) {
-            return null;
-        }
-        
-        // Hash token
-        $token_hash = hash('sha256', $token);
-        
-        // Query: SELECT participant_id FROM sessions WHERE token = %s AND expires_at > NOW()
-        $table_name = $wpdb->prefix . 'survey_sessions';
-        $result = $wpdb->get_var($wpdb->prepare(
-            "SELECT participant_id FROM $table_name WHERE token = %s AND expires_at > %s",
-            $token_hash,
-            current_time('mysql')
-        ));
-        
-        if (!$result) {
-            return null;
-        }
-        
-        $participant_id = (int) $result;
-        
-        // Check if participant has withdrawn from the study
-        $participants_table = $wpdb->prefix . 'survey_participants';
-        $consent_decision = $wpdb->get_var($wpdb->prepare(
-            "SELECT consent_decision FROM {$participants_table} WHERE id = %d LIMIT 1",
-            $participant_id
-        ));
-        
-        if ($consent_decision === 'withdrawn') {
-            // Participant has withdrawn - clear session and return null
-            error_log("[EIPSI-AUTH] Blocked withdrawn participant {$participant_id} from accessing session");
-            self::destroy_session();
-            return null;
-        }
-        
-        return $participant_id;
+        return EIPSI_Session_Service::get_current_participant();
     }
     
     /**
@@ -316,29 +126,7 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function get_current_survey() {
-        global $wpdb;
-        
-        // Cookie name
-        $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
-        
-        // Leer cookie
-        $token = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : null;
-        if (!$token) {
-            return null;
-        }
-        
-        // Hash token
-        $token_hash = hash('sha256', $token);
-        
-        // Query: SELECT survey_id FROM sessions WHERE token = %s AND expires_at > NOW()
-        $table_name = $wpdb->prefix . 'survey_sessions';
-        $result = $wpdb->get_var($wpdb->prepare(
-            "SELECT survey_id FROM $table_name WHERE token = %s AND expires_at > %s",
-            $token_hash,
-            current_time('mysql')
-        ));
-        
-        return $result ? (int) $result : null;
+        return EIPSI_Session_Service::get_current_survey();
     }
     
     /**
@@ -351,45 +139,7 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function destroy_session() {
-        global $wpdb;
-        
-        // Cookie name
-        $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
-        
-        // Leer token de cookie
-        $token = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : null;
-        
-        if ($token) {
-            // Hash token para buscar en DB
-            $token_hash = hash('sha256', $token);
-            
-            // DELETE FROM sessions WHERE token_hash = hash(token)
-            $table_name = $wpdb->prefix . 'survey_sessions';
-            $wpdb->delete(
-                $table_name,
-                array('token' => $token_hash),
-                array('%s')
-            );
-        }
-        
-        // Borrar cookie: setear con fecha de expiración en el pasado
-        $past_time = time() - 3600;
-        
-        if (version_compare(PHP_VERSION, '7.3.0', '>=')) {
-            $cookie_options = array(
-                'expires' => $past_time,
-                'path' => '/',
-                'domain' => '',
-                'secure' => is_ssl(),
-                'httponly' => true,
-                'samesite' => 'Lax'
-            );
-            setcookie($cookie_name, '', $cookie_options);
-        } else {
-            setcookie($cookie_name, '', $past_time, '/', '', is_ssl(), true);
-        }
-        
-        return true; // Siempre true si llegamos aquí
+        return EIPSI_Session_Service::destroy_session();
     }
     
     /**
@@ -402,7 +152,7 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function is_authenticated() {
-        return self::get_current_participant() !== null;
+        return EIPSI_Session_Service::is_authenticated();
     }
     
     /**
@@ -415,16 +165,7 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function cleanup_expired_sessions() {
-        global $wpdb;
-        
-        $table_name = $wpdb->prefix . 'survey_sessions';
-        
-        $deleted = $wpdb->query($wpdb->prepare(
-            "DELETE FROM $table_name WHERE expires_at < %s",
-            current_time('mysql')
-        ));
-        
-        return (int) $deleted;
+        return EIPSI_Session_Service::cleanup_expired_sessions();
     }
     
     /**
@@ -435,43 +176,7 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function get_current_session_info() {
-        global $wpdb;
-        
-        // Cookie name
-        $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
-        
-        // Leer token
-        $token = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : null;
-        if (!$token) {
-            return null;
-        }
-        
-        // Hash token
-        $token_hash = hash('sha256', $token);
-        
-        // Query: SELECT * FROM sessions WHERE token = hash AND expires_at > NOW()
-        $table_name = $wpdb->prefix . 'survey_sessions';
-        $session = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table_name WHERE token = %s AND expires_at > %s",
-            $token_hash,
-            current_time('mysql')
-        ));
-        
-        if (!$session) {
-            return null;
-        }
-        
-        // Calcular time_remaining_hours
-        $expires_timestamp = strtotime($session->expires_at);
-        $now_timestamp = time();
-        $time_remaining_seconds = max(0, $expires_timestamp - $now_timestamp);
-        $time_remaining_hours = round($time_remaining_seconds / 3600, 2);
-        
-        // Agregar time_remaining_hours al objeto
-        $session->time_remaining_hours = $time_remaining_hours;
-        $session->time_remaining_seconds = $time_remaining_seconds;
-        
-        return $session;
+        return EIPSI_Session_Service::get_current_session_info();
     }
     
     /**
@@ -484,25 +189,7 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function get_session_remaining_time() {
-        $session = self::get_current_session_info();
-        
-        if (!$session) {
-            return array(
-                'remaining_seconds' => 0,
-                'expires_at' => null,
-                'is_expired' => true
-            );
-        }
-        
-        $expires_timestamp = strtotime($session->expires_at);
-        $now_timestamp = time();
-        $remaining_seconds = max(0, $expires_timestamp - $now_timestamp);
-        
-        return array(
-            'remaining_seconds' => (int) $remaining_seconds,
-            'expires_at' => $session->expires_at,
-            'is_expired' => $remaining_seconds <= 0
-        );
+        return EIPSI_Session_Service::get_session_remaining_time();
     }
     
     /**
@@ -516,99 +203,6 @@ class EIPSI_Auth_Service {
      * @access public
      */
     public static function extend_session($ttl_hours = 168) {
-        global $wpdb;
-        
-        // Cookie name
-        $cookie_name = defined('EIPSI_SESSION_COOKIE_NAME') ? EIPSI_SESSION_COOKIE_NAME : 'eipsi_session_token';
-        
-        // Leer token
-        $token = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : null;
-        if (!$token) {
-            return array(
-                'success' => false,
-                'new_expires_at' => null,
-                'error' => 'no_session'
-            );
-        }
-        
-        // Hash token
-        $token_hash = hash('sha256', $token);
-        
-        // Check if session exists and is valid
-        $table_name = $wpdb->prefix . 'survey_sessions';
-        $session = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table_name WHERE token = %s",
-            $token_hash
-        ));
-        
-        if (!$session) {
-            return array(
-                'success' => false,
-                'new_expires_at' => null,
-                'error' => 'session_not_found'
-            );
-        }
-        
-        // Check if already expired
-        $expires_timestamp = strtotime($session->expires_at);
-        if ($expires_timestamp < time()) {
-            return array(
-                'success' => false,
-                'new_expires_at' => null,
-                'error' => 'session_expired'
-            );
-        }
-        
-        // Calculate new expiration time
-        $new_expires_at = date('Y-m-d H:i:s', strtotime("+{$ttl_hours} hours"));
-        
-        // Update session in database
-        $result = $wpdb->update(
-            $table_name,
-            array('expires_at' => $new_expires_at),
-            array('token' => $token_hash),
-            array('%s'),
-            array('%s')
-        );
-        
-        if ($result === false) {
-            return array(
-                'success' => false,
-                'new_expires_at' => null,
-                'error' => 'db_error'
-            );
-        }
-        
-        // Update cookie with new expiration
-        $cookie_expires = strtotime("+{$ttl_hours} hours");
-        $secure = is_ssl();
-        
-        if (version_compare(PHP_VERSION, '7.3.0', '>=')) {
-            $cookie_options = array(
-                'expires' => $cookie_expires,
-                'path' => '/',
-                'domain' => '',
-                'secure' => $secure,
-                'httponly' => true,
-                'samesite' => 'Lax'
-            );
-            setcookie($cookie_name, $token, $cookie_options);
-        } else {
-            setcookie(
-                $cookie_name,
-                $token,
-                $cookie_expires,
-                '/',
-                '',
-                $secure,
-                true
-            );
-        }
-        
-        return array(
-            'success' => true,
-            'new_expires_at' => $new_expires_at,
-            'error' => null
-        );
+        return EIPSI_Session_Service::extend_session($ttl_hours);
     }
 }

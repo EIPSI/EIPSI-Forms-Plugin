@@ -683,3 +683,41 @@
         transform: translateX(0);
     }
 }
+
+/* The language belongs to the plugin configuration, alongside its other settings. */
+.eipsi-config-wrap .eipsi-admin-language{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 24px;margin:20px 0;background:var(--eipsi-bg);border:1px solid var(--eipsi-border);border-radius:var(--eipsi-radius);box-shadow:var(--eipsi-shadow)}
+.eipsi-language-heading{display:flex;align-items:center;gap:16px;min-width:0}
+.eipsi-language-heading>.dashicons{display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;border-radius:10px;background:var(--eipsi-primary-lighter);color:var(--eipsi-primary);font-size:24px}
+.eipsi-language-heading h2{margin:0 0 6px;color:var(--eipsi-text);font-size:16px}
+.eipsi-language-heading p{margin:0;color:var(--eipsi-text-muted);max-width:650px;line-height:1.5}
+.eipsi-language-controls{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.eipsi-language-controls select{min-width:150px;min-height:38px;border-color:var(--eipsi-border-dark);border-radius:6px}
+.eipsi-language-controls .button{min-height:38px;padding:2px 16px;border-radius:6px;background:var(--eipsi-primary);border-color:var(--eipsi-primary)}
+.eipsi-language-controls .button:hover{background:var(--eipsi-primary-hover);border-color:var(--eipsi-primary-hover)}
+@media(max-width:782px){.eipsi-config-wrap .eipsi-admin-language{align-items:stretch;flex-direction:column;padding:18px;gap:16px}.eipsi-language-controls{flex-wrap:wrap}.eipsi-language-controls select{flex:1}}
+
+.eipsi-backup-messages{padding:24px;margin:24px 0;background:var(--eipsi-bg);border:1px solid var(--eipsi-border);border-top:3px solid var(--eipsi-primary);border-radius:var(--eipsi-radius);box-shadow:var(--eipsi-shadow)}
+.eipsi-backup-messages h2{margin:0 0 12px;font-size:18px;color:var(--eipsi-text)}
+.eipsi-backup-messages>p{color:var(--eipsi-text-muted);line-height:1.6}
+.eipsi-fallback-form label{display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,2fr);gap:16px;align-items:center;color:var(--eipsi-text)}
+.eipsi-fallback-form input{min-height:36px;border-radius:6px;border-color:var(--eipsi-border-dark)}
+@media(max-width:782px){.eipsi-fallback-form label{grid-template-columns:1fr;gap:6px}}
+
+/* Keep configuration help prose and list items visually consistent. */
+.eipsi-config-wrap .eipsi-help-box p,
+.eipsi-config-wrap .eipsi-help-box li {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--eipsi-text);
+}
+.eipsi-config-wrap .eipsi-help-box > p {
+    margin: 0.75rem 0 1.5rem;
+}
+.eipsi-config-wrap .eipsi-help-box > h3:not(:first-child) {
+    margin-top: 1.5rem;
+}
+
+.eipsi-config-wrap .eipsi-help-box > ul {
+    padding-left: 0;
+    list-style: none;
+}

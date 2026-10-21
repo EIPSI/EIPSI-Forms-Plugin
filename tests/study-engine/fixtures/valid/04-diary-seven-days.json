@@ -1,0 +1,140 @@
+{
+  "contract_version": "P1B_V1",
+  "study": {
+    "logical_id": "STUDY_04-diary-seven-days",
+    "public_id": "PUBLIC_04-diary-seven-days"
+  },
+  "id": "VERSION_1",
+  "version_number": 1,
+  "state": "PUBLISHED",
+  "timezone": {
+    "policy": "PARTICIPANT_LOCAL",
+    "default": "America/Argentina/Buenos_Aires"
+  },
+  "root_block_ids": [
+    "M_ROOT"
+  ],
+  "nodes": [
+    {
+      "kind": "BLOCK",
+      "id": "M_ROOT",
+      "logical_id": "M_ROOT",
+      "version_id": "VERSION_1",
+      "parent_id": "VERSION_1",
+      "scope": "MACRO",
+      "position": 0,
+      "children_strategy": "SEQUENTIAL",
+      "randomization": null,
+      "schedule": {
+        "anchor": "EXECUTION_CREATED",
+        "anchor_ref": null,
+        "occurrence_selector": null,
+        "temporal_rule": {
+          "kind": "IMMEDIATE"
+        },
+        "timezone_policy": "PARTICIPANT_LOCAL",
+        "window": {
+          "kind": "NO_DEADLINE"
+        },
+        "recurrence": null,
+        "dst_policy": {
+          "gap": "SHIFT_FORWARD_BY_GAP",
+          "fold": "EARLIER_INSTANT"
+        }
+      },
+      "completion_boundary": "NONE",
+      "metadata": {}
+    },
+    {
+      "kind": "BLOCK",
+      "id": "E_DIARY",
+      "logical_id": "E_DIARY",
+      "version_id": "VERSION_1",
+      "parent_id": "M_ROOT",
+      "scope": "MICRO",
+      "position": 0,
+      "children_strategy": "SEQUENTIAL",
+      "randomization": null,
+      "schedule": {
+        "anchor": "EXECUTION_CREATED",
+        "anchor_ref": null,
+        "occurrence_selector": null,
+        "temporal_rule": {
+          "kind": "RECURRENCE"
+        },
+        "timezone_policy": "PARTICIPANT_LOCAL",
+        "window": {
+          "kind": "DURATION",
+          "duration": {
+            "kind": "ELAPSED",
+            "seconds": 10800
+          }
+        },
+        "recurrence": {
+          "kind": "DAILY_LOCAL",
+          "days": 7,
+          "times": [
+            "20:00"
+          ],
+          "start_day": 1
+        },
+        "dst_policy": {
+          "gap": "SHIFT_FORWARD_BY_GAP",
+          "fold": "EARLIER_INSTANT"
+        }
+      },
+      "completion_boundary": "ASSESSMENT",
+      "metadata": {}
+    },
+    {
+      "kind": "QUESTION",
+      "id": "Q_MOOD",
+      "version_id": "VERSION_1",
+      "parent_id": "E_DIARY",
+      "position": 0,
+      "response_key": "RESPONSE_Q_MOOD",
+      "type": "INTEGER",
+      "options": [],
+      "validation": {
+        "min": 1,
+        "max": 5
+      },
+      "required": true,
+      "semantic_role": null,
+      "content": {
+        "content_id": "CONTENT_Q_MOOD",
+        "version": 1,
+        "snapshot": "Q_MOOD",
+        "sha256": "0a60f0c61a4398e32713190895ba9cb074ac276078fa0302a123a374ca6b1417"
+      }
+    },
+    {
+      "kind": "QUESTION",
+      "id": "Q_NOTE",
+      "version_id": "VERSION_1",
+      "parent_id": "E_DIARY",
+      "position": 1,
+      "response_key": "RESPONSE_Q_NOTE",
+      "type": "TEXT",
+      "options": [],
+      "validation": {},
+      "required": false,
+      "semantic_role": null,
+      "content": {
+        "content_id": "CONTENT_Q_NOTE",
+        "version": 1,
+        "snapshot": "Q_NOTE",
+        "sha256": "e18f183077cf4616ec68a62ef55b2c93ef60a6a0237faf4fdb33e26ebdf3f5b9"
+      }
+    }
+  ],
+  "condition_rules": [],
+  "compiler_contract_version": "P1C_V1",
+  "protocol_metadata": {
+    "title": "04-diary-seven-days",
+    "source": "P1-A P.4"
+  },
+  "closure": {
+    "kind": "ALL_SELECTED_OPPORTUNITIES_TERMINAL"
+  }
+}

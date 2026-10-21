@@ -168,10 +168,10 @@ function eipsi_ajax_get_anchored_timeline() {
     // Security check
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('edit_posts')) {
+    if (!current_user_can('manage_options')) {
         wp_send_json_error(array(
             'message' => __('No tienes permisos para ver esta información.', 'eipsi-forms'),
-        ));
+        ), 403);
     }
 
     $study_id = isset($_GET['study_id']) ? absint($_GET['study_id']) : 0;

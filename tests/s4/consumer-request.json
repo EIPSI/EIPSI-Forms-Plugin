@@ -1,0 +1,10 @@
+{
+  "action": "eipsi_resend_participant_email",
+  "nonce_action": "eipsi_study_dashboard_nonce",
+  "data": {
+    "participant_id": 999407,
+    "email_type": "reminder",
+    "study_id": 999403,
+    "wave_id": null
+  }
+}

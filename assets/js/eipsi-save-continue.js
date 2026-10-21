@@ -12,6 +12,22 @@
 		return;
 	}
 
+	// A tracking fingerprint never substitutes for the row-bound reset credential.
+	function resetCapability(container, forget = false) {
+		if (!container) return '';
+		const config = container.getAttribute('data-randomization-id');
+		const row = container.getAttribute('data-reset-assignment-id');
+		if (!config || !row) return '';
+		const key = 'eipsi_rct_reset:' + JSON.stringify([config, row]);
+		let proof = container.getAttribute('data-reset-capability') || '';
+		try {
+			if (forget) { window.localStorage.removeItem(key); container.removeAttribute('data-reset-capability'); return ''; }
+			if (proof) window.localStorage.setItem(key, proof);
+			else proof = window.localStorage.getItem(key) || '';
+		} catch (error) { /* Storage unavailable: only a newly rendered credential survives. */ }
+		return proof;
+	}
+
 	const AUTOSAVE_INTERVAL = 30000; // 30 segundos
 	const INPUT_DEBOUNCE = 800; // ms
 	const IDB_NAME = 'eipsi_forms';
@@ -445,12 +461,17 @@
 
 			if ( restartButton ) {
 				restartButton.addEventListener( 'click', async () => {
+					const restartLabel = restartButton.textContent;
 					restartButton.disabled = true;
 					restartButton.textContent = 'Borrando...';
 
 					try {
 						// PASO 1: Cerrar sesión de aleatorización (si existe)
-						await this.closeRandomizationSession();
+						if (!(await this.closeRandomizationSession())) {
+							restartButton.disabled = false;
+							restartButton.textContent = restartLabel;
+							return;
+						}
 
 						// PASO 2: Descartar respuestas parciales
 						await this.discardPartial();
@@ -768,7 +789,9 @@
 		 */
 		async closeRandomizationSession() {
 			const randomizationId = this.getRandomizationId();
-			const userFingerprint = this.getUserFingerprint();
+			const container = this.form.closest('.eipsi-randomization-container');
+			const userFingerprint = container?.getAttribute('data-reset-fingerprint') || this.getUserFingerprint();
+			const proof = resetCapability(container);
 
 			// Si no hay aleatorización activa, no hacer nada (no es un error)
 			if ( ! randomizationId || ! userFingerprint ) {
@@ -790,6 +813,7 @@
 				return false;
 			}
 
+			if (!proof) return false;
 			try {
 				const formData = new URLSearchParams();
 				formData.append(
@@ -798,6 +822,7 @@
 				);
 				formData.append( 'randomization_id', randomizationId );
 				formData.append( 'user_fingerprint', userFingerprint );
+				formData.append( 'reset_capability', proof );
 
 				const response = await fetch( this.config.ajaxUrl, {
 					method: 'POST',
@@ -830,6 +855,7 @@
 					);
 				}
 
+				if (data.success) resetCapability(container, true);
 				return data.success || false;
 			} catch ( error ) {
 				if ( this.config?.settings?.debug && window.console?.error ) {
@@ -1468,89 +1494,6 @@
 
 	window.EIPSISaveContinue = EIPSISaveContinue;
 
-	/**
-	 * Helper global para diagnóstico de Save & Continue
-	 * Uso desde consola: window.eipsiDebugSaveState()
-	 */
-	window.eipsiDebugSaveState = async function() {
-		const form = document.querySelector('.eipsi-form form');
-		if (!form) {
-			console.error('[S&C DEBUG] No se encontró el formulario');
-			return;
-		}
-
-		const instance = form.eipsiSaveContinue;
-		if (!instance) {
-			console.error('[S&C DEBUG] Save & Continue no está inicializado');
-			return;
-		}
-
-		console.log('[S&C DEBUG] ========== DIAGNÓSTICO SAVE & CONTINUE ==========');
-		
-		// Estado del frontend
-		console.log('[S&C DEBUG] Frontend State:');
-		console.log('  - Inicializado:', !!instance);
-		console.log('  - Página actual:', instance.getCurrentPage());
-		console.log('  - Respuestas acumuladas:', Object.keys(instance.accumulatedResponses || {}).length);
-		console.log('  - Campos modificados (dirty):', instance.dirtyFields ? instance.dirtyFields.size : 0);
-		console.log('  - Has responses:', instance.hasResponses);
-		console.table(instance.accumulatedResponses || {});
-
-		// Consultar backend
-		console.log('[S&C DEBUG] Consultando backend...');
-		try {
-			const formData = new FormData();
-			formData.append('action', 'eipsi_debug_partial_response');
-			formData.append('form_id', instance.formId);
-			formData.append('participant_id', instance.participantId);
-			formData.append('session_id', instance.sessionId);
-
-			const response = await fetch(window.eipsiFormsConfig?.ajaxUrl || '/wp-admin/admin-ajax.php', {
-				method: 'POST',
-				body: formData
-			});
-
-			const result = await response.json();
-			
-			if (result.success) {
-				const data = result.data;
-				console.log('[S&C DEBUG] Backend State:');
-				console.log('  - Datos encontrados:', data.found);
-				if (data.found) {
-					console.log('  - Total respuestas:', data.summary.total_responses);
-					console.log('  - Página guardada:', data.summary.page_index);
-					console.log('  - Última actualización:', data.summary.last_updated);
-					console.log('  - Campos de consentimiento:', data.summary.consent_fields_count);
-					console.log('  - Campos demográficos:', data.summary.demographic_fields_count);
-					console.log('  - Campos de escalas:', data.summary.scale_fields_count);
-					console.log('  - Otros campos:', data.summary.other_fields_count);
-					
-					console.log('[S&C DEBUG] Análisis de campos:');
-					if (data.field_analysis.consent_fields.length > 0) {
-						console.log('  Consentimiento:', data.field_analysis.consent_fields);
-					}
-					if (data.field_analysis.demographic_fields.length > 0) {
-						console.log('  Demográficos:', data.field_analysis.demographic_fields);
-					}
-					if (data.field_analysis.scale_fields.length > 0) {
-						console.log('  Escalas (primeros 5):', data.field_analysis.scale_fields.slice(0, 5));
-					}
-					
-					console.log('[S&C DEBUG] Respuestas completas (raw):');
-					console.table(data.raw_responses);
-				} else {
-					console.warn('[S&C DEBUG] No hay datos guardados en backend para esta sesión');
-				}
-			} else {
-				console.error('[S&C DEBUG] Error al consultar backend:', result);
-			}
-		} catch (error) {
-			console.error('[S&C DEBUG] Error en la consulta:', error);
-		}
-
-		console.log('[S&C DEBUG] ========== FIN DIAGNÓSTICO ==========');
-		console.log('[S&C DEBUG] Tip: Podés copiar los logs con: copy(console.history)');
-	};
 
 	/**
 	 * Handler global para botones "Comenzar de nuevo" en thank-you page
@@ -1559,6 +1502,7 @@
 	 * y cierra la sesión antes de recargar la página.
 	 */
 	document.addEventListener( 'DOMContentLoaded', () => {
+		document.querySelectorAll('.eipsi-randomization-container').forEach(container => resetCapability(container));
 		const restartButtons = document.querySelectorAll(
 			'.eipsi-randomization-container [data-action="restart"]'
 		);
@@ -1566,6 +1510,7 @@
 		restartButtons.forEach( ( button ) => {
 			button.addEventListener( 'click', async ( event ) => {
 				event.preventDefault();
+				const restartLabel = button.textContent;
 				button.disabled = true;
 				button.textContent = 'Reiniciando...';
 
@@ -1622,6 +1567,10 @@
 						}
 					}
 
+					userFingerprint = container?.getAttribute('data-reset-fingerprint') || userFingerprint;
+					const proof = resetCapability(container);
+					if (randomizationId && !proof) { button.disabled = false; button.textContent = restartLabel; return; }
+
 					// Si hay randomization_id y fingerprint, cerrar sesión
 					if (
 						randomizationId &&
@@ -1636,8 +1585,9 @@
 						);
 						formData.append( 'randomization_id', randomizationId );
 						formData.append( 'user_fingerprint', userFingerprint );
+						formData.append( 'reset_capability', proof );
 
-						await fetch( window.eipsiFormsConfig.ajaxUrl, {
+						const response = await fetch( window.eipsiFormsConfig.ajaxUrl, {
 							method: 'POST',
 							body: formData,
 							headers: {
@@ -1646,15 +1596,19 @@
 							},
 							credentials: 'same-origin',
 						} );
+						if (!response.ok || !(await response.json()).success) { button.disabled = false; button.textContent = restartLabel; return; }
+						resetCapability(container, true);
 					}
 				} catch ( error ) {
-					// Ignorar errores (continuar de todas formas)
+					button.disabled = false;
+					button.textContent = restartLabel;
 					if ( window.console && window.console.warn ) {
 						window.console.warn(
 							'[EIPSI Save & Continue] Error al cerrar sesión de aleatorización:',
 							error
 						);
 					}
+					return;
 				}
 
 				// Recargar la página (esto asignará un nuevo formulario en rotación)

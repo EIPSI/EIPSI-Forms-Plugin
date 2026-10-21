@@ -1,0 +1,878 @@
+[
+  {
+    "policy": "original",
+    "order": "original",
+    "count": 1,
+    "seed": "advanced_original_original_1",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_original_original_1",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_FN_1"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_FN_1",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "original",
+          "mode": "select",
+          "count": 1,
+          "order_policy": "original",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_1",
+            "O_FN_1_0",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "original",
+    "order": "original",
+    "count": 2,
+    "seed": "advanced_original_original_2",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_original_original_2",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1",
+            "EL_Q3"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "original",
+          "mode": "select",
+          "count": 2,
+          "order_policy": "original",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "original",
+    "order": "original",
+    "count": 3,
+    "seed": "advanced_original_original_3",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_original_original_3",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "original",
+          "mode": "select",
+          "count": 3,
+          "order_policy": "original",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_1",
+            "O_FN_1_0",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "original",
+    "order": "random",
+    "count": 1,
+    "seed": "advanced_original_random_1",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_original_random_1",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_FN_1"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_FN_1",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "original",
+          "mode": "select",
+          "count": 1,
+          "order_policy": "random",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_1",
+            "O_FN_1_0",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "original",
+    "order": "random",
+    "count": 2,
+    "seed": "advanced_original_random_2",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_original_random_2",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1",
+            "EL_FN_1"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_FN_1",
+            "EL_Q1",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "original",
+          "mode": "select",
+          "count": 2,
+          "order_policy": "random",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_1",
+            "O_FN_1_0",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "original",
+    "order": "random",
+    "count": 3,
+    "seed": "advanced_original_random_3",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_original_random_3",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_FN_1",
+            "EL_Q1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "original",
+          "mode": "select",
+          "count": 3,
+          "order_policy": "random",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "mixed",
+    "order": "original",
+    "count": 1,
+    "seed": "advanced_mixed_original_1",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_mixed_original_1",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "mixed",
+          "mode": "select",
+          "count": 1,
+          "order_policy": "original",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_1",
+            "O_FN_1_0",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "mixed",
+    "order": "original",
+    "count": 2,
+    "seed": "advanced_mixed_original_2",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_mixed_original_2",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1",
+            "EL_FN_1"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "mixed",
+          "mode": "select",
+          "count": 2,
+          "order_policy": "original",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "mixed",
+    "order": "original",
+    "count": 3,
+    "seed": "advanced_mixed_original_3",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_mixed_original_3",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "order": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "mixed",
+          "mode": "select",
+          "count": 3,
+          "order_policy": "original",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "mixed",
+    "order": "random",
+    "count": 1,
+    "seed": "advanced_mixed_random_1",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_mixed_random_1",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_FN_1"
+          ],
+          "order": [
+            "EL_FN_1",
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "mixed",
+          "mode": "select",
+          "count": 1,
+          "order_policy": "random",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "mixed",
+    "order": "random",
+    "count": 2,
+    "seed": "advanced_mixed_random_2",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_mixed_random_2",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1",
+            "EL_Q3"
+          ],
+          "order": [
+            "EL_Q3",
+            "EL_Q1",
+            "EL_Q4",
+            "EL_Q0"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "mixed",
+          "mode": "select",
+          "count": 2,
+          "order_policy": "random",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  },
+  {
+    "policy": "mixed",
+    "order": "random",
+    "count": 3,
+    "seed": "advanced_mixed_random_3",
+    "result": {
+      "contract": "LOCAL_RANDOMIZATION_V2",
+      "seed": "advanced_mixed_random_3",
+      "resolved_at": 1234567890,
+      "blocks": {
+        "EL_RANDOM_TEST": {
+          "block_id": "EL_RANDOM_TEST",
+          "candidates": [
+            "EL_Q0",
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3",
+            "EL_Q4"
+          ],
+          "selected": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "order": [
+            "EL_Q4",
+            "EL_Q0",
+            "EL_FN_1",
+            "EL_Q1",
+            "EL_Q3"
+          ],
+          "eligible": [
+            "EL_Q1",
+            "EL_FN_1",
+            "EL_Q3"
+          ],
+          "fixed": [
+            "EL_Q0",
+            "EL_Q4"
+          ],
+          "weights": {
+            "EL_Q0": 1,
+            "EL_Q1": 2.5,
+            "EL_FN_1": 1,
+            "EL_Q3": 0.25,
+            "EL_Q4": 3
+          },
+          "fixed_policy": "mixed",
+          "mode": "select",
+          "count": 3,
+          "order_policy": "random",
+          "selection_method": "weighted-sequential"
+        }
+      },
+      "option_orders": {
+        "EL_FN_1": {
+          "question_id": "EL_FN_1",
+          "candidates": [
+            "O_FN_1_0",
+            "O_FN_1_1",
+            "O_FN_1_2"
+          ],
+          "fixed": [
+            "O_FN_1_2"
+          ],
+          "order": [
+            "O_FN_1_1",
+            "O_FN_1_0",
+            "O_FN_1_2"
+          ],
+          "method": "uniform-fisher-yates"
+        }
+      }
+    }
+  }
+]

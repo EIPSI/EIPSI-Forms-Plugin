@@ -1,0 +1,284 @@
+{
+  "algorithm": "EIPSI_RANDOM_V1",
+  "reference": "Python standard library hmac/hashlib/struct, independent implementation",
+  "vectors": [
+    {
+      "id": "RANDOM_ORDER",
+      "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "scope": {
+        "execution_id": "SIMULATION_1",
+        "version_id": "VERSION_1",
+        "owner_id": "VECTOR_RANDOM_ORDER",
+        "segment_id": "default",
+        "scope": "EXECUTION",
+        "occurrence_key": null
+      },
+      "config": {
+        "strategy": "RANDOM_ORDER",
+        "scope": "EXECUTION",
+        "candidates": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "select_n": null,
+        "draw_count": null,
+        "weights": {},
+        "order": "DRAW",
+        "algorithm_version": "EIPSI_RANDOM_V1"
+      },
+      "raw_hex": "e424ba30ee8691f0ed541b5dab48114af278065d44bb66b58284b52cae0a7b844dc60858482b1d56ca3075bb83f359800c38e02c45c2e237a860618658e041ac",
+      "selection": [
+        "B",
+        "C",
+        "E",
+        "A",
+        "D"
+      ],
+      "integer_vector": {
+        "bound": 1073741825,
+        "values": [
+          726143304,
+          79390388,
+          42251562,
+          772438914,
+          231082071,
+          137043285,
+          66279806,
+          205053996,
+          96657974,
+          677405060,
+          417350059,
+          139950486
+        ],
+        "rejected_words": 5
+      }
+    },
+    {
+      "id": "RANDOM_SELECT_ONE",
+      "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "scope": {
+        "execution_id": "SIMULATION_1",
+        "version_id": "VERSION_1",
+        "owner_id": "VECTOR_RANDOM_SELECT_ONE",
+        "segment_id": "default",
+        "scope": "EXECUTION",
+        "occurrence_key": null
+      },
+      "config": {
+        "strategy": "RANDOM_SELECT_ONE",
+        "scope": "EXECUTION",
+        "candidates": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "select_n": null,
+        "draw_count": null,
+        "weights": {},
+        "order": "DRAW",
+        "algorithm_version": "EIPSI_RANDOM_V1"
+      },
+      "raw_hex": "dbf3e89a38eadd7a3bc6238e5a2ac2da87185fe7d64becc0a854867e1d26bb24eb4467ab47c588f1da097715daeaf8fce9b29938e55039c3f8484cf684c202eb",
+      "selection": [
+        "B"
+      ]
+    },
+    {
+      "id": "RANDOM_SELECT_N",
+      "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "scope": {
+        "execution_id": "SIMULATION_1",
+        "version_id": "VERSION_1",
+        "owner_id": "VECTOR_RANDOM_SELECT_N",
+        "segment_id": "default",
+        "scope": "EXECUTION",
+        "occurrence_key": null
+      },
+      "config": {
+        "strategy": "RANDOM_SELECT_N",
+        "scope": "EXECUTION",
+        "candidates": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "select_n": 3,
+        "draw_count": null,
+        "weights": {},
+        "order": "DRAW",
+        "algorithm_version": "EIPSI_RANDOM_V1"
+      },
+      "raw_hex": "a8d1cdb0558622e324bb4d0c29b0805af4d89d9ffc522e4d83f94eda2e10309d557ab35c1a9cd73f223ef8e764e7743e0d1a1ee05be81d60ba2a30da2f876b30",
+      "selection": [
+        "B",
+        "C",
+        "A"
+      ]
+    },
+    {
+      "id": "WEIGHTED_RANDOM",
+      "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "scope": {
+        "execution_id": "SIMULATION_1",
+        "version_id": "VERSION_1",
+        "owner_id": "VECTOR_WEIGHTED_RANDOM",
+        "segment_id": "default",
+        "scope": "EXECUTION",
+        "occurrence_key": null
+      },
+      "config": {
+        "strategy": "WEIGHTED_RANDOM",
+        "scope": "EXECUTION",
+        "candidates": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "select_n": null,
+        "draw_count": 3,
+        "weights": {
+          "A": 0,
+          "B": 1,
+          "C": 5,
+          "D": 2,
+          "E": 3
+        },
+        "order": "DRAW",
+        "algorithm_version": "EIPSI_RANDOM_V1"
+      },
+      "raw_hex": "3cd0376cd420bcfb4b34deb99ffbdc7f1872db71a35c1ae3683b29510e421497dc9d5459d817042962f62ad2bacb7745a15a3dee2e66f3cabd3daf8b6f06b2d0",
+      "selection": [
+        "C",
+        "E",
+        "B"
+      ]
+    },
+    {
+      "id": "INSTANCE_1",
+      "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "scope": {
+        "execution_id": "SIMULATION_1",
+        "version_id": "VERSION_1",
+        "owner_id": "VECTOR_INSTANCE",
+        "segment_id": "default",
+        "scope": "BLOCK_INSTANCE",
+        "occurrence_key": [
+          {
+            "block_id": "M_ROOT",
+            "slot": {
+              "ordinal": 1
+            }
+          }
+        ]
+      },
+      "config": {
+        "strategy": "RANDOM_ORDER",
+        "scope": "BLOCK_INSTANCE",
+        "candidates": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "select_n": null,
+        "draw_count": null,
+        "weights": {},
+        "order": "DRAW",
+        "algorithm_version": "EIPSI_RANDOM_V1"
+      },
+      "raw_hex": "42e418acdcfeac3b07482a194b141ae820119a00adb5de864272d82afe50856168e03b4cf8a8d512bc3f1ab4ad16a500e40297e19304c44b0247e45ebee1a6b4",
+      "selection": [
+        "B",
+        "E",
+        "C",
+        "D",
+        "A"
+      ]
+    },
+    {
+      "id": "INSTANCE_2",
+      "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "scope": {
+        "execution_id": "SIMULATION_1",
+        "version_id": "VERSION_1",
+        "owner_id": "VECTOR_INSTANCE",
+        "segment_id": "default",
+        "scope": "BLOCK_INSTANCE",
+        "occurrence_key": [
+          {
+            "block_id": "M_ROOT",
+            "slot": {
+              "ordinal": 2
+            }
+          }
+        ]
+      },
+      "config": {
+        "strategy": "RANDOM_ORDER",
+        "scope": "BLOCK_INSTANCE",
+        "candidates": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "select_n": null,
+        "draw_count": null,
+        "weights": {},
+        "order": "DRAW",
+        "algorithm_version": "EIPSI_RANDOM_V1"
+      },
+      "raw_hex": "fff617f74e81993ce67a438cec68ab70528e62704c6b659fea5f1011ea82f5fbf61885d0be9f2602b7a3a9690a9a952c5b48f885c1a0f6e3de57468b4796ee7f",
+      "selection": [
+        "C",
+        "D",
+        "E",
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "RCT_ARM",
+      "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "scope": {
+        "execution_id": "SIMULATION_1",
+        "version_id": "VERSION_1",
+        "owner_id": "M_ARM",
+        "segment_id": "default",
+        "scope": "EXECUTION",
+        "occurrence_key": null
+      },
+      "config": {
+        "strategy": "WEIGHTED_RANDOM",
+        "scope": "EXECUTION",
+        "candidates": [
+          "M_ARM_A",
+          "M_ARM_B"
+        ],
+        "select_n": null,
+        "draw_count": 1,
+        "weights": {
+          "M_ARM_A": 1,
+          "M_ARM_B": 1
+        },
+        "order": "DRAW",
+        "algorithm_version": "EIPSI_RANDOM_V1"
+      },
+      "raw_hex": "b34019a6fbf1df71077abc7b92ef016e2df3f7e0a1e486cb210b14980fa21646b92184daf54a4b667247d33d39700471eef6b3e7f6a2b6e1c5ef91678d9776ed",
+      "selection": [
+        "M_ARM_A"
+      ]
+    }
+  ]
+}

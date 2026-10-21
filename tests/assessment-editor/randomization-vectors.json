@@ -1,0 +1,362 @@
+[
+  {
+    "mode": "all",
+    "count": 1,
+    "order": "original",
+    "seed": "audit_seed_1",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "order": [
+          "EL_Q2",
+          "EL_Q1",
+          "EL_Q0",
+          "EL_Q3",
+          "EL_Q4"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "all",
+    "count": 1,
+    "order": "random",
+    "seed": "audit_seed_1",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "order": [
+          "EL_Q2",
+          "EL_Q1",
+          "EL_Q0",
+          "EL_Q3",
+          "EL_Q4"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "all",
+    "count": 3,
+    "order": "original",
+    "seed": "audit_seed_3",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "order": [
+          "EL_Q2",
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q3",
+          "EL_Q4"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "all",
+    "count": 3,
+    "order": "random",
+    "seed": "audit_seed_3",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "order": [
+          "EL_Q2",
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q3",
+          "EL_Q4"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "all",
+    "count": 5,
+    "order": "original",
+    "seed": "audit_seed_5",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "order": [
+          "EL_Q3",
+          "EL_Q2",
+          "EL_Q1",
+          "EL_Q0",
+          "EL_Q4"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "all",
+    "count": 5,
+    "order": "random",
+    "seed": "audit_seed_5",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "order": [
+          "EL_Q3",
+          "EL_Q2",
+          "EL_Q1",
+          "EL_Q0",
+          "EL_Q4"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "select",
+    "count": 1,
+    "order": "original",
+    "seed": "audit_seed_1",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q2"
+        ],
+        "order": [
+          "EL_Q2"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "select",
+    "count": 1,
+    "order": "random",
+    "seed": "audit_seed_1",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q2"
+        ],
+        "order": [
+          "EL_Q2"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "select",
+    "count": 3,
+    "order": "original",
+    "seed": "audit_seed_3",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2"
+        ],
+        "order": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "select",
+    "count": 3,
+    "order": "random",
+    "seed": "audit_seed_3",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2"
+        ],
+        "order": [
+          "EL_Q2",
+          "EL_Q0",
+          "EL_Q1"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "select",
+    "count": 5,
+    "order": "original",
+    "seed": "audit_seed_5",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "order": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ]
+      }
+    }
+  },
+  {
+    "mode": "select",
+    "count": 5,
+    "order": "random",
+    "seed": "audit_seed_5",
+    "blocks": {
+      "EL_RANDOM_TEST": {
+        "block_id": "EL_RANDOM_TEST",
+        "candidates": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "selected": [
+          "EL_Q0",
+          "EL_Q1",
+          "EL_Q2",
+          "EL_Q3",
+          "EL_Q4"
+        ],
+        "order": [
+          "EL_Q3",
+          "EL_Q2",
+          "EL_Q1",
+          "EL_Q0",
+          "EL_Q4"
+        ]
+      }
+    }
+  }
+]

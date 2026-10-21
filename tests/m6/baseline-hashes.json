@@ -1,0 +1,23 @@
+{
+  "head": "832ee29",
+  "files": {
+    "admin/data-safety-system.php": "5894c323440c820bb45fa109d17dcf7bf6dc28dd16f191bb79a78a09857f25e6",
+    "admin/database.php": "1be0d1043c5d644344caebfbcfa2a3cddc86d0e4f2b14fc2d0b27bd1083602ed",
+    "admin/privacy-config.php": "60e06e88b6e5bda1178d79bb62a39c5f1ec4ec284ca0b7938be6af612b10c630",
+    "admin/services/class-participant-data-cleanup.php": "8b3e986961cbf9743d7df1252ddc688567018d751d86c07fd94a2c8ee55d5374",
+    "admin/services/class-anonymize-service.php": "5767284ffe5fb6c22d3f34e06e6316ef29c85dd596513e935134312d8b040617",
+    "admin/services/class-participant-data-request-service.php": "f8ab2bc69a256192381216502786753e1b1c2241d5d646a4e68b20c67a0f9cb5",
+    "admin/services/class-export-service.php": "bef45e7d4f0d542a9bb3a8802e35ffbdedc6e15183321181dbe2e1baed826613",
+    "admin/services/class-access-log-export-service.php": "c901889bccb22e69d7b8fd7e2a37c6060c5bec80799c2eb701772563551a0ef8",
+    "admin/export.php": "c5fe3566da17d652150217b9f52a9bd5f107649f082bdfe7a2af3f83c969799e",
+    "admin/ajax-export-handlers.php": "0fd7048a449448088b7923067633e7329050e78c8b5b3e7f1f006db505577ddf",
+    "admin/services/class-device-data-service.php": "9c2979235a10830d09b5b14c0cfb0bd9a0f8d61549e5b6f6e3e2b841d31878a0",
+    "includes/forms/class-partial-response-service.php": "6b0d968f7dc0b20d6e7199a591a0062481f2b882a9a04adee7551ad99960862e",
+    "includes/forms/class-form-tracking-service.php": "f7a95a723f0ff36c874fbc571910e7952d301f0690f0181f8c15dbdf2251b63a",
+    "includes/forms/class-submit-service.php": "637e3d7d4ebda317db0e9ae2ffd63b9a7bde4ce7e1142b60f18617806d4c1da1",
+    "admin/ajax-phase3-handlers.php": "8e4a25a08fb3c464f4d88db580d5c2decc8395de57b1a9309c51bd8ca34d63ba",
+    "admin/tabs/export-tab.php": "38cbfc67a9f72ebf15c7464cdbe66b891b9906730081ebf5dbe2d3ddaeac09af",
+    "lib/SimpleXLSXGen.php": "49ef6a7ef7292a9c5a8a70bcb564a0536ceb34a339da043d2886831a008f663c",
+    "admin/lib/SimpleXLSXGen.php": "49ef6a7ef7292a9c5a8a70bcb564a0536ceb34a339da043d2886831a008f663c"
+  }
+}

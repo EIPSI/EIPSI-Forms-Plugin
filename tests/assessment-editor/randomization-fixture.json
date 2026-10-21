@@ -1,0 +1,165 @@
+{
+  "contract": "EIPSI_ASSESSMENT_V1",
+  "id": "AE_RANDOM_PARITY",
+  "title": "Randomization parity",
+  "elements": [
+    {
+      "id": "EL_RANDOM_TEST",
+      "type": "randomization",
+      "response_key": null,
+      "properties": {
+        "label": "Randomización",
+        "mode": "select",
+        "count": 3,
+        "order": "random"
+      },
+      "options": [],
+      "children": [
+        {
+          "id": "EL_Q0",
+          "type": "text",
+          "response_key": "R_Q0",
+          "properties": {
+            "label_html": "<p>¿Cómo <strong>te sentís</strong>?</p>",
+            "helper_html": null,
+            "footer_html": "<p>Podés revisar tu respuesta.</p>",
+            "content_type": "free",
+            "display_mode": "single",
+            "placeholder": "",
+            "max_length": 2000,
+            "min_length": 0,
+            "label": "¿Cómo te sentís?",
+            "helper": "",
+            "required": true,
+            "variable_name": "text_1"
+          },
+          "options": [],
+          "children": []
+        },
+        {
+          "id": "EL_Q1",
+          "type": "text",
+          "response_key": "R_Q1",
+          "properties": {
+            "label_html": "<p>¿Cómo <strong>te sentís</strong>?</p>",
+            "helper_html": null,
+            "footer_html": "<p>Podés revisar tu respuesta.</p>",
+            "content_type": "free",
+            "display_mode": "single",
+            "placeholder": "",
+            "max_length": 2000,
+            "min_length": 0,
+            "label": "¿Cómo te sentís?",
+            "helper": "",
+            "required": true,
+            "variable_name": "text_2"
+          },
+          "options": [],
+          "children": []
+        },
+        {
+          "id": "EL_Q2",
+          "type": "text",
+          "response_key": "R_Q2",
+          "properties": {
+            "label_html": "<p>¿Cómo <strong>te sentís</strong>?</p>",
+            "helper_html": null,
+            "footer_html": "<p>Podés revisar tu respuesta.</p>",
+            "content_type": "free",
+            "display_mode": "single",
+            "placeholder": "",
+            "max_length": 2000,
+            "min_length": 0,
+            "label": "¿Cómo te sentís?",
+            "helper": "",
+            "required": true,
+            "variable_name": "text_3"
+          },
+          "options": [],
+          "children": []
+        },
+        {
+          "id": "EL_Q3",
+          "type": "text",
+          "response_key": "R_Q3",
+          "properties": {
+            "label_html": "<p>¿Cómo <strong>te sentís</strong>?</p>",
+            "helper_html": null,
+            "footer_html": "<p>Podés revisar tu respuesta.</p>",
+            "content_type": "free",
+            "display_mode": "single",
+            "placeholder": "",
+            "max_length": 2000,
+            "min_length": 0,
+            "label": "¿Cómo te sentís?",
+            "helper": "",
+            "required": true,
+            "variable_name": "text_4"
+          },
+          "options": [],
+          "children": []
+        },
+        {
+          "id": "EL_Q4",
+          "type": "text",
+          "response_key": "R_Q4",
+          "properties": {
+            "label_html": "<p>¿Cómo <strong>te sentís</strong>?</p>",
+            "helper_html": null,
+            "footer_html": "<p>Podés revisar tu respuesta.</p>",
+            "content_type": "free",
+            "display_mode": "single",
+            "placeholder": "",
+            "max_length": 2000,
+            "min_length": 0,
+            "label": "¿Cómo te sentís?",
+            "helper": "",
+            "required": true,
+            "variable_name": "text_5"
+          },
+          "options": [],
+          "children": []
+        }
+      ]
+    }
+  ],
+  "authoring": {
+    "variable_policy": "MATRIX_ORDINAL_V1",
+    "variable_next": {
+      "text": 4,
+      "date": 2,
+      "single": 1,
+      "multiple": 2,
+      "select": 2,
+      "likert": 2,
+      "vas": 2,
+      "matrix": 2
+    },
+    "legacy_row_variables": []
+  },
+  "flow": {
+    "pages": [],
+    "allow_back": true,
+    "progress": "both",
+    "completion": {
+      "title": "Gracias",
+      "message_html": "<p>Fin de la <strong>simulación</strong>.</p>",
+      "image_url": "",
+      "button_label": "Responder nuevamente",
+      "allow_restart": true
+    },
+    "save_continue": {
+      "enabled": true,
+      "window": {
+        "value": 10,
+        "unit": "minutes"
+      }
+    },
+    "metadata_profile": "detailed",
+    "navigation_labels": {
+      "back": "",
+      "next": "",
+      "finish": ""
+    }
+  }
+}

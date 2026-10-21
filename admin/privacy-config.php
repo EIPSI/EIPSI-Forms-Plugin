@@ -3,6 +3,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/privacy/bootstrap.php';
+
+
 /**
  * Obtiene defaults de privacidad
  * Browser/OS/Screen Width OFF por default (opcional)
@@ -200,3 +203,6 @@ function save_privacy_config($form_id, $config) {
 
     return update_option("eipsi_privacy_config_{$form_id}", $sanitized);
 }
+
+/** Remove disabled technical categories recursively before any persistence path. */
+function eipsi_filter_capture_data($value, $config) { return EIPSI_Privacy_Capture_Policy::eipsi_filter_capture_data($value, $config); }

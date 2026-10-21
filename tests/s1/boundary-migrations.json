@@ -1,0 +1,7 @@
+{
+  "includes/shortcodes.php": {
+    "before_s1_sha256": "42bc471df9bebdfe513c5f43afe9b8d57a9055bc2d9d9652fdc3f068ccefd65f",
+    "s1_sha256": "358f46f2ed8df857abafab95004f5aa1c472580ef043cabd7978949680c5fc0b",
+    "reason": "S1 canonical rendering/deadline guards and safe expiration snapshot"
+  }
+}

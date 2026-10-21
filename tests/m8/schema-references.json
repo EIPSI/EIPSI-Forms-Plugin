@@ -1,0 +1,4506 @@
+{
+  "eipsi_device_data": [
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3243
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 53
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 69
+    },
+    {
+      "file": "includes/forms/class-form-capture-service.php",
+      "line": 20
+    },
+    {
+      "file": "includes/forms/class-form-capture-service.php",
+      "line": 23
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 836
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1277
+    },
+    {
+      "file": "includes/storage/class-device-data-store.php",
+      "line": 31
+    },
+    {
+      "file": "includes/storage/class-device-data-store.php",
+      "line": 145
+    },
+    {
+      "file": "includes/storage/class-device-data-store.php",
+      "line": 161
+    },
+    {
+      "file": "includes/storage/class-device-data-store.php",
+      "line": 338
+    },
+    {
+      "file": "includes/storage/class-device-data-store.php",
+      "line": 360
+    },
+    {
+      "file": "includes/privacy/class-capture-policy.php",
+      "line": 15
+    },
+    {
+      "file": "includes/privacy/class-capture-policy.php",
+      "line": 37
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 41
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 76
+    }
+  ],
+  "eipsi_emergency_submissions": [
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 159
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 229
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 936
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1235
+    },
+    {
+      "file": "includes/storage/class-emergency-submission-store.php",
+      "line": 21
+    },
+    {
+      "file": "includes/storage/class-emergency-submission-store.php",
+      "line": 196
+    },
+    {
+      "file": "includes/storage/class-submission-storage-service.php",
+      "line": 93
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 41
+    }
+  ],
+  "eipsi_longitudinal_pools": [
+    {
+      "file": "admin/randomization-pools-page.php",
+      "line": 24
+    },
+    {
+      "file": "admin/randomization-pools-page.php",
+      "line": 62
+    },
+    {
+      "file": "admin/randomization-pools-page.php",
+      "line": 63
+    },
+    {
+      "file": "admin/randomization-pools-page.php",
+      "line": 271
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3240
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 50
+    },
+    {
+      "file": "admin/longitudinal-pool-dashboard.php",
+      "line": 24
+    },
+    {
+      "file": "admin/longitudinal-study-page.php",
+      "line": 61
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 66
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 46
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 294
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 441
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 492
+    },
+    {
+      "file": "includes/pools/class-pool-completion-service.php",
+      "line": 9
+    },
+    {
+      "file": "includes/pools/class-pool-analytics-service.php",
+      "line": 9
+    },
+    {
+      "file": "includes/pools/class-pool-dashboard-query-service.php",
+      "line": 50
+    },
+    {
+      "file": "includes/pools/class-pool-assignment-service.php",
+      "line": 9
+    },
+    {
+      "file": "includes/pools/class-pool-repository.php",
+      "line": 9
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 328
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 333
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 46
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 672
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1231
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 459
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 526
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 564
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 311
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 431
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 502
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 528
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 735
+    },
+    {
+      "file": "includes/pools/adapters/class-completion-adapter.php",
+      "line": 24
+    },
+    {
+      "file": "includes/pools/adapters/class-completion-adapter.php",
+      "line": 81
+    },
+    {
+      "file": "includes/pools/adapters/class-longitudinal-read-adapter.php",
+      "line": 9
+    },
+    {
+      "file": "includes/pools/adapters/class-rest-adapter.php",
+      "line": 161
+    },
+    {
+      "file": "includes/pools/adapters/class-shortcode-adapter.php",
+      "line": 255
+    },
+    {
+      "file": "includes/pools/adapters/class-block-adapter.php",
+      "line": 260
+    },
+    {
+      "file": "includes/pools/adapters/class-block-adapter.php",
+      "line": 397
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 291
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 541
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 585
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 774
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 822
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 950
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 601
+    }
+  ],
+  "eipsi_manual_overrides": [
+    {
+      "file": "admin/manual-overrides-table.php",
+      "line": 5
+    },
+    {
+      "file": "admin/manual-overrides-table.php",
+      "line": 16
+    },
+    {
+      "file": "admin/manual-overrides-table.php",
+      "line": 18
+    },
+    {
+      "file": "admin/manual-overrides-table.php",
+      "line": 26
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 115
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1206
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1279
+    },
+    {
+      "file": "includes/randomization/class-randomization-override-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/randomization/class-randomization-override-service.php",
+      "line": 52
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 1036
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 1149
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 1197
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 1242
+    }
+  ],
+  "eipsi_partial_responses": [
+    {
+      "file": "admin/partial-responses.php",
+      "line": 21
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1056
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1239
+    },
+    {
+      "file": "includes/storage/class-partial-response-store.php",
+      "line": 10
+    },
+    {
+      "file": "includes/storage/class-partial-response-store.php",
+      "line": 89
+    },
+    {
+      "file": "includes/storage/class-partial-response-store.php",
+      "line": 127
+    },
+    {
+      "file": "includes/storage/class-partial-response-store.php",
+      "line": 159
+    },
+    {
+      "file": "includes/storage/class-partial-response-store.php",
+      "line": 186
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 866
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 41
+    }
+  ],
+  "eipsi_pool_analytics": [
+    {
+      "file": "includes/pools/class-pool-completion-service.php",
+      "line": 11
+    },
+    {
+      "file": "includes/pools/class-pool-analytics-service.php",
+      "line": 11
+    },
+    {
+      "file": "includes/pools/class-pool-assignment-service.php",
+      "line": 11
+    },
+    {
+      "file": "includes/pools/class-pool-repository.php",
+      "line": 11
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 762
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1261
+    },
+    {
+      "file": "includes/pools/adapters/class-longitudinal-read-adapter.php",
+      "line": 11
+    }
+  ],
+  "eipsi_pool_assignments": [
+    {
+      "file": "admin/randomization-pools-page.php",
+      "line": 41
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3241
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3634
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 51
+    },
+    {
+      "file": "admin/longitudinal-study-page.php",
+      "line": 62
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 67
+    },
+    {
+      "file": "admin/tabs/pool-hub-v2.php",
+      "line": 1968
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 87
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 267
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 358
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 405
+    },
+    {
+      "file": "includes/pools/class-pool-service.php",
+      "line": 507
+    },
+    {
+      "file": "includes/pools/class-pool-completion-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/pools/class-pool-analytics-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/pools/class-pool-dashboard-query-service.php",
+      "line": 51
+    },
+    {
+      "file": "includes/pools/class-pool-assignment-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/pools/class-pool-repository.php",
+      "line": 10
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 44
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 46
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 48
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 50
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 714
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1273
+    },
+    {
+      "file": "includes/export/class-raw-export-service.php",
+      "line": 1004
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 446
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 523
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 559
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 42
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 83
+    },
+    {
+      "file": "includes/pools/adapters/class-completion-adapter.php",
+      "line": 23
+    },
+    {
+      "file": "includes/pools/adapters/class-longitudinal-read-adapter.php",
+      "line": 10
+    },
+    {
+      "file": "includes/pools/adapters/class-rest-adapter.php",
+      "line": 159
+    },
+    {
+      "file": "includes/pools/adapters/class-block-adapter.php",
+      "line": 289
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 292
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 586
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 750
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 927
+    }
+  ],
+  "eipsi_pool_email_log": [
+    {
+      "file": "admin/cron-handlers.php",
+      "line": 420
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 900
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1259
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 753
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 42
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 349
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 354
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 409
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 480
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 867
+    }
+  ],
+  "eipsi_randomization_assignments": [
+    {
+      "file": "admin/randomization-api.php",
+      "line": 111
+    },
+    {
+      "file": "admin/randomization-api.php",
+      "line": 252
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3231
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "line": 439
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 7
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 39
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 97
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 114
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 57
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 59
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 172
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 175
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 189
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 374
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 172
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1267
+    },
+    {
+      "file": "includes/randomization/class-randomization-assignment-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/randomization/class-randomization-assignment-service.php",
+      "line": 42
+    },
+    {
+      "file": "includes/randomization/class-randomization-assignment-service.php",
+      "line": 82
+    },
+    {
+      "file": "includes/randomization/class-randomization-assignment-service.php",
+      "line": 116
+    },
+    {
+      "file": "includes/randomization/class-randomization-assignment-service.php",
+      "line": 136
+    },
+    {
+      "file": "includes/randomization/class-randomization-repository.php",
+      "line": 95
+    },
+    {
+      "file": "includes/randomization/class-randomization-repository.php",
+      "line": 115
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1058
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 42
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 79
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 141
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 186
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 280
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 412
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 472
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 504
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 667
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 679
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 758
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 787
+    },
+    {
+      "file": "includes/storage/external/class-external-schema-adapter.php",
+      "line": 28
+    }
+  ],
+  "eipsi_randomization_configs": [
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3230
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "line": 437
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 6
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 28
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 113
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 56
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 134
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1227
+    },
+    {
+      "file": "includes/randomization/class-randomization-repository.php",
+      "line": 10
+    },
+    {
+      "file": "includes/randomization/class-randomization-repository.php",
+      "line": 64
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1057
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 17
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 185
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 411
+    },
+    {
+      "file": "includes/randomization/adapters/class-admin-adapter.php",
+      "line": 757
+    },
+    {
+      "file": "includes/storage/external/class-external-schema-adapter.php",
+      "line": 26
+    }
+  ],
+  "survey_assignments": [
+    {
+      "file": "admin/configuration.php",
+      "line": 339
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 182
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 218
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 547
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 566
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 2155
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3236
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3474
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3561
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3652
+    },
+    {
+      "file": "admin/ajax-t1-anchor-handlers.php",
+      "line": 265
+    },
+    {
+      "file": "admin/ajax-handlers-wizard.php",
+      "line": 362
+    },
+    {
+      "file": "admin/ajax-handlers-wizard.php",
+      "line": 367
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 40
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 117
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 169
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 256
+    },
+    {
+      "file": "admin/ajax-wave-state-checker.php",
+      "line": 52
+    },
+    {
+      "file": "admin/ajax-wave-state-checker.php",
+      "line": 85
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 61
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 70
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 72
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 83
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 273
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 41
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 52
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 95
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 111
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 151
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 104
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 135
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 160
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 361
+    },
+    {
+      "file": "admin/services/class-participant-service.php",
+      "line": 179
+    },
+    {
+      "file": "admin/services/class-wave-eligibility-service.php",
+      "line": 52
+    },
+    {
+      "file": "admin/services/class-wave-eligibility-service.php",
+      "line": 108
+    },
+    {
+      "file": "admin/services/class-wave-eligibility-service.php",
+      "line": 123
+    },
+    {
+      "file": "admin/services/class-t1-anchor-service.php",
+      "line": 72
+    },
+    {
+      "file": "admin/services/class-assignment-service.php",
+      "line": 89
+    },
+    {
+      "file": "admin/services/class-assignment-service.php",
+      "line": 103
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 135
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 378
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 62
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 51
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 68
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 706
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 952
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 970
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 1005
+    },
+    {
+      "file": "includes/class-survey-access-handler.php",
+      "line": 20
+    },
+    {
+      "file": "includes/class-survey-access-handler.php",
+      "line": 473
+    },
+    {
+      "file": "includes/class-survey-access-handler.php",
+      "line": 483
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 28
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 30
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 32
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 34
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 40
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 429
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1269
+    },
+    {
+      "file": "includes/services/class-assignment-state-logger.php",
+      "line": 46
+    },
+    {
+      "file": "includes/services/class-assignment-state-logger.php",
+      "line": 111
+    },
+    {
+      "file": "includes/services/class-participant-dashboard-data.php",
+      "line": 45
+    },
+    {
+      "file": "includes/longitudinal/class-longitudinal-submission-service.php",
+      "line": 64
+    },
+    {
+      "file": "includes/longitudinal/class-longitudinal-submission-service.php",
+      "line": 92
+    },
+    {
+      "file": "includes/templates/longitudinal-study-display.php",
+      "line": 74
+    },
+    {
+      "file": "includes/templates/longitudinal-study-display.php",
+      "line": 116
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1065
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1182
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 42
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 245
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 365
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 383
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 403
+    },
+    {
+      "file": "includes/export/class-personal-export-query-service.php",
+      "line": 11
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 243
+    },
+    {
+      "file": "includes/auth/class-authorization-policy.php",
+      "line": 113
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 39
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 65
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 83
+    },
+    {
+      "file": "includes/privacy/class-anonymization-service.php",
+      "line": 192
+    },
+    {
+      "file": "includes/pools/adapters/class-longitudinal-read-adapter.php",
+      "line": 38
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 82
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 87
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 92
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 147
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 165
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 179
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 301
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 335
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 415
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 432
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 48
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 78
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 90
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 112
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 150
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 197
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 212
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 247
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 266
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 284
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 310
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 323
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 175
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 185
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 198
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 208
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 330
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 356
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 374
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 429
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 490
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 509
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 12
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 94
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 199
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 229
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 15
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 58
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 104
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 136
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 148
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 162
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-expiration-service.php",
+      "line": 31
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-expiration-service.php",
+      "line": 224
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 21
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 37
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 50
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 68
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 94
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 108
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 134
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 146
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 173
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 228
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 277
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 287
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 300
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 339
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 389
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 406
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 458
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 511
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-service.php",
+      "line": 91
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-service.php",
+      "line": 104
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 88
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 176
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 274
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 463
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 515
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 61
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 80
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 180
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 202
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 210
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 263
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 280
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 220
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 290
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 307
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 336
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 588
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 366
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 733
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 1012
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 1030
+    },
+    {
+      "file": "includes/notifications/reminders/class-dropout-recovery-service.php",
+      "line": 36
+    },
+    {
+      "file": "includes/notifications/reminders/class-dropout-recovery-service.php",
+      "line": 45
+    },
+    {
+      "file": "includes/notifications/reminders/class-dropout-recovery-service.php",
+      "line": 91
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 357
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 510
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 644
+    },
+    {
+      "file": "includes/notifications/reminders/class-weekly-t1-reminder-service.php",
+      "line": 26
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 164
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 189
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 192
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 238
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 241
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 443
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 11
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 18
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 46
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 199
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 227
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 312
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 475
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-policy-service.php",
+      "line": 315
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 71
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 138
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 158
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 200
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 230
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 268
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 277
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 296
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 348
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 446
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 590
+    },
+    {
+      "file": "includes/notifications/adapters/class-longitudinal-notification-adapter.php",
+      "line": 56
+    },
+    {
+      "file": "includes/notifications/adapters/class-notification-cron-adapters.php",
+      "line": 13
+    }
+  ],
+  "survey_audit_log": [
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3239
+    },
+    {
+      "file": "admin/monitoring.php",
+      "line": 213
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 46
+    },
+    {
+      "file": "admin/services/class-anonymize-service.php",
+      "line": 131
+    },
+    {
+      "file": "admin/services/class-anonymize-service.php",
+      "line": 136
+    },
+    {
+      "file": "admin/config/longitudinal-config.php",
+      "line": 288
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 65
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 582
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1233
+    },
+    {
+      "file": "includes/services/class-wave-recalculator.php",
+      "line": 22
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1068
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1185
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 40
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 82
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 133
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 138
+    },
+    {
+      "file": "includes/privacy/class-anonymization-service.php",
+      "line": 115
+    },
+    {
+      "file": "includes/privacy/class-anonymization-service.php",
+      "line": 147
+    },
+    {
+      "file": "includes/privacy/class-anonymization-service.php",
+      "line": 157
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 13
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 133
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-expiration-service.php",
+      "line": 110
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 424
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 206
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 158
+    }
+  ],
+  "survey_cron_log": [
+    {
+      "file": "admin/services/class-cron-health-service.php",
+      "line": 207
+    },
+    {
+      "file": "admin/services/class-cron-health-service.php",
+      "line": 228
+    },
+    {
+      "file": "admin/services/class-cron-health-service.php",
+      "line": 240
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1100
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1241
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-expiration-service.php",
+      "line": 140
+    }
+  ],
+  "survey_data_requests": [
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1154
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1279
+    },
+    {
+      "file": "includes/export/class-download-authorization-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 49
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 64
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 123
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 137
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 159
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 179
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 203
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 233
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 254
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 304
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 324
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 40
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 84
+    }
+  ],
+  "survey_email_confirmations": [
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 47
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 2025
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 55
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 125
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 176
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 231
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 253
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 288
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 335
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 630
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1257
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 39
+    }
+  ],
+  "survey_email_log": [
+    {
+      "file": "admin/configuration.php",
+      "line": 343
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3238
+    },
+    {
+      "file": "admin/monitoring.php",
+      "line": 40
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 45
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 392
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 1268
+    },
+    {
+      "file": "admin/cron-reminders-handler.php",
+      "line": 228
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 55
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 90
+    },
+    {
+      "file": "admin/services/class-participant-service.php",
+      "line": 290
+    },
+    {
+      "file": "admin/services/class-failed-email-alerts-service.php",
+      "line": 30
+    },
+    {
+      "file": "admin/services/class-failed-email-alerts-service.php",
+      "line": 173
+    },
+    {
+      "file": "admin/services/class-failed-email-alerts-service.php",
+      "line": 224
+    },
+    {
+      "file": "admin/services/class-failed-email-alerts-service.php",
+      "line": 260
+    },
+    {
+      "file": "admin/services/class-failed-email-alerts-service.php",
+      "line": 327
+    },
+    {
+      "file": "admin/services/class-failed-email-alerts-service.php",
+      "line": 394
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 82
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 28
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 33
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 38
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 43
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 47
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 51
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 65
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 69
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 74
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 78
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 93
+    },
+    {
+      "file": "admin/tabs/email-log-tab.php",
+      "line": 98
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 64
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 272
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 282
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 378
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 533
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1255
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1067
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1184
+    },
+    {
+      "file": "includes/export/class-personal-export-query-service.php",
+      "line": 12
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 304
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 40
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 82
+    },
+    {
+      "file": "includes/pools/adapters/class-completion-adapter.php",
+      "line": 159
+    },
+    {
+      "file": "includes/pools/adapters/class-completion-adapter.php",
+      "line": 162
+    },
+    {
+      "file": "includes/pools/adapters/class-completion-adapter.php",
+      "line": 168
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 289
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 294
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 299
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 175
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 140
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 534
+    },
+    {
+      "file": "includes/notifications/email/class-email-log-service.php",
+      "line": 9
+    },
+    {
+      "file": "includes/notifications/email/class-email-log-service.php",
+      "line": 69
+    },
+    {
+      "file": "includes/notifications/email/class-email-log-service.php",
+      "line": 80
+    },
+    {
+      "file": "includes/notifications/email/class-email-log-service.php",
+      "line": 159
+    },
+    {
+      "file": "includes/notifications/email/class-email-log-service.php",
+      "line": 176
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 378
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 525
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 657
+    }
+  ],
+  "survey_magic_links": [
+    {
+      "file": "admin/configuration.php",
+      "line": 326
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 573
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3237
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 44
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 1234
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 73
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 98
+    },
+    {
+      "file": "admin/services/class-participant-service.php",
+      "line": 200
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 63
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 272
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 282
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 497
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1253
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1066
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1183
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 62
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 85
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 120
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 176
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 205
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 216
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 305
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 39
+    },
+    {
+      "file": "includes/privacy/class-anonymization-service.php",
+      "line": 49
+    },
+    {
+      "file": "includes/privacy/class-anonymization-service.php",
+      "line": 71
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 161
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 659
+    }
+  ],
+  "survey_nudge_jobs": [
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1008
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1237
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 41
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 78
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-queue-service.php",
+      "line": 19
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-queue-service.php",
+      "line": 308
+    }
+  ],
+  "survey_participant_access_log": [
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3242
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 52
+    },
+    {
+      "file": "admin/services/class-participant-access-log-service.php",
+      "line": 67
+    },
+    {
+      "file": "admin/services/class-participant-access-log-service.php",
+      "line": 105
+    },
+    {
+      "file": "admin/services/class-participant-access-log-service.php",
+      "line": 146
+    },
+    {
+      "file": "admin/services/class-participant-access-log-service.php",
+      "line": 170
+    },
+    {
+      "file": "admin/services/class-participant-access-log-service.php",
+      "line": 195
+    },
+    {
+      "file": "admin/services/class-participant-access-log-service.php",
+      "line": 250
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 103
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 68
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 794
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1275
+    },
+    {
+      "file": "includes/export/class-access-log-export-query-service.php",
+      "line": 7
+    },
+    {
+      "file": "includes/export/class-access-log-export-query-service.php",
+      "line": 82
+    },
+    {
+      "file": "includes/export/class-personal-export-query-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 40
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 82
+    }
+  ],
+  "survey_participants": [
+    {
+      "file": "admin/configuration.php",
+      "line": 320
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 206
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 214
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 418
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 479
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 587
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 2068
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 2111
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3233
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3473
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3560
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3619
+    },
+    {
+      "file": "admin/ajax-t1-anchor-handlers.php",
+      "line": 235
+    },
+    {
+      "file": "admin/ajax-t1-anchor-handlers.php",
+      "line": 236
+    },
+    {
+      "file": "admin/ajax-handlers-wizard.php",
+      "line": 357
+    },
+    {
+      "file": "admin/ajax-handlers-wizard.php",
+      "line": 372
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 42
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 118
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 170
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 999
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 1779
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 2024
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 85
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 76
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 60
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 80
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 86
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 100
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 107
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 154
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 233
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 238
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 152
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 66
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 73
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 77
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 141
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 156
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 360
+    },
+    {
+      "file": "admin/services/class-participant-access-log-service.php",
+      "line": 175
+    },
+    {
+      "file": "admin/services/class-magic-links-service.php",
+      "line": 26
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 275
+    },
+    {
+      "file": "admin/services/class-email-confirmation-service.php",
+      "line": 336
+    },
+    {
+      "file": "admin/services/class-participant-service.php",
+      "line": 32
+    },
+    {
+      "file": "admin/services/class-participant-service.php",
+      "line": 69
+    },
+    {
+      "file": "admin/services/class-failed-email-alerts-service.php",
+      "line": 31
+    },
+    {
+      "file": "admin/services/class-failed-email-alerts-service.php",
+      "line": 418
+    },
+    {
+      "file": "admin/services/class-assignment-service.php",
+      "line": 175
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 37
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 353
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 59
+    },
+    {
+      "file": "admin/tabs/longitudinal-studies-tab.php",
+      "line": 203
+    },
+    {
+      "file": "includes/form-template-render.php",
+      "line": 113
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 1214
+    },
+    {
+      "file": "includes/participants/class-participant-state-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/participants/class-participant-state-service.php",
+      "line": 24
+    },
+    {
+      "file": "includes/participants/class-participant-password-service.php",
+      "line": 51
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 13
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 24
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 34
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 49
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 94
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 98
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 107
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 117
+    },
+    {
+      "file": "includes/participants/class-participant-registration-service.php",
+      "line": 48
+    },
+    {
+      "file": "includes/participants/class-participant-registration-service.php",
+      "line": 59
+    },
+    {
+      "file": "includes/participants/class-participant-registration-service.php",
+      "line": 139
+    },
+    {
+      "file": "includes/participants/class-participant-registration-service.php",
+      "line": 150
+    },
+    {
+      "file": "includes/participants/class-participant-registration-service.php",
+      "line": 205
+    },
+    {
+      "file": "includes/pools/class-pool-dashboard-query-service.php",
+      "line": 53
+    },
+    {
+      "file": "includes/pools/class-pool-repository.php",
+      "line": 97
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 254
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 298
+    },
+    {
+      "file": "includes/forms/class-form-consent-service.php",
+      "line": 38
+    },
+    {
+      "file": "includes/forms/class-form-consent-service.php",
+      "line": 39
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 34
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 48
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 258
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 722
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1203
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1247
+    },
+    {
+      "file": "includes/templates/participant-celebration-modal.php",
+      "line": 51
+    },
+    {
+      "file": "includes/storage/class-submission-storage-service.php",
+      "line": 59
+    },
+    {
+      "file": "includes/storage/class-submission-storage-service.php",
+      "line": 127
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1062
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1179
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 39
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 97
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 343
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 348
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 399
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 524
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 560
+    },
+    {
+      "file": "includes/export/class-access-log-export-query-service.php",
+      "line": 8
+    },
+    {
+      "file": "includes/export/class-access-log-export-query-service.php",
+      "line": 83
+    },
+    {
+      "file": "includes/export/class-personal-export-query-service.php",
+      "line": 7
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 734
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 961
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 976
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 21
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 284
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 36
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 124
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 351
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 373
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 34
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 39
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 72
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 117
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 125
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 129
+    },
+    {
+      "file": "includes/privacy/class-anonymization-service.php",
+      "line": 14
+    },
+    {
+      "file": "includes/pools/adapters/class-completion-adapter.php",
+      "line": 107
+    },
+    {
+      "file": "includes/pools/adapters/class-rest-adapter.php",
+      "line": 22
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 130
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 587
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 811
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 73
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 77
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 97
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 37
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 113
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 338
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 385
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-service.php",
+      "line": 31
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 63
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 107
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 258
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 370
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 382
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 404
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 417
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 462
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 506
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 126
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 527
+    },
+    {
+      "file": "includes/notifications/email/class-email-log-service.php",
+      "line": 64
+    },
+    {
+      "file": "includes/notifications/email/class-email-log-service.php",
+      "line": 81
+    },
+    {
+      "file": "includes/notifications/email/class-email-log-service.php",
+      "line": 168
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 559
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 1029
+    },
+    {
+      "file": "includes/notifications/reminders/class-dropout-recovery-service.php",
+      "line": 38
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 356
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 393
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 509
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 539
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 643
+    },
+    {
+      "file": "includes/notifications/reminders/class-weekly-t1-reminder-service.php",
+      "line": 27
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 166
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 194
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 243
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 48
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 98
+    },
+    {
+      "file": "includes/notifications/adapters/class-notification-cron-adapters.php",
+      "line": 40
+    }
+  ],
+  "survey_sessions": [
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 580
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3234
+    },
+    {
+      "file": "admin/monitoring.php",
+      "line": 139
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 43
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 79
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 94
+    },
+    {
+      "file": "admin/services/class-participant-service.php",
+      "line": 218
+    },
+    {
+      "file": "admin/services/class-auth-service.php",
+      "line": 95
+    },
+    {
+      "file": "admin/services/class-auth-service.php",
+      "line": 111
+    },
+    {
+      "file": "admin/services/class-auth-service.php",
+      "line": 161
+    },
+    {
+      "file": "admin/config/longitudinal-config.php",
+      "line": 58
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 60
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 323
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1251
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1063
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1180
+    },
+    {
+      "file": "includes/auth/class-session-service.php",
+      "line": 15
+    },
+    {
+      "file": "includes/auth/class-session-service.php",
+      "line": 53
+    },
+    {
+      "file": "includes/auth/class-session-service.php",
+      "line": 54
+    },
+    {
+      "file": "includes/auth/class-session-service.php",
+      "line": 152
+    },
+    {
+      "file": "includes/auth/class-session-service.php",
+      "line": 189
+    },
+    {
+      "file": "includes/auth/class-session-service.php",
+      "line": 215
+    },
+    {
+      "file": "includes/auth/class-session-service.php",
+      "line": 281
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 39
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 48
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 139
+    }
+  ],
+  "survey_studies": [
+    {
+      "file": "admin/configuration.php",
+      "line": 314
+    },
+    {
+      "file": "admin/randomization-pools-page.php",
+      "line": 25
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 2223
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3129
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3232
+    },
+    {
+      "file": "admin/ajax-t1-anchor-handlers.php",
+      "line": 246
+    },
+    {
+      "file": "admin/ajax-t1-anchor-handlers.php",
+      "line": 247
+    },
+    {
+      "file": "admin/ajax-handlers-wizard.php",
+      "line": 352
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 41
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 613
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 1403
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 2100
+    },
+    {
+      "file": "admin/cron-reminders-handler.php",
+      "line": 115
+    },
+    {
+      "file": "admin/cron-reminders-handler.php",
+      "line": 132
+    },
+    {
+      "file": "admin/cron-reminders-handler.php",
+      "line": 174
+    },
+    {
+      "file": "admin/wizard-validators.php",
+      "line": 92
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 5
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 30
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 44
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 91
+    },
+    {
+      "file": "admin/setup-wizard.php",
+      "line": 257
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 51
+    },
+    {
+      "file": "admin/services/class-magic-links-service.php",
+      "line": 25
+    },
+    {
+      "file": "admin/services/class-participant-auth-handler.php",
+      "line": 127
+    },
+    {
+      "file": "admin/services/class-participant-auth-handler.php",
+      "line": 255
+    },
+    {
+      "file": "admin/services/class-participant-auth-handler.php",
+      "line": 291
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 38
+    },
+    {
+      "file": "admin/tabs/export-tab.php",
+      "line": 22
+    },
+    {
+      "file": "admin/tabs/waves-manager-tab.php",
+      "line": 15
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 58
+    },
+    {
+      "file": "admin/tabs/longitudinal-studies-tab.php",
+      "line": 55
+    },
+    {
+      "file": "admin/tabs/longitudinal-studies-tab.php",
+      "line": 63
+    },
+    {
+      "file": "admin/tabs/longitudinal-studies-tab.php",
+      "line": 67
+    },
+    {
+      "file": "admin/tabs/longitudinal-studies-tab.php",
+      "line": 68
+    },
+    {
+      "file": "admin/tabs/longitudinal-studies-tab.php",
+      "line": 69
+    },
+    {
+      "file": "admin/tabs/pool-hub-v2.php",
+      "line": 30
+    },
+    {
+      "file": "admin/tabs/cron-reminders-tab.php",
+      "line": 14
+    },
+    {
+      "file": "admin/tabs/cron-reminders-tab.php",
+      "line": 18
+    },
+    {
+      "file": "admin/tabs/cron-reminders-tab.php",
+      "line": 44
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 107
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 200
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 211
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 925
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 930
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 1116
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 1129
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 1346
+    },
+    {
+      "file": "includes/class-survey-access-handler.php",
+      "line": 233
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 102
+    },
+    {
+      "file": "includes/participants/class-participant-repository.php",
+      "line": 111
+    },
+    {
+      "file": "includes/pools/class-pool-dashboard-query-service.php",
+      "line": 52
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 223
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 240
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 24
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 30
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 50
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 214
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1204
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1205
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1229
+    },
+    {
+      "file": "includes/templates/participant-celebration-modal.php",
+      "line": 31
+    },
+    {
+      "file": "includes/templates/login-gate.php",
+      "line": 34
+    },
+    {
+      "file": "includes/templates/participant-welcome-message.php",
+      "line": 27
+    },
+    {
+      "file": "includes/templates/survey-login-form.php",
+      "line": 39
+    },
+    {
+      "file": "includes/templates/survey-login-form.php",
+      "line": 245
+    },
+    {
+      "file": "includes/bootstrap/class-lifecycle.php",
+      "line": 40
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1061
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1178
+    },
+    {
+      "file": "includes/export/class-raw-export-service.php",
+      "line": 995
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 525
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 561
+    },
+    {
+      "file": "includes/export/class-access-log-export-query-service.php",
+      "line": 9
+    },
+    {
+      "file": "includes/export/class-access-log-export-query-service.php",
+      "line": 84
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 48
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 49
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 51
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 56
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 302
+    },
+    {
+      "file": "includes/privacy/class-data-request-service.php",
+      "line": 125
+    },
+    {
+      "file": "includes/privacy/class-anonymization-service.php",
+      "line": 183
+    },
+    {
+      "file": "includes/pools/adapters/class-completion-adapter.php",
+      "line": 117
+    },
+    {
+      "file": "includes/pools/adapters/class-longitudinal-read-adapter.php",
+      "line": 17
+    },
+    {
+      "file": "includes/pools/adapters/class-longitudinal-read-adapter.php",
+      "line": 75
+    },
+    {
+      "file": "includes/pools/adapters/class-rest-adapter.php",
+      "line": 21
+    },
+    {
+      "file": "includes/pools/adapters/class-rest-adapter.php",
+      "line": 160
+    },
+    {
+      "file": "includes/pools/adapters/class-block-adapter.php",
+      "line": 929
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 331
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 588
+    },
+    {
+      "file": "includes/pools/adapters/class-ajax-adapter.php",
+      "line": 751
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 10
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 29
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 322
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-service.php",
+      "line": 30
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-config-service.php",
+      "line": 95
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-config-service.php",
+      "line": 158
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-repository.php",
+      "line": 7
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-repository.php",
+      "line": 9
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-repository.php",
+      "line": 10
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-repository.php",
+      "line": 16
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 44
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 416
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 504
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 129
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 32
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 383
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 69
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 579
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 581
+    },
+    {
+      "file": "includes/notifications/reminders/class-dropout-recovery-service.php",
+      "line": 14
+    },
+    {
+      "file": "includes/notifications/reminders/class-weekly-t1-reminder-service.php",
+      "line": 28
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 93
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 99
+    }
+  ],
+  "survey_waves": [
+    {
+      "file": "admin/configuration.php",
+      "line": 335
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 310
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 384
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 819
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 867
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 887
+    },
+    {
+      "file": "admin/waves-manager-api.php",
+      "line": 933
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 2154
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3235
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3445
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3459
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3512
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3536
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3653
+    },
+    {
+      "file": "admin/ajax-t1-anchor-handlers.php",
+      "line": 224
+    },
+    {
+      "file": "admin/ajax-t1-anchor-handlers.php",
+      "line": 225
+    },
+    {
+      "file": "admin/ajax-t1-anchor-handlers.php",
+      "line": 266
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 7
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 39
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 149
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 239
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 600
+    },
+    {
+      "file": "admin/study-dashboard-api.php",
+      "line": 727
+    },
+    {
+      "file": "admin/database-schema-manager.php",
+      "line": 135
+    },
+    {
+      "file": "admin/ajax-export-handlers.php",
+      "line": 145
+    },
+    {
+      "file": "admin/ajax-export-handlers.php",
+      "line": 180
+    },
+    {
+      "file": "admin/ajax-wave-state-checker.php",
+      "line": 40
+    },
+    {
+      "file": "admin/ajax-wave-state-checker.php",
+      "line": 84
+    },
+    {
+      "file": "admin/delete-study-handler.php",
+      "line": 67
+    },
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 274
+    },
+    {
+      "file": "admin/data-safety-system.php",
+      "line": 137
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 42
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 53
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 96
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 110
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 114
+    },
+    {
+      "file": "admin/diagnostic-frontend-backend-sync.php",
+      "line": 153
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 84
+    },
+    {
+      "file": "admin/services/class-completion-verification-service.php",
+      "line": 362
+    },
+    {
+      "file": "admin/services/class-participant-service.php",
+      "line": 180
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "line": 101
+    },
+    {
+      "file": "admin/services/class-wave-eligibility-service.php",
+      "line": 34
+    },
+    {
+      "file": "admin/services/class-wave-eligibility-service.php",
+      "line": 53
+    },
+    {
+      "file": "admin/services/class-wave-eligibility-service.php",
+      "line": 83
+    },
+    {
+      "file": "admin/services/class-wave-eligibility-service.php",
+      "line": 109
+    },
+    {
+      "file": "admin/services/class-wave-eligibility-service.php",
+      "line": 124
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 134
+    },
+    {
+      "file": "admin/services/class-participant-timeline-service.php",
+      "line": 365
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 61
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 52
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 101
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 686
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 944
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 952
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 959
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 1195
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 1204
+    },
+    {
+      "file": "includes/class-survey-access-handler.php",
+      "line": 484
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 222
+    },
+    {
+      "file": "includes/migrations/class-migration-runner.php",
+      "line": 229
+    },
+    {
+      "file": "includes/forms/class-form-renderer.php",
+      "line": 64
+    },
+    {
+      "file": "includes/forms/class-form-renderer.php",
+      "line": 86
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 22
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 24
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 32
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 359
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1249
+    },
+    {
+      "file": "includes/services/class-assignment-state-logger.php",
+      "line": 47
+    },
+    {
+      "file": "includes/services/class-assignment-state-logger.php",
+      "line": 112
+    },
+    {
+      "file": "includes/services/class-participant-dashboard-data.php",
+      "line": 46
+    },
+    {
+      "file": "includes/longitudinal/class-longitudinal-submission-service.php",
+      "line": 143
+    },
+    {
+      "file": "includes/templates/participant-celebration-modal.php",
+      "line": 41
+    },
+    {
+      "file": "includes/templates/longitudinal-study-display.php",
+      "line": 75
+    },
+    {
+      "file": "includes/templates/participant-welcome-message.php",
+      "line": 38
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1064
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1181
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 40
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 113
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 355
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 425
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 430
+    },
+    {
+      "file": "includes/export/class-personal-export-query-service.php",
+      "line": 11
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 942
+    },
+    {
+      "file": "includes/compatibility/legacy-main-callbacks.php",
+      "line": 944
+    },
+    {
+      "file": "includes/auth/class-magic-link-service.php",
+      "line": 265
+    },
+    {
+      "file": "includes/auth/class-authorization-policy.php",
+      "line": 62
+    },
+    {
+      "file": "includes/auth/class-authorization-policy.php",
+      "line": 105
+    },
+    {
+      "file": "includes/auth/class-authorization-policy.php",
+      "line": 113
+    },
+    {
+      "file": "includes/pools/adapters/class-longitudinal-read-adapter.php",
+      "line": 37
+    },
+    {
+      "file": "includes/pools/adapters/class-rest-adapter.php",
+      "line": 23
+    },
+    {
+      "file": "includes/longitudinal/studies/class-study-dashboard-service.php",
+      "line": 105
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 23
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 117
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 139
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 149
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 276
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 346
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 475
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 484
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 543
+    },
+    {
+      "file": "includes/longitudinal/waves/class-wave-definition-service.php",
+      "line": 556
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 20
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 91
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 114
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 217
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 252
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 311
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 328
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-repository.php",
+      "line": 333
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 18
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 34
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 100
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 113
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 133
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 162
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 235
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 247
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 269
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 282
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 300
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 309
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 375
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 404
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 458
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 486
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-deadline-service.php",
+      "line": 500
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 20
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 95
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-lifecycle-service.php",
+      "line": 230
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 17
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 77
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 87
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-notification-context-service.php",
+      "line": 106
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-expiration-service.php",
+      "line": 32
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 329
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-transition-service.php",
+      "line": 390
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-service.php",
+      "line": 42
+    },
+    {
+      "file": "includes/longitudinal/assignments/class-assignment-service.php",
+      "line": 60
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 39
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 89
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 117
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 275
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 435
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-anchor-service.php",
+      "line": 464
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 20
+    },
+    {
+      "file": "includes/longitudinal/t1/class-t1-recalculation-service.php",
+      "line": 179
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 351
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 474
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 526
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 712
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 801
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 1001
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 1013
+    },
+    {
+      "file": "includes/notifications/reminders/class-dropout-recovery-service.php",
+      "line": 37
+    },
+    {
+      "file": "includes/notifications/reminders/class-legacy-reminder-service.php",
+      "line": 629
+    },
+    {
+      "file": "includes/notifications/reminders/class-weekly-t1-reminder-service.php",
+      "line": 29
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 165
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 193
+    },
+    {
+      "file": "includes/notifications/reminders/class-reminder-service.php",
+      "line": 242
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 12
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 18
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 47
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 228
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 380
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-schedule-service.php",
+      "line": 475
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-policy-service.php",
+      "line": 334
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 72
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 231
+    },
+    {
+      "file": "includes/notifications/nudges/class-nudge-worker-service.php",
+      "line": 349
+    },
+    {
+      "file": "includes/notifications/adapters/class-notification-cron-adapters.php",
+      "line": 35
+    }
+  ],
+  "survey_weekly_reminders": [
+    {
+      "file": "admin/testing-helpers.php",
+      "line": 80
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 38
+    },
+    {
+      "file": "includes/schema/class-schema-installer.php",
+      "line": 40
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1126
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1271
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 41
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 77
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 83
+    },
+    {
+      "file": "includes/notifications/reminders/class-weekly-t1-reminder-service.php",
+      "line": 67
+    },
+    {
+      "file": "includes/notifications/reminders/class-weekly-t1-reminder-service.php",
+      "line": 83
+    },
+    {
+      "file": "includes/notifications/reminders/class-weekly-t1-reminder-service.php",
+      "line": 176
+    }
+  ],
+  "vas_form_events": [
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3229
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 49
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 55
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 94
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1225
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 240
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 241
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 662
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 790
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 920
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 929
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1056
+    },
+    {
+      "file": "includes/storage/class-event-store.php",
+      "line": 15
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 40
+    },
+    {
+      "file": "includes/storage/external/class-external-schema-adapter.php",
+      "line": 24
+    }
+  ],
+  "vas_form_results": [
+    {
+      "file": "admin/randomization-api.php",
+      "line": 238
+    },
+    {
+      "file": "admin/randomization-api.php",
+      "line": 253
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 1040
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 1055
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 2290
+    },
+    {
+      "file": "admin/ajax-handlers.php",
+      "line": 3228
+    },
+    {
+      "file": "admin/privacy-dashboard.php",
+      "line": 75
+    },
+    {
+      "file": "admin/database-schema-repair.php",
+      "line": 48
+    },
+    {
+      "file": "admin/form-library.php",
+      "line": 141
+    },
+    {
+      "file": "admin/form-library.php",
+      "line": 167
+    },
+    {
+      "file": "admin/handlers.php",
+      "line": 56
+    },
+    {
+      "file": "admin/handlers.php",
+      "line": 78
+    },
+    {
+      "file": "admin/handlers.php",
+      "line": 88
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 96
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 200
+    },
+    {
+      "file": "admin/randomization-db-setup.php",
+      "line": 201
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 54
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 173
+    },
+    {
+      "file": "admin/tabs/schema-status-tab.php",
+      "line": 200
+    },
+    {
+      "file": "admin/tabs/submissions-tab.php",
+      "line": 13
+    },
+    {
+      "file": "includes/shortcodes.php",
+      "line": 707
+    },
+    {
+      "file": "includes/forms/class-form-context.php",
+      "line": 20
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 10
+    },
+    {
+      "file": "includes/schema/class-schema-registry.php",
+      "line": 1223
+    },
+    {
+      "file": "includes/randomization/class-randomization-repository.php",
+      "line": 114
+    },
+    {
+      "file": "includes/randomization/class-randomization-repository.php",
+      "line": 163
+    },
+    {
+      "file": "includes/storage/class-submission-storage-service.php",
+      "line": 106
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 216
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 217
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 257
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 261
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 289
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 426
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 750
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 920
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 928
+    },
+    {
+      "file": "includes/storage/class-external-submission-store.php",
+      "line": 1055
+    },
+    {
+      "file": "includes/storage/class-local-submission-store.php",
+      "line": 12
+    },
+    {
+      "file": "includes/storage/class-device-data-store.php",
+      "line": 27
+    },
+    {
+      "file": "includes/storage/class-submission-verification-service.php",
+      "line": 17
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 41
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 131
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 138
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 445
+    },
+    {
+      "file": "includes/export/class-export-query-service.php",
+      "line": 474
+    },
+    {
+      "file": "includes/export/class-personal-export-query-service.php",
+      "line": 13
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 40
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 50
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 56
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 59
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 82
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 94
+    },
+    {
+      "file": "includes/privacy/class-data-cleanup-service.php",
+      "line": 95
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 203
+    },
+    {
+      "file": "includes/notifications/email/class-wave-availability-service.php",
+      "line": 205
+    },
+    {
+      "file": "includes/notifications/email/class-email-message-service.php",
+      "line": 1031
+    },
+    {
+      "file": "includes/storage/external/class-external-schema-adapter.php",
+      "line": 22
+    },
+    {
+      "file": "includes/storage/external/class-external-schema-adapter.php",
+      "line": 110
+    }
+  ]
+}

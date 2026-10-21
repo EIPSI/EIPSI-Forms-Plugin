@@ -9,11 +9,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/longitudinal/bootstrap.php';
+
 /**
  * Register AJAX handlers
  */
-add_action('wp_ajax_eipsi_test_no_nonce', 'wp_ajax_eipsi_test_no_nonce_handler');
-add_action('wp_ajax_eipsi_test_deadline', 'wp_ajax_eipsi_test_deadline_handler');
 add_action('wp_ajax_eipsi_get_study_overview', 'wp_ajax_eipsi_get_study_overview_handler');
 add_action('wp_ajax_eipsi_get_wave_details', 'wp_ajax_eipsi_get_wave_details_handler');
 add_action('wp_ajax_eipsi_send_wave_reminder_manual', 'wp_ajax_eipsi_send_wave_reminder_manual_handler');
@@ -42,337 +42,36 @@ add_action('wp_ajax_eipsi_resend_participant_email', 'wp_ajax_eipsi_resend_parti
 add_action('wp_ajax_eipsi_get_participant_email_history', 'wp_ajax_eipsi_get_participant_email_history_handler');
 add_action('wp_ajax_eipsi_get_participant_detail', 'wp_ajax_eipsi_get_participant_detail_handler');
 add_action('wp_ajax_eipsi_remove_participant', 'wp_ajax_eipsi_remove_participant_handler');
-add_action('wp_ajax_eipsi_delete_participant', 'wp_ajax_eipsi_delete_participant_handler');
+add_action('wp_ajax_eipsi_delete_participant', 'eipsi_delete_participant_dispatch');
+function eipsi_delete_participant_dispatch() {
+    $nonce = $_POST['nonce'] ?? '';
+    if (is_string($nonce) && wp_verify_nonce($nonce, 'eipsi_waves_nonce')) {
+        wp_ajax_eipsi_delete_participant_waves_handler();
+        return;
+    }
+    wp_ajax_eipsi_delete_participant_handler();
+}
 
 /**
  * GET consolidated study data
  */
 function wp_ajax_eipsi_get_study_overview_handler() {
-    error_log('[EIPSI DASHBOARD API] get_study_overview called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L59'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L63'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
     $study_id = isset($_GET['study_id']) ? intval($_GET['study_id']) : 0;
-    error_log("[EIPSI DASHBOARD API] Study ID: {$study_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L68'), 'debug');
     if (empty($study_id)) {
         wp_send_json_error('Missing study ID');
     }
 
-    global $wpdb;
 
-    // 1. General study info (usar 'id' como PK, no 'study_id')
-    $study = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM {$wpdb->prefix}survey_studies WHERE id = %d",
-        $study_id
-    ));
-
-    if (!$study) {
-        wp_send_json_error('Study not found');
-    }
-
-    // Ensure study_code is always populated for shortcode display
-    // If study_code is empty, generate one from study_name or use ID as fallback
-    if (empty($study->study_code)) {
-        // Try to generate from study_name
-        if (!empty($study->study_name)) {
-            $generated_code = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '_', substr($study->study_name, 0, 15)));
-            $generated_code = preg_replace('/_+/', '_', $generated_code); // Remove double underscores
-            $generated_code = trim($generated_code, '_') . '_' . date('Y');
-            
-            // Update the study with the generated code
-            $wpdb->update(
-                "{$wpdb->prefix}survey_studies",
-                array('study_code' => $generated_code),
-                array('id' => $study_id),
-                array('%s'),
-                array('%d')
-            );
-            
-            $study->study_code = $generated_code;
-        } else {
-            // Last resort: use the numeric ID
-            $study->study_code = 'STUDY_' . $study_id;
-        }
-    }
-
-    // Get study page URL
-    $study_page_url = null;
-    $study_page_id = null;
-    if (function_exists('eipsi_get_study_page_url')) {
-        $study_page_url = eipsi_get_study_page_url($study_id, $study->study_code);
-        
-        // Get page ID for edit link
-        $pages = get_posts(array(
-            'post_type' => 'page',
-            'meta_key' => 'eipsi_study_id',
-            'meta_value' => $study_id,
-            'posts_per_page' => 1
-        ));
-        if (!empty($pages)) {
-            $study_page_id = $pages[0]->ID;
-        }
-    }
-    
-    // If no page exists, create one
-    if (empty($study_page_url) && function_exists('eipsi_create_study_page')) {
-        $study_page_id = eipsi_create_study_page($study_id, $study->study_code, $study->study_name ?? 'Estudio');
-        if ($study_page_id) {
-            $study_page_url = get_permalink($study_page_id);
-        }
-    }
-
-    // 2. Participant stats
-    // La tabla participants usa 'survey_id' (que es el ID del estudio), no 'study_id'
-    $participants_stats = array(
-        'total' => (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_participants WHERE survey_id = %d",
-            $study_id
-        )),
-        'active' => (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_participants 
-             WHERE survey_id = %d AND is_active = 1",
-            $study_id
-        )),
-        'completed' => (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(DISTINCT participant_id) FROM {$wpdb->prefix}survey_assignments 
-             WHERE study_id = %d AND status = 'submitted'",
-            $study_id
-        )),
-        'paused' => (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(DISTINCT participant_id) FROM {$wpdb->prefix}survey_assignments 
-             WHERE study_id = %d AND status = 'paused'",
-            $study_id
-        )),
-        'in_progress' => (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(DISTINCT participant_id) FROM {$wpdb->prefix}survey_assignments 
-             WHERE study_id = %d AND status = 'in_progress'",
-            $study_id
-        )),
-        'inactive' => (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_participants 
-             WHERE survey_id = %d AND is_active = 0",
-            $study_id
-        )),
-    );
-
-    // 3. Waves stats
-    $waves = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM {$wpdb->prefix}survey_waves WHERE study_id = %d ORDER BY wave_index ASC",
-        $study_id
-    ));
-
-    // T1-Anchor: Check if T1 has a deadline set
-    $t1_deadline = null;
-    $t1_deadline_timestamp = null;
-    $t1_dynamic_window_days = null; // Ventana dinámica: días desde created_at hasta deadline
-    foreach ($waves as $wave) {
-        error_log(sprintf('[EIPSI DASHBOARD API] Checking wave %d: offset_minutes=%d, due_date=%s',
-            $wave->id,
-            $wave->offset_minutes,
-            $wave->due_date ?? 'NULL'
-        ));
-        if ($wave->offset_minutes == 0 && !empty($wave->due_date)) {
-            $t1_deadline = $wave->due_date;
-            // Use end of T1 deadline day (23:59:59) as the anchor point
-            // Subsequent waves become available starting from this timestamp
-            // If due_date already has time, use it; otherwise add 23:59:59
-            if (strpos($wave->due_date, ':') !== false) {
-                // Already has time component, replace with 23:59:59
-                $t1_deadline_timestamp = strtotime(date('Y-m-d', strtotime($wave->due_date)) . ' 23:59:59');
-            } else {
-                $t1_deadline_timestamp = strtotime($wave->due_date . ' 23:59:59');
-            }
-            
-            // Calculate dynamic window: days from study creation to T1 deadline
-            $study_created_timestamp = strtotime($study->created_at);
-            $t1_dynamic_window_days = ceil(($t1_deadline_timestamp - $study_created_timestamp) / 86400);
-            
-            error_log(sprintf('[EIPSI DASHBOARD API] T1 deadline detected: %s (timestamp: %d), dynamic window: %d days',
-                $t1_deadline, $t1_deadline_timestamp, $t1_dynamic_window_days));
-            break;
-        }
-    }
-
-    $waves_stats = array();
-    $previous_wave_completed_ids = null; // Track who completed previous wave
-    $previous_wave_deadline_timestamp = $t1_deadline_timestamp; // Track previous wave's deadline for sequential calculation
-    
-    foreach ($waves as $index => $wave) {
-        $completed_assignments = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND status = 'submitted'",
-            $wave->id
-        ));
-        
-        // Calculate eligible participants (those who can actually do this wave)
-        if ($index === 0) {
-            // First wave: all active participants are eligible
-            $eligible_participants = $participants_stats['active'];
-        } else {
-            // Subsequent waves: only those who completed the previous wave
-            $eligible_participants = count($previous_wave_completed_ids);
-        }
-        
-        // Pending = eligible - completed (those who should do it but haven't)
-        $pending_participants = max(0, $eligible_participants - $completed_assignments);
-        
-        // Get participant IDs who completed this wave (for next iteration)
-        $previous_wave_completed_ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT participant_id FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND status = 'submitted'",
-            $wave->id
-        ));
-        
-        // v2.1.2: Add interval configuration for visual verification
-        // This helps confirm that "minutes = minutes" and not accidentally "days"
-        
-        // v2.3.0 - Wave Manager Enhancement: Configuración de recordatorios
-        $due_date_formatted = !empty($wave->due_date) 
-            ? date_i18n(get_option('date_format'), strtotime($wave->due_date))
-            : __('Sin fecha límite', 'eipsi-forms');
-        
-        // Timeline de recordatorios según configuración
-        $reminder_days = !empty($wave->reminder_days) ? $wave->reminder_days : '';
-        $timeline = '';
-        if (!empty($wave->due_date) && !empty($reminder_days)) {
-            $days_array = array_map('intval', explode(',', $reminder_days));
-            sort($days_array);
-            $timeline = implode('d → ', $days_array) . 'd';
-        } else {
-            $timeline = '3d → 7d → 14d → 30d'; // Default SIN due_date
-        }
-        
-        // v2.3.0 - Nudge configuration JSON (default OFF for follow-ups)
-        $nudge_config_raw = isset($wave->nudge_config) ? $wave->nudge_config : '';
-        $nudge_config = !empty($nudge_config_raw) ? json_decode($nudge_config_raw, true) : array();
-        
-        // Log what we read from DB
-        if (!empty($nudge_config_raw)) {
-            error_log(sprintf('[EIPSI DASHBOARD API] Wave id=%d "%s": nudge_config from DB (length=%d): %s', 
-                $wave->id, $wave->name, strlen($nudge_config_raw), $nudge_config_raw));
-        } else {
-            error_log(sprintf('[EIPSI DASHBOARD API] Wave id=%d "%s": NO nudge_config in DB, will use legacy defaults', 
-                $wave->id, $wave->name));
-        }
-        
-        // Fallback defaults for legacy waves without nudge_config
-        // NOTE: New waves created via wizard have proportional nudges calculated based on interval
-        // These defaults are only used for old waves created before the proportional system
-        $default_nudge_config = array(
-            'nudge_1' => array('enabled' => true, 'value' => 24, 'unit' => 'hours'),
-            'nudge_2' => array('enabled' => true, 'value' => 72, 'unit' => 'hours'),
-            'nudge_3' => array('enabled' => true, 'value' => 168, 'unit' => 'hours'),
-            'nudge_4' => array('enabled' => true, 'value' => 336, 'unit' => 'hours'),
-        );
-        
-        $nudge_config = wp_parse_args($nudge_config, $default_nudge_config);
-        
-        error_log(sprintf('[EIPSI DASHBOARD API] Wave id=%d "%s": offset_minutes=%d, window_minutes=%s', 
-            $wave->id, $wave->name, 
-            isset($wave->offset_minutes) ? intval($wave->offset_minutes) : 0,
-            isset($wave->window_minutes) ? (is_null($wave->window_minutes) ? 'NULL' : intval($wave->window_minutes)) : 'NOT SET'));
-        
-        // Check if any follow-up is enabled (for toggle display)
-        $follow_ups_enabled = $nudge_config['nudge_1']['enabled'] || 
-                              $nudge_config['nudge_2']['enabled'] || 
-                              $nudge_config['nudge_3']['enabled'] || 
-                              $nudge_config['nudge_4']['enabled'];
-        
-        // T1-Anchor: Calculate absolute availability when T1 has deadline (sequential)
-        $absolute_available_at = null;
-        $absolute_available_at_formatted = null;
-        error_log(sprintf('[EIPSI DASHBOARD API] Wave %d: t1_deadline_timestamp=%s, offset_minutes=%d, previous_wave_deadline_timestamp=%s',
-            $wave->id,
-            $t1_deadline_timestamp ? date('Y-m-d H:i:s', $t1_deadline_timestamp) : 'NULL',
-            $wave->offset_minutes,
-            $previous_wave_deadline_timestamp ? date('Y-m-d H:i:s', $previous_wave_deadline_timestamp) : 'NULL'
-        ));
-        if ($t1_deadline_timestamp && $wave->offset_minutes > 0) {
-            // This wave opens when the previous wave closes (sequential)
-            $absolute_available_at = date('Y-m-d H:i:s', $previous_wave_deadline_timestamp);
-            $absolute_available_at_formatted = date_i18n(get_option('date_format'), $previous_wave_deadline_timestamp);
-            error_log(sprintf('[EIPSI DASHBOARD API] Wave %d: Calculated absolute_available_at=%s', $wave->id, $absolute_available_at));
-            
-            // Calculate when THIS wave closes (for next wave's opening)
-            if (!empty($wave->due_date)) {
-                // Use wave's actual deadline (manual or auto-calculated)
-                // If due_date already has time, replace with 23:59:59
-                if (strpos($wave->due_date, ':') !== false) {
-                    $previous_wave_deadline_timestamp = strtotime(date('Y-m-d', strtotime($wave->due_date)) . ' 23:59:59');
-                } else {
-                    $previous_wave_deadline_timestamp = strtotime($wave->due_date . ' 23:59:59');
-                }
-            } else if ($wave->window_minutes > 0) {
-                // Calculate from available_at + window
-                $previous_wave_deadline_timestamp = $previous_wave_deadline_timestamp + ($wave->window_minutes * 60);
-            }
-        }
-        
-        $waves_stats[] = array(
-            'id' => $wave->id,
-            'wave_name' => $wave->name,
-            'form_id' => $wave->form_id,
-            'deadline' => $wave->due_date,
-            'deadline_formatted' => $due_date_formatted,
-            'status' => $wave->status,
-            // T1-Anchor: relative timing fields
-            'offset_minutes' => isset($wave->offset_minutes) ? intval($wave->offset_minutes) : 0,
-            'window_minutes' => isset($wave->window_minutes) ? (is_null($wave->window_minutes) ? null : intval($wave->window_minutes)) : null,
-            // T1-Anchor: absolute availability when T1 has deadline
-            'absolute_available_at' => $absolute_available_at,
-            'absolute_available_at_formatted' => $absolute_available_at_formatted,
-            't1_has_deadline' => !empty($t1_deadline),
-            't1_dynamic_window_days' => ($wave->offset_minutes == 0 && $t1_dynamic_window_days) ? $t1_dynamic_window_days : null,
-            // Logical calculation: only count those who are actually eligible
-            'total' => $eligible_participants, // Total eligible (can do this wave)
-            'completed' => $completed_assignments,
-            'pending' => $pending_participants, // Those who should do it but haven't
-            'progress' => ($eligible_participants > 0) ? round(($completed_assignments / $eligible_participants) * 100) : 0,
-            'reminders_sent' => 0, // TODO: Implement reminder tracking
-            'wave_index' => intval($wave->wave_index),
-            // v2.3.0 - Nuevos campos para wave manager
-            'follow_up_reminders_enabled' => $follow_ups_enabled,
-            'reminder_days' => $reminder_days,
-            'reminder_timeline' => $timeline,
-            'has_due_date' => !empty($wave->due_date),
-            'nudge_config' => $nudge_config // Granular configuration per nudge
-        );
-    }
-
-    // 4. Email stats
-    // La tabla email_log usa survey_id (INT), no study_id
-    $emails_stats = array(
-        'sent_today' => (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_email_log 
-             WHERE survey_id = %d AND DATE(sent_at) = CURDATE()",
-            $study_id
-        )),
-        'failed' => (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}survey_email_log 
-             WHERE survey_id = %d AND status = 'failed'",
-            $study_id
-        )),
-        'last_sent' => $wpdb->get_var($wpdb->prepare(
-            "SELECT sent_at FROM {$wpdb->prefix}survey_email_log 
-             WHERE survey_id = %d ORDER BY sent_at DESC LIMIT 1",
-            $study_id
-        )),
-    );
-
-    wp_send_json_success(array(
-        'general' => $study,
-        'participants' => $participants_stats,
-        'waves' => $waves_stats,
-        'emails' => $emails_stats,
-        'page' => array(
-            'url' => $study_page_url,
-            'id' => $study_page_id,
-            'edit_url' => $study_page_id ? get_edit_post_link($study_page_id, 'raw') : null,
-            'shortcode' => '[eipsi_longitudinal_study study_code="' . $study->study_code . '"]'
-        )
-    ));
+    EIPSI_Form_Response::emit(EIPSI_Longitudinal_Study_Dashboard_Service::wp_ajax_eipsi_get_study_overview_handler($study_id,$_POST,$_GET));
 }
 
 /**
@@ -390,36 +89,8 @@ function wp_ajax_eipsi_close_study_handler() {
         wp_send_json_error(array('message' => __('Missing study ID', 'eipsi-forms')));
     }
 
-    global $wpdb;
 
-    $study = $wpdb->get_row($wpdb->prepare(
-        "SELECT id, study_name, status FROM {$wpdb->prefix}survey_studies WHERE id = %d",
-        $study_id
-    ));
-
-    if (!$study) {
-        wp_send_json_error(array('message' => __('Study not found', 'eipsi-forms')));
-    }
-
-    $updated = $wpdb->update(
-        "{$wpdb->prefix}survey_studies",
-        array(
-            'status' => 'completed',
-            'updated_at' => current_time('mysql')
-        ),
-        array('id' => $study_id),
-        array('%s', '%s'),
-        array('%d')
-    );
-
-    if ($updated === false) {
-        wp_send_json_error(array('message' => __('No se pudo cerrar el estudio.', 'eipsi-forms')));
-    }
-
-    wp_send_json_success(array(
-        'message' => sprintf(__('Estudio "%s" cerrado correctamente.', 'eipsi-forms'), $study->study_name),
-        'status' => 'completed'
-    ));
+    EIPSI_Form_Response::emit(EIPSI_Longitudinal_Study_Dashboard_Service::wp_ajax_eipsi_close_study_handler($study_id,$_POST,$_GET));
 }
 
 /**
@@ -454,16 +125,16 @@ function wp_ajax_eipsi_get_wave_details_handler() {
  * POST send manual reminder
  */
 function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
-    error_log('[EIPSI DASHBOARD API] send_wave_reminder_manual called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L128'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L132'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
     $wave_id = isset($_POST['wave_id']) ? (int) $_POST['wave_id'] : 0;
-    error_log("[EIPSI DASHBOARD API] Wave ID: {$wave_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L137'), 'debug');
     if (!$wave_id) {
         wp_send_json_error('Missing wave ID');
     }
@@ -504,7 +175,7 @@ function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
         ));
 
         if (empty($candidate_ids)) {
-            error_log("[EIPSI Reminder] No participants found for wave {$wave_id}, study {$survey_id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L178'), 'debug');
             wp_send_json_error('No active participants found for this wave');
         }
 
@@ -516,11 +187,11 @@ function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
         );
 
         if (empty($participant_ids)) {
-            error_log("[EIPSI Reminder] No eligible participants found for wave {$wave_id}, study {$survey_id}");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L190'), 'debug');
             wp_send_json_error('No eligible participants found for this wave (previous wave not completed)');
         }
         
-        error_log("[EIPSI Reminder] Found " . count($participant_ids) . " eligible participants for wave {$wave_id} (filtered from " . count($candidate_ids) . " candidates)");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L194'), 'debug');
 
         // Send reminders via Email Service
         $result = EIPSI_Email_Service::send_manual_reminders($survey_id, $participant_ids, $wave_id);
@@ -531,7 +202,7 @@ function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
             'failed' => $result['failed_count']
         ));
     } catch (Exception $e) {
-        error_log('[EIPSI Reminder] Error: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L205'), 'debug');
         wp_send_json_error(array(
             'message' => 'Error al enviar recordatorios: ' . $e->getMessage(),
             'error' => 'exception'
@@ -544,16 +215,16 @@ function wp_ajax_eipsi_send_wave_reminder_manual_handler() {
  */
 add_action('wp_ajax_eipsi_send_global_reminder', 'wp_ajax_eipsi_send_global_reminder_handler');
 function wp_ajax_eipsi_send_global_reminder_handler() {
-    error_log('[EIPSI DASHBOARD API] send_global_reminder called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L218'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L222'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
     $study_id = isset($_POST['study_id']) ? (int) $_POST['study_id'] : 0;
-    error_log("[EIPSI DASHBOARD API] Study ID: {$study_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L227'), 'debug');
     if (!$study_id) {
         wp_send_json_error('Missing study ID');
     }
@@ -600,7 +271,7 @@ function wp_ajax_eipsi_send_global_reminder_handler() {
             'failed_count' => $total_failed
         ));
     } catch (Exception $e) {
-        error_log('[EIPSI Global Reminder] Error: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L274'), 'debug');
         wp_send_json_error(array(
             'message' => 'Error al enviar recordatorios globales: ' . $e->getMessage(),
             'error' => 'exception'
@@ -676,223 +347,8 @@ function wp_ajax_eipsi_extend_wave_deadline_handler() {
         return;
     }
 
-    $wave_id = isset($_POST['wave_id']) ? (int) $_POST['wave_id'] : 0;
-    $new_deadline = isset($_POST['deadline_date']) ? sanitize_text_field($_POST['deadline_date']) : '';
 
-    if (!$wave_id || empty($new_deadline)) {
-        wp_send_json_error('Missing parameters');
-        return;
-    }
-
-    global $wpdb;
-    
-    // Get wave info to check if it's T1 (anchor wave)
-    $wave = $wpdb->get_row($wpdb->prepare(
-        "SELECT id, study_id, offset_minutes, window_minutes FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-        $wave_id
-    ));
-    
-    if (!$wave) {
-        wp_send_json_error('Wave not found');
-        return;
-    }
-    
-    $is_t1_anchor = ($wave->offset_minutes == 0);
-    $deadline_datetime = $new_deadline . ' 23:59:59';
-    $deadline_timestamp = strtotime($deadline_datetime);
-    
-    // Update legacy due_date in wave for backward compatibility
-    // Mark this as a manual deadline and redistribute nudges if T1
-    $current_nudge_config = $wpdb->get_var($wpdb->prepare(
-        "SELECT nudge_config FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-        $wave_id
-    ));
-    $nudge_config = !empty($current_nudge_config) ? json_decode($current_nudge_config, true) : array();
-    $nudge_config['manual_deadline'] = true;
-    
-    // System: deadline → window → nudges (any wave)
-    if ($wave->window_minutes > 0) {
-        // Get study creation date to calculate dynamic window
-        $study = $wpdb->get_row($wpdb->prepare(
-            "SELECT created_at FROM {$wpdb->prefix}survey_studies WHERE id = %d",
-            $wave->study_id
-        ));
-        
-        if ($study) {
-            // T1 (offset=0): window from created_at to deadline (fixed)
-            // Other waves: window from NOW to deadline (dynamic, remaining time)
-            $is_t1 = ($wave->offset_minutes == 0);
-            
-            if ($is_t1) {
-                $study_created_timestamp = strtotime($study->created_at);
-                $new_window_minutes = ceil(($deadline_timestamp - $study_created_timestamp) / 60);
-            } else {
-                $now_timestamp = current_time('timestamp');
-                $new_window_minutes = ceil(($deadline_timestamp - $now_timestamp) / 60);
-            }
-            
-            // Save original nudges if not already saved
-            if (!isset($nudge_config['original_nudges'])) {
-                $nudge_config['original_nudges'] = array(
-                    'nudge_1' => $nudge_config['nudge_1'] ?? null,
-                    'nudge_2' => $nudge_config['nudge_2'] ?? null,
-                    'nudge_3' => $nudge_config['nudge_3'] ?? null,
-                    'nudge_4' => $nudge_config['nudge_4'] ?? null,
-                );
-                $nudge_config['original_window_minutes'] = $wave->window_minutes;
-            }
-            
-            // Redistribute nudges proportionally from original values
-            $base_nudges = isset($nudge_config['original_nudges']) 
-                ? $nudge_config['original_nudges']
-                : array(
-                    'nudge_1' => $nudge_config['nudge_1'] ?? null,
-                    'nudge_2' => $nudge_config['nudge_2'] ?? null,
-                    'nudge_3' => $nudge_config['nudge_3'] ?? null,
-                    'nudge_4' => $nudge_config['nudge_4'] ?? null,
-                );
-            
-            $redistributed = eipsi_redistribute_nudges(
-                $base_nudges,
-                $nudge_config['original_window_minutes'],
-                $new_window_minutes
-            );
-            
-            $nudge_config['nudge_1'] = $redistributed['nudge_1'];
-            $nudge_config['nudge_2'] = $redistributed['nudge_2'];
-            $nudge_config['nudge_3'] = $redistributed['nudge_3'];
-            $nudge_config['nudge_4'] = $redistributed['nudge_4'];
-            $nudge_config['redistributed'] = true;
-            
-            error_log(sprintf('[EIPSI Sequential] Wave %d: Redistributed nudges - original_window=%d min, new_window=%d min',
-                $wave_id, $nudge_config['original_window_minutes'], $new_window_minutes));
-        }
-    }
-    
-    $wpdb->update(
-        "{$wpdb->prefix}survey_waves",
-        array(
-            'due_date' => $new_deadline,
-            'nudge_config' => wp_json_encode($nudge_config)
-        ),
-        array('id' => $wave_id),
-        array('%s', '%s'),
-        array('%d')
-    );
-    
-    // Sequential Logic: Recalculate subsequent waves (any wave with deadline triggers this)
-    // Get all waves in this study ordered by offset
-    $all_waves = $wpdb->get_results($wpdb->prepare(
-        "SELECT id, offset_minutes, window_minutes FROM {$wpdb->prefix}survey_waves 
-         WHERE study_id = %d ORDER BY offset_minutes ASC",
-        $wave->study_id
-    ));
-    
-    // Sequential: Each wave opens when the previous wave closes
-    // Start with current wave's deadline as the opening time for the next wave
-    $previous_deadline_timestamp = $deadline_timestamp;
-    $start_processing = false; // Flag to start processing after current wave
-    
-    foreach ($all_waves as $subsequent_wave) {
-        // Start processing waves after the current wave
-        if ($subsequent_wave->id == $wave_id) {
-            $start_processing = true;
-            continue; // Skip current wave
-        }
-        
-        if ($start_processing) {
-                // Get current wave data to check if it has a manual deadline
-                $current_wave_data = $wpdb->get_row($wpdb->prepare(
-                    "SELECT due_date, nudge_config FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-                    $subsequent_wave->id
-                ));
-                
-                // Check if this wave has a manual deadline set by the user
-                $wave_nudge_config = !empty($current_wave_data->nudge_config) ? json_decode($current_wave_data->nudge_config, true) : array();
-                $has_manual_deadline = isset($wave_nudge_config['manual_deadline']) && $wave_nudge_config['manual_deadline'] === true;
-                
-                // This wave opens when the previous wave closes
-                $new_available_at = date('Y-m-d H:i:s', $previous_deadline_timestamp);
-                
-                // Calculate new due_at based on window OR manual deadline
-                $new_due_at = null;
-                $new_due_date = null;
-                
-                if ($has_manual_deadline) {
-                    // Keep manual deadline, just update available_at
-                    $new_due_at = $current_wave_data->due_date . ' 23:59:59';
-                    $new_due_date = $current_wave_data->due_date;
-                    // Update previous_deadline for next wave
-                    $previous_deadline_timestamp = strtotime($new_due_at);
-                } else if ($subsequent_wave->window_minutes > 0) {
-                    // Calculate automatic deadline from available_at + window
-                    $new_due_timestamp = $previous_deadline_timestamp + ($subsequent_wave->window_minutes * 60);
-                    $new_due_at = date('Y-m-d 23:59:59', $new_due_timestamp);
-                    $new_due_date = date('Y-m-d', $new_due_timestamp);
-                    
-                    // Update wave's due_date for display (only if no manual deadline)
-                    $wpdb->update(
-                        "{$wpdb->prefix}survey_waves",
-                        array('due_date' => $new_due_date),
-                        array('id' => $subsequent_wave->id),
-                        array('%s'),
-                        array('%d')
-                    );
-                    
-                    // Update previous_deadline for next wave
-                    $previous_deadline_timestamp = $new_due_timestamp;
-                }
-            
-                // Update all assignments for this wave
-                $wpdb->query($wpdb->prepare(
-                    "UPDATE {$wpdb->prefix}survey_assignments 
-                     SET available_at = %s, due_at = %s 
-                     WHERE wave_id = %d AND status NOT IN ('submitted', 'expired')",
-                    $new_available_at,
-                    $new_due_at,
-                    $subsequent_wave->id
-                ));
-                
-                // Reschedule nudges for affected assignments
-                $affected = $wpdb->get_col($wpdb->prepare(
-                    "SELECT id FROM {$wpdb->prefix}survey_assignments 
-                     WHERE wave_id = %d AND status NOT IN ('submitted', 'expired')",
-                    $subsequent_wave->id
-                ));
-                
-                foreach ($affected as $assignment_id) {
-                    do_action('eipsi_assignment_deadline_changed', $assignment_id, $new_due_at);
-                }
-        }
-    }
-    
-    // Update T1 (or current wave) assignments
-    $assignments_updated = $wpdb->update(
-        "{$wpdb->prefix}survey_assignments",
-        array('due_at' => $deadline_datetime),
-        array('wave_id' => $wave_id),
-        array('%s'),
-        array('%d')
-    );
-    
-    if ($assignments_updated !== false) {
-        // Reschedule nudges for T1 assignments
-        $affected_assignments = $wpdb->get_col($wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND status NOT IN ('submitted', 'expired')",
-            $wave_id
-        ));
-        
-        foreach ($affected_assignments as $assignment_id) {
-            do_action('eipsi_assignment_deadline_changed', $assignment_id, $deadline_datetime);
-        }
-        
-        wp_send_json_success(array(
-            'message' => 'Deadline set successfully. Subsequent waves recalculated sequentially.',
-            'assignments_updated' => count($affected_assignments)
-        ));
-    } else {
-        wp_send_json_error('Failed to extend deadline: ' . $wpdb->last_error);
-    }
+    EIPSI_Form_Response::emit(EIPSI_Longitudinal_Assignment_Deadline_Service::wp_ajax_eipsi_extend_wave_deadline_handler($_POST,$_GET));
 }
 
 /**
@@ -906,252 +362,24 @@ function wp_ajax_eipsi_remove_wave_deadline_handler() {
         wp_send_json_error('Unauthorized');
     }
 
-    $wave_id = isset($_POST['wave_id']) ? (int) $_POST['wave_id'] : 0;
-    if (!$wave_id) {
-        wp_send_json_error('Missing wave ID');
-    }
 
-    try {
-        global $wpdb;
-        
-        // Get wave info to check if it's T1
-        $wave = $wpdb->get_row($wpdb->prepare(
-            "SELECT id, study_id, offset_minutes FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-            $wave_id
-        ));
-        
-        if (!$wave) {
-            wp_send_json_error('Wave not found');
-        }
-        
-        $is_t1_anchor = ($wave->offset_minutes == 0);
-        
-        // Remove legacy due_date from wave and restore original nudges if T1
-        $current_nudge_config = $wpdb->get_var($wpdb->prepare(
-            "SELECT nudge_config FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-            $wave_id
-        ));
-        $nudge_config = !empty($current_nudge_config) ? json_decode($current_nudge_config, true) : array();
-        unset($nudge_config['manual_deadline']);
-        
-        // System: deadline → window → nudges (restore original nudges for T1)
-        if ($is_t1_anchor && isset($nudge_config['original_nudges'])) {
-            $nudge_config['nudge_1'] = $nudge_config['original_nudges']['nudge_1'];
-            $nudge_config['nudge_2'] = $nudge_config['original_nudges']['nudge_2'];
-            $nudge_config['nudge_3'] = $nudge_config['original_nudges']['nudge_3'];
-            $nudge_config['nudge_4'] = $nudge_config['original_nudges']['nudge_4'];
-            
-            // Clean up temporary fields
-            unset($nudge_config['original_nudges']);
-            unset($nudge_config['original_window_minutes']);
-            unset($nudge_config['redistributed']);
-            
-            error_log('[EIPSI T1-Anchor] Restored original nudges after removing deadline');
-        }
-        
-        $wpdb->update(
-            "{$wpdb->prefix}survey_waves",
-            array(
-                'due_date' => null,
-                'nudge_config' => wp_json_encode($nudge_config)
-            ),
-            array('id' => $wave_id),
-            array('%s', '%s'),
-            array('%d')
-        );
-        
-        // Sequential Logic: Revert subsequent waves to participant-based timing
-        // Get all waves in this study
-        $all_waves = $wpdb->get_results($wpdb->prepare(
-            "SELECT id, offset_minutes, window_minutes FROM {$wpdb->prefix}survey_waves 
-             WHERE study_id = %d ORDER BY offset_minutes ASC",
-            $wave->study_id
-        ));
-        
-        $start_processing = false;
-        
-        // Remove due_date from all subsequent waves (only auto-calculated ones)
-        foreach ($all_waves as $subsequent_wave) {
-            // Start processing after current wave
-            if ($subsequent_wave->id == $wave_id) {
-                $start_processing = true;
-                continue;
-            }
-            
-            if ($start_processing) {
-                // Check if this wave has a manual deadline
-                $wave_data = $wpdb->get_row($wpdb->prepare(
-                    "SELECT nudge_config FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-                    $subsequent_wave->id
-                ));
-                $wave_nudge_config = !empty($wave_data->nudge_config) ? json_decode($wave_data->nudge_config, true) : array();
-                $is_manual = isset($wave_nudge_config['manual_deadline']) && $wave_nudge_config['manual_deadline'] === true;
-                
-                // Only remove auto-calculated deadlines, keep manual ones
-                if (!$is_manual) {
-                    $wpdb->update(
-                        "{$wpdb->prefix}survey_waves",
-                        array('due_date' => null),
-                        array('id' => $subsequent_wave->id),
-                        array('%s'),
-                        array('%d')
-                    );
-                }
-            }
-        }
-        
-        // Recalculate each subsequent wave's assignments based on participant's t1_completed_at
-        $start_processing = false;
-        foreach ($all_waves as $subsequent_wave) {
-            if ($subsequent_wave->id == $wave_id) {
-                $start_processing = true;
-                continue;
-            }
-            
-            if ($start_processing) {
-                $assignments = $wpdb->get_results($wpdb->prepare(
-                    "SELECT a.id, a.participant_id 
-                     FROM {$wpdb->prefix}survey_assignments a
-                     WHERE a.wave_id = %d AND a.status NOT IN ('submitted', 'expired')",
-                    $subsequent_wave->id
-                ));
-                
-                foreach ($assignments as $assignment) {
-                    // Get participant's T1 timestamp
-                    $participant = $wpdb->get_row($wpdb->prepare(
-                        "SELECT t1_completed_at FROM {$wpdb->prefix}survey_participants WHERE id = %d",
-                        $assignment->participant_id
-                    ));
-                    
-                    if ($participant && $participant->t1_completed_at) {
-                        $t1_unix = strtotime($participant->t1_completed_at);
-                        
-                        // Recalculate available_at based on participant's T1
-                        $new_available_at = date('Y-m-d H:i:s', $t1_unix + ($subsequent_wave->offset_minutes * 60));
-                        
-                        // Recalculate due_at based on window
-                        $new_due_at = null;
-                        if ($subsequent_wave->window_minutes > 0) {
-                            $new_due_at = date('Y-m-d H:i:s', strtotime($new_available_at) + ($subsequent_wave->window_minutes * 60));
-                        }
-                        
-                        // Update assignment
-                        $wpdb->update(
-                            "{$wpdb->prefix}survey_assignments",
-                            array('available_at' => $new_available_at, 'due_at' => $new_due_at),
-                            array('id' => $assignment->id),
-                            array('%s', '%s'),
-                            array('%d')
-                        );
-                        
-                        // Reschedule nudges
-                        do_action('eipsi_assignment_deadline_changed', $assignment->id, $new_due_at);
-                    }
-                }
-            }
-        }
-
-        // Phase 5 T1-Anchor: Recalculate automatic due_at for all assignments
-        // Get all assignments for this wave with T1 anchor
-        $assignments = $wpdb->get_results($wpdb->prepare(
-            "SELECT a.id, a.participant_id, a.available_at, w.study_id, w.offset_minutes, w.window_minutes
-             FROM {$wpdb->prefix}survey_assignments a
-             JOIN {$wpdb->prefix}survey_waves w ON a.wave_id = w.id
-             WHERE a.wave_id = %d
-             AND a.status NOT IN ('submitted', 'expired')",
-            $wave_id
-        ));
-        
-        $recalculated = 0;
-        foreach ($assignments as $assignment) {
-            // Get participant's T1 timestamp
-            $participant = $wpdb->get_row($wpdb->prepare(
-                "SELECT t1_completed_at FROM {$wpdb->prefix}survey_participants WHERE id = %d",
-                $assignment->participant_id
-            ));
-            
-            if (!$participant || !$participant->t1_completed_at) {
-                continue; // Skip if T1 not completed yet
-            }
-            
-            $t1_unix = strtotime($participant->t1_completed_at);
-            $offset_minutes = absint($assignment->offset_minutes ?? 0);
-            
-            // Recalculate automatic due_at
-            $due_at = null;
-            if (!empty($assignment->window_minutes)) {
-                // Use explicit window
-                $due_at = date('Y-m-d H:i:s', $t1_unix + ($offset_minutes * 60) + ($assignment->window_minutes * 60));
-            } else {
-                // Use next wave's offset or study_end
-                $next_wave_offset = $wpdb->get_var($wpdb->prepare(
-                    "SELECT offset_minutes FROM {$wpdb->prefix}survey_waves 
-                     WHERE study_id = %d AND offset_minutes > %d 
-                     ORDER BY offset_minutes ASC LIMIT 1",
-                    $assignment->study_id,
-                    $offset_minutes
-                ));
-                
-                if ($next_wave_offset) {
-                    $due_at = date('Y-m-d H:i:s', $t1_unix + ($next_wave_offset * 60));
-                } else {
-                    // Last wave - use study_end_offset
-                    $study_end_offset = $wpdb->get_var($wpdb->prepare(
-                        "SELECT study_end_offset_minutes FROM {$wpdb->prefix}survey_studies WHERE id = %d",
-                        $assignment->study_id
-                    ));
-                    
-                    if ($study_end_offset) {
-                        $due_at = date('Y-m-d H:i:s', $t1_unix + ($study_end_offset * 60));
-                    }
-                }
-            }
-            
-            // Update assignment with automatic due_at
-            if ($due_at) {
-                $wpdb->update(
-                    "{$wpdb->prefix}survey_assignments",
-                    array('due_at' => $due_at),
-                    array('id' => $assignment->id),
-                    array('%s'),
-                    array('%d')
-                );
-                
-                // Trigger hook to reschedule nudges
-                do_action('eipsi_assignment_deadline_changed', $assignment->id);
-                $recalculated++;
-            }
-        }
-        
-        error_log(sprintf('[EIPSI DASHBOARD API] Removed manual deadline, recalculated %d assignments', $recalculated));
-
-        wp_send_json_success(array(
-            'message' => 'Deadline removed successfully',
-            'recalculated' => $recalculated
-        ));
-    } catch (Exception $e) {
-        error_log('[EIPSI Remove Deadline] Error: ' . $e->getMessage());
-        wp_send_json_error(array(
-            'message' => 'Error al quitar plazo: ' . $e->getMessage(),
-            'error' => 'exception'
-        ), 500);
-    }
+    EIPSI_Form_Response::emit(EIPSI_Longitudinal_Assignment_Deadline_Service::wp_ajax_eipsi_remove_wave_deadline_handler($_POST,$_GET));
 }
 
 /**
  * GET email logs
  */
 function wp_ajax_eipsi_get_study_email_logs_handler() {
-    error_log('[EIPSI DASHBOARD API] get_study_email_logs called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L373'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L377'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
     $study_id = isset($_GET['study_id']) ? intval($_GET['study_id']) : 0;
-    error_log("[EIPSI DASHBOARD API] Study ID: {$study_id}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L382'), 'debug');
     if (empty($study_id)) {
         wp_send_json_error('Missing study ID');
     }
@@ -1174,7 +402,7 @@ function wp_ajax_eipsi_get_study_email_logs_handler() {
                 $timestamp
             );
         }
-        error_log("[EIPSI EMAIL LOGS] Log ID {$log->id}: email_type='{$log->email_type}', status='{$log->status}'");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L405'), 'debug');
     }
 
     wp_send_json_success($logs);
@@ -1189,7 +417,7 @@ function wp_ajax_eipsi_get_study_email_logs_handler() {
  * @fix v1.7.3 - Added survey_id validation to prevent FK errors
  */
 function wp_ajax_eipsi_resend_participant_email_handler() {
-    error_log('[EIPSI DASHBOARD API] resend_participant_email called');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L420'), 'debug');
     
     // v2.5.1 - Ensure Email Service is loaded
     if (!class_exists('EIPSI_Email_Service')) {
@@ -1276,7 +504,7 @@ function wp_ajax_eipsi_resend_participant_email_handler() {
             ));
         }
     } catch (Exception $e) {
-        error_log('[EIPSI Resend Email] Exception: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L507'), 'debug');
         wp_send_json_error(array(
             'message' => 'Error al enviar email: ' . $e->getMessage(),
             'error' => 'exception'
@@ -1289,13 +517,13 @@ function wp_ajax_eipsi_resend_participant_email_handler() {
  */
 add_action('wp_ajax_eipsi_save_wave_nudges', 'wp_ajax_eipsi_save_wave_nudges_handler');
 function wp_ajax_eipsi_save_wave_nudges_handler() {
-    error_log('[EIPSI DASHBOARD API] ========================================');
-    error_log('[EIPSI DASHBOARD API] save_wave_nudges called');
-    error_log('[EIPSI DASHBOARD API] FULL POST DATA: ' . print_r($_POST, true));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L520'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L521'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L522'), 'debug');
     check_ajax_referer('eipsi_study_dashboard_nonce', 'nonce');
 
     if (!eipsi_user_can_manage_longitudinal()) {
-        error_log('[EIPSI DASHBOARD API] Unauthorized access attempt');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L526'), 'debug');
         wp_send_json_error('Unauthorized');
     }
 
@@ -1305,191 +533,42 @@ function wp_ajax_eipsi_save_wave_nudges_handler() {
     // v2.5.0 - Robust enabled detection: accepts 'true', true, '1', 1, 'on'
     $enabled_raw = isset($_POST['enabled']) ? $_POST['enabled'] : false;
     $enabled = in_array($enabled_raw, array('true', true, '1', 1, 'on', 'yes'), true);
-    error_log("[EIPSI DASHBOARD API] Raw enabled value: " . var_export($enabled_raw, true));
-    error_log("[EIPSI DASHBOARD API] Parsed enabled value: " . ($enabled ? 'true' : 'false'));
-    error_log("[EIPSI DASHBOARD API] window_minutes: " . ($window_minutes ? $window_minutes : 'NULL'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L536'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L537'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L538'), 'debug');
     
     // Handle JSON string if passed
     if (is_string($nudges)) {
         $nudges = json_decode(stripslashes($nudges), true);
-        error_log("[EIPSI DASHBOARD API] Decoded nudges from JSON: " . print_r($nudges, true));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L543'), 'debug');
     }
     if (!is_array($nudges)) {
-        $nudges = array();
+        wp_send_json_error(array('message' => 'Configuración de nudges inválida.'));
     }
     
     $nudge_count = is_array($nudges) ? count($nudges) : 0;
-    error_log("[EIPSI DASHBOARD API] Wave ID: {$wave_id}");
-    error_log("[EIPSI DASHBOARD API] Enabled (final): " . ($enabled ? 'true' : 'false'));
-    error_log("[EIPSI DASHBOARD API] Nudges count: " . $nudge_count);
-    error_log("[EIPSI DASHBOARD API] Nudges data: " . print_r($nudges, true));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L550'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L551'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L552'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L553'), 'debug');
 
     if (!$wave_id) {
-        error_log("[EIPSI DASHBOARD API] ERROR: Missing wave ID");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L556'), 'debug');
         wp_send_json_error('Missing wave ID');
     }
 
-    try {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'survey_waves';
-        
-        // v2.5.1 - Verificar valor actual en la base de datos
-        $current_wave = $wpdb->get_row($wpdb->prepare("SELECT follow_up_reminders_enabled, nudge_config, window_minutes FROM {$table_name} WHERE id = %d", $wave_id));
-        error_log("[EIPSI DASHBOARD API] Current DB value - follow_up_reminders_enabled: " . ($current_wave ? $current_wave->follow_up_reminders_enabled : 'N/A'));
-        error_log("[EIPSI DASHBOARD API] Current DB value - nudge_config: " . ($current_wave ? $current_wave->nudge_config : 'N/A'));
-        error_log("[EIPSI DASHBOARD API] Current DB value - window_minutes: " . ($current_wave ? $current_wave->window_minutes : 'N/A'));
-        
-        // Validate and redistribute nudges if they exceed window
-        $window_minutes = $current_wave ? $current_wave->window_minutes : null;
-        if ($window_minutes > 0 && !empty($nudges)) {
-            $total_nudge_minutes = 0;
-            foreach ($nudges as $nudge) {
-                if (!empty($nudge['value'])) {
-                    $total_nudge_minutes += floatval($nudge['value']);
-                }
-            }
-            
-            // If total nudges exceed window, redistribute proportionally
-            if ($total_nudge_minutes > $window_minutes) {
-                error_log("[EIPSI DASHBOARD API] WARNING: Total nudges ({$total_nudge_minutes} min) exceed window ({$window_minutes} min). Redistributing...");
-                
-                // Redistribute proportionally within the window (use 90% to leave buffer)
-                $usable_window = $window_minutes * 0.9;
-                $scale_factor = $usable_window / $total_nudge_minutes;
-                
-                foreach ($nudges as $index => $nudge) {
-                    if (!empty($nudge['value'])) {
-                        $nudges[$index]['value'] = round(floatval($nudge['value']) * $scale_factor);
-                        error_log("[EIPSI DASHBOARD API] Nudge " . ($index + 1) . " redistributed to: " . $nudges[$index]['value'] . " minutes");
-                    }
-                }
-            }
-        }
-
-        // Build nudge config JSON
-        $nudge_config = array(
-            'nudge_1' => array(
-                'enabled' => $enabled && !empty($nudges[0]),
-                'value' => isset($nudges[0]['value']) ? floatval($nudges[0]['value']) : 24,
-                'unit' => isset($nudges[0]['unit']) ? sanitize_text_field($nudges[0]['unit']) : 'hours'
-            ),
-            'nudge_2' => array(
-                'enabled' => $enabled && !empty($nudges[1]),
-                'value' => isset($nudges[1]['value']) ? floatval($nudges[1]['value']) : 72,
-                'unit' => isset($nudges[1]['unit']) ? sanitize_text_field($nudges[1]['unit']) : 'hours'
-            ),
-            'nudge_3' => array(
-                'enabled' => $enabled && !empty($nudges[2]),
-                'value' => isset($nudges[2]['value']) ? floatval($nudges[2]['value']) : 168,
-                'unit' => isset($nudges[2]['unit']) ? sanitize_text_field($nudges[2]['unit']) : 'hours'
-            ),
-            'nudge_4' => array(
-                'enabled' => $enabled && !empty($nudges[3]),
-                'value' => isset($nudges[3]['value']) ? floatval($nudges[3]['value']) : 336,
-                'unit' => isset($nudges[3]['unit']) ? sanitize_text_field($nudges[3]['unit']) : 'hours'
-            )
-        );
-        
-        error_log("[EIPSI DASHBOARD API] Built nudge_config: " . wp_json_encode($nudge_config));
-
-        // v2.5.1 - Update wave with nudge_config, follow_up_reminders_enabled, and window_minutes
-        $update_data = array(
-            'nudge_config' => wp_json_encode($nudge_config),
-            'follow_up_reminders_enabled' => $enabled ? 1 : 0
-        );
-        $update_formats = array('%s', '%d');
-        
-        if ($window_minutes !== null) {
-            $update_data['window_minutes'] = $window_minutes;
-            $update_formats[] = '%d';
-            
-            // Recalculate nudge_config proportionally to window_minutes (20/40/60/80%)
-            $nudge1_hours = round($window_minutes * 0.20 / 60, 2);
-            $nudge2_hours = round($window_minutes * 0.40 / 60, 2);
-            $nudge3_hours = round($window_minutes * 0.60 / 60, 2);
-            $nudge4_hours = round($window_minutes * 0.80 / 60, 2);
-            
-            $nudge_config = array(
-                'nudge_1' => array('enabled' => $enabled && !empty($nudges[0]), 'value' => $nudge1_hours, 'unit' => 'hours'),
-                'nudge_2' => array('enabled' => $enabled && !empty($nudges[1]), 'value' => $nudge2_hours, 'unit' => 'hours'),
-                'nudge_3' => array('enabled' => $enabled && !empty($nudges[2]), 'value' => $nudge3_hours, 'unit' => 'hours'),
-                'nudge_4' => array('enabled' => $enabled && !empty($nudges[3]), 'value' => $nudge4_hours, 'unit' => 'hours')
-            );
-            $update_data['nudge_config'] = wp_json_encode($nudge_config);
-            
-            error_log("[EIPSI DASHBOARD API] Recalculated nudges from window_minutes: " . wp_json_encode($nudge_config));
-            
-            // Recalculate due_at for pending assignments
-            $assignments_table = $wpdb->prefix . 'survey_assignments';
-            $assignments = $wpdb->get_results($wpdb->prepare(
-                "SELECT id, available_at FROM {$assignments_table} WHERE wave_id = %d AND status = 'pending'",
-                $wave_id
-            ));
-            
-            if (!empty($assignments)) {
-                foreach ($assignments as $assignment) {
-                    $available_at = $assignment->available_at;
-                    $due_at = date('Y-m-d H:i:s', strtotime($available_at) + ($window_minutes * 60));
-                    
-                    $wpdb->update(
-                        $assignments_table,
-                        array('due_at' => $due_at),
-                        array('id' => $assignment->id),
-                        array('%s'),
-                        array('%d')
-                    );
-                    
-                    error_log("[EIPSI DASHBOARD API] Updated due_at for assignment {$assignment->id}: {$due_at}");
-                    
-                    // Cancel and reschedule pending nudges
-                    wp_clear_scheduled_hook('eipsi_nudge_event', array($assignment->id, 1));
-                    wp_clear_scheduled_hook('eipsi_nudge_event', array($assignment->id, 2));
-                    wp_clear_scheduled_hook('eipsi_nudge_event', array($assignment->id, 3));
-                    wp_clear_scheduled_hook('eipsi_nudge_event', array($assignment->id, 4));
-                    
-                    // Reschedule with new nudge times
-                    if (class_exists('EIPSI_Nudge_Event_Scheduler')) {
-                        require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-event-scheduler.php';
-                        EIPSI_Nudge_Event_Scheduler::reschedule_nudges_for_assignment($assignment->id);
-                    }
-                }
-            }
-        }
-        
-        error_log("[EIPSI DASHBOARD API] Update data: " . print_r($update_data, true));
-        
-        $result = $wpdb->update(
-            $table_name,
-            $update_data,
-            array('id' => $wave_id),
-            $update_formats,
-            array('%d')
-        );
-
-        if ($result === false) {
-            error_log("[EIPSI DASHBOARD API] ERROR: " . $wpdb->last_error);
-            throw new Exception($wpdb->last_error);
-        }
-
-        error_log("[EIPSI DASHBOARD API] Update result: " . var_export($result, true));
-        
-        // v2.5.1 - Verificar valor después del update
-        $updated_wave = $wpdb->get_row($wpdb->prepare("SELECT follow_up_reminders_enabled, nudge_config FROM {$table_name} WHERE id = %d", $wave_id));
-        error_log("[EIPSI DASHBOARD API] Updated DB value - follow_up_reminders_enabled: " . ($updated_wave ? $updated_wave->follow_up_reminders_enabled : 'N/A'));
-
-        wp_send_json_success(array(
-            'message' => 'Configuración de nudges guardada',
-            'nudge_config' => $nudge_config,
-            'follow_up_reminders_enabled' => $enabled,
-            'rows_updated' => $result
-        ));
-    } catch (Exception $e) {
-        error_log('[EIPSI Save Nudges] Error: ' . $e->getMessage());
-        wp_send_json_error(array(
-            'message' => 'Error al guardar nudges: ' . $e->getMessage(),
-            'error' => 'exception'
-        ), 500);
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-service.php';
+    $config = array();
+    for ($stage = 1; $stage <= 4; $stage++) {
+        $item = $nudges[$stage - 1] ?? array('value' => 24 * $stage, 'unit' => 'hours');
+        $config['nudge_' . $stage] = array('enabled' => $enabled && isset($nudges[$stage - 1]),
+            'value' => $item['value'] ?? null, 'unit' => $item['unit'] ?? null);
     }
+    // Empty UI field means preserve the window; it must not overwrite it with NULL.
+    $window_supplied = isset($_POST['window_minutes']) && $_POST['window_minutes'] !== '';
+    $result = EIPSI_Nudge_Service::save_wave_configuration($wave_id, $config, $window_supplied, $_POST['window_minutes'] ?? null);
+    if (is_wp_error($result)) { wp_send_json_error(array('message' => $result->get_error_message(), 'error' => $result->get_error_code())); }
+    wp_send_json_success(array_merge(array('message' => 'Configuración de nudges guardada'), $result));
 }
 
 /**
@@ -1510,8 +589,8 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
     try {
         global $wpdb;
         
-        error_log('[EIPSI REDISTRIBUTE BTN] ========================================');
-        error_log('[EIPSI REDISTRIBUTE BTN] Manual redistribution requested for wave_id: ' . $wave_id);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L592'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L593'), 'debug');
         
         // Get wave info
         $wave = $wpdb->get_row($wpdb->prepare(
@@ -1521,11 +600,11 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
         ));
         
         if (!$wave) {
-            error_log('[EIPSI REDISTRIBUTE BTN] ERROR: Wave not found');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L603'), 'debug');
             wp_send_json_error('Wave not found');
         }
         
-        error_log('[EIPSI REDISTRIBUTE BTN] Wave found: study_id=' . $wave->study_id . ', offset_minutes=' . $wave->offset_minutes . ', window_minutes=' . $wave->window_minutes . ', due_date=' . $wave->due_date);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L607'), 'debug');
         
         // Get study creation date
         $study = $wpdb->get_row($wpdb->prepare(
@@ -1534,62 +613,58 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
         ));
         
         if (!$study) {
-            error_log('[EIPSI REDISTRIBUTE BTN] ERROR: Study not found');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L616'), 'debug');
             wp_send_json_error('Study not found');
         }
         
-        error_log('[EIPSI REDISTRIBUTE BTN] Study created_at: ' . $study->created_at);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L620'), 'debug');
         
         $study_created_timestamp = strtotime($study->created_at);
         $is_t1 = ($wave->offset_minutes == 0);
         
-        error_log('[EIPSI REDISTRIBUTE BTN] study_created_timestamp (parsed): ' . $study_created_timestamp . ' (' . date('Y-m-d H:i:s', $study_created_timestamp) . ')');
-        error_log('[EIPSI REDISTRIBUTE BTN] is_t1: ' . ($is_t1 ? 'YES' : 'NO'));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L625'), 'debug');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L626'), 'debug');
         
         // Calculate current window
         $current_window_minutes = 0;
         
         if (!empty($wave->due_date)) {
-            error_log('[EIPSI REDISTRIBUTE BTN] Wave has due_date: ' . $wave->due_date);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L632'), 'debug');
             
             // Extract date part only (due_date from DB has format "YYYY-MM-DD HH:MM:SS")
             $deadline_date = substr($wave->due_date, 0, 10);
             $deadline_datetime = $deadline_date . ' 23:59:59';
             $deadline_timestamp = strtotime($deadline_datetime);
-            error_log('[EIPSI REDISTRIBUTE BTN] deadline_date extracted: ' . $deadline_date);
-            error_log('[EIPSI REDISTRIBUTE BTN] deadline_datetime built: ' . $deadline_datetime);
-            error_log('[EIPSI REDISTRIBUTE BTN] deadline_timestamp (parsed): ' . $deadline_timestamp . ' (' . date('Y-m-d H:i:s', $deadline_timestamp) . ')');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L638'), 'debug');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L639'), 'debug');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L640'), 'debug');
             
             // T1 (offset=0): window from created_at to deadline (fixed)
             // Other waves: window from NOW to deadline (dynamic, remaining time)
             if ($is_t1) {
-                error_log('[EIPSI REDISTRIBUTE BTN] T1 calculation: deadline_timestamp - study_created_timestamp');
-                error_log('[EIPSI REDISTRIBUTE BTN] T1 calculation: ' . $deadline_timestamp . ' - ' . $study_created_timestamp . ' = ' . ($deadline_timestamp - $study_created_timestamp) . ' seconds');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L645'), 'debug');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L646'), 'debug');
                 $current_window_minutes = ceil(($deadline_timestamp - $study_created_timestamp) / 60);
-                error_log('[EIPSI REDISTRIBUTE BTN] T1 current_window_minutes: ' . $current_window_minutes);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L648'), 'debug');
             } else {
                 $now_timestamp = current_time('timestamp');
-                error_log('[EIPSI REDISTRIBUTE BTN] Other wave calculation: deadline_timestamp - now_timestamp');
-                error_log('[EIPSI REDISTRIBUTE BTN] now_timestamp: ' . $now_timestamp . ' (' . date('Y-m-d H:i:s', $now_timestamp) . ')');
-                error_log('[EIPSI REDISTRIBUTE BTN] Other calculation: ' . $deadline_timestamp . ' - ' . $now_timestamp . ' = ' . ($deadline_timestamp - $now_timestamp) . ' seconds');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L651'), 'debug');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L652'), 'debug');
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L653'), 'debug');
                 $current_window_minutes = ceil(($deadline_timestamp - $now_timestamp) / 60);
-                error_log('[EIPSI REDISTRIBUTE BTN] Other current_window_minutes: ' . $current_window_minutes);
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L655'), 'debug');
             }
         } else {
             // No deadline: use original window
-            error_log('[EIPSI REDISTRIBUTE BTN] No due_date, using original window_minutes: ' . $wave->window_minutes);
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L659'), 'debug');
             $current_window_minutes = $wave->window_minutes;
         }
         
-        error_log('[EIPSI REDISTRIBUTE BTN] FINAL current_window_minutes: ' . $current_window_minutes);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L663'), 'debug');
         
         // Validate minimum window for nudge redistribution
         if ($current_window_minutes < 60) {
-            error_log(sprintf(
-                '[EIPSI Redistribute] Wave %d: Window too short (%d min) for redistribution',
-                $wave_id,
-                $current_window_minutes
-            ));
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L667'), 'debug');
             
             wp_send_json_error(array(
                 'message' => sprintf(
@@ -1652,8 +727,7 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
         
         $window_days = ceil($current_window_minutes / 1440);
         
-        error_log(sprintf('[EIPSI Redistribute] Wave %d: Redistributed to %d days (%d minutes)',
-            $wave_id, $window_days, $current_window_minutes));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L734'), 'debug');
         
         wp_send_json_success(array(
             'message' => 'Nudges redistribuidos correctamente',
@@ -1661,7 +735,7 @@ function wp_ajax_eipsi_redistribute_nudges_handler() {
             'window_minutes' => $current_window_minutes
         ));
     } catch (Exception $e) {
-        error_log('[EIPSI Redistribute] Error: ' . $e->getMessage());
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'study_dashboard_api_L743'), 'debug');
         wp_send_json_error(array(
             'message' => 'Error al redistribuir nudges: ' . $e->getMessage(),
             'error' => 'exception'
@@ -1981,59 +1055,7 @@ function wp_ajax_eipsi_import_csv_participants_handler() {
         require_once plugin_dir_path(__FILE__) . 'services/class-email-service.php';
     }
 
-    $results = array(
-        'imported' => 0,
-        'failed' => 0,
-        'emails_sent' => 0,
-        'emails_failed' => 0,
-        'errors' => array()
-    );
-
-    foreach ($participants as $participant) {
-        // Solo importar participantes válidos que no existan
-        if ($participant['status'] !== 'valid') {
-            continue;
-        }
-
-        $email = sanitize_email($participant['email']);
-        $first_name = sanitize_text_field($participant['first_name']);
-        $last_name = sanitize_text_field($participant['last_name']);
-
-        // Generar contraseña automática
-        $password = wp_generate_password(12, false);
-
-        $metadata = array();
-        if (!empty($first_name)) {
-            $metadata['first_name'] = $first_name;
-        }
-        if (!empty($last_name)) {
-            $metadata['last_name'] = $last_name;
-        }
-
-        // Crear participante
-        $participant_result = EIPSI_Participant_Service::create_participant($study_id, $email, $password, $metadata);
-
-        if (!$participant_result['success']) {
-            $results['failed']++;
-            $results['errors'][] = array(
-                'email' => $email,
-                'error' => $participant_result['error']
-            );
-            continue;
-        }
-
-        $results['imported']++;
-        $participant_id = $participant_result['participant_id'];
-
-        // Enviar invitación por email
-        $email_sent = EIPSI_Email_Service::send_welcome_email($study_id, $participant_id);
-
-        if ($email_sent) {
-            $results['emails_sent']++;
-        } else {
-            $results['emails_failed']++;
-        }
-    }
+    $results = EIPSI_Participant_Import_Service::import_rows($study_id, $participants);
 
     wp_send_json_success(array(
         'message' => sprintf(
@@ -2556,79 +1578,8 @@ function wp_ajax_eipsi_save_study_cron_config_handler() {
         wp_send_json_error('Missing study ID');
     }
 
-    // Validar y sanitizar datos
-    $cron_enabled = isset($_POST['cron_enabled']) ? filter_var($_POST['cron_enabled'], FILTER_VALIDATE_BOOLEAN) : false;
-    $cron_frequency = isset($_POST['cron_frequency']) ? sanitize_text_field($_POST['cron_frequency']) : '';
-    $cron_actions = isset($_POST['cron_actions']) ? array_map('sanitize_text_field', (array)$_POST['cron_actions']) : array();
 
-    // Validaciones
-    $errors = array();
-
-    if ($cron_enabled) {
-        if (empty($cron_frequency)) {
-            $errors[] = 'La frecuencia es requerida cuando los cron jobs están activados.';
-        } elseif (!in_array($cron_frequency, array('daily', 'weekly', 'monthly'))) {
-            $errors[] = 'Frecuencia inválida.';
-        }
-
-        if (empty($cron_actions)) {
-            $errors[] = 'Debes seleccionar al menos una acción.';
-        }
-    }
-
-    if (!empty($errors)) {
-        wp_send_json_error(array(
-            'message' => implode(' ', $errors)
-        ));
-    }
-
-    // Guardar configuración
-    update_post_meta($study_id, '_eipsi_study_cron_enabled', $cron_enabled);
-    update_post_meta($study_id, '_eipsi_study_cron_frequency', $cron_frequency);
-    update_post_meta($study_id, '_eipsi_study_cron_actions', $cron_actions);
-
-    // Programar cron job si está activado
-    if ($cron_enabled) {
-        // Desprogramar cualquier cron job existente
-        wp_clear_scheduled_hook('eipsi_study_cron_job', array($study_id));
-
-        // Programar nuevo cron job según la frecuencia
-        $timestamp = current_time('timestamp');
-        
-        switch ($cron_frequency) {
-            case 'daily':
-                $next_run = strtotime('tomorrow', $timestamp);
-                break;
-            case 'weekly':
-                $next_run = strtotime('next monday', $timestamp);
-                break;
-            case 'monthly':
-                $next_run = strtotime('first day of next month', $timestamp);
-                break;
-            default:
-                $next_run = strtotime('tomorrow', $timestamp);
-        }
-
-        // Programar el evento
-        wp_schedule_event($next_run, 'eipsi_' . $cron_frequency, 'eipsi_study_cron_job', array($study_id));
-
-        // Guardar información de ejecución
-        update_post_meta($study_id, '_eipsi_study_cron_next_run', date('Y-m-d H:i:s', $next_run));
-    } else {
-        // Desprogramar cron job si se desactiva
-        wp_clear_scheduled_hook('eipsi_study_cron_job', array($study_id));
-        delete_post_meta($study_id, '_eipsi_study_cron_next_run');
-    }
-
-    // Obtener información actualizada
-    $last_run = get_post_meta($study_id, '_eipsi_study_cron_last_run', true);
-    $next_run = get_post_meta($study_id, '_eipsi_study_cron_next_run', true);
-
-    wp_send_json_success(array(
-        'message' => 'Configuración de cron jobs guardada exitosamente.',
-        'last_run' => $last_run ? date('Y-m-d H:i:s', strtotime($last_run)) : 'Nunca',
-        'next_run' => $next_run ? date('Y-m-d H:i:s', strtotime($next_run)) : 'No programada'
-    ));
+    EIPSI_Form_Response::emit(EIPSI_Longitudinal_Study_Config_Service::wp_ajax_eipsi_save_study_cron_config_handler($study_id,$_POST,$_GET));
 }
 
 /**
@@ -2646,14 +1597,8 @@ function wp_ajax_eipsi_get_study_cron_config_handler() {
         wp_send_json_error('Missing study ID');
     }
 
-    // Load the cron jobs tab content
-    ob_start();
-    include plugin_dir_path(__FILE__) . 'tabs/study-cron-jobs-tab.php';
-    $html = ob_get_clean();
 
-    wp_send_json_success(array(
-        'html' => $html
-    ));
+    EIPSI_Form_Response::emit(EIPSI_Longitudinal_Study_Config_Service::wp_ajax_eipsi_get_study_cron_config_handler($study_id,$_POST,$_GET));
 }
 
 /**
@@ -2671,88 +1616,8 @@ function wp_ajax_eipsi_save_study_settings_handler() {
         wp_send_json_error('Missing study ID');
     }
 
-    global $wpdb;
 
-    // Verify study exists and is in draft status
-    $study = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM {$wpdb->prefix}survey_studies WHERE id = %d",
-        $study_id
-    ));
-
-    if (!$study) {
-        wp_send_json_error('Study not found');
-    }
-
-    if ($study->status !== 'draft') {
-        wp_send_json_error('Only draft studies can be edited');
-    }
-
-    // Sanitize and validate input
-    $study_name = isset($_POST['study_name']) ? sanitize_text_field($_POST['study_name']) : '';
-    $study_description = isset($_POST['study_description']) ? sanitize_textarea_field($_POST['study_description']) : '';
-    $time_config = isset($_POST['time_config']) ? sanitize_text_field($_POST['time_config']) : 'limited';
-    $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
-    $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : '';
-
-    // Validations
-    $errors = array();
-
-    if (empty($study_name)) {
-        $errors[] = 'El nombre del estudio es requerido.';
-    }
-
-    if ($time_config === 'limited') {
-        if (empty($start_date)) {
-            $errors[] = 'La fecha de inicio es requerida cuando el tiempo es limitado.';
-        }
-
-        if (empty($end_date)) {
-            $errors[] = 'La fecha de finalización es requerida cuando el tiempo es limitado.';
-        }
-
-        if (!empty($start_date) && !empty($end_date) && strtotime($end_date) <= strtotime($start_date)) {
-            $errors[] = 'La fecha de finalización debe ser posterior a la fecha de inicio.';
-        }
-    }
-
-    if (!empty($errors)) {
-        wp_send_json_error(array(
-            'message' => implode(' ', $errors)
-        ));
-    }
-
-    // Prepare update data
-    $update_data = array(
-        'name' => $study_name,
-        'description' => $study_description,
-        'status' => 'draft'
-    );
-
-    if ($time_config === 'limited') {
-        $update_data['start_date'] = $start_date;
-        $update_data['end_date'] = $end_date;
-    } else {
-        $update_data['start_date'] = null;
-        $update_data['end_date'] = null;
-    }
-
-    // Update study in database
-    $updated = $wpdb->update(
-        "{$wpdb->prefix}survey_studies",
-        $update_data,
-        array('id' => $study_id),
-        array('%s', '%s', '%s'),
-        array('%d')
-    );
-
-    if ($updated === false) {
-        wp_send_json_error('Failed to update study settings');
-    }
-
-    wp_send_json_success(array(
-        'message' => 'Configuración del estudio guardada exitosamente.',
-        'study_id' => $study_id
-    ));
+    EIPSI_Form_Response::emit(EIPSI_Longitudinal_Study_Config_Service::wp_ajax_eipsi_save_study_settings_handler($study_id,$_POST,$_GET));
 }
 
 // ============================================================================
@@ -3265,16 +2130,52 @@ function wp_ajax_eipsi_create_study_page_handler() {
 /**
  * Test handler WITHOUT nonce verification
  */
-function wp_ajax_eipsi_test_no_nonce_handler() {
-    error_log('[EIPSI TEST NO NONCE] Handler called - NO nonce check');
-    wp_send_json_success(array('message' => 'Handler works without nonce check'));
-}
+
 
 /**
  * Test AJAX handler to verify registration
  */
-function wp_ajax_eipsi_test_deadline_handler() {
-    error_log('[EIPSI TEST] Test deadline handler called!');
-    error_log('[EIPSI TEST] POST data: ' . print_r($_POST, true));
-    wp_send_json_success(array('message' => 'Test handler works!'));
+
+
+// S3: exact contracts emitted by the active study dashboard modal.
+add_action('wp_ajax_eipsi_send_individual_reminder', 'eipsi_send_individual_reminder_handler');
+add_action('wp_ajax_eipsi_recalculate_preview', 'eipsi_recalculate_preview_handler');
+add_action('wp_ajax_eipsi_recalculate_waves', 'eipsi_recalculate_waves_handler');
+function eipsi_s3_require_study_admin() {
+    if (!eipsi_user_can_manage_longitudinal()) { wp_send_json_error(array('message'=>'Unauthorized'),403); }
+    if (!is_string($_POST['nonce'] ?? null) || !wp_verify_nonce($_POST['nonce'],'eipsi_study_dashboard_nonce')) {
+        wp_send_json_error(array('message'=>'Invalid nonce'),403);
+    }
+}
+function eipsi_send_individual_reminder_handler() {
+    eipsi_s3_require_study_admin();
+    $id=absint($_POST['participant_id']??0);$wave_id=absint($_POST['wave_id']??0);
+    $participant=EIPSI_Participant_Service::get_by_id($id);
+    if (!$participant) { wp_send_json_error(array('message'=>'Participant not found'),404); }
+    $study_id=(int)$participant->survey_id;
+    if (isset($_POST['study_id']) && absint($_POST['study_id'])!==$study_id) { wp_send_json_error(array('message'=>'Study mismatch'),403); }
+    if (!EIPSI_Longitudinal_Study_Repository::get($study_id)) { wp_send_json_error(array('message'=>'Study not found'),404); }
+    if ($wave_id) {
+        $wave=EIPSI_Longitudinal_Wave_Definition_Service::get_wave($wave_id);
+        $assignment=EIPSI_Longitudinal_Assignment_Repository::get_assignment($wave_id,$id);
+        if (!$wave || (int)$wave->study_id!==$study_id || !$assignment || (int)$assignment['study_id']!==$study_id) {
+            wp_send_json_error(array('message'=>'Participant/wave mismatch'),403);
+        }
+    }
+    $result=EIPSI_Notification_Email_Message_Service::send_manual_reminders($study_id,array($id),$wave_id?:null);
+    $result['message']=$result['sent_count']===1?'Recordatorio enviado correctamente':'No se pudo enviar el recordatorio';
+    if ($result['sent_count']!==1) { wp_send_json_error($result); }
+    wp_send_json_success($result);
+}
+function eipsi_recalculate_preview_handler() {
+    eipsi_s3_require_study_admin();
+    $result=EIPSI_Longitudinal_T1_Recalculation_Service::preview_study(absint($_POST['study_id']??0));
+    if (is_wp_error($result)) { wp_send_json_error(array('message'=>$result->get_error_message()),400); }
+    wp_send_json_success($result);
+}
+function eipsi_recalculate_waves_handler() {
+    eipsi_s3_require_study_admin();
+    $result=EIPSI_Longitudinal_T1_Recalculation_Service::recalculate_study(absint($_POST['study_id']??0),get_current_user_id());
+    if (is_wp_error($result)) { wp_send_json_error(array('message'=>$result->get_error_message(),'details'=>$result->get_error_data()),400); }
+    wp_send_json_success($result);
 }

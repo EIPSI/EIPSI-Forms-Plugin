@@ -1,0 +1,7 @@
+{
+  "admin/database-schema-manager.php": {
+    "before_m8_sha256": "5fd8b044dd220899f3d570c4c4278e7d5591d1589eb5b1ea1b0e2c5fa402eb47",
+    "m8_sha256": "3bac1014834c6fdfad39fd3b5eafb1d9283a5a2e9a6ff0089a1faf3747ff04c3",
+    "reason": "M8 canonical schema owners, compatible facades, readonly periodic inspection, verified additive repair"
+  }
+}

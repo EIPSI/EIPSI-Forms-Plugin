@@ -1,0 +1,651 @@
+{
+  "expected_error": "RANDOM_N_EXCEEDS_CHILDREN",
+  "definition": {
+    "contract_version": "P1B_V1",
+    "study": {
+      "logical_id": "STUDY_07-rct-internal-random",
+      "public_id": "PUBLIC_07-rct-internal-random"
+    },
+    "id": "VERSION_1",
+    "version_number": 1,
+    "state": "PUBLISHED",
+    "timezone": {
+      "policy": "PARTICIPANT_LOCAL",
+      "default": "America/Argentina/Buenos_Aires"
+    },
+    "root_block_ids": [
+      "M_ROOT"
+    ],
+    "nodes": [
+      {
+        "kind": "BLOCK",
+        "id": "M_ROOT",
+        "logical_id": "M_ROOT",
+        "version_id": "VERSION_1",
+        "parent_id": "VERSION_1",
+        "scope": "MACRO",
+        "position": 0,
+        "children_strategy": "RANDOM_SELECT_ONE",
+        "randomization": {
+          "strategy": "RANDOM_SELECT_ONE",
+          "scope": "EXECUTION",
+          "candidates": [
+            "M_ARM_A",
+            "M_ARM_B"
+          ],
+          "select_n": null,
+          "draw_count": null,
+          "weights": {},
+          "order": "DRAW",
+          "algorithm_version": "EIPSI_RANDOM_V1"
+        },
+        "schedule": {
+          "anchor": "EXECUTION_CREATED",
+          "anchor_ref": null,
+          "occurrence_selector": null,
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "NONE",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "M_ARM_A",
+        "logical_id": "M_ARM_A",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MACRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "BLOCK_AVAILABLE",
+          "anchor_ref": "M_ROOT",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          },
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "NONE",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_A",
+        "logical_id": "E_A",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ARM_A",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "BLOCK_AVAILABLE",
+          "anchor_ref": "M_ARM_A",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          },
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "DURATION",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 7200
+            }
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_ITEMS_A",
+        "logical_id": "m_ITEMS_A",
+        "version_id": "VERSION_1",
+        "parent_id": "E_A",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "RANDOM_ORDER",
+        "randomization": {
+          "strategy": "RANDOM_ORDER",
+          "scope": "BLOCK_INSTANCE",
+          "candidates": [
+            "Q_A_1",
+            "Q_A_2",
+            "Q_A_3"
+          ],
+          "select_n": null,
+          "draw_count": null,
+          "weights": {},
+          "order": "DRAW",
+          "algorithm_version": "EIPSI_RANDOM_V1"
+        },
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "DIRECTIVE",
+        "id": "D_A_PAGE",
+        "version_id": "VERSION_1",
+        "parent_id": "E_A",
+        "position": 1,
+        "directive_kind": "PAGE_BREAK",
+        "target": null,
+        "resume_target": null,
+        "on_target_unavailable": null
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_TASKS_A",
+        "logical_id": "m_TASKS_A",
+        "version_id": "VERSION_1",
+        "parent_id": "E_A",
+        "scope": "MICRO",
+        "position": 2,
+        "children_strategy": "RANDOM_SELECT_N",
+        "randomization": {
+          "strategy": "RANDOM_SELECT_N",
+          "scope": "BLOCK_INSTANCE",
+          "candidates": [
+            "m_TASK_A_1",
+            "m_TASK_A_2",
+            "m_TASK_A_3"
+          ],
+          "select_n": 4,
+          "draw_count": null,
+          "weights": {},
+          "order": "DRAW",
+          "algorithm_version": "EIPSI_RANDOM_V1"
+        },
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_A_1",
+        "version_id": "VERSION_1",
+        "parent_id": "m_ITEMS_A",
+        "position": 0,
+        "response_key": "RESPONSE_Q_A_1",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_A_1",
+          "version": 1,
+          "snapshot": "Q_A_1",
+          "sha256": "c19d7d3c989e1693b60336c081eb8f2589b9bf72fc82c4621e9c9b08f2ff9c1f"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_TASK_A_1",
+        "logical_id": "m_TASK_A_1",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASKS_A",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_TASK_A_1",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASK_A_1",
+        "position": 0,
+        "response_key": "RESPONSE_Q_TASK_A_1",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_TASK_A_1",
+          "version": 1,
+          "snapshot": "Q_TASK_A_1",
+          "sha256": "19410ec25bbb9f2ad8bc1f9442d608ff340933e1782b716d45043b8c8e9e402e"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_A_2",
+        "version_id": "VERSION_1",
+        "parent_id": "m_ITEMS_A",
+        "position": 1,
+        "response_key": "RESPONSE_Q_A_2",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_A_2",
+          "version": 1,
+          "snapshot": "Q_A_2",
+          "sha256": "629d0ca31e97ba12e25bbe6b783179e7ebeba61d64ce6f159fd34e21650369ad"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_TASK_A_2",
+        "logical_id": "m_TASK_A_2",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASKS_A",
+        "scope": "MICRO",
+        "position": 1,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_TASK_A_2",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASK_A_2",
+        "position": 0,
+        "response_key": "RESPONSE_Q_TASK_A_2",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_TASK_A_2",
+          "version": 1,
+          "snapshot": "Q_TASK_A_2",
+          "sha256": "a583246875337e8e442c6023ee4b9e670a2d3f99aecc449e4a54eb04000f2b18"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_A_3",
+        "version_id": "VERSION_1",
+        "parent_id": "m_ITEMS_A",
+        "position": 2,
+        "response_key": "RESPONSE_Q_A_3",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_A_3",
+          "version": 1,
+          "snapshot": "Q_A_3",
+          "sha256": "0e29af13f65e119cbf3ad2ebed24cbae3cf7fc2a6635129d83392c722f268e79"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_TASK_A_3",
+        "logical_id": "m_TASK_A_3",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASKS_A",
+        "scope": "MICRO",
+        "position": 2,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_TASK_A_3",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASK_A_3",
+        "position": 0,
+        "response_key": "RESPONSE_Q_TASK_A_3",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_TASK_A_3",
+          "version": 1,
+          "snapshot": "Q_TASK_A_3",
+          "sha256": "7c9d40cb14e53e991eaa45b10504b8e6e82eae96d8e92902b86aa0674141ec1b"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "M_ARM_B",
+        "logical_id": "M_ARM_B",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ROOT",
+        "scope": "MACRO",
+        "position": 1,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "BLOCK_AVAILABLE",
+          "anchor_ref": "M_ROOT",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          },
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "NO_DEADLINE"
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "NONE",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "E_B",
+        "logical_id": "E_B",
+        "version_id": "VERSION_1",
+        "parent_id": "M_ARM_B",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": {
+          "anchor": "BLOCK_AVAILABLE",
+          "anchor_ref": "M_ARM_B",
+          "occurrence_selector": {
+            "kind": "SINGLE"
+          },
+          "temporal_rule": {
+            "kind": "IMMEDIATE"
+          },
+          "timezone_policy": "PARTICIPANT_LOCAL",
+          "window": {
+            "kind": "DURATION",
+            "duration": {
+              "kind": "ELAPSED",
+              "seconds": 7200
+            }
+          },
+          "recurrence": null,
+          "dst_policy": {
+            "gap": "SHIFT_FORWARD_BY_GAP",
+            "fold": "EARLIER_INSTANT"
+          }
+        },
+        "completion_boundary": "ASSESSMENT",
+        "metadata": {}
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_ITEMS_B",
+        "logical_id": "m_ITEMS_B",
+        "version_id": "VERSION_1",
+        "parent_id": "E_B",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "RANDOM_ORDER",
+        "randomization": {
+          "strategy": "RANDOM_ORDER",
+          "scope": "BLOCK_INSTANCE",
+          "candidates": [
+            "Q_B_1",
+            "Q_B_2",
+            "Q_B_3"
+          ],
+          "select_n": null,
+          "draw_count": null,
+          "weights": {},
+          "order": "DRAW",
+          "algorithm_version": "EIPSI_RANDOM_V1"
+        },
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "DIRECTIVE",
+        "id": "D_B_PAGE",
+        "version_id": "VERSION_1",
+        "parent_id": "E_B",
+        "position": 1,
+        "directive_kind": "PAGE_BREAK",
+        "target": null,
+        "resume_target": null,
+        "on_target_unavailable": null
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_TASKS_B",
+        "logical_id": "m_TASKS_B",
+        "version_id": "VERSION_1",
+        "parent_id": "E_B",
+        "scope": "MICRO",
+        "position": 2,
+        "children_strategy": "RANDOM_SELECT_N",
+        "randomization": {
+          "strategy": "RANDOM_SELECT_N",
+          "scope": "BLOCK_INSTANCE",
+          "candidates": [
+            "m_TASK_B_1",
+            "m_TASK_B_2",
+            "m_TASK_B_3"
+          ],
+          "select_n": 2,
+          "draw_count": null,
+          "weights": {},
+          "order": "DRAW",
+          "algorithm_version": "EIPSI_RANDOM_V1"
+        },
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_B_1",
+        "version_id": "VERSION_1",
+        "parent_id": "m_ITEMS_B",
+        "position": 0,
+        "response_key": "RESPONSE_Q_B_1",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_B_1",
+          "version": 1,
+          "snapshot": "Q_B_1",
+          "sha256": "44270bb800c18543d368fd6a8a5278657a19d7732253df8e692cc48d6f24e269"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_TASK_B_1",
+        "logical_id": "m_TASK_B_1",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASKS_B",
+        "scope": "MICRO",
+        "position": 0,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_TASK_B_1",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASK_B_1",
+        "position": 0,
+        "response_key": "RESPONSE_Q_TASK_B_1",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_TASK_B_1",
+          "version": 1,
+          "snapshot": "Q_TASK_B_1",
+          "sha256": "5fe6003711153035480e2149d4e615a874be62629e0fd02262d6404eb6f3fe0a"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_B_2",
+        "version_id": "VERSION_1",
+        "parent_id": "m_ITEMS_B",
+        "position": 1,
+        "response_key": "RESPONSE_Q_B_2",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_B_2",
+          "version": 1,
+          "snapshot": "Q_B_2",
+          "sha256": "df75ad112937de6056c32aa9fb933a1699dab991084a738b3daded1e799123e4"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_TASK_B_2",
+        "logical_id": "m_TASK_B_2",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASKS_B",
+        "scope": "MICRO",
+        "position": 1,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_TASK_B_2",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASK_B_2",
+        "position": 0,
+        "response_key": "RESPONSE_Q_TASK_B_2",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_TASK_B_2",
+          "version": 1,
+          "snapshot": "Q_TASK_B_2",
+          "sha256": "82c234581b3b9e6b380accaccfe84dd064f7a2754a4616d6fa3a67baaaf02e56"
+        }
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_B_3",
+        "version_id": "VERSION_1",
+        "parent_id": "m_ITEMS_B",
+        "position": 2,
+        "response_key": "RESPONSE_Q_B_3",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_B_3",
+          "version": 1,
+          "snapshot": "Q_B_3",
+          "sha256": "c24ad972a591ee0d3f1cf2844d4df70116269b7c3f00881cc10ab4a166052ae2"
+        }
+      },
+      {
+        "kind": "BLOCK",
+        "id": "m_TASK_B_3",
+        "logical_id": "m_TASK_B_3",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASKS_B",
+        "scope": "MICRO",
+        "position": 2,
+        "children_strategy": "SEQUENTIAL",
+        "randomization": null,
+        "schedule": null,
+        "completion_boundary": "GROUP",
+        "metadata": {}
+      },
+      {
+        "kind": "QUESTION",
+        "id": "Q_TASK_B_3",
+        "version_id": "VERSION_1",
+        "parent_id": "m_TASK_B_3",
+        "position": 0,
+        "response_key": "RESPONSE_Q_TASK_B_3",
+        "type": "INTEGER",
+        "options": [],
+        "validation": {},
+        "required": true,
+        "semantic_role": null,
+        "content": {
+          "content_id": "CONTENT_Q_TASK_B_3",
+          "version": 1,
+          "snapshot": "Q_TASK_B_3",
+          "sha256": "afec436baced72800694a0e66730e87b30060314232894a355f6c530648795b8"
+        }
+      }
+    ],
+    "condition_rules": [],
+    "compiler_contract_version": "P1C_V1",
+    "protocol_metadata": {
+      "title": "07-rct-internal-random",
+      "source": "P1-A P.7"
+    },
+    "closure": {
+      "kind": "ALL_SELECTED_OPPORTUNITIES_TERMINAL"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "reason": "Explicit S0 security contract change; old snapshots remain frozen",
+  "added_public_methods": {
+    "EIPSI_Authentication_Service": {
+      "allow_public_request": {
+        "static": true,
+        "parameters": [
+          {
+            "name": "email",
+            "optional": false,
+            "default": null,
+            "type": null
+          },
+          {
+            "name": "survey_id",
+            "optional": false,
+            "default": null,
+            "type": null
+          }
+        ],
+        "owner": "EIPSI_Authentication_Service"
+      },
+      "request_magic_link": {
+        "static": true,
+        "parameters": [
+          {
+            "name": "survey_id",
+            "optional": false,
+            "default": null,
+            "type": null
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "default": null,
+            "type": null
+          }
+        ],
+        "owner": "EIPSI_Authentication_Service"
+      }
+    }
+  },
+  "assets": {
+    "assets/js/participant-auth.js": {
+      "before_s0_sha256": "fa6ca5a9de6abd8cb73b383492c92eea295d20d8f5d9873a131e4b9c330a6f8e",
+      "s0_sha256": "f3265e2c8e6df8b9311b4802acf0a45bc0d322e5b54342999e9ad1cc462767b9",
+      "reason": "S0 initiation must not announce authenticated state or reload before proof"
+    }
+  }
+}

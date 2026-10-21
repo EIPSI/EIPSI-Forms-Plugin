@@ -40,7 +40,7 @@
         const testEmail = $( '#test-email-address' ).val() || '';
 
         // Show loading
-        $button.prop( 'disabled', true ).text( 'Probando...' );
+        $button.prop( 'disabled', true ).text( window.EIPSIAdminI18n.t("Testing...") );
         hideMessage( $messageContainer );
 
         $.ajax( {
@@ -61,10 +61,10 @@
                 }
             },
             error() {
-                showMessage( 'error', 'Error de conexión al probar SMTP.', $messageContainer );
+                showMessage( 'error', window.EIPSIAdminI18n.t("Connection error while testing SMTP."), $messageContainer );
             },
             complete() {
-                $button.prop( 'disabled', false ).text( 'Probar SMTP' );
+                $button.prop( 'disabled', false ).text( window.EIPSIAdminI18n.t("Test SMTP") );
             }
         } );
     }
@@ -81,7 +81,7 @@
         const testEmail = $( '#test-email-address' ).val() || '';
 
         // Show loading
-        $button.prop( 'disabled', true ).text( 'Probando...' );
+        $button.prop( 'disabled', true ).text( window.EIPSIAdminI18n.t("Testing...") );
         $results.hide();
         $diagnostic.hide();
 
@@ -99,7 +99,7 @@
                     showMessage( 'success', response.data.message, $results );
                     
                     // Show details
-                    $results.find( '.details' ).html( '<strong>Detalles:</strong> ' + response.data.details );
+                    $results.find( '.details' ).html( ("<strong>"+window.EIPSIAdminI18n.h("Details:")+"</strong> ") + response.data.details );
                     
                     // Show diagnostic
                     showDiagnostic( response.data.diagnostic, $diagnostic );
@@ -110,7 +110,7 @@
                     showMessage( 'error', response.data.message, $results );
                     
                     // Show details
-                    $results.find( '.details' ).html( '<strong>Error:</strong> ' + response.data.details );
+                    $results.find( '.details' ).html( ("<strong>"+window.EIPSIAdminI18n.h("Error:")+"</strong> ") + response.data.details );
                     
                     // Show diagnostic
                     showDiagnostic( response.data.diagnostic, $diagnostic );
@@ -119,11 +119,11 @@
                 }
             },
             error() {
-                showMessage( 'error', 'Error de conexión al probar el email.', $results );
+                showMessage( 'error', window.EIPSIAdminI18n.t("Connection error while testing email."), $results );
                 $results.show();
             },
             complete() {
-                $button.prop( 'disabled', false ).text( 'Probar Email Default' );
+                $button.prop( 'disabled', false ).text( window.EIPSIAdminI18n.t("Test default email") );
             }
         } );
     }
@@ -136,7 +136,7 @@
         const $results = $( '#eipsi-email-diagnostic' );
 
         // Show loading
-        $button.prop( 'disabled', true ).text( 'Analizando...' );
+        $button.prop( 'disabled', true ).text( window.EIPSIAdminI18n.t("Analyzing...") );
 
         $.ajax( {
             url: ajaxurl,
@@ -151,15 +151,15 @@
                     showStats( response.data.stats, $results );
                     $results.show();
                 } else {
-                    showMessage( 'error', 'Error al obtener diagnóstico.', $results );
+                    showMessage( 'error', window.EIPSIAdminI18n.t("Could not retrieve diagnostics."), $results );
                     $results.show();
                 }
             },
             error() {
-                showMessage( 'error', 'Error de conexión al obtener diagnóstico.', $results );
+                showMessage( 'error', window.EIPSIAdminI18n.t("Connection error while retrieving diagnostics."), $results );
             },
             complete() {
-                $button.prop( 'disabled', false ).text( 'Ver Diagnóstico' );
+                $button.prop( 'disabled', false ).text( window.EIPSIAdminI18n.t("View diagnostics") );
             }
         } );
     }
@@ -175,19 +175,19 @@
         // Status
         const statusClass = diagnostic.status === 'okay' ? 'success' : 'warning';
         html += '<p class="status-' + statusClass + '">';
-        html += '<strong>Estado:</strong> ' + ( diagnostic.status === 'okay' ? '✅ OK' : '⚠️ Advertencias' );
+        html += ("<strong>"+window.EIPSIAdminI18n.h("Status:")+"</strong> ") + ( diagnostic.status === 'okay' ? '✅ OK' : window.EIPSIAdminI18n.t("⚠️ Warnings") );
         html += '</p>';
 
         // SMTP Status
-        html += '<p><strong>SMTP Configurado:</strong> ' + ( diagnostic.smtp_configured ? '✅ Sí' : '❌ No' ) + '</p>';
+        html += ("<p><strong>"+window.EIPSIAdminI18n.h("SMTP configured:")+"</strong> ") + ( diagnostic.smtp_configured ? window.EIPSIAdminI18n.t("✅ Yes") : window.EIPSIAdminI18n.t("❌ No") ) + '</p>';
         
         // Emails
         if ( diagnostic.investigator_email ) {
-            html += '<p><strong>Email Investigador:</strong> ' + diagnostic.investigator_email + '</p>';
+            html += ("<p><strong>"+window.EIPSIAdminI18n.h("Researcher email:")+"</strong> ") + diagnostic.investigator_email + '</p>';
         }
         
         if ( diagnostic.admin_email ) {
-            html += '<p><strong>Email Admin:</strong> ' + diagnostic.admin_email + '</p>';
+            html += ("<p><strong>"+window.EIPSIAdminI18n.h("Administrator email:")+"</strong> ") + diagnostic.admin_email + '</p>';
         }
 
         // Issues
@@ -220,9 +220,9 @@
         if ( ! stats ) return;
 
         let html = '<div class="email-stats">';
-        html += '<p><strong>Emails Enviados:</strong> ' + stats.sent + '</p>';
-        html += '<p><strong>Emails Fallidos:</strong> ' + stats.failed + '</p>';
-        html += '<p><strong>Tasa de Éxito:</strong> ' + stats.success_rate + '%</p>';
+        html += ("<p><strong>"+window.EIPSIAdminI18n.h("Emails sent:")+"</strong> ") + stats.sent + '</p>';
+        html += ("<p><strong>"+window.EIPSIAdminI18n.h("Emails failed:")+"</strong> ") + stats.failed + '</p>';
+        html += ("<p><strong>"+window.EIPSIAdminI18n.h("Success rate:")+"</strong> ") + stats.success_rate + '%</p>';
         html += '</div>';
         
         $container.find( '.stats-content' ).html( html );

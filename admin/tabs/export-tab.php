@@ -429,7 +429,7 @@ $nonce = wp_create_nonce('eipsi_admin_nonce');
                 }
 
                 const filename = resp.data.filename;
-                const downloadUrl = <?php echo wp_json_encode( plugins_url( 'exports/', EIPSI_FORMS_PLUGIN_FILE ) ); ?> + filename;
+                const downloadUrl = resp.data.download_url;
                 
                 // Trigger download
                 const $a = $( '<a>', {

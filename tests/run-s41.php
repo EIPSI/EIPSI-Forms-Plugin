@@ -1,0 +1,17 @@
+<?php
+/** Only disposable M0 WordPress/MariaDB. No deployment data or secrets in logs. */
+define('DOING_CRON',true);require __DIR__.'/m0/bootstrap.php';
+$tests=array();$s41_posts=array();$s41_keys=array();$cron=get_option('cron');$failed=0;$mu=ABSPATH.'wp-content/mu-plugins/eipsi-s41-isolation.php';$mu_owned=false;
+function s41_config($persistent=true){return array('formularios'=>array(array('id'=>$GLOBALS['s41_posts'][0])),'probabilidades'=>array(100),'method'=>'seeded','persistent_mode'=>$persistent);}
+function s41_new($suffix='own',$persistent=true){global $wpdb;$config='s41-'.$suffix;$fp='fp_s41_'.$suffix;m0_assert(!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}eipsi_randomization_assignments WHERE randomization_id=%s",$config)),'RCT fixture collision');$GLOBALS['s41_keys'][$config]=true;$r=EIPSI_Randomization_Assignment_Service::resolve($config,s41_config($persistent),$fp);m0_assert(!is_wp_error($r)&&!empty($r['reset_capability']),'New capability missing');return array('config'=>$config,'fp'=>$fp,'proof'=>$r['reset_capability'],'id'=>$r['assignment_id']);}
+function s41_row($r){global $wpdb;return $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}eipsi_randomization_assignments WHERE id=%d",$r['id']),ARRAY_A);}
+function s41_close($r,$proof=null,$admin=false,$session=null){$cookies=$admin?m0_admin_cookies():array();$headers=array('Host'=>'127.0.0.1:18080');if($cookies){$pairs=array();foreach($cookies as$k=>$v)$pairs[]=$k.'='.$v;$headers['Cookie']=implode('; ',$pairs);}if($session){$headers['Cookie']=($headers['Cookie']??'').'; '.$session['cookie_name'].'='.rawurlencode($session['token']);}$body=array('action'=>'eipsi_close_randomization_session','randomization_id'=>$r['config'],'user_fingerprint'=>$r['fp'],'reset_capability'=>$proof===null?$r['proof']:$proof,'nonce'=>wp_create_nonce('eipsi_admin_nonce'));$http=wp_remote_post('http://127.0.0.1/wp-admin/admin-ajax.php',array('headers'=>$headers,'body'=>$body,'timeout'=>20));m0_assert(!is_wp_error($http),'Transport');$j=json_decode(wp_remote_retrieve_body($http),true);m0_assert(is_array($j),'Expected JSON');return array(wp_remote_retrieve_response_code($http),$j);}
+function s41_direct($r,$proof=null){$_POST=array('reset_capability'=>$proof===null?$r['proof']:$proof);try{return EIPSI_Randomization_Assignment_Service::eipsi_close_randomization_session($r['config'],$r['fp']);}finally{$_POST=array();}}
+require __DIR__.'/s41/cases.php';
+try{
+ m0_assert(!file_exists($mu),'MU collision');wp_mkdir_p(dirname($mu));m0_assert(copy(__DIR__.'/s41/http-isolation.php',$mu),'MU copy');$mu_owned=true;
+ $s41_posts[]=wp_insert_post(array('post_type'=>'eipsi_form_template','post_status'=>'publish','post_title'=>'S41 owned public form','post_content'=>'<!-- wp:paragraph --><p>Public S41 fixture</p><!-- /wp:paragraph -->'));
+ m0_assert($s41_posts[0]>0,'Post fixture');
+ foreach($tests as$name=>$fn){try{$fn();echo 'PASS '.$name."\n";}catch(Throwable$e){$failed++;echo 'FAIL '.$name.': '.$e->getMessage()."\n";}}
+}finally{if($mu_owned)unlink($mu);delete_option('eipsi_s41_delete_sql_failure');foreach(array_keys($s41_keys)as$key)$wpdb->delete($wpdb->prefix.'eipsi_randomization_assignments',array('randomization_id'=>$key));foreach($s41_posts as$id)wp_delete_post($id,true);update_option('cron',$cron);$_COOKIE=array();$_POST=array();}
+echo count($tests).' tests, '.$failed." failures\n";ob_end_flush();exit($failed?1:0);

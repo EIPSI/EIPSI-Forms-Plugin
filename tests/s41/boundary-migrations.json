@@ -1,0 +1,7 @@
+{
+  "assets/js/eipsi-save-continue.js": {
+    "before_s41_sha256": "d63bf795e79bf1a72de967fc513e7a6f747bad77b9ce1d7ee9c3002dbf3392c3",
+    "s41_sha256": "ab4aa66eca1ac26921ee5dc23469c6da385da691f4272c92729f8988695519f0",
+    "reason": "Transport and retain row-bound signed reset capability in both active consumers; do not replace historical snapshots."
+  }
+}

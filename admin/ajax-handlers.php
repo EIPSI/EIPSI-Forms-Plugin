@@ -3,58 +3,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/forms/bootstrap.php';
+
 function generate_stable_form_id($form_name) {
-    global $wpdb;
-    
-    $initials = get_form_initials($form_name);
-    
-    if (strlen($initials) < 2) {
-        $slug = sanitize_title($form_name);
-        $initials = strtoupper(substr($slug, 0, 3));
-    }
-    
-    $slug = sanitize_title($form_name);
-    $hash = substr(md5($slug), 0, 6);
-    $form_id = "{$initials}-{$hash}";
-    
-    $table_name = $wpdb->prefix . 'vas_form_results';
-    $exists = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM $table_name WHERE form_id = %s",
-        $form_id
-    ));
-    
-    if ($exists > 0) {
-        return $form_id;
-    }
-    
-    return $form_id;
+    return EIPSI_Form_Context::generate_stable_form_id($form_name);
 }
 
 function get_form_initials($form_name) {
-    // Handle null or non-string input safely
-    if (empty($form_name)) {
-        return 'UNK';
-    }
-    
-    $words = explode(' ', trim((string) $form_name));
-    $initials = '';
-    
-    foreach ($words as $word) {
-        // Limpiar caracteres especiales
-        $clean_word = preg_replace('/[^a-zA-Z0-9]/', '', $word);
-        
-        if (!empty($clean_word)) {
-            if (strlen($clean_word) >= 3) {
-                $initials .= strtoupper(substr($clean_word, 0, 3));
-            } else {
-                $initials .= strtoupper($clean_word); // Palabra completa si < 3
-            }
-            
-            if (strlen($initials) >= 3) break; // Máximo 3 caracteres total
-        }
-    }
-    
-    return !empty($initials) ? $initials : 'UNK'; // Fallback
+    return EIPSI_Form_Context::get_form_initials($form_name);
 }
 
 /**
@@ -65,34 +21,7 @@ function get_form_initials($form_name) {
  * @return string
  */
 function eipsi_get_study_status_for_form_name($form_name) {
-    $form_name = sanitize_text_field($form_name);
-
-    if (empty($form_name)) {
-        return 'open';
-    }
-
-    $templates = get_posts(array(
-        'post_type' => 'eipsi_form_template',
-        'post_status' => 'publish',
-        'posts_per_page' => 1,
-        'fields' => 'ids',
-        'meta_query' => array(
-            array(
-                'key' => '_eipsi_form_name',
-                'value' => $form_name,
-                'compare' => '=',
-            )
-        ),
-    ));
-
-    if (empty($templates)) {
-        return 'open';
-    }
-
-    $template_id = (int) $templates[0];
-    $status = get_post_meta($template_id, '_eipsi_study_status', true);
-
-    return ($status === 'closed') ? 'closed' : 'open';
+    return EIPSI_Form_Context::eipsi_get_study_status_for_form_name($form_name);
 }
 
 /**
@@ -102,24 +31,7 @@ function eipsi_get_study_status_for_form_name($form_name) {
  * @return string 'desktop', 'mobile', 'tablet', or 'unknown'
  */
 function eipsi_detect_device_type($user_agent) {
-    if (empty($user_agent)) {
-        return 'unknown';
-    }
-    
-    $ua = strtolower($user_agent);
-    
-    // Tablet detection
-    if (preg_match('/(tablet|ipad|android(?!.*mobile)|kindle|silk|playbook)/', $ua)) {
-        return 'tablet';
-    }
-    
-    // Mobile detection
-    if (preg_match('/(mobile|iphone|ipod|android|blackberry|windows phone|palm|operamini|opera mini)/', $ua)) {
-        return 'mobile';
-    }
-    
-    // Desktop (default)
-    return 'desktop';
+    return EIPSI_Form_Capture_Service::eipsi_detect_device_type($user_agent);
 }
 
 /**
@@ -129,33 +41,7 @@ function eipsi_detect_device_type($user_agent) {
  * @return string Browser name or 'unknown'
  */
 function eipsi_detect_browser($user_agent) {
-    if (empty($user_agent)) {
-        return 'unknown';
-    }
-    
-    $ua = strtolower($user_agent);
-    
-    // Common browsers in order of specificity
-    if (preg_match('/edg\//', $ua)) {
-        return 'Edge';
-    }
-    if (preg_match('/opr|opera/', $ua)) {
-        return 'Opera';
-    }
-    if (preg_match('/firefox/', $ua)) {
-        return 'Firefox';
-    }
-    if (preg_match('/safari/', $ua) && !preg_match('/chrome|chromium/', $ua)) {
-        return 'Safari';
-    }
-    if (preg_match('/chrome|chromium/', $ua)) {
-        return 'Chrome';
-    }
-    if (preg_match('/msie|trident/', $ua)) {
-        return 'IE';
-    }
-    
-    return 'unknown';
+    return EIPSI_Form_Capture_Service::eipsi_detect_browser($user_agent);
 }
 
 /**
@@ -165,89 +51,15 @@ function eipsi_detect_browser($user_agent) {
  * @return string OS name or 'unknown'
  */
 function eipsi_detect_os($user_agent) {
-    if (empty($user_agent)) {
-        return 'unknown';
-    }
-    
-    $ua = strtolower($user_agent);
-    
-    // Windows - múltiples formatos para compatibilidad moderna
-    if (preg_match('/windows nt 10\.0/', $ua) || preg_match('/windows nt 10/', $ua)) {
-        return 'Windows 10/11';
-    }
-    if (preg_match('/windows nt 6\.3/', $ua)) {
-        return 'Windows 8.1';
-    }
-    if (preg_match('/windows nt 6\.2/', $ua)) {
-        return 'Windows 8';
-    }
-    if (preg_match('/windows nt 6\.1/', $ua)) {
-        return 'Windows 7';
-    }
-    if (preg_match('/windows nt 6\.0/', $ua)) {
-        return 'Windows Vista';
-    }
-    if (preg_match('/windows nt 5\.[12]/', $ua)) {
-        return 'Windows XP/2003';
-    }
-    // Formatos alternativos (Win64, Win32 sin NT version)
-    if (preg_match('/win64|win32|windows/', $ua)) {
-        return 'Windows';
-    }
-    
-    // macOS
-    if (preg_match('/macintosh|mac os x|macos/', $ua)) {
-        return 'macOS';
-    }
-    
-    // iOS (iPhone/iPad)
-    if (preg_match('/iphone|ipad|ipod/', $ua)) {
-        return 'iOS';
-    }
-    
-    // Android
-    if (preg_match('/android/', $ua)) {
-        return 'Android';
-    }
-    
-    // Linux y variantes
-    if (preg_match('/linux/', $ua)) {
-        return 'Linux';
-    }
-    
-    // Chrome OS
-    if (preg_match('/cros|chrome os|chromeos/', $ua)) {
-        return 'Chrome OS';
-    }
-    
-    return 'unknown';
+    return EIPSI_Form_Capture_Service::eipsi_detect_os($user_agent);
 }
 
 function generateStableFingerprint($user_data) {
-    $components = array(
-        'email' => strtolower(trim($user_data['email'] ?? '')),
-        'name' => normalizeName($user_data['name'] ?? ''),
-    );
-    
-    $fingerprint_string = implode('|', array_filter($components));
-    
-    if ($fingerprint_string) {
-        $hash = substr(hash('sha256', $fingerprint_string), 0, 8);
-        return "FP-{$hash}";
-    } else {
-        $session_id = session_id();
-        if (empty($session_id)) {
-            session_start();
-            $session_id = session_id();
-        }
-        $remote_addr = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $session_hash = substr(md5($session_id . $remote_addr), 0, 6);
-        return "FP-SESS-{$session_hash}";
-    }
+    return EIPSI_Form_Capture_Service::generateStableFingerprint($user_data);
 }
 
 function normalizeName($name) {
-    return strtoupper(trim($name));
+    return EIPSI_Form_Capture_Service::normalizeName($name);
 }
 
 add_action('wp_ajax_nopriv_eipsi_forms_submit_form', 'eipsi_forms_submit_form_handler');
@@ -263,9 +75,6 @@ add_action('wp_ajax_eipsi_test_db_connection', 'eipsi_test_db_connection_handler
 add_action('wp_ajax_eipsi_save_db_config', 'eipsi_save_db_config_handler');
 add_action('wp_ajax_eipsi_disable_external_db', 'eipsi_disable_external_db_handler');
 add_action('wp_ajax_eipsi_get_db_status', 'eipsi_get_db_status_handler');
-add_action('wp_ajax_eipsi_check_external_db', 'eipsi_check_external_db_handler');
-add_action('wp_ajax_nopriv_eipsi_check_external_db', 'eipsi_check_external_db_handler');
-
 add_action('wp_ajax_eipsi_save_privacy_config', 'eipsi_save_privacy_config_handler');
 add_action('wp_ajax_eipsi_save_global_privacy_config', 'eipsi_save_global_privacy_config_handler');
 add_action('wp_ajax_eipsi_verify_schema', 'eipsi_verify_schema_handler');
@@ -405,11 +214,11 @@ function eipsi_test_smtp_connection_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
     if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')));
+        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')));
     }
 
     if (!class_exists('EIPSI_SMTP_Service')) {
-        wp_send_json_error(array('message' => __('SMTP service not available.', 'eipsi-forms')));
+        wp_send_json_error(array('message' => eipsi_admin_translate('SMTP service not available.')));
     }
 
     $smtp_service = new EIPSI_SMTP_Service();
@@ -426,7 +235,7 @@ function eipsi_test_smtp_connection_handler() {
 
     $validation = $smtp_service->validate_config($host, $port, $user, $password, $encryption);
     if (empty($validation['valid'])) {
-        wp_send_json_error(array('message' => $validation['message'] ?? __('Configuración SMTP inválida.', 'eipsi-forms')));
+        wp_send_json_error(array('message' => $validation['message'] ?? eipsi_admin_translate('Invalid SMTP configuration.')));
     }
 
     $config = array(
@@ -443,13 +252,13 @@ function eipsi_test_smtp_connection_handler() {
 
     if (!empty($result['success'])) {
         $labels = array(
-            'tls' => __('TLS (recomendado)', 'eipsi-forms'),
+            'tls' => eipsi_admin_translate('TLS (recommended)'),
             'ssl' => __('SSL', 'eipsi-forms'),
-            'none' => __('Sin cifrado', 'eipsi-forms')
+            'none' => eipsi_admin_translate('No encryption')
         );
 
         wp_send_json_success(array(
-            'message' => sprintf(__('Correo de prueba enviado a %s', 'eipsi-forms'), $test_email),
+            'message' => sprintf(eipsi_admin_translate('Test email sent to %s'), $test_email),
             'status' => array(
                 'host' => $host,
                 'port' => $port,
@@ -461,7 +270,7 @@ function eipsi_test_smtp_connection_handler() {
     }
 
     wp_send_json_error(array(
-        'message' => $result['error'] ?? __('No se pudo enviar el correo de prueba.', 'eipsi-forms')
+        'message' => $result['error'] ?? eipsi_admin_translate('Could not send the test email.')
     ));
 }
 
@@ -472,11 +281,11 @@ function eipsi_save_smtp_config_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
     if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')));
+        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')));
     }
 
     if (!class_exists('EIPSI_SMTP_Service')) {
-        wp_send_json_error(array('message' => __('SMTP service not available.', 'eipsi-forms')));
+        wp_send_json_error(array('message' => eipsi_admin_translate('SMTP service not available.')));
     }
 
     $smtp_service = new EIPSI_SMTP_Service();
@@ -493,19 +302,19 @@ function eipsi_save_smtp_config_handler() {
 
     $validation = $smtp_service->validate_config($host, $port, $user, $password, $encryption);
     if (empty($validation['valid'])) {
-        wp_send_json_error(array('message' => $validation['message'] ?? __('Configuración SMTP inválida.', 'eipsi-forms')));
+        wp_send_json_error(array('message' => $validation['message'] ?? eipsi_admin_translate('Invalid SMTP configuration.')));
     }
 
     $smtp_service->save_config($host, $port, $user, $password, $encryption);
 
     $labels = array(
-        'tls' => __('TLS (recomendado)', 'eipsi-forms'),
+        'tls' => eipsi_admin_translate('TLS (recommended)'),
         'ssl' => __('SSL', 'eipsi-forms'),
-        'none' => __('Sin cifrado', 'eipsi-forms')
+        'none' => eipsi_admin_translate('No encryption')
     );
 
     wp_send_json_success(array(
-        'message' => __('Configuración SMTP guardada correctamente.', 'eipsi-forms'),
+        'message' => eipsi_admin_translate('SMTP configuration saved successfully.'),
         'status' => array(
             'host' => $host,
             'port' => $port,
@@ -523,18 +332,18 @@ function eipsi_disable_smtp_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
     if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')));
+        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')));
     }
 
     if (!class_exists('EIPSI_SMTP_Service')) {
-        wp_send_json_error(array('message' => __('SMTP service not available.', 'eipsi-forms')));
+        wp_send_json_error(array('message' => eipsi_admin_translate('SMTP service not available.')));
     }
 
     $smtp_service = new EIPSI_SMTP_Service();
     $smtp_service->disable_config();
 
     wp_send_json_success(array(
-        'message' => __('Configuración SMTP desactivada.', 'eipsi-forms')
+        'message' => eipsi_admin_translate('SMTP configuration disabled.')
     ));
 }
 
@@ -678,9 +487,9 @@ function eipsi_random_assign_handler() {
     $participant_id = isset($_POST['participant_id']) ? sanitize_text_field($_POST['participant_id']) : '';
     $is_manual = isset($_POST['is_manual']) && $_POST['is_manual'] === 'true';
     
-    // Validar permisos (cualquier editor puede configurar random)
-    if (!current_user_can('edit_posts')) {
-        wp_send_json_error(array('message' => __('Sin permisos para realizar esta acción.', 'eipsi-forms')));
+    // Autorizar el formulario concreto antes de leer o modificar asignaciones.
+    if (!EIPSI_Randomization_Resource_Policy::can_edit($main_form_id, array('eipsi_form'))) {
+        wp_send_json_error(array('message' => __('Sin permisos para realizar esta acción.', 'eipsi-forms')), 403);
     }
     
     // Validar que el formulario principal existe
@@ -704,8 +513,8 @@ function eipsi_random_assign_handler() {
         $assigned_form_id = intval($_POST['assigned_form_id']);
         
         // Validar que el formulario asignado existe
-        if (!$assigned_form_id || get_post_type($assigned_form_id) !== 'eipsi_form') {
-            wp_send_json_error(array('message' => __('Formulario asignado inválido.', 'eipsi-forms')));
+        if (!EIPSI_Randomization_Resource_Policy::can_use($assigned_form_id, array('eipsi_form'))) {
+            wp_send_json_error(array('message' => __('Sin permisos para realizar esta acción.', 'eipsi-forms')), 403);
         }
         
         $seed = wp_generate_uuid4();
@@ -724,6 +533,9 @@ function eipsi_random_assign_handler() {
     // BUSCAR ASIGNACIÓN PREVIA (persistencia)
     $existing_assignment = eipsi_get_assignment($main_form_id, $identifier);
     
+    if ($existing_assignment && !EIPSI_Randomization_Resource_Policy::can_use($existing_assignment['form_id'], array('eipsi_form'))) {
+        wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción.'), 403);
+    }
     if ($existing_assignment) {
         // El participante YA tiene asignado un formulario → devolver el mismo
         wp_send_json_success(array(
@@ -741,12 +553,21 @@ function eipsi_random_assign_handler() {
         wp_send_json_error(array('message' => __('Aleatorización no configurada o incompleta (mínimo 2 formularios requeridos).', 'eipsi-forms')));
     }
     
+    foreach ($config['forms'] as $candidate_id) {
+        if (!EIPSI_Randomization_Resource_Policy::can_use($candidate_id, array('eipsi_form'))) {
+            wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción.'), 403);
+        }
+    }
+
     // Verificar override manual (el identifier coincide con una asignación manual)
     // Si el participante usó email, verificar si hay override manual
     if (!empty($email)) {
         $manual_assigns = $config['manualAssigns'] ?? array();
         foreach ($manual_assigns as $assign) {
             if (strtolower($assign['email']) === strtolower($email)) {
+                if (!EIPSI_Randomization_Resource_Policy::can_use($assign['formId'] ?? 0, array('eipsi_form'))) {
+                    wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción.'), 403);
+                }
                 // Manual override encontrado - retornar esa asignación
                 $seed = wp_generate_uuid4();
                 $type = 'manual_override';
@@ -946,8 +767,8 @@ function eipsi_validate_reminder_token_handler() {
 function eipsi_send_reminder_manual_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
     
-    if (!current_user_can('edit_posts')) {
-        wp_send_json_error(array('message' => __('Sin permisos.', 'eipsi-forms')));
+    if (!EIPSI_Randomization_Resource_Policy::can_edit($_POST['form_id'] ?? 0, array('eipsi_form', 'eipsi_form_template'))) {
+        wp_send_json_error(array('message' => __('Sin permisos.', 'eipsi-forms')), 403);
     }
     
     $email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
@@ -967,6 +788,10 @@ function eipsi_send_reminder_manual_handler() {
         wp_send_json_error(array('message' => __('No se encontró toma pendiente para este participante.', 'eipsi-forms')));
     }
     
+    if (!EIPSI_Randomization_Resource_Policy::can_use($take_data['form_id'] ?? $form_id, array('eipsi_form', 'eipsi_form_template'))) {
+        wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción.'), 403);
+    }
+
     // Generar token
     $token = wp_generate_uuid4();
     $assigned_form_id = $take_data['form_id'] ?? $form_id;
@@ -1191,919 +1016,7 @@ function eipsi_save_global_privacy_config_handler() {
 
 function eipsi_forms_submit_form_handler() {
     check_ajax_referer('eipsi_forms_nonce', 'nonce');
-    
-    global $wpdb;
-    $wpdb->suppress_errors(true);
-    
-    // ✅ EIPSI DATA SAFETY SYSTEM v2.1.0
-    // Carga el sistema crítico de seguridad de datos
-    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/data-safety-system.php';
-    
-    // v1.5.6 - Obtener participante autenticado desde la sesión
-    // Esto corrige el bug donde participant_id llegaba como 0 desde el frontend
-    $authenticated_participant_id = 0;
-    $authenticated_study_id = 0;
-    if (class_exists('EIPSI_Auth_Service')) {
-        $authenticated_participant_id = EIPSI_Auth_Service::get_current_participant();
-        $authenticated_study_id = EIPSI_Auth_Service::get_current_survey();
-    }
-    
-    // v1.4.3 - VALIDACIÓN CONTEXTUAL DE CONSENTIMIENTO
-    // La validación de consentimiento se hace en el frontend (eipsi-forms.js líneas 88-127)
-    // Solo valida si existe el bloque consent-block en el formulario
-    // Esto permite usar bloques individuales sin consentimiento obligatorio
-    
-    $form_name = isset($_POST['form_id']) ? sanitize_text_field($_POST['form_id']) : 'default';
-
-    // Ética clínica: si el estudio está cerrado, no aceptamos nuevos envíos
-    if (eipsi_get_study_status_for_form_name($form_name) === 'closed') {
-        wp_send_json_error(array(
-            'message' => __('Este estudio está cerrado y no acepta más respuestas. Contacta al investigador si tienes dudas.', 'eipsi-forms')
-        ), 403);
-    }
-    
-    // ✅ v2.0.1 - Capturar datos del dispositivo desde múltiples fuentes
-    // Fuente 1: Campos individuales (legacy)
-    $device = isset($_POST['device']) ? sanitize_text_field($_POST['device']) : '';
-    $browser_raw = isset($_POST['browser']) ? sanitize_text_field($_POST['browser']) : '';
-    $os_raw = isset($_POST['os']) ? sanitize_text_field($_POST['os']) : '';
-    $screen_width_raw = isset($_POST['screen_width']) ? sanitize_text_field($_POST['screen_width']) : '';
-    
-    // ✅ v2.1.3 - Store raw device data for saving to database
-    $device_data_raw = null;
-    
-    // Fuente 2: eipsi_device_data JSON (current approach)
-    // Si no tenemos datos individuales, extraer del JSON del fingerprint
-    if (empty($device) || empty($browser_raw) || empty($os_raw)) {
-        $device_data_json = isset($_POST['eipsi_device_data']) ? wp_unslash($_POST['eipsi_device_data']) : '';
-        if (!empty($device_data_json)) {
-            $device_data = json_decode($device_data_json, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($device_data)) {
-                // ✅ Guardar datos completos para almacenar en DB
-                $device_data_raw = $device_data;
-                
-                // Extraer device type desde user agent
-                if (empty($device) && !empty($device_data['user_agent'])) {
-                    $device = eipsi_detect_device_type($device_data['user_agent']);
-                }
-                // Extraer browser desde user agent
-                if (empty($browser_raw) && !empty($device_data['user_agent'])) {
-                    $browser_raw = eipsi_detect_browser($device_data['user_agent']);
-                }
-                // Extraer OS desde platform o user agent
-                if (empty($os_raw)) {
-                    $platform = $device_data['platform'] ?? '';
-                    // Usar platform solo si tiene valor real (no vacío, no "unknown", no null)
-                    if (!empty($platform) && strtolower($platform) !== 'unknown' && strlen(trim($platform)) > 2) {
-                        $os_raw = trim($platform);
-                    } elseif (!empty($device_data['user_agent'])) {
-                        $os_raw = eipsi_detect_os($device_data['user_agent']);
-                    }
-                }
-                // Extraer screen width
-                if (empty($screen_width_raw) && !empty($device_data['screen_resolution'])) {
-                    // screen_resolution viene como "1920x1080", extraer ancho
-                    $screen_width_raw = explode('x', $device_data['screen_resolution'])[0] ?? '';
-                }
-            }
-        }
-    }
-    
-    // Capturar IP del participante con detección de proxy
-    $ip_address_raw = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    
-    // Si está detrás de proxy/CDN (Cloudflare, Load Balancer, etc.)
-    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
-        $ip_address_raw = $_SERVER['HTTP_CF_CONNECTING_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ip_address_raw = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
-    }
-    
-    // Validar IP
-    $ip_address_raw = filter_var($ip_address_raw, FILTER_VALIDATE_IP) ?: 'invalid';
-    $start_time = isset($_POST['form_start_time']) ? sanitize_text_field($_POST['form_start_time']) : '';
-    $end_time = isset($_POST['form_end_time']) ? sanitize_text_field($_POST['form_end_time']) : '';
-    
-    // ✅ v1.4.0 - Capturar user fingerprint desde POST
-    $user_fingerprint = isset($_POST['eipsi_user_fingerprint']) ? sanitize_text_field($_POST['eipsi_user_fingerprint']) : '';
-
-    // ✅ v1.5.4 - Capturar detalles crudos del fingerprint
-    $fingerprint_raw = isset($_POST['eipsi_fingerprint_raw']) ? wp_unslash($_POST['eipsi_fingerprint_raw']) : '';
-    $fingerprint_raw_array = null;
-
-    if (!empty($fingerprint_raw)) {
-        $fingerprint_raw_decoded = json_decode($fingerprint_raw, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            $fingerprint_raw_array = $fingerprint_raw_decoded;
-        }
-    }
-
-    
-    // Obtener IDs universales del frontend
-    $frontend_participant_id = isset($_POST['participant_id']) ? sanitize_text_field($_POST['participant_id']) : '';
-    $session_id = isset($_POST['session_id']) ? sanitize_text_field($_POST['session_id']) : '';
-    
-    // Capturar metadata del frontend incluyendo page_transitions
-    $frontend_metadata = isset($_POST['metadata']) ? wp_unslash($_POST['metadata']) : '';
-    $metadata_array = null;
-
-    error_log("[EIPSI-SUBMIT-DIAG] RAW metadata received: " . substr($frontend_metadata, 0, 200));
-
-    if (!empty($frontend_metadata)) {
-        $metadata_decoded = json_decode($frontend_metadata, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            $metadata_array = $metadata_decoded;
-            error_log("[EIPSI-SUBMIT-DIAG] Metadata decoded successfully, keys=" . implode(',', array_keys($metadata_array)));
-            if (isset($metadata_array['device_data'])) {
-                error_log("[EIPSI-SUBMIT-DIAG] Device data keys=" . implode(',', array_keys($metadata_array['device_data'])));
-                error_log("[EIPSI-SUBMIT-DIAG] Canvas: " . substr($metadata_array['device_data']['canvas_fingerprint'] ?? 'NULL', 0, 20));
-                error_log("[EIPSI-SUBMIT-DIAG] WebGL: " . substr($metadata_array['device_data']['webgl_renderer'] ?? 'NULL', 0, 20));
-            } else {
-                error_log("[EIPSI-SUBMIT-DIAG] WARNING: No device_data in metadata");
-            }
-        } else {
-            error_log("[EIPSI-SUBMIT-DIAG] ERROR decoding metadata: " . json_last_error_msg());
-        }
-    } else {
-        error_log("[EIPSI-SUBMIT-DIAG] WARNING: No metadata received from frontend");
-    }
-    
-    $form_responses = array();
-    $exclude_fields = array('form_id', 'form_action', 'ip_address', 'device', 'browser', 'os', 'screen_width', 'form_start_time', 'form_end_time', 'current_page', 'nonce', 'action', 'participant_id', 'session_id', 'metadata', 'end_timestamp_ms', 'eipsi_user_fingerprint', 'eipsi_fingerprint_raw');  // ✅ v1.5.4 - Agregar fingerprint fields
-    
-    $user_data = array(
-        'email' => '',
-        'name' => ''
-    );
-    
-    foreach ($_POST as $key => $value) {
-        if (!in_array($key, $exclude_fields)) {
-            if (is_array($value)) {
-                // Support for array values (checkboxes/multi-select)
-                $form_responses[$key] = array_map('sanitize_text_field', $value);
-            } elseif (is_string($value)) {
-                $form_responses[$key] = sanitize_text_field($value);
-                
-                if (strtolower($key) === 'email' || strpos(strtolower($key), 'correo') !== false) {
-                    $user_data['email'] = sanitize_email($value);
-                }
-                if (strtolower($key) === 'name' || strtolower($key) === 'nombre') {
-                    $user_data['name'] = sanitize_text_field($value);
-                }
-            }
-        }
-    }
-    
-    $start_timestamp_ms = null;
-    $end_timestamp_ms = null;
-    $duration = 0;
-    $duration_seconds = 0.0;
-    
-    if (!empty($start_time)) {
-        $start_timestamp_ms = intval($start_time);
-
-        // === FIJO: Usar end_timestamp_ms del frontend si existe ===
-        // Esto evita el error de ~0.6s por delay de red
-        $frontend_end_timestamp_ms = isset($_POST['end_timestamp_ms']) ? intval($_POST['end_timestamp_ms']) : null;
-
-        if (!empty($frontend_end_timestamp_ms)) {
-            // Usar timestamp del frontend (preciso, sin delay de red)
-            $end_timestamp_ms = $frontend_end_timestamp_ms;
-            $duration_ms = max(0, $end_timestamp_ms - $start_timestamp_ms);
-            $duration = intval($duration_ms / 1000);
-            $duration_seconds = round($duration_ms / 1000, 3);
-        } elseif (!empty($end_time)) {
-            // Fallback: usar form_end_time si no hay end_timestamp_ms separado
-            $end_timestamp_ms = intval($end_time);
-            $duration_ms = max(0, $end_timestamp_ms - $start_timestamp_ms);
-            $duration = intval($duration_ms / 1000);
-            $duration_seconds = round($duration_ms / 1000, 3);
-        } else {
-            // Último fallback: recapturar en backend (legacy)
-            $current_timestamp_ms = round(microtime(true) * 1000);
-            $end_timestamp_ms = $current_timestamp_ms;
-            $duration_ms = max(0, $end_timestamp_ms - $start_timestamp_ms);
-            $duration = intval($duration_ms / 1000);
-            $duration_seconds = round($duration_ms / 1000, 3);
-        }
-    }
-
-    $stable_form_id = generate_stable_form_id($form_name);
-
-    // Usar Participant ID universal del frontend si está disponible, sino fallback al viejo sistema
-    $participant_id = !empty($frontend_participant_id) ? $frontend_participant_id : generateStableFingerprint($user_data);
-    
-    // v1.5.6 - Para operaciones longitudinales (assignments), usar el participant_id autenticado
-    // El participant_id del frontend es un fingerprint/string, pero las tablas de assignments usan INT
-    $longitudinal_participant_id = $authenticated_participant_id;
-
-    // Capture longitudinal context (v1.4.0) - usar study_id en lugar de survey_id
-    // Prioridad: authenticated_study_id > POST > GET > fallback desde wave_id
-    $study_id = $authenticated_study_id;
-    
-    // Fallback 1: POST directo (viene del formulario)
-    if (empty($study_id) && !empty($_POST['survey_id'])) {
-        $study_id = absint($_POST['survey_id']);
-    }
-    
-    // Fallback 2: GET (viene de la URL)
-    if (empty($study_id) && !empty($_GET['survey_id'])) {
-        $study_id = absint($_GET['survey_id']);
-    }
-    
-    // Fallback 3: obtener desde wave_id si está disponible
-    if (empty($study_id) && !empty($wave_id)) {
-        $study_id_from_wave = $wpdb->get_var($wpdb->prepare(
-            "SELECT study_id FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-            $wave_id
-        ));
-        if ($study_id_from_wave) {
-            $study_id = absint($study_id_from_wave);
-        }
-    }
-    
-    // Debug: Log para verificar survey_id
-    error_log("[EIPSI Forms] Survey ID resolution: authenticated={$authenticated_study_id}, final={$study_id}, wave_id=(pending)");
-    
-    $wave_index = null;
-
-    // Intentar obtener wave_id de múltiples fuentes
-    $wave_id = 0;
-
-    // Fuente 1: POST directo (viene del formulario via ?wave_id= en URL)
-    if (!empty($_POST['wave_id'])) {
-        $wave_id = absint($_POST['wave_id']);
-    }
-
-    // Fuente 2: GET (viene de ?wave_id= en la URL del shortcode)
-    if (empty($wave_id) && !empty($_GET['wave_id'])) {
-        $wave_id = absint($_GET['wave_id']);
-    }
-
-    // Fuente 3: sesión DB del participante (EIPSI_Auth_Service)
-    if (empty($wave_id) && $longitudinal_participant_id && $study_id) {
-        if (class_exists('EIPSI_Wave_Service')) {
-            $pending = EIPSI_Wave_Service::get_next_pending_wave($longitudinal_participant_id, $study_id);
-            if ($pending) {
-                $wave_id = $pending['wave_id'];
-                $wave_index = $pending['wave_index'];
-            }
-        }
-    }
-    
-    // Debug: Log final con wave_id resuelto
-    error_log("[EIPSI Forms] Wave ID resolution: wave_id={$wave_id}, wave_index={$wave_index}");
-
-    // Si obtuvimos wave_id, mapear wave_index desde DB
-    if (!empty($wave_id)) {
-        $wave_index_val = $wpdb->get_var($wpdb->prepare(
-            "SELECT wave_index FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-            $wave_id
-        ));
-        if ($wave_index_val !== null) {
-            $wave_index = (int) $wave_index_val;
-        }
-    }
-    
-    // ✅ FIX: Si no tenemos participant_id autenticado, intentar obtenerlo desde el email
-    // Esto debe ir DESPUÉS de que $study_id está completamente resuelto
-    if (empty($longitudinal_participant_id) && !empty($user_data['email']) && $study_id) {
-        $longitudinal_participant_id = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}survey_participants WHERE email = %s AND survey_id = %d LIMIT 1",
-            $user_data['email'],
-            $study_id
-        ));
-        if ($longitudinal_participant_id && defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf('[EIPSI] Fallback: participant_id %d obtenido desde email %s', $longitudinal_participant_id, $user_data['email']));
-        }
-    }
-    
-    // ✅ FIX: Si aún no tenemos participant_id, intentar desde el fingerprint
-    if (empty($longitudinal_participant_id) && !empty($frontend_participant_id) && $study_id) {
-        $longitudinal_participant_id = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}survey_participants WHERE fingerprint = %s AND survey_id = %d LIMIT 1",
-            $frontend_participant_id,
-            $study_id
-        ));
-        if ($longitudinal_participant_id && defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf('[EIPSI] Fallback: participant_id %d obtenido desde fingerprint %s', $longitudinal_participant_id, $frontend_participant_id));
-        }
-    }
-
-    $submitted_at = current_time('mysql');
-    
-    // Obtener configuración de privacidad
-    require_once dirname(__FILE__) . '/privacy-config.php';
-    $privacy_config = get_privacy_config($stable_form_id);
-    
-    // Aplicar privacy config a los campos capturados
-    $browser = ($privacy_config['browser'] ?? false) ? $browser_raw : null;
-    $os = ($privacy_config['os'] ?? false) ? $os_raw : null;
-    $screen_width = ($privacy_config['screen_width'] ?? false) ? $screen_width_raw : null;
-    $ip_address = ($privacy_config['ip_address'] ?? true) ? $ip_address_raw : null;
-    
-    // Construir metadatos según configuración de privacidad
-    // Primero, si tenemos metadata del frontend, lo usamos como base
-    $metadata = array();
-    
-    // Si tenemos metadata del frontend (incluyendo page_transitions), lo preservamos
-    if ($metadata_array && is_array($metadata_array)) {
-        // Mantener los datos del frontend (page_transitions, form_start_time, device_type, etc.)
-        $metadata = $metadata_array;
-    } else {
-        // Fallback a la estructura original si no hay metadata del frontend
-        $metadata = array();
-    }
-    
-    // Asegurar que siempre tengamos los campos base
-    if (!isset($metadata['form_id'])) {
-        $metadata['form_id'] = $stable_form_id;
-    }
-    if (!isset($metadata['participant_id'])) {
-        $metadata['participant_id'] = $participant_id;
-    }
-    if (!isset($metadata['session_id'])) {
-        $metadata['session_id'] = $session_id;
-    }
-    
-    // TIMESTAMPS (SIEMPRE)
-    $metadata['timestamps'] = array(
-        'start' => $start_timestamp_ms,
-        'end' => $end_timestamp_ms,
-        'duration_seconds' => $duration_seconds
-    );
-    
-    // DEVICE INFO (según privacy config)
-    $device_info = array();
-    if ($privacy_config['device_type']) {
-        $device_info['device_type'] = $device;
-    }
-    if ($browser !== null) {
-        $device_info['browser'] = $browser;
-    }
-    if ($os !== null) {
-        $device_info['os'] = $os;
-    }
-    if ($screen_width !== null) {
-        $device_info['screen_width'] = $screen_width;
-    }
-    if (!empty($device_info)) {
-        $metadata['device_info'] = $device_info;
-    }
-
-    // ✅ v1.5.4 - FINGERPRINT RAW DETAILS (según fingerprint_enabled)
-    if (($privacy_config['fingerprint_enabled'] ?? true) && $fingerprint_raw_array) {
-        $metadata['fingerprint_raw'] = $fingerprint_raw_array;
-    }
-
-    // NETWORK INFO (según privacy config)
-    if ($ip_address !== null) {
-        $metadata['network_info'] = array(
-            'ip_address' => $ip_address,
-            'ip_storage_type' => ($privacy_config['ip_address'] ?? true) ? 'full' : 'anonymized'
-        );
-    }
-    
-    // Removed in v1.0: Quality Flags and Avoidance Patterns deprecated
-    // Clinical metadata is now strictly objective (Timing and Completion)
-    $metadata['quality_metrics'] = array(
-        'completion_rate' => 1.0
-    );
-
-    // CONSENT INFO
-    if (isset($_POST['eipsi_consent_accepted']) && $_POST['eipsi_consent_accepted'] === 'on') {
-        $metadata['consent_given'] = true;
-        $metadata['consent_timestamp'] = current_time('Y-m-d\TH:i:s\Z');
-        $metadata['consent_ip'] = ($privacy_config['ip_address'] ?? true) ? $ip_address_raw : 'anonymized';
-        $metadata['consent_user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
-    }
-    
-    // RANDOMIZATION INFO - Guardar datos si existen
-    $random_assignment = array(
-        'form_id' => isset($_POST['assignment_form_id']) ? sanitize_text_field($_POST['assignment_form_id']) : '-',
-        'seed' => isset($_POST['assignment_seed']) ? sanitize_text_field($_POST['assignment_seed']) : '-',
-        'type' => isset($_POST['assignment_type']) ? sanitize_text_field($_POST['assignment_type']) : '-'
-    );
-    
-    // Solo guardar en metadata si hay datos reales (no placeholder)
-    if ($random_assignment['form_id'] !== '-' || $random_assignment['seed'] !== '-' || $random_assignment['type'] !== '-') {
-        $metadata['random_assignment'] = $random_assignment;
-    }
-    
-    // v1.5.5 - RCT at submission time: Calculate assignment server-side
-    $rct_assigned_variant = null;
-    $rct_randomization_id = null;
-    
-    // Get the form post ID from form name to check for RCT config
-    $form_posts = get_posts(array(
-        'post_type' => array('eipsi_form', 'eipsi_form_template'),
-        'post_status' => 'publish',
-        'posts_per_page' => 1,
-        'fields' => 'ids',
-        'meta_query' => array(
-            array(
-                'key' => '_eipsi_form_name',
-                'value' => $form_name,
-                'compare' => '=',
-            )
-        ),
-    ));
-    
-    $form_post_id = !empty($form_posts) ? intval($form_posts[0]) : 0;
-    
-    // Calculate RCT assignment at submission time if RCT config exists for this form
-    if (!empty($user_fingerprint) && $form_post_id > 0) {
-        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/randomization-db-setup.php';
-        
-        $timestamp_for_seed = $end_timestamp_ms ?? round(microtime(true) * 1000);
-        $rct_assignment = eipsi_calculate_submission_assignment($user_fingerprint, $form_post_id, $timestamp_for_seed);
-        
-        if (!empty($rct_assignment)) {
-            $rct_assigned_variant = $rct_assignment['assigned_variant'];
-            $rct_randomization_id = $rct_assignment['randomization_id'];
-            
-            // Update metadata with server-calculated assignment
-            $metadata['random_assignment'] = array(
-                'form_id' => strval($rct_assignment['assigned_form_id']),
-                'seed' => $rct_assignment['seed'],
-                'type' => 'server-calculated',
-                'method' => $rct_assignment['method'] ?? 'seeded'
-            );
-            
-            error_log("[EIPSI Forms] RCT Assignment calculated at submission: {$rct_assigned_variant} for fingerprint {$user_fingerprint}");
-        }
-    }
-    
-    // Prepare data for insertion
-    $data = array(
-        'form_id' => $stable_form_id,
-        'participant_id' => $participant_id,
-        'survey_id' => $study_id,  // ✅ v1.5.6 - Corregido: era $survey_id (undefined)
-        'wave_index' => $wave_index,
-        'longitudinal_participant_id' => $authenticated_participant_id ?: null,
-        'session_id' => $session_id,
-        'user_fingerprint' => $user_fingerprint,  // ✅ v1.4.0 - Guardar fingerprint
-        'form_name' => $form_name,
-        'created_at' => current_time('mysql'),
-        'submitted_at' => $submitted_at,
-        'ip_address' => $ip_address,
-        'device' => $device,
-        'browser' => $browser,
-        'os' => $os,
-        'screen_width' => $screen_width,
-        'duration' => $duration,
-        'duration_seconds' => $duration_seconds,
-        'start_timestamp_ms' => $start_timestamp_ms,
-        'end_timestamp_ms' => $end_timestamp_ms,
-        'metadata' => wp_json_encode($metadata),
-        'status' => 'submitted',
-        'form_responses' => wp_json_encode($form_responses),
-        // v1.5.5 - RCT at submission time
-        'rct_assigned_variant' => $rct_assigned_variant,
-        'rct_randomization_id' => $rct_randomization_id
-    );
-    
-    // ✅ DATA SAFETY: Pre-flight validation
-    $safety_check = eipsi_safety_validate_submission($data);
-    if (!$safety_check['valid']) {
-        error_log('[EIPSI SAFETY] CRITICAL: Pre-flight validation failed: ' . implode(', ', $safety_check['errors']));
-        // Aún intentamos guardar en modo emergencia
-    }
-    
-    // ✅ DATA SAFETY: Guardar con sistema de seguridad (retry + emergencia)
-    $safety_result = eipsi_safety_save_with_retry($data, 3);
-    
-    if ($safety_result['success']) {
-        $insert_id = $safety_result['insert_id'] ?? null;
-        $storage_type = $safety_result['storage'] ?? 'unknown';
-        $emergency_mode = $safety_result['emergency_mode'] ?? false;
-        $used_fallback = $safety_result['fallback_used'] ?? false;
-        
-        // ✅ DATA SAFETY: Verificación post-submit
-        $verified = eipsi_safety_verify_submission($insert_id, $storage_type, $data);
-        
-        if (!$verified && !$emergency_mode) {
-            error_log(sprintf('[EIPSI SAFETY] Post-submit verification failed for ID: %s', $insert_id));
-        }
-        
-        // ✅ v2.1.3 - Guardar device data extendido en tabla separada
-        // Asegurar que la clase esté cargada
-        if (!class_exists('EIPSI_Device_Data_Service')) {
-            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-device-data-service.php';
-        }
-        error_log("[EIPSI-SUBMIT-DIAG] CHECK save_device_data: insert_id={$insert_id}, has_device_data=" . (isset($metadata_array['device_data']) ? 'YES' : 'NO') . ", class_exists=" . (class_exists('EIPSI_Device_Data_Service') ? 'YES' : 'NO'));
-        if ($insert_id && !empty($metadata_array['device_data']) && class_exists('EIPSI_Device_Data_Service')) {
-            error_log("[EIPSI-SUBMIT-DIAG] CALLING save_device_data with insert_id={$insert_id}, device_data_keys=" . implode(',', array_keys($metadata_array['device_data'])));
-            $result = EIPSI_Device_Data_Service::save_device_data($insert_id, $metadata_array['device_data']);
-            error_log("[EIPSI-SUBMIT-DIAG] save_device_data result: " . ($result ? "SUCCESS (insert_id={$result})" : "FAILED"));
-        }
-        
-        // Marcar partial response como completado
-        EIPSI_Partial_Responses::mark_completed($form_name, $participant_id, $session_id);
-        
-        // Si fue modo emergencia, notificar al usuario pero confirmar éxito
-        if ($emergency_mode) {
-            wp_send_json_success(array(
-                'message' => $safety_result['message'],
-                'emergency_mode' => true,
-                'emergency_id' => $safety_result['emergency_id'],
-                'insert_id' => $insert_id,
-                'verified' => $verified
-            ));
-        }
-        
-        // === Task 2.4B: Marcar assignment como submitted y obtener próxima toma ===
-        $next_wave_data = null;
-        $has_next_wave = false;
-        $nudge_0_sent = false;
-        $nudge_0_message = '';
-        
-        // ✅ v1.5.6 - DEBUG: Log para verificar variables de contexto longitudinal
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf(
-                '[EIPSI] Longitudinal context check: wave_id=%s, study_id=%s, longitudinal_participant_id=%s, user_email=%s',
-                $wave_id ?: 'NULL',
-                $study_id ?: 'NULL',
-                $longitudinal_participant_id ?: 'NULL',
-                $user_data['email'] ?: 'NULL'
-            ));
-        }
-        
-        // v1.5.6 - Si hay contexto longitudinal (wave_id detectable), actualizar assignment
-        // Usar longitudinal_participant_id (INT) y study_id en lugar de participant_id (string) y survey_id
-        
-        // ✅ DIAGNÓSTICO: Siempre loguear variables críticas
-        error_log(sprintf(
-            '[EIPSI-DIAG] Pre-check: wave_id=%s, study_id=%s, longitudinal_participant_id=%s',
-            $wave_id ?: 'NULL',
-            $study_id ?: 'NULL',
-            $longitudinal_participant_id ?: 'NULL'
-        ));
-        
-        if (!empty($wave_id) && $study_id && $longitudinal_participant_id) {
-            // Cargar Wave_Service
-            require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/Wave_Service.php';
-
-            // ✅ FIX: Si el assignment no existe, crearlo primero (fallback defensivo)
-            // Cargar el servicio si no está disponible (verificar función, no clase)
-            $func_exists_before = function_exists('eipsi_create_assignments_for_participant');
-            error_log('[EIPSI-DIAG] Función eipsi_create_assignments_for_participant existe ANTES: ' . ($func_exists_before ? 'SÍ' : 'NO'));
-            
-            if (!$func_exists_before) {
-                $assignment_service_path = EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-assignment-service.php';
-                $file_exists = file_exists($assignment_service_path);
-                error_log('[EIPSI-DIAG] Archivo class-assignment-service.php existe: ' . ($file_exists ? 'SÍ' : 'NO'));
-                if ($file_exists) {
-                    require_once $assignment_service_path;
-                    error_log('[EIPSI-DIAG] Archivo cargado. Función existe DESPUÉS: ' . (function_exists('eipsi_create_assignments_for_participant') ? 'SÍ' : 'NO'));
-                }
-            }
-            
-            // Verificar si existe el assignment
-            $existing_assignment = $wpdb->get_var($wpdb->prepare(
-                "SELECT id FROM {$wpdb->prefix}survey_assignments 
-                 WHERE wave_id = %d AND participant_id = %d",
-                $wave_id,
-                $longitudinal_participant_id
-            ));
-            
-            error_log(sprintf('[EIPSI-DIAG] Assignment existente para wave_id=%d, participant_id=%d: %s',
-                $wave_id, $longitudinal_participant_id, $existing_assignment ?: 'NO ENCONTRADO'
-            ));
-            
-            // Si no existe, crearlo primero
-            if (!$existing_assignment && function_exists('eipsi_create_assignments_for_participant')) {
-                error_log(sprintf('[EIPSI-DIAG] Creando assignments para participant_id=%d, study_id=%d', 
-                    $longitudinal_participant_id, $study_id));
-                $create_result = eipsi_create_assignments_for_participant($longitudinal_participant_id, $study_id);
-                error_log(sprintf(
-                    '[EIPSI-DIAG] Resultado creación: created=%d, skipped=%d, errors=%d',
-                    $create_result['created'],
-                    $create_result['skipped'],
-                    count($create_result['errors'])
-                ));
-                if (!empty($create_result['errors'])) {
-                    error_log('[EIPSI-DIAG] Errores: ' . implode(', ', $create_result['errors']));
-                }
-            } elseif (!$existing_assignment) {
-                error_log('[EIPSI-DIAG] ERROR: Función eipsi_create_assignments_for_participant NO disponible');
-            }
-
-            // Marcar assignment como submitted usando study_id (columna correcta en wp_survey_assignments)
-            error_log(sprintf('[EIPSI-DIAG] Marcando como submitted: participant_id=%d, study_id=%d, wave_id=%d',
-                $longitudinal_participant_id, $study_id, $wave_id));
-            
-            // ========== PHASE 5 T1-ANCHOR: TRANSACCIÓN CRÍTICA ==========
-            // Submit + t1_completed_at deben ser atómicos
-            $is_t1 = false; // Inicializar antes del try para scope externo
-            
-            $wpdb->query('START TRANSACTION');
-            
-            try {
-                // 1. LOCK y verificar status del assignment (prevenir race condition con wave skipping)
-                $assignment = $wpdb->get_row($wpdb->prepare(
-                    "SELECT id, status FROM {$wpdb->prefix}survey_assignments 
-                     WHERE participant_id = %d AND study_id = %d AND wave_id = %d
-                     FOR UPDATE",
-                    $longitudinal_participant_id, $study_id, $wave_id
-                ));
-                
-                if (!$assignment) {
-                    throw new Exception('Assignment not found');
-                }
-                
-                // Validar que el status permita submit
-                $allowed_statuses = array('pending', 'in_progress');
-                if (!in_array($assignment->status, $allowed_statuses)) {
-                    throw new Exception("Cannot submit assignment with status '{$assignment->status}'. This wave may have been skipped or expired.");
-                }
-                
-                error_log("[EIPSI-DIAG] Assignment status validated: {$assignment->status} (allowed for submit)");
-                
-                // 2. Marcar assignment como submitted
-                $marked = Wave_Service::mark_assignment_submitted($longitudinal_participant_id, $study_id, $wave_id);
-                
-                if (!$marked) {
-                    throw new Exception('Failed to mark assignment as submitted');
-                }
-                
-                error_log('[EIPSI-DIAG] Resultado mark_assignment_submitted: ÉXITO');
-                
-                // 2. Si es T1, actualizar t1_completed_at (dentro de la misma transacción)
-                $wave_info = $wpdb->get_row($wpdb->prepare(
-                    "SELECT wave_index FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-                    $wave_id
-                ));
-                
-                $is_t1 = ($wave_info && $wave_info->wave_index == 1);
-                
-                if ($is_t1) {
-                    error_log("[EIPSI T1-Anchor] T1 detected, updating t1_completed_at");
-                    
-                    $t1_updated = $wpdb->update(
-                        $wpdb->prefix . 'survey_assignments',
-                        array('t1_completed_at' => current_time('mysql')),
-                        array(
-                            'participant_id' => $longitudinal_participant_id,
-                            'wave_id' => $wave_id
-                        ),
-                        array('%s'),
-                        array('%d', '%d')
-                    );
-                    
-                    if ($t1_updated === false) {
-                        throw new Exception('Failed to update t1_completed_at: ' . $wpdb->last_error);
-                    }
-                    
-                    error_log("[EIPSI T1-Anchor] t1_completed_at updated successfully");
-                }
-                
-                // COMMIT: submit + t1_completed_at están guardados atómicamente
-                $wpdb->query('COMMIT');
-                error_log('[EIPSI T1-Anchor] Transaction committed successfully');
-                
-            } catch (Exception $e) {
-                $wpdb->query('ROLLBACK');
-                error_log("[EIPSI T1-Anchor] CRITICAL: Transaction failed, rolled back: " . $e->getMessage());
-                
-                // Retornar error al frontend - el participante debe reintentar
-                wp_send_json_error(array(
-                    'message' => __('Error al guardar la respuesta. Por favor, intentá nuevamente.', 'eipsi-forms'),
-                    'error' => $e->getMessage()
-                ), 500);
-                return; // Detener ejecución
-            }
-            
-            // ========== POST-COMMIT: Recalcular waves (fuera de transacción) ==========
-            if ($is_t1) {
-                // Load Wave Recalculator service if not already loaded
-                if (!class_exists('EIPSI_Wave_Recalculator')) {
-                    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-wave-recalculator.php';
-                }
-                
-                try {
-                    error_log("[EIPSI T1-Anchor] Starting wave recalculation (post-commit)");
-                    $t1_timestamp = current_time('mysql');
-                    $result = EIPSI_Wave_Recalculator::recalculate_after_t1(
-                        $longitudinal_participant_id, 
-                        $study_id, 
-                        $t1_timestamp,
-                        'system'
-                    );
-                    $affected_count = count($result['affected_waves'] ?? array());
-                    error_log("[EIPSI T1-Anchor] Successfully recalculated {$affected_count} waves");
-                } catch (Exception $e) {
-                    // No revertir el submit - solo loggear el error
-                    error_log("[EIPSI T1-Anchor] WARNING: Wave recalculation failed (submit was successful): " . $e->getMessage());
-                    // El submit fue exitoso, continuar con el flujo normal
-                }
-            }
-
-            // ==========================================================================
-            // POOL COMPLETION CHECK (v2.5.3)
-            // Check if all waves in this study are completed, and if so, mark pool assignment
-            // ==========================================================================
-            eipsi_check_and_mark_pool_completion($longitudinal_participant_id, $study_id, $stable_form_id);
-
-            // Obtener próxima toma pendiente usando study_id
-            $next_wave = Wave_Service::get_next_pending_wave($longitudinal_participant_id, $study_id);
-            
-            error_log(sprintf('[EIPSI-DIAG] Próxima wave pendiente: %s', $next_wave ? 'ENCONTRADA (index=' . $next_wave['wave_index'] . ')' : 'NO ENCONTRADA'));
-            
-            if ($next_wave) {
-                $has_next_wave = true;
-                
-                // Obtener configuración de la wave (intervalo y recordatorio)
-                $wave_config = $wpdb->get_row($wpdb->prepare(
-                    "SELECT offset_minutes, interval_days, reminder_days, time_unit FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-                    $next_wave['wave_id']
-                ), ARRAY_A);
-                
-                // DEBUG: Log raw values from database
-                error_log(sprintf('[EIPSI-DIAG] Raw wave_config from DB: wave_id=%d, offset_minutes=%s, interval_days=%s, time_unit=%s',
-                    $next_wave['wave_id'],
-                    $wave_config['offset_minutes'] ?? 'NULL',
-                    $wave_config['interval_days'] ?? 'NULL',
-                    $wave_config['time_unit'] ?? 'NULL'
-                ));
-                
-                // FIX: Ensure time_unit is a valid string value
-                $raw_time_unit = $wave_config['time_unit'] ?? 'days';
-                $valid_time_units = array('minutes', 'hours', 'days');
-                
-                // Map numeric values to strings (if stored as 0, 1, 2)
-                $numeric_map = array(
-                    '0' => 'minutes',
-                    '1' => 'hours',
-                    '2' => 'days'
-                );
-                
-                if (isset($numeric_map[$raw_time_unit])) {
-                    $time_unit = $numeric_map[$raw_time_unit];
-                } elseif (in_array($raw_time_unit, $valid_time_units)) {
-                    $time_unit = $raw_time_unit;
-                } else {
-                    $time_unit = 'days'; // default
-                }
-                
-                // Calculate exact available timestamp for countdown
-                // Phase 5 T1-Anchor: Use offset_minutes from T1 completion, not interval_days
-                $offset_minutes = isset($wave_config['offset_minutes']) ? intval($wave_config['offset_minutes']) : 0;
-                $submitted_at = current_time('timestamp');
-                $available_at = strtotime("+{$offset_minutes} minutes", $submitted_at);
-                
-                // Legacy fallback for old studies using interval_days
-                if ($offset_minutes === 0 && isset($wave_config['interval_days'])) {
-                    $interval_value = intval($wave_config['interval_days']);
-                    switch ($time_unit) {
-                        case 'minutes':
-                            $available_at = strtotime("+{$interval_value} minutes", $submitted_at);
-                            break;
-                        case 'hours':
-                            $available_at = strtotime("+{$interval_value} hours", $submitted_at);
-                            break;
-                        case 'days':
-                        default:
-                            $available_at = strtotime("+{$interval_value} days", $submitted_at);
-                            break;
-                    }
-                }
-                
-                $next_wave_data = array(
-                    'wave_index' => $next_wave['wave_index'],
-                    'due_date' => $next_wave['due_date'],
-                    'wave_name' => $next_wave['wave_name'],
-                    'offset_minutes' => $offset_minutes,
-                    'interval_days' => isset($interval_value) ? $interval_value : 0,
-                    'reminder_days' => isset($wave_config['reminder_days']) ? intval($wave_config['reminder_days']) : 0,
-                    'time_unit' => $time_unit,
-                    'available_at' => $available_at * 1000 // Convert to milliseconds for JS
-                );
-                
-                error_log(sprintf('[EIPSI-DIAG] Prepared next_wave_data: %s', json_encode($next_wave_data)));
-                
-                // v2.2.2 - TRIGGER INMEDIATO: Enviar Nudge 0 ahora si la siguiente toma YA está disponible
-                // (evita esperar al cron hourly cuando interval=0 o el tiempo ya pasó)
-                $available_timestamp = intval($available_at);
-                $current_timestamp = current_time('timestamp');
-                if ($available_timestamp <= $current_timestamp) {
-                    error_log(sprintf('[EIPSI-DIAG] NEXT WAVE AVAILABLE NOW: wave_id=%d, available_at=%s, current=%s - Triggering immediate Nudge 0 email', 
-                        $next_wave['wave_id'], date('Y-m-d H:i:s', $available_timestamp), date('Y-m-d H:i:s', $current_timestamp)));
-                    
-                    // Asegurar que la clase esté cargada
-                    if (!class_exists('EIPSI_Wave_Availability_Email_Service')) {
-                        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-wave-availability-email-service.php';
-                    }
-                    
-                    if (class_exists('EIPSI_Wave_Availability_Email_Service')) {
-                        // Cargar dependencias necesarias para obtener los objetos (v2.2.3 Fix)
-                        if (!class_exists('EIPSI_Wave_Service')) {
-                            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-wave-service.php';
-                        }
-                        if (!class_exists('EIPSI_Participant_Service')) {
-                            require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-participant-service.php';
-                        }
-
-                        // Obtener objetos requeridos por el servicio
-                        global $wpdb;
-                        $assignment_obj = $wpdb->get_row($wpdb->prepare(
-                            "SELECT * FROM {$wpdb->prefix}survey_assignments WHERE wave_id = %d AND participant_id = %d",
-                            $next_wave['wave_id'],
-                            $longitudinal_participant_id
-                        ), OBJECT);
-
-                        $wave_obj = EIPSI_Wave_Service::get_wave($next_wave['wave_id']);
-                        $participant_obj = EIPSI_Participant_Service::get_by_id($longitudinal_participant_id);
-
-                        // Solo proceder si tenemos todos los datos necesarios
-                        if ($assignment_obj && $wave_obj && $participant_obj) {
-                            $email_result = EIPSI_Wave_Availability_Email_Service::ensure_wave_availability_email_sent(
-                                $assignment_obj,
-                                $wave_obj,
-                                $participant_obj,
-                                $study_id
-                            );
-                            error_log(sprintf('[EIPSI-DIAG] Immediate Nudge 0 email result: %s', json_encode($email_result)));
-                            
-                            // Guardar para agregar al success_response después
-                            if ($email_result['success'] && $email_result['sent']) {
-                                $nudge_0_sent = true;
-                                $nudge_0_message = __('Email de siguiente toma enviado inmediatamente', 'eipsi-forms');
-                            }
-                        } else {
-                            error_log(sprintf('[EIPSI-DIAG] Could not trigger immediate Nudge 0: Missing objects. Assignment: %s, Wave: %s, Participant: %s', 
-                                $assignment_obj ? 'OK' : 'MISSING', 
-                                $wave_obj ? 'OK' : 'MISSING', 
-                                $participant_obj ? 'OK' : 'MISSING'));
-                        }
-                    }
-                }
-            }
-        } else {
-            error_log('[EIPSI-DIAG] CONDICIÓN NO CUMPLIDA - No se procesa assignment. Faltan: ' . 
-                (empty($wave_id) ? 'wave_id ' : '') .
-                (!$study_id ? 'study_id ' : '') .
-                (!$longitudinal_participant_id ? 'longitudinal_participant_id' : ''));
-        }
-        
-        // Preparar respuesta de éxito con información de próximas tomas
-        $success_response = array(
-            'message' => __('Form submitted successfully!', 'eipsi-forms'),
-            'external_db' => false,
-            'insert_id' => $insert_id,
-            'has_next' => $has_next_wave,
-            'next_wave' => $next_wave_data
-        );
-        
-        // Si no hay próxima toma, agregar mensaje de completado
-        if (!$has_next_wave && $study_id) {
-            $success_response['completion_message'] = __('All waves completed!', 'eipsi-forms');
-        }
-        
-        // ✅ DATA SAFETY: Agregar info de verificación a la respuesta
-        $success_response['verified'] = $verified;
-        $success_response['storage_type'] = $storage_type;
-        
-        if ($used_fallback) {
-            // Fallback succeeded - inform user with warning
-            $success_response['fallback_used'] = true;
-            $success_response['warning'] = __('Form was saved to local database (external database temporarily unavailable).', 'eipsi-forms');
-            $success_response['error_code'] = $error_info['error_code'];
-        }
-        
-        // v2.2.2 - Agregar info de email Nudge 0 si se envió inmediatamente
-        if (!empty($nudge_0_sent)) {
-            $success_response['nudge_0_sent'] = true;
-            $success_response['nudge_0_message'] = $nudge_0_message;
-        }
-
-        // ==========================================================================
-        // FASE 4 - TRACKING DE COMPLETITUD EN POOLS (v2.5.3)
-        // Disparar hook para que otros handlers verifiquen completitud de pools
-        // Solo para participantes autenticados con contexto longitudinal válido
-        // ==========================================================================
-        if ($authenticated_participant_id && $study_id) {
-            do_action('eipsi_form_submitted', array(
-                'survey_id'      => $study_id,
-                'participant_id' => $authenticated_participant_id,
-                'wave_index'     => $wave_index,
-                'form_id'        => $stable_form_id,
-                'insert_id'      => $insert_id,
-            ));
-        }
-
-        wp_send_json_success($success_response);
-        
-    } else {
-        // ✅ DATA SAFETY: Fallo crítico - todos los intentos fallaron incluyendo modo emergencia
-        error_log('[EIPSI SAFETY] CRITICAL: All save attempts failed including emergency mode');
-        
-        wp_send_json_error(array(
-            'message' => __('Error crítico: No se pudo guardar la respuesta. Por favor, contacte al administrador inmediatamente.', 'eipsi-forms'),
-            'error_code' => 'SAFETY_SYSTEM_FAILURE',
-            'contact_admin' => true
-        ), 500);
-    }
+    EIPSI_Form_Response::emit(EIPSI_Submit_Service::submit($_POST, $_GET, $_SERVER));
 }
 
 // =============================================================================
@@ -2111,31 +1024,15 @@ function eipsi_forms_submit_form_handler() {
 // =============================================================================
 
 function eipsi_get_research_context($device, $duration) {
-    if ($device === 'mobile') {
-        return '📱 Posible contexto informal';
-    } else {
-        return '💻 Posible contexto formal';
-    }
+    return EIPSI_Form_Capture_Service::eipsi_get_research_context($device, $duration);
 }
 
 function eipsi_get_time_context($datetime) {
-    $hour = date('H', strtotime($datetime));
-    
-    if ($hour >= 6 && $hour < 12) return '🌅 Mañana';
-    if ($hour >= 12 && $hour < 18) return '🌞 Tarde'; 
-    if ($hour >= 18 && $hour < 22) return '🌆 Noche';
-    return '🌙 Madrugada';
+    return EIPSI_Form_Capture_Service::eipsi_get_time_context($datetime);
 }
 
 function eipsi_get_platform_type($device, $screen_width) {
-    if ($device === 'mobile') {
-        if ($screen_width < 400) return '📱 Teléfono pequeño';
-        if ($screen_width < 768) return '📱 Teléfono estándar';
-        return '📱 Teléfono grande/Tablet pequeña';
-    } else {
-        if ($screen_width < 1200) return '💻 Laptop';
-        return '🖥️ Desktop grande';
-    }
+    return EIPSI_Form_Capture_Service::eipsi_get_platform_type($device, $screen_width);
 }
 
 function eipsi_ajax_get_response_details() {
@@ -2466,125 +1363,8 @@ function eipsi_track_event_handler() {
         ), 403);
         return;
     }
-    
-    // Define allowed event types
-    $allowed_events = array('view', 'start', 'page_change', 'submit', 'abandon', 'branch_jump');
-    
-    // Sanitize and validate POST data
-    $event_type = isset($_POST['event_type']) ? sanitize_text_field($_POST['event_type']) : '';
-    
-    // Validate event type
-    if (empty($event_type) || !in_array($event_type, $allowed_events, true)) {
-        wp_send_json_error(array(
-            'message' => __('Invalid event type.', 'eipsi-forms')
-        ), 400);
-        return;
-    }
-    
-    // Sanitize other required fields
-    $form_id = isset($_POST['form_id']) ? sanitize_text_field($_POST['form_id']) : '';
-    $session_id = isset($_POST['session_id']) ? sanitize_text_field($_POST['session_id']) : '';
-    
-    // Validate required fields
-    if (empty($session_id)) {
-        wp_send_json_error(array(
-            'message' => __('Missing required field: session_id.', 'eipsi-forms')
-        ), 400);
-        return;
-    }
-    
-    // Sanitize optional fields
-    $page_number = isset($_POST['page_number']) ? intval($_POST['page_number']) : null;
-    $user_agent = isset($_POST['user_agent']) ? sanitize_text_field($_POST['user_agent']) : '';
-    
-    // Collect metadata for branch_jump events
-    $metadata = null;
-    if ($event_type === 'branch_jump') {
-        $metadata = array();
-        if (isset($_POST['from_page'])) {
-            $metadata['from_page'] = intval($_POST['from_page']);
-        }
-        if (isset($_POST['to_page'])) {
-            $metadata['to_page'] = intval($_POST['to_page']);
-        }
-        if (isset($_POST['field_id'])) {
-            $metadata['field_id'] = sanitize_text_field($_POST['field_id']);
-        }
-        if (isset($_POST['matched_value'])) {
-            $metadata['matched_value'] = sanitize_text_field($_POST['matched_value']);
-        }
-        $metadata = !empty($metadata) ? wp_json_encode($metadata) : null;
-    }
-    
-    // Prepare data for database insertion
-    global $wpdb;
-    
-    $insert_data = array(
-        'form_id' => $form_id,
-        'session_id' => $session_id,
-        'event_type' => $event_type,
-        'page_number' => $page_number,
-        'metadata' => $metadata,
-        'user_agent' => $user_agent,
-        'created_at' => current_time('mysql')
-    );
-    
-    // Check if external database is configured
-    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
-    $db_helper = new EIPSI_External_Database();
-    $external_db_enabled = $db_helper->is_enabled();
-    $used_fallback = false;
-    
-    if ($external_db_enabled) {
-        // Try external database first
-        $result = $db_helper->insert_form_event($insert_data);
-        
-        if ($result['success']) {
-            // External DB insert succeeded
-            wp_send_json_success(array(
-                'message' => __('Event tracked successfully.', 'eipsi-forms'),
-                'event_id' => $result['insert_id'],
-                'tracked' => true,
-                'external_db' => true
-            ));
-            return;
-        } else {
-            // External DB failed, fall back to WordPress DB
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('EIPSI Tracking: External DB insert failed, falling back to WordPress DB - ' . $result['error']);
-            }
-            $used_fallback = true;
-        }
-    }
-    
-    // Use WordPress database (either as default or as fallback)
-    $table_name = $wpdb->prefix . 'vas_form_events';
-    $insert_formats = array('%s', '%s', '%s', '%d', '%s', '%s', '%s');
-    
-    $wpdb_result = $wpdb->insert($table_name, $insert_data, $insert_formats);
-    
-    // Check for database errors
-    if ($wpdb_result === false) {
-        // Log error but don't crash tracking
-        error_log('EIPSI Tracking: Failed to insert event - ' . $wpdb->last_error);
-        
-        // Still return success to keep tracking JS resilient
-        wp_send_json_success(array(
-            'message' => __('Event logged.', 'eipsi-forms'),
-            'event_id' => null,
-            'logged' => true
-        ));
-        return;
-    }
-    
-    // Return success with event ID
-    wp_send_json_success(array(
-        'message' => __('Event tracked successfully.', 'eipsi-forms'),
-        'event_id' => $wpdb->insert_id,
-        'tracked' => true,
-        'external_db' => false,
-        'fallback_used' => $used_fallback
-    ));
+
+    EIPSI_Form_Response::emit(EIPSI_Form_Tracking_Service::handle($_POST, $_SERVER));
 }
 
 // =============================================================================
@@ -2596,7 +1376,7 @@ function eipsi_test_db_connection_handler() {
     
     if (!current_user_can('manage_options')) {
         wp_send_json_error(array(
-            'message' => __('Unauthorized', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Unauthorized')
         ));
     }
     
@@ -2610,7 +1390,7 @@ function eipsi_test_db_connection_handler() {
     
     if (empty($host) || empty($user) || empty($db_name)) {
         wp_send_json_error(array(
-            'message' => __('Please fill in all required fields.', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Please fill in all required fields.')
         ));
     }
     
@@ -2628,7 +1408,7 @@ function eipsi_save_db_config_handler() {
     
     if (!current_user_can('manage_options')) {
         wp_send_json_error(array(
-            'message' => __('Unauthorized', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Unauthorized')
         ));
     }
     
@@ -2650,7 +1430,7 @@ function eipsi_save_db_config_handler() {
     
     if (empty($host) || empty($user) || empty($password) || empty($db_name)) {
         wp_send_json_error(array(
-            'message' => __('Please fill in all required fields.', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Please fill in all required fields.')
         ));
     }
     
@@ -2659,7 +1439,7 @@ function eipsi_save_db_config_handler() {
     
     if (!$test_result['success']) {
         wp_send_json_error(array(
-            'message' => __('Connection test failed. Please verify your credentials.', 'eipsi-forms') . ' ' . $test_result['message']
+            'message' => eipsi_admin_translate('Connection test failed. Please verify your credentials.') . ' ' . $test_result['message']
         ));
     }
     
@@ -2676,29 +1456,29 @@ function eipsi_save_db_config_handler() {
         // Include schema verification results in response
         $response_data = array(
             'message' => sprintf(
-                __('Configuration saved successfully! Data will now be stored in: %s', 'eipsi-forms'),
+                eipsi_admin_translate('Configuration saved successfully! Data will now be stored in: %s'),
                 $db_name
             ),
             'status' => $status,
             'schema_verified' => $schema_result['success'],
             'tables_created' => array(
-                'results' => $schema_result['results_table']['created'],
-                'events' => $schema_result['events_table']['created']
+                'results' => $schema_result['results_table']['created'] ?? null,
+                'events' => $schema_result['events_table']['created'] ?? null
             ),
             'columns_added' => array(
-                'results' => count($schema_result['results_table']['columns_added']),
-                'events' => count($schema_result['events_table']['columns_added'])
+                'results' => isset($schema_result['results_table']['columns_added']) ? count($schema_result['results_table']['columns_added']) : null,
+                'events' => isset($schema_result['events_table']['columns_added']) ? count($schema_result['events_table']['columns_added']) : null
             )
         );
         
         if (!$schema_result['success']) {
-            $response_data['schema_warnings'] = $schema_result['errors'];
+            $response_data['schema_warnings'] = $schema_result['errors'] ?? array($schema_result['error'] ?? 'Schema verification failed');
         }
         
         wp_send_json_success($response_data);
     } else {
         wp_send_json_error(array(
-            'message' => __('Failed to save configuration.', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Failed to save configuration.')
         ));
     }
 }
@@ -2708,7 +1488,7 @@ function eipsi_disable_external_db_handler() {
     
     if (!current_user_can('manage_options')) {
         wp_send_json_error(array(
-            'message' => __('Unauthorized', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Unauthorized')
         ));
     }
     
@@ -2718,7 +1498,7 @@ function eipsi_disable_external_db_handler() {
     $db_helper->disable();
     
     wp_send_json_success(array(
-        'message' => __('External database disabled. Form submissions will now be stored in the WordPress database.', 'eipsi-forms')
+        'message' => eipsi_admin_translate('External database disabled. Form submissions will now be stored in the WordPress database.')
     ));
 }
 
@@ -2727,7 +1507,7 @@ function eipsi_get_db_status_handler() {
     
     if (!current_user_can('manage_options')) {
         wp_send_json_error(array(
-            'message' => __('Unauthorized', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Unauthorized')
         ));
     }
     
@@ -2739,21 +1519,14 @@ function eipsi_get_db_status_handler() {
     wp_send_json_success($status);
 }
 
-function eipsi_check_external_db_handler() {
-    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
-    $db_helper = new EIPSI_External_Database();
-    
-    wp_send_json_success(array(
-        'enabled' => $db_helper->is_enabled()
-    ));
-}
+
 
 function eipsi_verify_schema_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
     
     if (!current_user_can('manage_options')) {
         wp_send_json_error(array(
-            'message' => __('Unauthorized', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Unauthorized')
         ));
     }
     
@@ -2764,7 +1537,7 @@ function eipsi_verify_schema_handler() {
     
     if (!$db_helper->is_enabled()) {
         wp_send_json_error(array(
-            'message' => __('External database is not enabled', 'eipsi-forms')
+            'message' => eipsi_admin_translate('External database is not enabled')
         ));
     }
     
@@ -2797,7 +1570,7 @@ function eipsi_verify_local_schema_handler() {
 
     if (!current_user_can('manage_options')) {
         wp_send_json_error(array(
-            'message' => __('Unauthorized', 'eipsi-forms')
+            'message' => eipsi_admin_translate('Unauthorized')
         ));
     }
 
@@ -2981,6 +1754,28 @@ function eipsi_get_completion_config_handler() {
 /**
  * Save & Continue: Save partial response
  */
+/** Browser draft keys do not authorize a longitudinal participant identity. */
+function eipsi_authorize_partial_request($form_id, $participant_id, $writing = false) {
+    if (ctype_digit((string) $participant_id)) {
+        $session = EIPSI_Authorization_Policy::authorize_session_context($_POST);
+        if (!$session['success']) {
+            wp_send_json_error(array('message' => 'Not authorized'), 403);
+        }
+    }
+    $access = EIPSI_Authorization_Policy::authorize_form_operation($form_id, $_POST, $_GET, 'partial');
+    if (!$access['success']) {
+        wp_send_json_error(array('message' => 'Not authorized'), 403);
+    }
+    if ($writing && !empty($access['longitudinal'])) {
+        $eligible = EIPSI_Longitudinal_Assignment_Transition_Service::precheck_submission(
+            $access['participant_id'], $access['study_id'], $access['wave_id']
+        );
+        if (!$eligible['success']) {
+            wp_send_json_error($eligible['data'], $eligible['status']);
+        }
+    }
+}
+
 function eipsi_save_partial_response_handler() {
     // Nonce required even for nopriv. Prevents CSRF + drive-by writes.
     check_ajax_referer('eipsi_save_partial', 'nonce');
@@ -3067,6 +1862,7 @@ function eipsi_save_partial_response_handler() {
         ));
     }
     
+    eipsi_authorize_partial_request($form_id, $participant_id, true);
     $result = EIPSI_Partial_Responses::save($form_id, $participant_id, $session_id, $page_index, $responses);
     
     if ($result['success']) {
@@ -3101,28 +1897,26 @@ function eipsi_load_partial_response_handler() {
     $participant_id = isset($_POST['participant_id']) ? sanitize_text_field($_POST['participant_id']) : '';
     $session_id = isset($_POST['session_id']) ? sanitize_text_field($_POST['session_id']) : '';
     
-    error_log(sprintf('[EIPSI SAVE&CONTINUE] Load request: form_id=%s, participant_id=%s, session_id=%s', 
-        $form_id, $participant_id, $session_id));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L1900'), 'debug');
     
     if (empty($form_id) || empty($participant_id) || empty($session_id)) {
-        error_log('[EIPSI SAVE&CONTINUE] Load failed: missing required parameters');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L1904'), 'debug');
         wp_send_json_error(array(
             'message' => __('Missing required parameters', 'eipsi-forms')
         ));
     }
     
+    eipsi_authorize_partial_request($form_id, $participant_id);
     $partial = EIPSI_Partial_Responses::load($form_id, $participant_id, $session_id);
     
     if ($partial) {
-        error_log(sprintf('[EIPSI SAVE&CONTINUE] Load success: found partial response, page_index=%d, response_count=%d', 
-            isset($partial['page_index']) ? intval($partial['page_index']) : 0,
-            isset($partial['responses']) && is_array($partial['responses']) ? count($partial['responses']) : 0));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L1914'), 'debug');
         wp_send_json_success(array(
             'found' => true,
             'partial' => $partial
         ));
     } else {
-        error_log('[EIPSI SAVE&CONTINUE] Load success: no partial response found (clean start)');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L1922'), 'debug');
         wp_send_json_success(array(
             'found' => false,
             'partial' => null
@@ -3136,107 +1930,7 @@ function eipsi_load_partial_response_handler() {
  * Endpoint para debugging que muestra qué datos tiene guardados el backend
  * para una sesión específica, incluyendo detalles de cada campo.
  */
-add_action('wp_ajax_nopriv_eipsi_debug_partial_response', 'eipsi_debug_partial_response_handler');
-add_action('wp_ajax_eipsi_debug_partial_response', 'eipsi_debug_partial_response_handler');
 
-function eipsi_debug_partial_response_handler() {
-    $form_id = isset($_POST['form_id']) ? sanitize_text_field($_POST['form_id']) : '';
-    $participant_id = isset($_POST['participant_id']) ? sanitize_text_field($_POST['participant_id']) : '';
-    $session_id = isset($_POST['session_id']) ? sanitize_text_field($_POST['session_id']) : '';
-    
-    error_log('[EIPSI S&C DEBUG] Diagnostic request received');
-    
-    if (empty($form_id) || empty($participant_id) || empty($session_id)) {
-        wp_send_json_error(array(
-            'message' => 'Missing required parameters',
-            'received' => array(
-                'form_id' => $form_id,
-                'participant_id' => $participant_id,
-                'session_id' => $session_id
-            )
-        ));
-        return;
-    }
-    
-    // Cargar datos guardados
-    $partial = EIPSI_Partial_Responses::load($form_id, $participant_id, $session_id);
-    
-    if (!$partial) {
-        error_log('[EIPSI S&C DEBUG] No partial response found in database');
-        wp_send_json_success(array(
-            'found' => false,
-            'message' => 'No hay datos guardados para esta sesión',
-            'search_params' => array(
-                'form_id' => $form_id,
-                'participant_id' => $participant_id,
-                'session_id' => $session_id
-            )
-        ));
-        return;
-    }
-    
-    // Analizar respuestas guardadas
-    $responses = isset($partial['responses']) && is_array($partial['responses']) ? $partial['responses'] : array();
-    $response_count = count($responses);
-    
-    // Categorizar campos
-    $field_analysis = array(
-        'consent_fields' => array(),
-        'demographic_fields' => array(),
-        'scale_fields' => array(),
-        'other_fields' => array()
-    );
-    
-    foreach ($responses as $field_name => $field_value) {
-        $field_info = array(
-            'name' => $field_name,
-            'value' => $field_value,
-            'type' => gettype($field_value),
-            'length' => is_string($field_value) ? strlen($field_value) : null
-        );
-        
-        // Categorizar
-        if (strpos($field_name, 'consent') !== false || strpos($field_name, 'eipsi_consent') !== false) {
-            $field_analysis['consent_fields'][] = $field_info;
-        } elseif (strpos($field_name, 'phq') !== false || strpos($field_name, 'gad') !== false || strpos($field_name, 'mbi') !== false) {
-            $field_analysis['scale_fields'][] = $field_info;
-        } elseif (in_array($field_name, array('edad', 'genero', 'profesion_sanitaria', 'anos_experiencia', 'tipo_institucion', 'horas_semanales', 'situacion_laboral'))) {
-            $field_analysis['demographic_fields'][] = $field_info;
-        } else {
-            $field_analysis['other_fields'][] = $field_info;
-        }
-    }
-    
-    $diagnostic = array(
-        'found' => true,
-        'summary' => array(
-            'total_responses' => $response_count,
-            'page_index' => isset($partial['page_index']) ? intval($partial['page_index']) : 0,
-            'last_updated' => isset($partial['updated_at']) ? $partial['updated_at'] : null,
-            'consent_fields_count' => count($field_analysis['consent_fields']),
-            'demographic_fields_count' => count($field_analysis['demographic_fields']),
-            'scale_fields_count' => count($field_analysis['scale_fields']),
-            'other_fields_count' => count($field_analysis['other_fields'])
-        ),
-        'field_analysis' => $field_analysis,
-        'raw_responses' => $responses,
-        'search_params' => array(
-            'form_id' => $form_id,
-            'participant_id' => $participant_id,
-            'session_id' => $session_id
-        )
-    );
-    
-    error_log(sprintf('[EIPSI S&C DEBUG] Found %d responses: %d consent, %d demographic, %d scale, %d other',
-        $response_count,
-        count($field_analysis['consent_fields']),
-        count($field_analysis['demographic_fields']),
-        count($field_analysis['scale_fields']),
-        count($field_analysis['other_fields'])
-    ));
-    
-    wp_send_json_success($diagnostic);
-}
 
 /**
  * Fase 2 - v2.5: Save Consent Decision (T1 rejection)
@@ -3253,219 +1947,8 @@ function eipsi_save_consent_decision_handler() {
         wp_send_json_error(array('message' => __('Invalid nonce', 'eipsi-forms')));
         return;
     }
-    
-    $form_id = sanitize_text_field($_POST['form_id'] ?? '');
-    $decision = sanitize_text_field($_POST['decision'] ?? '');
-    $participant_id = sanitize_text_field($_POST['participant_id'] ?? '');
-    $participant_source = !empty($participant_id) ? 'POST' : 'UNKNOWN';
-    
-    if (empty($form_id) || !in_array($decision, array('accepted', 'declined'))) {
-        wp_send_json_error(array('message' => __('Invalid parameters', 'eipsi-forms')));
-        return;
-    }
-    
-    // Get participant_id from session if not provided
-    if (empty($participant_id)) {
-        $participant_id = eipsi_get_current_participant_id();
-        $participant_source = 'SESSION/HELPER';
-    }
-    
-    global $wpdb;
 
-    // Resolve numeric template ID
-    $template_id = is_numeric($form_id) ? intval($form_id) : 0;
-    if (!$template_id) {
-        $template_id = $wpdb->get_var($wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type IN ('eipsi_form_template', 'eipsi_form', 'page') LIMIT 1",
-            $form_id
-        ));
-    }
-    
-    // v2.5.6: PRIORIDAD DE CONTEXTO - Invertida para evitar colisiones por form_id "default"
-    // 1. Intentar por sesión activa (Lo más confiable si el usuario ya inició sesión)
-    $study_id = eipsi_get_current_survey_id();
-    $study_source = $study_id ? 'SESSION' : 'NONE';
-
-    // 2. Rescate por Participant ID (Si no hay sesión pero tenemos el ID del participante)
-    if (!$study_id && !empty($participant_id) && is_numeric($participant_id)) {
-        $study_id = $wpdb->get_var($wpdb->prepare(
-            "SELECT survey_id FROM {$wpdb->prefix}survey_participants WHERE id = %d LIMIT 1",
-            intval($participant_id)
-        ));
-        if ($study_id) { $study_source = 'PARTICIPANT_LOOKUP'; }
-    }
-
-    // 3. Último recurso: Adivinar por el form_id (Origen del error actual)
-    if (!$study_id) {
-        $study_id = eipsi_get_study_id_for_form($form_id);
-        if ($study_id) { $study_source = 'FORM_ID_FALLBACK'; }
-    }
-
-    // Instrumentación detallada antes de la validación
-    error_log(sprintf(
-        '[EIPSI-CONSENT-DEBUG] Decision Handler: FormID=%s (TemplateID=%d), ParticipantID=%s (Source=%s), StudyID=%s (Source=%s)',
-        $form_id,
-        $template_id,
-        $participant_id,
-        $participant_source,
-        $study_id ?: 'NULL',
-        $study_source
-    ));
-    
-    if ($study_id) {
-        // Longitudinal study: save to wp_survey_participants
-        $table = $wpdb->prefix . 'survey_participants';
-        
-        $data = array(
-            'consent_decision' => $decision,
-            'consent_decided_at' => current_time('mysql'),
-            'consent_ip_address' => eipsi_get_client_ip(),
-            'consent_user_agent' => sanitize_text_field($_SERVER['HTTP_USER_AGENT'] ?? ''),
-            'consent_context' => 'T1_consent_block',
-        );
-        
-        // If declined, also set blocked_survey_id
-        if ($decision === 'declined') {
-            // v2.5.5: Ensure it is a numeric ID (template_id if available, else numeric fallback)
-            $blocked_id = (is_numeric($template_id) && $template_id > 0) ? intval($template_id) : null;
-            
-            if (!$blocked_id && is_numeric($form_id)) {
-                $blocked_id = intval($form_id);
-            }
-            
-            // Final fallback to study_id if all else fails to be numeric
-            if (!$blocked_id && is_numeric($study_id)) {
-                $blocked_id = intval($study_id);
-            }
-            
-            $data['consent_blocked_survey_id'] = $blocked_id;
-            $data["is_active"] = 0; // Marcar como inactivo al rechazar
-
-        }
-        
-        $validate_query = $wpdb->prepare(
-            "SELECT id FROM {$table} WHERE id = %d AND survey_id = %d LIMIT 1",
-            $participant_id,
-            $study_id
-        );
-        
-        error_log("[EIPSI-CONSENT-DEBUG] Validation SQL: " . $validate_query);
-        
-        $existing_participant = $wpdb->get_var($validate_query);
-
-        if (!$existing_participant) {
-            error_log(sprintf('[EIPSI-CONSENT-ERROR] Participant %s not found for Study %s', $participant_id, $study_id));
-            wp_send_json_error(array('message' => __('Participant not found for this study', 'eipsi-forms')));
-            return;
-        }
-
-        $data['status'] = ($decision === 'declined') ? 'consent_declined' : 'active';
-
-        $result = $wpdb->update(
-            $table,
-            $data,
-            array(
-                'id' => $participant_id,
-                'survey_id' => $study_id,
-            )
-        );
-
-        if ($result === false) {
-            wp_send_json_error(array('message' => __('Could not save consent decision', 'eipsi-forms')));
-            return;
-        }
-    } else {
-        // Standalone form: also save to wp_survey_participants (NOT assignments)
-        $table = $wpdb->prefix . 'survey_participants';
-        $context_id = $template_id ?: $form_id;
-        
-        $data = array(
-            'consent_decision' => $decision,
-            'consent_decided_at' => current_time('mysql'),
-            'consent_ip_address' => eipsi_get_client_ip(),
-            'consent_user_agent' => sanitize_text_field($_SERVER['HTTP_USER_AGENT'] ?? ''),
-            'consent_context' => 'T1_consent_block',
-        );
-        
-        // If declined, also set blocked_survey_id
-        if ($decision === 'declined') {
-            // v2.5.5: Ensure it is a numeric ID
-            $blocked_id = (is_numeric($template_id) && $template_id > 0) ? intval($template_id) : null;
-            if (!$blocked_id && is_numeric($form_id)) {
-                $blocked_id = intval($form_id);
-            }
-            $data['consent_blocked_survey_id'] = $blocked_id;
-            $data["is_active"] = 0; // Marcar como inactivo al rechazar
-        }
-
-        $where = array(
-
-            'survey_id' => $context_id,
-            'id' => $participant_id,
-        );
-        
-        error_log(sprintf('[EIPSI-CONSENT-DEBUG] Standalone Fallback: ContextID=%s, ParticipantID=%s', $context_id, $participant_id));
-        
-        $result = $wpdb->update($table, $data, $where);
-        
-        // If no existing record, and we have a participant_id, try to insert if it's a numeric ID
-        if ($result === false || $result === 0) {
-            if ($participant_id && is_numeric($participant_id)) {
-                $data['survey_id'] = $context_id;
-                $data['id'] = $participant_id;
-                $data['status'] = ($decision === 'declined') ? 'consent_declined' : 'active';
-                $wpdb->insert($table, $data);
-            }
-        }
-    }
-    
-    // Log the decision
-    if (function_exists('eipsi_log_audit')) {
-        eipsi_log_audit('consent_decision', array(
-            'form_id' => $form_id,
-            'participant_id' => $participant_id,
-            'decision' => $decision,
-            'study_id' => $study_id ?? null,
-        ));
-    }
-    
-    // Prepare redirect URL for declined consent
-    $redirect_url = null;
-    if ($decision === 'declined') {
-        $study_url = '';
-
-        if ($study_id) {
-            // Utilizar el helper que busca por meta eipsi_study_id (inmune a colisiones de texto)
-            if (!function_exists('eipsi_get_study_page_url')) {
-                require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/setup-wizard.php';
-            }
-            
-            $study_url = function_exists('eipsi_get_study_page_url') 
-                ? eipsi_get_study_page_url($study_id) 
-                : '';
-        }
-
-        if (empty($study_url)) {
-            $study_url = home_url('/');
-        }
-
-        $redirect_url = add_query_arg(array('consent' => 'declined'), $study_url);
-        
-        error_log("[EIPSI-CONSENT] Decision declined - Redirecting to: {$redirect_url} (Study ID: {$study_id})");
-        
-        // Destruir sesión SOLO después de haber procesado redirección y logs
-        if (class_exists('EIPSI_Auth_Service')) {
-            EIPSI_Auth_Service::destroy_session();
-        }
-    }
-    
-    error_log("[EIPSI-CONSENT] Sending response with redirect: {$redirect_url}");
-    
-    wp_send_json_success(array(
-        'message' => __('Decision saved', 'eipsi-forms'),
-        'decision' => $decision,
-        'redirect' => $redirect_url,
-    ));
+    EIPSI_Form_Response::emit(EIPSI_Form_Consent_Service::handle($_POST, $_SERVER));
 }
 
 /**
@@ -3480,28 +1963,42 @@ add_action('wp_ajax_nopriv_eipsi_abandon_study', 'eipsi_abandon_study_handler');
 function eipsi_abandon_study_handler() {
     // Verify nonce
     if (!wp_verify_nonce($_POST['nonce'] ?? '', 'eipsi_abandon_study')) {
-        error_log('[EIPSI-ABANDON] ERROR: Invalid nonce');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L1969'), 'debug');
         wp_send_json_error(array('message' => __('Invalid security token', 'eipsi-forms')));
         return;
     }
     
     global $wpdb;
     
-    // Get and sanitize input
-    $participant_id = sanitize_text_field($_POST['participant_id'] ?? '');
-    $study_id = sanitize_text_field($_POST['study_id'] ?? '');
-    $withdrawal_type = sanitize_text_field($_POST['withdrawal_type'] ?? ''); // 'b1' or 'b2'
-    $verification_text = sanitize_text_field($_POST['verification_text'] ?? '');
-    
-    error_log("[EIPSI-ABANDON] === START === participant_id={$participant_id}, study_id={$study_id}, type={$withdrawal_type}");
-    
-    // Validate required fields
-    if (empty($participant_id) || empty($study_id)) {
-        error_log("[EIPSI-ABANDON] ERROR: Empty participant_id or study_id");
-        wp_send_json_error(array('message' => __('Participant ID and Study ID are required', 'eipsi-forms')));
+    // Participant identity and study context must come from the authenticated session.
+    $participant_id = class_exists('EIPSI_Auth_Service') ? (int) EIPSI_Auth_Service::get_current_participant() : 0;
+    $study_id = $participant_id ? (int) EIPSI_Auth_Service::get_current_survey() : 0;
+    if (!$participant_id || !$study_id) {
+        wp_send_json_error(array('message' => __('Authentication required', 'eipsi-forms')), 403);
         return;
     }
-    
+
+    // Preserve existing payloads, but reject attempts to act on another identity or study.
+    foreach (array('participant_id' => $participant_id, 'study_id' => $study_id) as $key => $expected) {
+        if (isset($_POST[$key]) && (!is_scalar($_POST[$key]) || (string) $_POST[$key] !== (string) $expected)) {
+            wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')), 403);
+            return;
+        }
+    }
+    $belongs_to_study = $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM {$wpdb->prefix}survey_participants WHERE id = %d AND survey_id = %d",
+        $participant_id,
+        $study_id
+    ));
+    if (!$belongs_to_study) {
+        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')), 403);
+        return;
+    }
+
+    $withdrawal_type = sanitize_text_field($_POST['withdrawal_type'] ?? ''); // 'b1' or 'b2'
+    $verification_text = sanitize_text_field($_POST['verification_text'] ?? '');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2003'), 'debug');
+
     // Validate withdrawal type
     if (!in_array($withdrawal_type, array('b1', 'b2'), true)) {
         wp_send_json_error(array('message' => __('Invalid withdrawal type', 'eipsi-forms')));
@@ -3526,14 +2023,19 @@ function eipsi_abandon_study_handler() {
     $ip_address = eipsi_get_client_ip();
     $user_agent = sanitize_text_field($_SERVER['HTTP_USER_AGENT'] ?? '');
     
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-config.php';
+    $capture_config=get_global_privacy_defaults();
+    if (empty($capture_config['ip_address'])) { $ip_address=null; }
+    if (empty($capture_config['user_agent_full'])) { $user_agent=null; }
+
     // Update participant record
     $participants_table = $wpdb->prefix . 'survey_participants';
-    error_log("[EIPSI-ABANDON] Table: {$participants_table}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2036'), 'debug');
     
     // Check if table exists
     $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$participants_table}'") === $participants_table;
     if (!$table_exists) {
-        error_log("[EIPSI-ABANDON] ERROR: Table {$participants_table} does not exist");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2041'), 'debug');
         wp_send_json_error(array('message' => __('Database table not found', 'eipsi-forms')));
         return;
     }
@@ -3553,13 +2055,13 @@ function eipsi_abandon_study_handler() {
         'id' => (int) $participant_id,
     );
     
-    error_log("[EIPSI-ABANDON] UPDATE data: " . json_encode($update_data));
-    error_log("[EIPSI-ABANDON] WHERE: " . json_encode($where));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2061'), 'debug');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2062'), 'debug');
     
     $result = $wpdb->update($participants_table, $update_data, $where);
     
     if ($result === false) {
-        error_log("[EIPSI-ABANDON] ERROR: Update failed - " . $wpdb->last_error);
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2067'), 'debug');
         wp_send_json_error(array(
             'message' => __('Failed to update participant record', 'eipsi-forms'),
             'error' => $wpdb->last_error
@@ -3567,15 +2069,15 @@ function eipsi_abandon_study_handler() {
         return;
     }
     
-    error_log("[EIPSI-ABANDON] UPDATE successful, rows affected: " . ($result === 0 ? '0 (already withdrawn?)' : $result));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2075'), 'debug');
     
     // Mark all pending waves as withdrawn
-    $waves_table = $wpdb->prefix . 'study_waves';
+    $waves_table = $wpdb->prefix . 'survey_waves';
     $assignments_table = $wpdb->prefix . 'survey_assignments';
     
     // Check if waves table exists
     $waves_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$waves_table}'") === $waves_table;
-    error_log("[EIPSI-ABANDON] Waves table exists: " . ($waves_table_exists ? 'yes' : 'no'));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2083'), 'debug');
     
     if ($waves_table_exists) {
         // Get current wave if any
@@ -3583,157 +2085,28 @@ function eipsi_abandon_study_handler() {
             "SELECT id FROM {$waves_table} WHERE study_id = %s AND status = 'active' ORDER BY wave_index ASC LIMIT 1",
             $study_id
         ));
-        error_log("[EIPSI-ABANDON] Current wave: " . ($current_wave ? $current_wave->id : 'none'));
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2091'), 'debug');
     } else {
         $current_wave = null;
     }
     
     // Note: withdrawal_wave_id column doesn't exist, skipping update
     
-    // For B2, anonymize/delete existing responses and related data
+    // B2 uses the real local relationships and reports any critical failure.
+    $cleanup_coverage = null;
     if ($withdrawal_type === 'b2') {
-        error_log("[EIPSI-ABANDON] Processing B2 data deletion");
-        
-        try {
-            $submissions_table = $wpdb->prefix . 'vas_form_results';
-            $partial_table = $wpdb->prefix . 'eipsi_partial_responses';
-            
-            // Check which tables exist (added eipsi_form_events for complete deletion)
-            $tables_to_check = array('survey_waves', 'vas_form_results', 'eipsi_partial_responses', 'eipsi_device_data', 'survey_email_log', 'survey_magic_links', 'survey_sessions', 'eipsi_pool_email_log', 'eipsi_form_events');
-            $existing_tables = array();
-            foreach ($tables_to_check as $tbl) {
-                $full_name = $wpdb->prefix . $tbl;
-                if ($wpdb->get_var("SHOW TABLES LIKE '{$full_name}'") === $full_name) {
-                    $existing_tables[] = $tbl;
-                }
-            }
-            error_log("[EIPSI-ABANDON] Existing tables for B2: " . json_encode($existing_tables));
-            
-            // Get form IDs if survey_waves exists
-            if (in_array('survey_waves', $existing_tables)) {
-                $waves_table_forms = $wpdb->prefix . 'survey_waves';
-                $form_ids = $wpdb->get_col($wpdb->prepare(
-                    "SELECT DISTINCT form_id FROM {$waves_table_forms} WHERE study_id = %s",
-                    $study_id
-                ));
-                error_log("[EIPSI-ABANDON] Found form IDs: " . json_encode($form_ids));
-            } else {
-                $form_ids = array();
-            }
-            
-            // Track which forms had data deleted (for phantom rows)
-            $forms_with_deleted_data = array();
-            
-            // Process each form
-            foreach ($form_ids as $form_id) {
-                // B2: DELETE submissions completely (not anonymize)
-                if (in_array('vas_form_results', $existing_tables)) {
-                    $deleted_count = $wpdb->query($wpdb->prepare(
-                        "DELETE FROM {$submissions_table} 
-                         WHERE form_id = %s 
-                         AND participant_id = %s",
-                        $form_id,
-                        $participant_id
-                    ));
-                    if ($deleted_count > 0) {
-                        $forms_with_deleted_data[] = $form_id;
-                        error_log("[EIPSI-ABANDON] Deleted {$deleted_count} submission(s) for form {$form_id}");
-                    }
-                }
-                
-                // Delete partial responses if table exists
-                if (in_array('eipsi_partial_responses', $existing_tables)) {
-                    $wpdb->query($wpdb->prepare(
-                        "DELETE FROM {$partial_table} 
-                         WHERE form_id = %s 
-                         AND participant_id = %s",
-                        $form_id,
-                        $participant_id
-                    ));
-                }
-                
-                // Delete form events (interaction data) if table exists
-                if (in_array('eipsi_form_events', $existing_tables)) {
-                    $events_table = $wpdb->prefix . 'eipsi_form_events';
-                    $wpdb->query($wpdb->prepare(
-                        "DELETE FROM {$events_table} 
-                         WHERE form_id = %s 
-                         AND participant_id = %s",
-                        $form_id,
-                        $participant_id
-                    ));
-                }
-            }
-            
-            // Insert phantom rows to track B2 withdrawals in exports
-            if (!empty($forms_with_deleted_data) && in_array('vas_form_results', $existing_tables)) {
-                foreach ($forms_with_deleted_data as $form_id) {
-                    $wpdb->insert($submissions_table, array(
-                        'participant_id' => 'WITHDRAWN_B2',
-                        'status' => 'data_deleted',
-                        'form_id' => $form_id,
-                        'form_name' => 'B2_WITHDRAWAL',
-                        'form_responses' => null,
-                        'submitted_at' => $current_time,
-                        'created_at' => $current_time,
-                        'ip_address' => $ip_address,
-                        'metadata' => wp_json_encode(array(
-                            'withdrawal_type' => 'b2',
-                            'withdrawal_at' => $current_time,
-                            'original_participant_hash' => hash('sha256', $participant_id),
-                            'study_id' => $study_id
-                        ))
-                    ));
-                }
-                error_log("[EIPSI-ABANDON] Inserted phantom rows for B2 tracking: " . count($forms_with_deleted_data));
-            }
-            
-            // Delete device fingerprint data
-            if (in_array('eipsi_device_data', $existing_tables)) {
-                $device_table = $wpdb->prefix . 'eipsi_device_data';
-                $wpdb->delete($device_table, array('participant_id' => $participant_id), array('%s'));
-            }
-            
-            // Anonymize email logs
-            if (in_array('survey_email_log', $existing_tables)) {
-                $email_log_table = $wpdb->prefix . 'survey_email_log';
-                $wpdb->update(
-                    $email_log_table,
-                    array(
-                        'recipient_email' => 'purged@withdrawal.b2',
-                        'metadata' => wp_json_encode(array('purged_at' => $current_time, 'reason' => 'b2_withdrawal'))
-                    ),
-                    array('participant_id' => $participant_id),
-                    array('%s', '%s'),
-                    array('%s')
-                );
-            }
-            
-            // Delete magic links
-            if (in_array('survey_magic_links', $existing_tables)) {
-                $magic_links_table = $wpdb->prefix . 'survey_magic_links';
-                $wpdb->delete($magic_links_table, array('participant_id' => $participant_id), array('%s'));
-            }
-            
-            // Delete sessions
-            if (in_array('survey_sessions', $existing_tables)) {
-                $sessions_table = $wpdb->prefix . 'survey_sessions';
-                $wpdb->delete($sessions_table, array('participant_id' => $participant_id), array('%s'));
-            }
-            
-            // Delete pool email logs
-            if (in_array('eipsi_pool_email_log', $existing_tables)) {
-                $pool_email_log_table = $wpdb->prefix . 'eipsi_pool_email_log';
-                $wpdb->delete($pool_email_log_table, array('participant_id' => $participant_id), array('%s'));
-            }
-            
-            error_log("[EIPSI-ABANDON] B2 data deletion completed");
-        } catch (Exception $e) {
-            error_log("[EIPSI-ABANDON] ERROR in B2 deletion: " . $e->getMessage());
-            // Continue anyway - main withdrawal already succeeded
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-participant-data-cleanup.php';
+        $cleanup = EIPSI_Participant_Data_Cleanup::run($participant_id, 'b2');
+        if (!$cleanup['success']) {
+            EIPSI_Auth_Service::destroy_session();
+            wp_send_json_error(array('message'=>__('El retiro fue registrado; la eliminación de datos no se completó.', 'eipsi-forms'),
+                'errors'=>$cleanup['errors'], 'coverage'=>$cleanup['coverage']), 500);
+            return;
         }
+        $cleanup_coverage = $cleanup['coverage'];
+        $ip_address = null; // Do not reintroduce participant PII after B2 cleanup.
     }
-    
+
     // Destroy session and logout participant (B1 and B2)
     if (class_exists('EIPSI_Auth_Service')) {
         // Log logout before destroying session
@@ -3744,7 +2117,7 @@ function eipsi_abandon_study_handler() {
             ));
         }
         EIPSI_Auth_Service::destroy_session();
-        error_log("[EIPSI-ABANDON] Session destroyed for participant {$participant_id}");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2123'), 'debug');
     }
     
     // Log the abandonment
@@ -3754,6 +2127,7 @@ function eipsi_abandon_study_handler() {
             'study_id' => $study_id,
             'withdrawal_type' => $withdrawal_type,
             'data_deleted' => ($withdrawal_type === 'b2'),
+            'coverage' => $cleanup_coverage,
             'ip_address' => $ip_address,
         ));
     }
@@ -3779,16 +2153,17 @@ function eipsi_abandon_study_handler() {
     }
 
     $redirect_url = add_query_arg(array('withdrawal' => 'success', 'type' => $withdrawal_type), $study_url);
-    error_log("[EIPSI-ABANDON] Redirect URL: {$redirect_url}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2159'), 'debug');
     
-    error_log("[EIPSI-ABANDON] === SUCCESS === type={$withdrawal_type}, redirect={$redirect_url}");
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2161'), 'debug');
     
     wp_send_json_success(array(
         'message' => ($withdrawal_type === 'b2') 
-            ? __('Your data has been scheduled for deletion', 'eipsi-forms')
+            ? __('Your local data has been deleted. External data is not included.', 'eipsi-forms')
             : __('You have successfully withdrawn from the study', 'eipsi-forms'),
         'withdrawal_type' => $withdrawal_type,
         'redirect_url' => $redirect_url,
+        'coverage' => $cleanup_coverage,
     ));
 }
 
@@ -3806,6 +2181,7 @@ function eipsi_discard_partial_response_handler() {
         ));
     }
     
+    eipsi_authorize_partial_request($form_id, $participant_id);
     $success = EIPSI_Partial_Responses::discard($form_id, $participant_id, $session_id);
     
     if ($success) {
@@ -3845,7 +2221,7 @@ function eipsi_sync_submissions_handler() {
         
         // Log para debugging
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EIPSI Sync Submissions: Found ' . count($forms) . ' unique forms in local database');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2227'), 'debug');
         }
         
         wp_send_json_success(array(
@@ -3865,7 +2241,7 @@ function eipsi_sync_submissions_handler() {
         $forms = $wpdb->get_col("SELECT DISTINCT form_id FROM $table_name WHERE form_id IS NOT NULL AND form_id != '' ORDER BY form_id");
         
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EIPSI Sync Submissions: Could not connect to external database, using local fallback. Found ' . count($forms) . ' forms');
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2247'), 'debug');
         }
         
         wp_send_json_success(array(
@@ -3891,7 +2267,7 @@ function eipsi_sync_submissions_handler() {
     
     // Log para debugging
     if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log('EIPSI Sync Submissions: Found ' . count($forms) . ' unique forms in external database');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L2273'), 'debug');
     }
     
     // Retornar éxito - el frontend se encarga del refresh
@@ -3974,6 +2350,10 @@ function eipsi_get_randomization_config() {
         return;
     }
 
+    if (!EIPSI_Randomization_Resource_Policy::can_edit($_POST['form_id'] ?? 0, array('eipsi_form'))) {
+        wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción.'), 403);
+    }
+
     $form_id = isset($_POST['form_id']) ? intval($_POST['form_id']) : 0;
     if (!$form_id) {
         wp_send_json_error('Form ID requerido');
@@ -3999,6 +2379,9 @@ function eipsi_get_randomization_config() {
     $forms_list = array();
     if (!empty($random_config['forms'])) {
         foreach ($random_config['forms'] as $form_id) {
+            if (!EIPSI_Randomization_Resource_Policy::can_use($form_id, array('eipsi_form'))) {
+                wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción.'), 403);
+            }
             $form_post = get_post($form_id);
             if ($form_post && get_post_type($form_post) === 'eipsi_form') {
                 $forms_list[] = array(
@@ -4241,6 +2624,10 @@ function eipsi_get_randomization_pages_handler() {
         return;
     }
 
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción.'), 403);
+    }
+
     // Buscar páginas que contengan el shortcode [eipsi_randomized_form]
     $pages = get_posts(array(
         'post_type' => 'page',
@@ -4258,6 +2645,7 @@ function eipsi_get_randomization_pages_handler() {
     $matching_pages = array();
 
     foreach ($pages as $page) {
+        if (!EIPSI_Randomization_Resource_Policy::can_use($page->ID, array('page'))) { continue; }
         // Verificar si el contenido de la página contiene el shortcode
         if (has_shortcode($page->post_content, 'eipsi_randomized_form')) {
             $matching_pages[] = array(
@@ -4327,10 +2715,7 @@ function eipsi_get_error_message($error_code) {
  * @return bool
  */
 function eipsi_check_login_rate_limit($email, $survey_id) {
-    $key = 'eipsi_login_attempts_' . md5($email . $survey_id);
-    $attempts = get_transient($key);
-    
-    return !($attempts && $attempts >= 5);
+    return EIPSI_Authentication_Service::check_login_rate_limit($email, $survey_id);
 }
 
 /**
@@ -4340,9 +2725,7 @@ function eipsi_check_login_rate_limit($email, $survey_id) {
  * @param int $survey_id
  */
 function eipsi_record_failed_login($email, $survey_id) {
-    $key = 'eipsi_login_attempts_' . md5($email . $survey_id);
-    $attempts = (int) get_transient($key);
-    set_transient($key, $attempts + 1, 15 * MINUTE_IN_SECONDS);
+    return EIPSI_Authentication_Service::record_failed_login($email, $survey_id);
 }
 
 /**
@@ -4352,8 +2735,7 @@ function eipsi_record_failed_login($email, $survey_id) {
  * @param int $survey_id
  */
 function eipsi_clear_login_rate_limit($email, $survey_id) {
-    $key = 'eipsi_login_attempts_' . md5($email . $survey_id);
-    delete_transient($key);
+    return EIPSI_Authentication_Service::clear_login_rate_limit($email, $survey_id);
 }
 
 
@@ -4377,12 +2759,7 @@ function eipsi_clear_login_rate_limit($email, $survey_id) {
  * @since 1.3.20
  */
 function eipsi_close_randomization_session_handler() {
-    // Validar nonce (aceptar POST)
-    $nonce = '';
-    if ( isset( $_POST['nonce'] ) ) {
-        $nonce = sanitize_text_field( wp_unslash( $_POST['nonce'] ) );
-    }
-
+    // Public nonce is not ownership; the owner requires an assignment capability.
     // Validar parámetros requeridos
     $randomization_id = isset( $_POST['randomization_id'] ) ? sanitize_text_field( wp_unslash( $_POST['randomization_id'] ) ) : '';
     $user_fingerprint = isset( $_POST['user_fingerprint'] ) ? sanitize_text_field( wp_unslash( $_POST['user_fingerprint'] ) ) : '';
@@ -4410,8 +2787,8 @@ function eipsi_close_randomization_session_handler() {
         ) );
     } else {
         wp_send_json_error( array(
-            'message' => __( 'Error al cerrar sesión de aleatorización', 'eipsi-forms' )
-        ), 500 );
+            'message' => __( 'Reset no autorizado o no disponible', 'eipsi-forms' )
+        ), 403 );
     }
 }
 
@@ -4427,8 +2804,8 @@ add_action('wp_ajax_eipsi_save_form_auth_config', 'eipsi_ajax_save_form_auth_con
 function eipsi_ajax_save_form_auth_config() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
     
-    if (!current_user_can('edit_posts')) {
-        wp_send_json_error('Insufficient permissions');
+    if (!EIPSI_Randomization_Resource_Policy::can_edit($_POST['template_id'] ?? 0, array('eipsi_form_template'))) {
+        wp_send_json_error('Insufficient permissions', 403);
     }
     
     $template_id = absint($_POST['template_id'] ?? 0);
@@ -4647,42 +3024,11 @@ function eipsi_add_participants_bulk_handler() {
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-participant-service.php';
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-email-service.php';
     
-    $success_count = 0;
-    $failed_count = 0;
-    $errors = array();
-    
-    foreach ($emails_array as $email) {
-        $email = sanitize_email($email);
-        
-        if (!is_email($email)) {
-            $errors[] = "$email - Email inválido";
-            $failed_count++;
-            continue;
-        }
-        
-        // Generar password automático
-        $password = wp_generate_password(16, true, true);
-        
-        // Crear participante
-        $result = EIPSI_Participant_Service::create_participant($study_id, $email, $password, array(
-            'first_name' => '',
-            'last_name' => ''
-        ));
-        
-        if ($result['success']) {
-            // Enviar welcome email con Magic Link
-            EIPSI_Email_Service::send_welcome_email($study_id, $result['participant_id']);
-            $success_count++;
-        } else {
-            if ($result['error'] === 'email_exists') {
-                $errors[] = "$email - Ya registrado";
-            } else {
-                $errors[] = "$email - Error al crear";
-            }
-            $failed_count++;
-        }
-    }
-    
+    $import = EIPSI_Participant_Import_Service::add_emails($study_id, $emails_array);
+    $success_count = $import['success_count'];
+    $failed_count = $import['failed_count'];
+    $errors = $import['errors'];
+
     wp_send_json_success(array(
         'message' => "Proceso completado: $success_count agregados, $failed_count fallaron",
         'success_count' => $success_count,
@@ -4834,10 +3180,18 @@ function eipsi_repair_single_table_handler() {
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database-schema-manager.php';
     
     // Repair the table
-    $result = EIPSI_Database_Schema_Manager::repair_single_table($table_name);
+    $result = EIPSI_Database_Schema_Manager::sync_local_table($table_name);
+    global $wpdb;
+    $sync_error = $wpdb->last_error;
+    $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($wpdb->prefix . $table_name)));
+    if ($sync_error || !$table_exists) {
+        $result['success'] = false;
+        $result['error'] = $sync_error ?: 'No se pudo confirmar la existencia de la tabla.';
+    }
+    $result['message'] = $result['success'] ? 'Tabla sincronizada: ' . $table_name : ($result['error'] ?? 'Error al sincronizar la tabla');
     
     // Log the repair action
-    error_log("[EIPSI Schema Repair] User repair request for table {$table_name}: " . json_encode($result));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3197'), 'debug');
     
     if ($result['success']) {
         wp_send_json_success($result);
@@ -4872,31 +3226,8 @@ function eipsi_export_schema_report_handler() {
         wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción'), 403);
     }
     
-    // Load database schema manager if not already loaded
-    require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database-schema-manager.php';
-    
-    // Get all tables status
-    $tables = EIPSI_Database_Schema_Manager::get_all_tables_status();
-    
-    // Get health summary
-    $summary = EIPSI_Database_Schema_Manager::get_schema_health_summary();
-    
-    // Build report
-    $report = array(
-        'generated_at' => current_time('mysql'),
-        'plugin_version' => defined('EIPSI_FORMS_VERSION') ? EIPSI_FORMS_VERSION : 'Unknown',
-        'wordpress_version' => get_bloginfo('version'),
-        'php_version' => PHP_VERSION,
-        'summary' => $summary,
-        'tables' => $tables,
-        'database' => array(
-            'name' => DB_NAME,
-            'host' => DB_HOST,
-            'prefix' => $wpdb->prefix ?? 'wp_'
-        )
-    );
-    
-    wp_send_json_success($report);
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/schema/class-schema-diagnostic.php';
+    wp_send_json_success(EIPSI_Schema_Diagnostic::report());
 }
 
 /**
@@ -4908,7 +3239,9 @@ function eipsi_export_schema_report_handler() {
  * @return void
  */
 function eipsi_save_wave_nudge_config_handler() {
-    check_ajax_referer('eipsi_admin_nonce', 'nonce');
+    if (!wp_verify_nonce($_POST['nonce'] ?? '', 'eipsi_study_dashboard_nonce')) {
+        check_ajax_referer('eipsi_admin_nonce', 'nonce');
+    }
     
     if (!current_user_can('manage_options')) {
         wp_send_json_error(array('message' => __('Permisos insuficientes', 'eipsi-forms')));
@@ -4921,57 +3254,11 @@ function eipsi_save_wave_nudge_config_handler() {
         wp_send_json_error(array('message' => __('ID de wave inválido', 'eipsi-forms')));
     }
     
-    // Get wave to check if due_date exists
-    global $wpdb;
-    $wave = $wpdb->get_row($wpdb->prepare(
-        "SELECT due_date FROM {$wpdb->prefix}survey_waves WHERE id = %d",
-        $wave_id
-    ));
-    
-    // Validate and sanitize nudge config
-    // v2.4.0 - Simplified: always use wave_availability, removed reference_point
-    $valid_units = array('minutes', 'hours', 'days');
-    $sanitized_config = array();
-    
-    foreach (array('nudge_1', 'nudge_2', 'nudge_3', 'nudge_4') as $nudge_key) {
-        if (isset($nudge_config[$nudge_key])) {
-            $nudge = $nudge_config[$nudge_key];
-            
-            $sanitized_config[$nudge_key] = array(
-                'enabled' => !empty($nudge['enabled']),
-                'value' => intval($nudge['value']),
-                'unit' => in_array($nudge['unit'], $valid_units) ? $nudge['unit'] : 'hours'
-                // reference_point removed in v2.4.0 - always wave_availability
-            );
-        } else {
-            // Default OFF if not provided
-            $sanitized_config[$nudge_key] = array(
-                'enabled' => false,
-                'value' => 24,
-                'unit' => 'hours'
-                // reference_point removed in v2.4.0
-            );
-        }
-    }
-    
-    // Save as JSON in nudge_config column
-    $updated = $wpdb->update(
-        $wpdb->prefix . 'survey_waves',
-        array('nudge_config' => wp_json_encode($sanitized_config)),
-        array('id' => $wave_id),
-        array('%s'),
-        array('%d')
-    );
-    
-    if ($updated === false) {
-        wp_send_json_error(array('message' => __('Error al guardar configuración', 'eipsi-forms')));
-    }
-    
-    wp_send_json_success(array(
-        'message' => __('Configuración de recordatorios guardada', 'eipsi-forms'),
-        'nudge_config' => $sanitized_config,
-        'auto_activated' => $has_due_date // Tell frontend if we auto-switched to due_date mode
-    ));
+    // Accept the actual dashboard nonce as well as the existing admin consumer.
+    require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/services/class-nudge-service.php';
+    $result = EIPSI_Nudge_Service::save_wave_configuration($wave_id, $nudge_config);
+    if (is_wp_error($result)) { wp_send_json_error(array('message' => $result->get_error_message())); }
+    wp_send_json_success(array_merge(array('message' => __('Configuración de recordatorios guardada', 'eipsi-forms'), 'auto_activated' => false), $result));
 }
 add_action('wp_ajax_eipsi_save_wave_nudge_config', 'eipsi_save_wave_nudge_config_handler');
 
@@ -5038,8 +3325,7 @@ function eipsi_execute_maintenance_sql_handler() {
     // Load database schema manager if not already loaded
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database-schema-manager.php';
     
-    $result = EIPSI_Database_Schema_Manager::execute_maintenance_sql($sanitized_statements);
-    wp_send_json_success($result);
+    wp_send_json_error(array('message'=>'Generic SQL maintenance is unsupported. Use explicit schema inspection/repair.'), 501);
 }
 
 /**
@@ -5139,7 +3425,7 @@ function eipsi_auto_fix_schema_issues_handler() {
             'description' => 'Waves corregidas con time_unit = days (valores NULL/vacíos)',
             'affected_rows' => $wpdb->rows_affected
         );
-        error_log("[EIPSI Auto-Fix] Set time_unit='days' for {$wpdb->rows_affected} waves (NULL/empty)");
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3454'), 'debug');
     }
     
     // Fix 1b: Convert numeric time_unit to string values
@@ -5161,7 +3447,7 @@ function eipsi_auto_fix_schema_issues_handler() {
         ));
         if ($result !== false && $wpdb->rows_affected > 0) {
             $converted_total += $wpdb->rows_affected;
-            error_log("[EIPSI Auto-Fix] Converted time_unit '{$numeric}' to '{$string_value}' for {$wpdb->rows_affected} waves");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3476'), 'debug');
         }
     }
     
@@ -5204,7 +3490,7 @@ function eipsi_auto_fix_schema_issues_handler() {
                 'description' => 'Assignments creados para participantes',
                 'affected_rows' => $created_count
             );
-            error_log("[EIPSI Auto-Fix] Created {$created_count} missing assignments");
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3519'), 'debug');
         }
     }
     
@@ -5232,8 +3518,7 @@ function eipsi_auto_fix_schema_issues_handler() {
 function eipsi_check_and_mark_pool_completion($participant_id, $study_id, $form_id) {
     global $wpdb;
 
-    error_log(sprintf('[EIPSI-POOL-COMPLETION] Checking completion: participant_id=%d, study_id=%d, form_id=%s',
-        $participant_id, $study_id, $form_id));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3547'), 'debug');
 
     // Get the participant's email to identify them in pool assignments
     $participants_table = $wpdb->prefix . 'survey_participants';
@@ -5246,25 +3531,25 @@ function eipsi_check_and_mark_pool_completion($participant_id, $study_id, $form_
     );
 
     if (!$participant) {
-        error_log('[EIPSI-POOL-COMPLETION] Participant not found');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3561'), 'debug');
         return false;
     }
 
-    // Find all pool assignments for this participant (matching by email pattern)
+    // Match the canonical participant ID; pool assignments use BIGINT identity.
     $pool_assignments_table = $wpdb->prefix . 'eipsi_pool_assignments';
     $pool_assignment = $wpdb->get_row(
         $wpdb->prepare(
             "SELECT id, pool_id, completed FROM {$pool_assignments_table} 
-             WHERE study_id = %d AND participant_id LIKE %s AND completed = 0
+             WHERE study_id = %d AND participant_id = %d AND completed = 0
              ORDER BY assigned_at DESC LIMIT 1",
             $study_id,
-            '%' . $wpdb->esc_like($participant['email']) . '%'
+            $participant_id
         ),
         ARRAY_A
     );
 
     if (!$pool_assignment) {
-        error_log('[EIPSI-POOL-COMPLETION] No active pool assignment found for this study');
+        EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3579'), 'debug');
         return false;
     }
 
@@ -5290,31 +3575,14 @@ function eipsi_check_and_mark_pool_completion($participant_id, $study_id, $form_
         )
     );
 
-    error_log(sprintf('[EIPSI-POOL-COMPLETION] Waves: total=%d, completed=%d', $total_waves, $completed_waves));
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3605'), 'debug');
 
     // If all waves are completed, mark the pool assignment as completed
     if ($completed_waves >= $total_waves) {
-        $result = $wpdb->update(
-            $pool_assignments_table,
-            array(
-                'completed' => 1,
-                'completed_at' => current_time('mysql'),
-                'completion_form_id' => $form_id,
-            ),
-            array('id' => $pool_assignment['id']),
-            array('%d', '%s', '%s'),
-            array('%d')
-        );
-
-        if ($result !== false) {
-            error_log(sprintf('[EIPSI-POOL-COMPLETION] Pool assignment %d marked as completed', $pool_assignment['id']));
-            return true;
-        } else {
-            error_log('[EIPSI-POOL-COMPLETION] Error updating pool assignment: ' . $wpdb->last_error);
-            return false;
-        }
+        require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/pools/bootstrap.php';
+        return (new EIPSI_Pool_Completion_Service())->mark_completed($pool_assignment['pool_id'], $participant_id, $form_id);
     }
 
-    error_log('[EIPSI-POOL-COMPLETION] Study not yet fully completed');
+    EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'ajax_handlers_L3613'), 'debug');
     return false;
 }

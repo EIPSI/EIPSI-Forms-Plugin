@@ -319,7 +319,7 @@ $available_forms = get_posts(array(
                         🚀 <?php esc_html_e('Fecha de Inicio:', 'eipsi-forms'); ?>
                     </label>
                     <input type="datetime-local" id="start_date" name="start_date" class="eipsi-form-input">
-                    <small class="form-help"><?php esc_html_e('Fecha en que los participantes podrán acceder a esta onda. Si está vacía, estará disponible inmediatamente.', 'eipsi-forms'); ?></small>
+                    <small class="form-help"><?php esc_html_e('Fecha de configuración. La disponibilidad longitudinal se calcula desde T1 y los offsets. Con participantes asignados, las fechas se gestionan en el dashboard.', 'eipsi-forms'); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -335,8 +335,9 @@ $available_forms = get_posts(array(
                         📊 <?php esc_html_e('Estado:', 'eipsi-forms'); ?>
                     </label>
                     <select id="wave_status" name="status" class="eipsi-form-select">
-                        <option value="pending"><?php esc_html_e('Pendiente', 'eipsi-forms'); ?></option>
+                        <option value="draft"><?php esc_html_e('Pendiente', 'eipsi-forms'); ?></option>
                         <option value="active"><?php esc_html_e('Activa', 'eipsi-forms'); ?></option>
+                        <option value="paused"><?php esc_html_e('Pausada', 'eipsi-forms'); ?></option>
                         <option value="completed"><?php esc_html_e('Completada', 'eipsi-forms'); ?></option>
                     </select>
                 </div>
@@ -346,7 +347,7 @@ $available_forms = get_posts(array(
                 <label for="wave_description" class="eipsi-form-label">
                     📄 <?php esc_html_e('Descripción:', 'eipsi-forms'); ?>
                 </label>
-                <textarea id="wave_description" name="description" class="eipsi-form-textarea" rows="3" placeholder="Describe el propósito de esta onda..."></textarea>
+                <textarea id="wave_description" class="eipsi-form-textarea" disabled rows="3" placeholder="Descripción no editable en el modelo actual"></textarea>
             </div>
 
             <!-- Time Limit Configuration -->

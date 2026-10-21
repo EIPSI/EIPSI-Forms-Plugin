@@ -1,0 +1,159 @@
+{
+  "contract_version": "TRACE_V1",
+  "fixture_id": "08-wait-resume-micro",
+  "scenarios": [
+    {
+      "id": "S_WAIT",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_FOLLOWUP_1",
+              "at": "2026-10-12T11:10:00Z",
+              "responses": {
+                "Q_RISK": 9
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "WAITING"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOWUP_2",
+              "slot": "single",
+              "state": "SKIPPED_BY_RULE"
+            },
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOWUP_3",
+              "slot": "single",
+              "state": "SKIPPED_BY_RULE"
+            },
+            {
+              "kind": "WAIT_BARRIER",
+              "rule_id": "R_WAIT_FOUR",
+              "target": {
+                "kind": "ASSESSMENT_ENTRY",
+                "node_id": "E_FOLLOWUP_4",
+                "occurrence_selector": {
+                  "kind": "SINGLE"
+                }
+              },
+              "resume_target": {
+                "kind": "MICRO_ENTRY",
+                "node_id": "m_X",
+                "occurrence_selector": {
+                  "kind": "SINGLE"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CLOCK_ADVANCED",
+            "data": {
+              "at": "2026-10-15T11:00:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOWUP_4",
+              "slot": "single",
+              "state": "AVAILABLE"
+            },
+            {
+              "kind": "RESPONSE_COVERAGE",
+              "question_ids": [
+                "Q_INTRO"
+              ],
+              "state": "SKIPPED_BY_RULE"
+            },
+            {
+              "kind": "CURSOR",
+              "node_id": "m_X"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_FOLLOWUP_4",
+              "responses": {
+                "Q_X": 1
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOWUP_4",
+              "slot": "single",
+              "state": "COMPLETED"
+            },
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "COMPLETED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S_WAIT_EXPIRED",
+      "inputs": {
+        "timezone": "America/Argentina/Buenos_Aires",
+        "created_at": "2026-10-12T11:00:00Z"
+      },
+      "steps": [
+        {
+          "event": {
+            "kind": "ASSESSMENT_COMPLETED",
+            "data": {
+              "node_id": "E_FOLLOWUP_1",
+              "responses": {
+                "Q_RISK": 9
+              }
+            }
+          },
+          "expected": [
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "WAITING"
+            }
+          ]
+        },
+        {
+          "event": {
+            "kind": "CLOCK_ADVANCED",
+            "data": {
+              "at": "2026-10-15T13:00:00Z"
+            }
+          },
+          "expected": [
+            {
+              "kind": "BLOCK_STATE",
+              "node_id": "E_FOLLOWUP_4",
+              "slot": "single",
+              "state": "EXPIRED"
+            },
+            {
+              "kind": "EXECUTION_STATE",
+              "state": "COMPLETED"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

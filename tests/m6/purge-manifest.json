@@ -1,0 +1,179 @@
+{
+  "head": "832ee29",
+  "pre_purge": "507 historical tests green; 80 M6 cases and 8 live/concurrency cases green in separate passes",
+  "removed": [
+    {
+      "file": "admin/services/class-participant-data-cleanup.php",
+      "method": "check_read",
+      "classification": "A",
+      "sha256": "51a92798a234ae65445ab8aef9fc4a40c95b6e00c7e58223f3751f563744bac7",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-participant-data-request-service.php",
+      "method": "process_export_request",
+      "classification": "A",
+      "sha256": "83073d2a6c2aa6899a62dc9b5bfe7ac783bb7aed4fd271900499964511147646",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-participant-data-request-service.php",
+      "method": "checked_rows",
+      "classification": "A",
+      "sha256": "4f935a8b4c9d2cef710a76be7539dd8292f346b693eb5fcfdcd80364eac28fdb",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-participant-data-request-service.php",
+      "method": "process_delete_request",
+      "classification": "A",
+      "sha256": "33fee97c4f09563af00a3c4eb956711ab97eb9a1938037f3ca078f48e7b828bc",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-participant-data-request-service.php",
+      "method": "process_anonymize_request",
+      "classification": "A",
+      "sha256": "0dfe26aa2ba61be44f74d841ab2b12b2b5829be479237f274711337abfc105b0",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-participant-data-request-service.php",
+      "method": "notify_admin_new_request",
+      "classification": "A",
+      "sha256": "8d6b5da2bb280a346843fda1ebacd5834a88faec2105f66fdf505f6e94ff7e8b",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-participant-data-request-service.php",
+      "method": "notify_participant_rejected",
+      "classification": "A",
+      "sha256": "33b57ad106ecebc81d7ae4c7ef7f910df8994aeccaac9c5cd2b6adc6b1525e3e",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-participant-data-request-service.php",
+      "method": "notify_participant_completed",
+      "classification": "A",
+      "sha256": "95b29c61ddd2d65d6fbb2e0cfa6ed274dfcc6cfa6760096cd11d91a969770446",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "method": "get_fields_by_form_id",
+      "classification": "A",
+      "sha256": "eedc0602d02e4ca63baea7e9da85db1695d4fd15546373aa13592e3eb9c7aa92",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "method": "extract_fields_from_blocks",
+      "classification": "A",
+      "sha256": "fc93f1e4df25ee996154984857735653e3badefd5101b326aab3dc8ab46e242e",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "method": "fetch_longitudinal_data",
+      "classification": "A",
+      "sha256": "048697620420c8ccea7ef1ee62a36470ad97cc37eede533e3c8ce6501a6270af",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "method": "build_participants_wide_headers",
+      "classification": "A",
+      "sha256": "d62bdf5803565a23a7f68f6c13eb596d2dc5e5ed18e9395f8836413e54ef35bb",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "method": "build_participants_wide_row",
+      "classification": "A",
+      "sha256": "18722cf3fc7a048a8afcd2407dd0d6b25c2ce3d17370e1bb47f58f8b4f272b4d",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "method": "build_participants_wide_preview_headers",
+      "classification": "A",
+      "sha256": "8f4d04116cbdc7ca324a2afe582ed7cb1aa382049bbda753b6342da5df506094",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "method": "extract_preview_columns",
+      "classification": "A",
+      "sha256": "bb85617f30ba2c4faccbc279d7c68866949b382807ae302ae952356619fdee56",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-access-log-export-service.php",
+      "method": "export_to_excel",
+      "classification": "A",
+      "sha256": "6373c1b428818bf79d7843de79a8f180a498653d141f47210622a458a063902b",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-access-log-export-service.php",
+      "method": "export_to_csv",
+      "classification": "A",
+      "sha256": "5b88137bae6408faf709471964e4adecfec26020b6f8a3336cb49a5f957037cc",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-access-log-export-service.php",
+      "method": "translate_action",
+      "classification": "A",
+      "sha256": "eb15c6058b9550463847ea6abe3b3361d044ac669b3f1c6f9436ce17db92e9d3",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "admin/services/class-access-log-export-service.php",
+      "method": "simplify_user_agent",
+      "classification": "A",
+      "sha256": "0a704ed77a4a5ea20a204148d55af8e7683d0ff9645e0e4881124e31fc2e5f17",
+      "reason": "Private implementation duplicated in domain owner; all public methods delegate. No public consumer can invoke it."
+    },
+    {
+      "file": "includes/export/class-personal-export-service.php",
+      "method": "checked_rows",
+      "classification": "A",
+      "sha256": "4f935a8b4c9d2cef710a76be7539dd8292f346b693eb5fcfdcd80364eac28fdb",
+      "reason": "Private query duplicate unused after PersonalExportQueryService owns all reads."
+    },
+    {
+      "file": "admin/lib/SimpleXLSXGen.php",
+      "classification": "A",
+      "sha256": "49ef6a7ef7292a9c5a8a70bcb564a0536ceb34a339da043d2886831a008f663c",
+      "reason": "Byte-identical canonical lib/SimpleXLSXGen.php; all known loaders use canonical path after green pre-purge tests."
+    },
+    {
+      "file": "admin/services/class-export-service.php",
+      "property": "form_fields_cache",
+      "classification": "A",
+      "reason": "Unused facade cache; all field extraction and its cache now belong to ExportFileService."
+    }
+  ],
+  "retained": {
+    "C": [
+      "all public Safety/Privacy/Export facades",
+      "inherited ExternalDatabase and Device APIs",
+      "Forms partial interaction facade",
+      "personal/access download handlers",
+      "CapturePolicy config helpers",
+      "canonical participant auto-sync helpers",
+      "Pool export entry points and dispatcher"
+    ],
+    "B": [
+      "legacy external table creator missing browser/os/screen_width",
+      "legacy raw storage truncation API",
+      "non-A exports legacy routines"
+    ],
+    "E": [
+      "LONG actions dataset contract; buttons still have no handler",
+      "coverage of external deployed servers and historical export copies",
+      "GET legacy participant XLSX calls missing export_participants_to_excel; dataset equivalence undefined"
+    ]
+  }
+}

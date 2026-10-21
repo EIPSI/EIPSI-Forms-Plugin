@@ -1,0 +1,9 @@
+<?php
+/** Start a download while the real withdrawal owner holds the participation lock. */
+function mg_wait_file($path): void {$end=microtime(true)+15;while(!file_exists($path)){if(microtime(true)>$end)throw new RuntimeException('Management race timeout');usleep(10000);}}
+function mg_download_observer($study,$job,&$worker){return new class($study,$job,$worker) extends EIPSI\StudyEngine\Persistence\TransitionObserver {
+    private $study;private $job;private $worker;
+    public function __construct($study,$job,&$worker){$this->study=$study;$this->job=$job;$this->worker=&$worker;}
+    public function reached(string $point): void {if($point!=='before_withdrawal_commit')return;$dir='/tmp/eipsi-management-race-'.bin2hex(random_bytes(6));mkdir($dir,0700);file_put_contents($dir.'/input.json',json_encode(array('study'=>$this->study,'job'=>$this->job)));$pipes=array();$process=proc_open(array(PHP_BINARY,__DIR__.'/download-worker.php',$dir),array(0=>array('pipe','r'),1=>array('file',$dir.'/stdout','w'),2=>array('file',$dir.'/stderr','w')),$pipes);pe_assert(is_resource($process),'Download worker');fclose($pipes[0]);$this->worker=array('dir'=>$dir,'process'=>$process);mg_wait_file($dir.'/attempt');usleep(150000);pe_assert(!file_exists($dir.'/result.json'),'Download escaped withdrawal lock');}
+};}
+function mg_download_result(&$worker): void {if(!$worker)return;try{mg_wait_file($worker['dir'].'/result.json');$result=json_decode(file_get_contents($worker['dir'].'/result.json'),true);pe_assert(proc_close($worker['process'])===0,'Download worker failed');$worker['process']=null;pe_assert(($result['error']??null)==='EXPORT_UNAVAILABLE_OR_CHANGED','Concurrent download result: '.json_encode($result));}finally{if(is_resource($worker['process'])){proc_terminate($worker['process']);proc_close($worker['process']);}foreach(glob($worker['dir'].'/*') as $file)unlink($file);rmdir($worker['dir']);$worker=null;}}

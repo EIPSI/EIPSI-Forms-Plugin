@@ -1,0 +1,12 @@
+{
+  "phase": "M3",
+  "deleted": [
+    {
+      "path": "src/frontend/eipsi-save-continue.js",
+      "classification": "A",
+      "sha256": "4051ea190732e820686a00fd26a7292a261a16b46af417a778a9ad826bd836c2",
+      "lines": 1665,
+      "evidence": "No imports/requires or webpack entry; PHP enqueues assets/js/eipsi-save-continue.js, whose frozen hash is unchanged."
+    }
+  ]
+}

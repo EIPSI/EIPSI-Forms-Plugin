@@ -1,0 +1,88 @@
+{
+  "baseline_head": "7eabedf",
+  "deleted": [
+    {
+      "classification": "A",
+      "file": "admin/services/class-t1-anchor-service.php",
+      "class": "EIPSI_T1_Anchor_Service",
+      "method": "is_study_completed",
+      "owner": "EIPSI_Longitudinal_T1_Anchor_Service",
+      "original_sha256": "ec00daccc70f63a356c90bfe0b7d79e139b16d00364360f4bf07eae52b6c2f98",
+      "proof": "private; all public callers delegate to new owner; no self:: calls remain in old facade; new owner preserves implementation"
+    },
+    {
+      "classification": "A",
+      "file": "admin/services/class-t1-anchor-service.php",
+      "class": "EIPSI_T1_Anchor_Service",
+      "method": "resolve_participant_id",
+      "owner": "EIPSI_Longitudinal_T1_Anchor_Service",
+      "original_sha256": "eb1702682aa6ba5e5efcba3e605a449269252c04a9717c7fc01f53fd77af1806",
+      "proof": "private; all public callers delegate to new owner; no self:: calls remain in old facade; new owner preserves implementation"
+    },
+    {
+      "classification": "A",
+      "file": "includes/services/class-wave-recalculator.php",
+      "class": "EIPSI_Wave_Recalculator",
+      "method": "generate_batch_id",
+      "owner": "EIPSI_Longitudinal_T1_Recalculation_Service",
+      "original_sha256": "67e1f937e1044bfacdcf9918fb1095cceadefc457a997b73f38b9405939b62d4",
+      "proof": "private; all public callers delegate to new owner; no self:: calls remain in old facade; new owner preserves implementation"
+    },
+    {
+      "classification": "A",
+      "file": "includes/services/class-wave-recalculator.php",
+      "class": "EIPSI_Wave_Recalculator",
+      "method": "log_audit",
+      "owner": "EIPSI_Longitudinal_T1_Recalculation_Service",
+      "original_sha256": "bd3cd6357c5728554962c3251888e442ae7f369c81554fdda3c78279401ece85",
+      "proof": "private; all public callers delegate to new owner; no self:: calls remain in old facade; new owner preserves implementation"
+    },
+    {
+      "classification": "A",
+      "file": "admin/services/class-wave-expiration-service.php",
+      "class": "EIPSI_Wave_Expiration_Service",
+      "method": "cancel_pending_nudges",
+      "owner": "EIPSI_Longitudinal_Assignment_Expiration_Service",
+      "original_sha256": "b3331dcc0fa2404c77d1a9cd6a559fb93761845a9304d85aed07db34ceccbb14",
+      "proof": "private; all public callers delegate to new owner; no self:: calls remain in old facade; new owner preserves implementation"
+    },
+    {
+      "classification": "A",
+      "file": "admin/services/class-wave-expiration-service.php",
+      "class": "EIPSI_Wave_Expiration_Service",
+      "method": "log_expiration",
+      "owner": "EIPSI_Longitudinal_Assignment_Expiration_Service",
+      "original_sha256": "956c68bc20a9e098fdbf19815d566bd8e089b6864b49346fec075238ae2e2519",
+      "proof": "private; all public callers delegate to new owner; no self:: calls remain in old facade; new owner preserves implementation"
+    },
+    {
+      "classification": "A",
+      "file": "admin/services/class-wave-expiration-service.php",
+      "class": "EIPSI_Wave_Expiration_Service",
+      "method": "log_cron_execution",
+      "owner": "EIPSI_Longitudinal_Assignment_Expiration_Service",
+      "original_sha256": "ad80a35ed801e8c67bc0dc16f6d1480d232ec165272c49bd484b509fe144e2e1",
+      "proof": "private; all public callers delegate to new owner; no self:: calls remain in old facade; new owner preserves implementation"
+    }
+  ],
+  "kept": {
+    "C": [
+      "Wave_Service",
+      "EIPSI_Wave_Service",
+      "EIPSI_Assignment_Service",
+      "EIPSI_T1_Anchor_Service",
+      "EIPSI_Wave_Recalculator",
+      "EIPSI_Wave_Expiration_Service",
+      "EIPSI_Form_Longitudinal_Submit_Adapter",
+      "AJAX/global cron adapters"
+    ],
+    "B": [
+      "Wave_Service::maybe_send_immediate_wave_reminder",
+      "Notifications scheduler/queue/templates/weekly delivery",
+      "Pools ownership"
+    ],
+    "E": [
+      "unproven progression/old backend helpers outside relocated methods"
+    ]
+  }
+}

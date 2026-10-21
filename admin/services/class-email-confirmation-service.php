@@ -78,7 +78,7 @@ class EIPSI_Email_Confirmation_Service {
             );
 
             if ( $result === false ) {
-                error_log( 'EIPSI Email Confirmation: Failed to insert token: ' . $wpdb->last_error );
+                EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_confirmation_service_L81'), 'debug');
                 return array( 'success' => false, 'token' => null, 'error' => 'db_error' );
             }
 
@@ -90,7 +90,7 @@ class EIPSI_Email_Confirmation_Service {
             );
 
         } catch ( Exception $e ) {
-            error_log( 'EIPSI Email Confirmation exception: ' . $e->getMessage() );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_confirmation_service_L93'), 'debug');
             return array( 'success' => false, 'token' => null, 'error' => 'exception' );
         }
     }
@@ -185,7 +185,7 @@ class EIPSI_Email_Confirmation_Service {
         );
 
         if ( $result === false ) {
-            error_log( 'EIPSI Email Confirmation: Failed to mark confirmed: ' . $wpdb->last_error );
+            EIPSI_Security_Log::event('LEGACY_DIAGNOSTIC', array('code'=>'class_email_confirmation_service_L188'), 'debug');
             return array( 'success' => false, 'error' => 'db_error' );
         }
 

@@ -1,0 +1,10 @@
+{
+  "admin/data-safety-system.php": {
+    "before_m6_sha256": "5894c323440c820bb45fa109d17dcf7bf6dc28dd16f191bb79a78a09857f25e6",
+    "m6_sha256": "63158ca344ba94a574810376af78422c3f15d986f4abe6b31bfc0ca60b5eec78"
+  },
+  "admin/privacy-config.php": {
+    "before_m6_sha256": "60e06e88b6e5bda1178d79bb62a39c5f1ec4ec284ca0b7938be6af612b10c630",
+    "m6_sha256": "e0493899e522446206e9a44be1789f589cc0cc537c77b5ebefd89d8357f6f4a1"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "includes/services/Wave_Service.php": {
+    "m3_sha256": "42fbabeaf605b88bfb4e36e5971973d5f6775b69fb150d396116e47377940f1a",
+    "m4_sha256": "1857596ded85294bff2c7c6c9a3f3be37fd61cbc486c23890b826f504dd8d0dc",
+    "reason": "M4 longitudinal facade relocation; public signatures retained"
+  },
+  "includes/services/class-wave-recalculator.php": {
+    "m3_sha256": "2537e61666676bda806378da365c4870b85a790ba44d520822cb7461593d52e8",
+    "m4_sha256": "bc157f8965447f5a9b75f85b9259c908f116be12e0b63e87f009f851d9921518",
+    "reason": "M4 longitudinal facade relocation; public signatures retained"
+  },
+  "admin/pool-completion-hooks.php": {
+    "m3_sha256": "e28d6bb81696eac1d23b3c1a39269578175ad45fe7b77339cd611a7211491c0c",
+    "m4_sha256": "91f93e91d9fd60095b81e3bc6f403353416648049661ca6881032e466e8f8d9d",
+    "reason": "M4 longitudinal facade relocation; Pools callback schema fix only"
+  },
+  "admin/services/class-assignment-service.php": {
+    "m3_sha256": "40ba31ffd3d9d1f77a67d201c43b4bcf1f0fb8db8180ce1bb6bcb5c1e3fa9168",
+    "m4_sha256": "d19baa206147001ec1c4203cdc6453fde81697f535969214cca4fbdf6cb5a1fc",
+    "reason": "M4 longitudinal facade relocation; public signatures retained"
+  }
+}

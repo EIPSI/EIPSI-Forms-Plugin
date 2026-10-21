@@ -1,0 +1,23 @@
+{
+  "contract": "P1H_ADMIN_MENU_V1",
+  "added_hooks": [
+    {
+      "hook": "eipsi-forms_page_eipsi-study-builder",
+      "callback": "{closure}",
+      "file": "admin/menu.php",
+      "priority": 10,
+      "order_at_priority": 1,
+      "accepted_args": 1,
+      "callable": true
+    },
+    {
+      "hook": "eipsi-forms_page_eipsi-email-templates",
+      "callback": "{closure}",
+      "file": "admin/menu.php",
+      "priority": 10,
+      "order_at_priority": 1,
+      "accepted_args": 1,
+      "callable": true
+    }
+  ]
+}

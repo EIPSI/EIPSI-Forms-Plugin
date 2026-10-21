@@ -1,0 +1,12 @@
+{
+  "includes/services/Wave_Service.php": {
+    "before_m5_sha256": "1857596ded85294bff2c7c6c9a3f3be37fd61cbc486c23890b826f504dd8d0dc",
+    "m5_sha256": "f6064d3e915a26a646fec976c89c234c6c3b1854c414fae5d3e467ab97ae923f",
+    "reason": "M5 longitudinal notification boundary split; frozen M4 rule verified by composition"
+  },
+  "admin/services/class-email-service.php": {
+    "before_m5_sha256": "2f11f30121357f9fe006bac2583252ea7a981b26174b4574a9bf3d95d61f8cd5",
+    "m5_sha256": "995cc37b9abca1d45247b12a536df52c61f22a04f37fbf53396e8223ff25ec40",
+    "reason": "M5 Email owner extraction"
+  }
+}
