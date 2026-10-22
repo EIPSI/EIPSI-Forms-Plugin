@@ -33,6 +33,7 @@ services:
     volumes:
       - wordpress:/var/www/html
       - ${EIPSI_CI_PLUGIN_ROOT:?Set by gate.py}:/var/www/html/wp-content/plugins/EIPSI-Forms-Plugin:ro
+      - ${EIPSI_CI_TEST_ROOT:-${EIPSI_CI_PLUGIN_ROOT}}:/opt/eipsi-ci:ro
       - exports:/var/www/html/wp-content/plugins/EIPSI-Forms-Plugin/exports
 volumes:
   db:

@@ -126,6 +126,7 @@
     "tests/i18n1b/save-preference.php": 10,
     "tests/i18n1b/assets.php": 8,
     "tests/i18n1c/parity.php": 26,
-    "tests/i18n1d/validation.php": 2
+    "tests/i18n1d/validation.php": 2,
+    "tests/production-activation/cron-unit.php": 3
   }
 }

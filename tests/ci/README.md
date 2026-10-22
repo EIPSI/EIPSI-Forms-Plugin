@@ -1,6 +1,6 @@
 # T0 — Gate técnico mínimo
 
-Conteo vigente verificado en el cierre I18N-1D: **3831 funcionales** = 2479 PHP WordPress + 525 PHP puros + 827 JS, según `gate.json`. Los conteos inferiores describen baselines históricos. RCT strict, smoke, activación y harness se reportan aparte; los casos repetidos no se suman dos veces.
+Conteo registrado tras Production Clean Activation Fix: **3834 funcionales** = 2479 PHP WordPress + 528 PHP puros + 827 JS, según `gate.json`. El fixture de activación también comprueba cero output/errores, metadata de tabla ausente, convergencia completa y cron mensual idempotente; ver [regresión de activación](../production-activation/README.md). Los conteos inferiores describen baselines históricos. RCT strict, smoke, activación y harness se reportan aparte; los casos repetidos no se suman dos veces.
 
 Un único entorno Linux con Docker Engine, Docker Compose v2.20+ (soporte `up --wait`), Bash y Python 3.9+. El wrapper usa solo la biblioteca estándar Python. Referencia local: Python 3.12.3 / Compose 5.3.1. No exige PHP, Node ni WordPress instalados en el host.
 
@@ -35,7 +35,7 @@ Los modos `php`, `js`, `build` y `smoke` son entradas de los cuatro jobs CI, dis
 | Node | 22.23.3, npm 10.9.9 |
 | Plugin/schema | EIPSI_FORMS_VERSION vigente; migration12,37 dominios |
 
-Los tres digests Docker y los conteos están en [gate.json](gate.json). El wrapper comprueba las versiones reales y evita tags `latest` mutables. No es una matriz de compatibilidad con los mínimos históricos PHP 7.4 / WordPress 5.8 del header.
+Los tres digests Docker y los conteos están en [gate.json](gate.json). El wrapper comprueba las versiones reales y evita tags `latest` mutables. El gate completo es la referencia WordPress 7.1.2 / PHP 8.3.35; la [matriz de compatibilidad](../compatibility/README.md) valida por separado WordPress 7.1/7.1.3 y el paquete. PHP declarado sigue en 7.4, con sintaxis medida y sin atribuirle un FULL que no se ejecutó.
 
 Cada etapa WordPress crea un project Compose aleatorio con volúmenes nuevos, sin puertos publicados, y destruye exclusivamente ese project al finalizar, incluso tras fallo. El código host se monta RO; las suites que escriben fixtures trabajan en una copia temporal. Exports se guarda en su propio volumen. La red es interna: HTTP del fixture y DB están disponibles, sin salida a servicios institucionales. Se reutilizan instalador/guarda M0, auxiliares M6/M8, probe de export M6 y lifecycle M7.
 

@@ -4,9 +4,13 @@
 
 Instalar Docker/Compose con acceso al daemon, Bash y Python 3.9+. Ejecutar `./tests/ci/run.sh fast` o `./tests/ci/run.sh full` desde el plugin; FULL es el modo por defecto. El wrapper usa imágenes fijadas, instala npm desde el lockfile si faltan dependencias y crea bases descartables independientes del WordPress de desarrollo. Tras modificar el lockfile, ejecutar nuevamente npm ci según [setup T0](../tests/ci/README.md).
 
-FAST ejecuta 1936 tests (965 PHP legacy + 127 de contratos + 157 compiler/simulator + 30 de checkpoint/crypto + 85 de persistencia DB + 110 de Content/runtime + 123 longitudinal + 84 privacy DB + 12 privacy puros + 51 Builder DB + 33 Builder puros + 25 Pilot/operacionales + 134 JS), gate estricto RCT y build. FULL añade seis tests smoke sobre otra instalación nueva, con deactivate/reactivate: total T0 1037. B0 agrega activación inicial y reactivación admin con cero bytes inesperados: total B0 1039. Dos regresiones de guardado de storage llevan el total anterior a P1-B a 1041 (973 PHP + 68 JS). P1-B suma 127 tests de contratos puros: total P1-B 1168 (1100 PHP + 68 JS). P1-C añade 157 tests nuevos: total P1-C 1325 (1257 PHP + 68 JS). P1-D suma 115 tests: total P1-D 1440 (1372 PHP + 68 JS). P1-E añade 120 tests: total P1-E 1560 (1482 PHP +78 JS). P1-F añade 129: total P1-F 1689 (1605 PHP +84 JS). P1-G agrega 106: total P1-G 1795 (1701 PHP +94 JS). Los fallos muestran etapa/comando/exit code y guardan logs en `.cache/ci/`. GitHub ejecuta cuatro checks en PR/push a develop y cachea únicamente npm; no publica builds/releases ni necesita secretos institucionales. Requisitos y versiones canónicas, tiempos, checks recomendados y límites: [T0](../tests/ci/README.md).
+FAST ejecuta 1936 tests (965 PHP legacy + 127 de contratos + 157 compiler/simulator + 30 de checkpoint/crypto + 85 de persistencia DB + 110 de Content/runtime + 123 longitudinal + 84 privacy DB + 12 privacy puros + 51 Builder DB + 33 Builder puros + 25 Pilot/operacionales + 134 JS), gate estricto RCT y build. FULL añade seis tests smoke sobre otra instalación nueva, con deactivate/reactivate: total T0 1037. B0 agrega activación inicial y reactivación admin con cero bytes inesperados: total B0 1039. Dos regresiones de guardado de storage llevan el total anterior a P1-B a 1041 (973 PHP + 68 JS). P1-B suma 127 tests de contratos puros: total P1-B 1168 (1100 PHP + 68 JS). P1-C añade 157 tests nuevos: total P1-C 1325 (1257 PHP + 68 JS). P1-D suma 115 tests: total P1-D 1440 (1372 PHP + 68 JS). P1-E añade 120 tests: total P1-E 1560 (1482 PHP +78 JS). P1-F añade 129: total P1-F 1689 (1605 PHP +84 JS). P1-G agrega 106: total P1-G 1795 (1701 PHP +94 JS). Los fallos muestran etapa/comando/exit code y guardan logs en `.cache/ci/`. GitHub ejecuta el gate técnico y la matriz de compatibilidad en PR/push a develop y cachea únicamente npm; no publica builds/releases ni necesita secretos institucionales. Requisitos y versiones canónicas, tiempos, checks recomendados y límites: [T0](../tests/ci/README.md).
 
 El gate no certifica SMTP, Nginx, datasets institucionales, E2E visual, performance, exactly-once ni atomicidad global. El upgrade histórico completo sigue siendo check manual/pre-release con los fixtures existentes.
+
+## Compatibilidad e instalación vigentes
+
+Requisito WordPress: **7.1**. PHP declarado: **7.4**, sin elevarlo por usar 8.3 en CI. La matriz, cobertura por versión y límites están en [compatibilidad](compatibility.md). El [procedimiento de instalación y packaging](installation.md) distingue ZIP fuente del paquete con build. Las secciones de fases y conteos inferiores son históricas; `tests/ci/gate.json` registra el gate actual.
 
 ## Instalación y build
 
@@ -27,16 +31,9 @@ Metadatos y atributos de bloques: `src/blocks/*/block.json`. Tokens CSS: [eipsi-
 
 Correo: los servicios bajo `admin/services/` usan el transporte de WordPress y su configuración. No inferir entregabilidad por un log ni ejecutar cron de estudios reales para probar el transporte; las pruebas usan dobles/interceptación. Los recorridos legacy siguen activos y deben caracterizarse antes de migrarlos.
 
-## Versiones: evidencia y propuesta
+## Versión del código y distribución
 
-- `eipsi-forms.php`: header, constante `EIPSI_FORMS_VERSION` y `Stable tag` conservan `2.6.1`. La constante también versiona assets.
-- `package.json` / `package-lock.json`: `1.5.5`, numeración del paquete de build heredada.
-- En el historial disponible, `29feac5` (2026-05-10) introduce `2.6.1` en el header; su padre declara `2.0.0`. `cf6b8ce` (2026-02-17) documenta la numeración interna `1.5.5`.
-- No hay tags locales que acrediten publicaciones. Esto no demuestra por sí solo ausencia de distribución externa; según el responsable, nunca existió una release pública v1.0. No se ha acreditado que `2.6.1` sea una release pública.
-- El README anterior decía `2.5.3`; el changelog mezclaba `2.6.2`–`2.6.5` con una supuesta versión clínica estable `1.0.0`. Estas afirmaciones se retiraron, sin modificar números productivos.
-- `@since`, comentarios de migración y metadatos de fixtures describen antecedentes internos. `schemaVersion: 1.0.0` y `version: 2.0` son formatos JSON, no releases públicas.
-
-Propuesta pendiente de adopción: usar una única versión de distribución del plugin y sincronizar header/constante/metadatos npm al preparar una publicación deliberada. Vincular release con tag Git, artefacto generado, changelog comprobable y pruebas. Mientras tanto, identificar cambios por rama/commit y mantener las numeraciones heredadas. No inferir madurez a partir de un número mayor a 1 ni anunciar una primera release sin aprobación de esa política.
+La versión de fuente está en el header de `eipsi-forms.php`; actualmente coincide con su constante y los metadatos npm. Los `@since` y los contratos JSON no son versiones de distribución. El packager deriva la versión del header y no publica releases. No se añade un badge de release ni se infiere certificación a partir de ese número. Ver [instalación](installation.md).
 
 ## Alcance actual
 

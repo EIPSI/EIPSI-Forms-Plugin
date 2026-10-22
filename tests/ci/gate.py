@@ -106,32 +106,44 @@ class Gate:
             self.count(stage, self.run(stage, command), count)
         print(f'Pure PHP: {sum(CONFIG["pure_php"].values())} tests, 0 failures', flush=True)
 
-    def wordpress(self, mode):
+    def wordpress(self, mode, core_version=None, package_root=None):
         # This unique project is the only target of teardown; never touch older fixtures.
         project = 'eipsi-t0-' + mode + '-' + uuid.uuid4().hex[:10]
-        env = dict(os.environ, EIPSI_CI_PLUGIN_ROOT=str(ROOT),
+        env = dict(os.environ, EIPSI_CI_PLUGIN_ROOT=str(package_root or ROOT), EIPSI_CI_TEST_ROOT=str(ROOT),
                    EIPSI_CI_WP_IMAGE=CONFIG['images']['wordpress'],
                    EIPSI_CI_DB_IMAGE=CONFIG['images']['mariadb'])
         env['EIPSI_CI_DEBUG_DISPLAY'] = 'true' if mode == 'smoke' else 'false'
         compose = ['docker', 'compose', '-p', project, '-f', str(ROOT / 'tests/ci/compose.yml')]
+        stage_prefix = mode if core_version is None else mode + '-' + core_version + ('-package' if package_root else '-source')
         def call(stage, args):
-            return self.run(mode + '-' + stage, compose + args, env=env)
+            return self.run(stage_prefix + '-' + stage, compose + args, env=env)
         def php(stage, script, extra=None):
             return call(stage, ['exec', '-T'] + (extra or []) + ['wordpress', 'php', script])
+        test_plugin = '/opt/eipsi-ci' if package_root is not None else PLUGIN
         failed = False
         try:
             call('up', ['up', '-d', '--wait', '--wait-timeout', '120'])
             # Apache may be running while the official entrypoint is still copying core.
             call('ready', ['exec', '-T', 'wordpress', 'sh', '-c',
                  'i=0; until test -f /var/www/html/wp-config.php && test -f /var/www/html/wp-includes/version.php; do i=$((i+1)); test "$i" -lt 60 || exit 1; sleep 1; done'])
+            if core_version is not None:
+                matrix = json.loads((ROOT / 'tests/compatibility/matrix.json').read_text())
+                if core_version not in matrix['cores']:
+                    raise ValueError('Unknown compatibility core')
+                archive = test_plugin + '/.cache/compatibility/wordpress-' + core_version + '.tar.gz'
+                # This project has just been created; keep config and mounted plugin.
+                call('core-replace', ['exec', '-T', 'wordpress', 'sh', '-c',
+                     'rm -rf /var/www/html/wp-admin /var/www/html/wp-includes && '
+                     'tar -xzf "$1" --strip-components=1 --exclude=wordpress/wp-content -C /var/www/html',
+                     'core-replace', archive])
             if mode == 'smoke':
-                call('install', ['exec', '-T', 'wordpress', 'php', PLUGIN + '/tests/m0/install.php', '--install-only'])
-                self.count('activation-clean', php('activation-clean', PLUGIN + '/tests/ci/activation.php'), 1)
+                call('install', ['exec', '-T', 'wordpress', 'php', test_plugin + '/tests/m0/install.php', '--install-only'])
+                self.count('activation-clean', php('activation-clean', test_plugin + '/tests/ci/activation.php'), 1)
             else:
-                php('install', PLUGIN + '/tests/m0/install.php')
+                php('install', test_plugin + '/tests/m0/install.php')
             call('versions', ['exec', '-T', 'wordpress', 'php', '-r',
                  'require "/var/www/html/wp-includes/version.php";'
-                 f'if(PHP_VERSION!=="{CONFIG["versions"]["php"]}"||$wp_version!=="{CONFIG["versions"]["wordpress"]}")exit(1);'
+                 f'if(PHP_VERSION!=="{CONFIG["versions"]["php"]}"||$wp_version!=="{core_version or CONFIG["versions"]["wordpress"]}")exit(1);'
                  'echo "PHP ".PHP_VERSION." WordPress ".$wp_version."\\n";'])
             db_version = call('db-version', ['exec', '-T', 'db', 'mariadb', '-uroot',
                               '-pm0-root-isolated', '-Nse', 'SELECT VERSION()'])
@@ -140,12 +152,14 @@ class Gate:
             if mode == 'php':
                 self.php_suites(call, php)
             else:
-                self.count('clean-smoke', php('checks', PLUGIN + '/tests/ci/smoke.php'), 6)
-                php('lifecycle', PLUGIN + '/tests/m7/lifecycle.php')
-                call('deactivate-for-cold-reactivation', ['exec', '-T', 'wordpress', 'php', PLUGIN + '/tests/ci/activation.php', 'deactivate'])
-                self.count('reactivation-clean', php('reactivation-clean', PLUGIN + '/tests/ci/activation.php'), 1)
+                self.count('clean-smoke', php('checks', test_plugin + '/tests/ci/smoke.php'), 6)
+                if core_version is not None:
+                    self.count('native-http-compatibility', php('native-http', test_plugin + '/tests/run-assessment-product-http.php'), CONFIG['php']['assessment-product-http'])
+                php('lifecycle', test_plugin + '/tests/m7/lifecycle.php')
+                call('deactivate-for-cold-reactivation', ['exec', '-T', 'wordpress', 'php', test_plugin + '/tests/ci/activation.php', 'deactivate'])
+                self.count('reactivation-clean', php('reactivation-clean', test_plugin + '/tests/ci/activation.php'), 1)
                 # Same six assertions after reactivation; do not count them twice.
-                self.count('clean-smoke-after-lifecycle', php('checks-after-lifecycle', PLUGIN + '/tests/ci/smoke.php'), 6)
+                self.count('clean-smoke-after-lifecycle', php('checks-after-lifecycle', test_plugin + '/tests/ci/smoke.php'), 6)
         except BaseException:
             failed = True
             try:
