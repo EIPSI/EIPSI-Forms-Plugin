@@ -173,7 +173,12 @@ class EIPSI_Schema_Migration_Runner {
      * @return bool
      */
     private function column_exists( $db, $table, $column ) {
-        $result = $this->db_get_var( $db, "SHOW COLUMNS FROM `{$table}` LIKE '{$column}'" );
+        // An absent table is a valid pre-installation state, not a SQL error.
+        $existing = $this->db_get_var($db, $db->prepare('SHOW TABLES LIKE %s', $db->esc_like($table)));
+        if ($db->last_error) { throw new RuntimeException($db->last_error); }
+        if ($existing !== $table) { return false; }
+        $result = $this->db_get_var($db, $db->prepare("SHOW COLUMNS FROM `{$table}` LIKE %s", $db->esc_like($column)));
+        if ($db->last_error) { throw new RuntimeException($db->last_error); }
         return ! is_null( $result );
     }
 

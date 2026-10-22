@@ -30,3 +30,8 @@ These references contain engineering details and phase history. For the current 
 | Database structure | [Schema](schema.md) |
 
 The technical documents record decisions at different development stages. An older phase description is not a promise that a retired screen remains part of the current product.
+
+## Installation and compatibility
+
+- [Installation and distribution packages](installation.md)
+- [Compatibility matrix and measured limits](compatibility.md)

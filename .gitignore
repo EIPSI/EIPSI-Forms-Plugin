@@ -46,3 +46,7 @@ wp-content/wp-cache-config.php
 
 # Test files (keep test HTML files in repo for development)
 # test-*.html files are intentionally included for QA
+
+# Python test/tool caches
+__pycache__/
+*.py[cod]

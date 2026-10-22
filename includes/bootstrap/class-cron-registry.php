@@ -3,7 +3,10 @@
 if (!defined('ABSPATH')) { exit; }
 
 final class EIPSI_Cron_Registry {
+    private static $schedules_registered = false;
     public static function register_schedules() {
+        if (self::$schedules_registered) { return; }
+        self::$schedules_registered = true;
         add_filter('cron_schedules', function($schedules) {
             if (!isset($schedules['weekly'])) {
                 $schedules['weekly'] = array(
@@ -63,6 +66,7 @@ final class EIPSI_Cron_Registry {
     }
 
     public static function schedule_activation() {
+        self::register_schedules();
         self::schedule_study_engine();
         // === Cron Reminders Scheduling (Fase 2 - Legacy) ===
         if (!wp_next_scheduled('eipsi_send_take_reminders_daily')) {
@@ -130,6 +134,7 @@ final class EIPSI_Cron_Registry {
 
     /** Opt-in engine catchup shares the existing batch worker event and owner. */
     public static function schedule_study_engine() {
+        self::register_schedules();
         if(get_option('eipsi_study_engine_longitudinal_enabled')&&!wp_next_scheduled('eipsi_process_nudge_jobs')){
             wp_schedule_event(time(),'every_minute','eipsi_process_nudge_jobs');
         }
