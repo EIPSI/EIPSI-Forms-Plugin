@@ -8,6 +8,8 @@ Use WordPress 7.1 or later and review the compatibility matrix before choosing P
 
 In WordPress, open **Plugins → Add New → Upload Plugin**, install the ZIP and activate. Then open **EIPSI Forms → Configuration** and review language, storage, SMTP, privacy and scheduler settings. Follow [first setup](user-guide/configuration.md) and test a disposable study through its public link before recruitment.
 
+**Before running Studies, complete Configuration → Setup.** Use [Setup Center](setup-center.md) to generate managed server keys after confirming the backup dependency on WordPress keys/salts. No PHP editing is required on this normal path. For existing institutional/server-managed configuration, retain the [constant/environment path](study-engine/server-keyrings.md). Activation does not create keys automatically. See also [public runtime diagnostics](study-engine/public-runtime-diagnostics.md).
+
 Plugin files do not contain the studies, answers or configuration from another installation. Installing the ZIP does not transfer that database.
 
 ## Build a local package from source
@@ -26,7 +28,7 @@ python3 scripts/package-plugin.py
 
 Use the Node version in [gate.json](../tests/ci/gate.json); the [CI guide](../tests/ci/README.md) also explains the pinned Docker build. The output is `dist/EIPSI-Forms-Plugin.zip`, containing a single `EIPSI-Forms-Plugin/` directory. This command creates a local artifact; it does not tag, publish or upload a release.
 
-The packager includes the plugin entrypoint, PHP services/admin/templates, generated blocks and frontend assets, language catalogs, library, downloadable API examples, readmes/license, export-directory protection files and the runtime-referenced migration helper. It excludes `node_modules`, Git, tests, caches, collected exports, source build inputs and unrelated automation/SQL helpers. Missing builds or referenced compiled assets are rejected.
+The packager includes the plugin entrypoint, PHP services/admin/templates, generated blocks and frontend assets, language catalogs, library, downloadable API examples, readmes/license, export-directory protection files and the runtime-referenced migration helper, manual keyring generator and server-keyrings guide. Generated private configuration files are never included. It excludes `node_modules`, Git, tests, caches, collected exports, source build inputs and unrelated automation/SQL helpers. Missing builds or referenced compiled assets are rejected.
 
 One unreferenced legacy template (`includes/templates/progress-bar-component.php`) has a pre-existing syntax error on both PHP 7.4 and 8.3. It is omitted from the package; no runtime caller was found. Its source is unchanged by this documentation/compatibility task.
 

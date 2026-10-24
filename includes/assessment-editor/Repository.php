@@ -4,7 +4,7 @@ namespace EIPSI\AssessmentEditor;
 /** Dedicated, non-autoloaded options. Revision CAS prevents lost updates. */
 final class Repository {
     const PREFIX='eipsi_native_assessment_';
-    private static function authorize(): void { if(!current_user_can('manage_options')) throw new \RuntimeException('Forbidden',403); }
+    private static function authorize(string $action='assessments.view'): void { \EIPSI_Admin_Authorization_Policy::demand($action); }
     public static function load(string $id): array {
         self::authorize(); Definition::id($id); $json=get_option(self::PREFIX.$id,null);
         if(!is_string($json)) throw new \RuntimeException('Assessment not found',404);
@@ -24,7 +24,7 @@ final class Repository {
         return array('definition'=>Definition::validate(json_decode($row['definition_json'],true,512,JSON_THROW_ON_ERROR)),'version'=>$summary,'read_only'=>true);
     }
     public static function save(array $d,int $revision): array {
-        self::authorize(); $d=Definition::validate($d);if($revision<0) Definition::fail('Invalid revision');
+        self::authorize('assessments.edit'); $d=Definition::validate($d);if($revision<0) Definition::fail('Invalid revision');
         $name=self::PREFIX.$d['id'];
         if($revision>0){$prior=get_option($name,null);$decoded=is_string($prior)?json_decode($prior,true):null;foreach(($decoded['definition']['authoring']['variable_next']??array()) as $prefix=>$next)if(isset($d['authoring']['variable_next'][$prefix])&&is_int($next))$d['authoring']['variable_next'][$prefix]=max($d['authoring']['variable_next'][$prefix],$next);}
         $record=array('definition'=>$d,'revision'=>$revision+1,'updated_at'=>gmdate('c'));
@@ -40,14 +40,14 @@ final class Repository {
         return $record;
     }
     public static function duplicate(string $id,int $revision): array {
-        self::authorize();$record=self::load($id);if($record['revision']!==$revision)throw new \RuntimeException('Changed before duplication',409);$d=self::freshDefinition($record['definition']);$d['title']=mb_substr($d['title'],0,180).' — copia';return self::save($d,0);
+        self::authorize('assessments.edit');$record=self::load($id);if($record['revision']!==$revision)throw new \RuntimeException('Changed before duplication',409);$d=self::freshDefinition($record['definition']);$d['title']=mb_substr($d['title'],0,180).' — copia';return self::save($d,0);
     }
     public static function freshDefinition(array $d): array {
         $d=Definition::validate($d);$sourcePages=$d['flow']['pages'];$fresh=static function($prefix){return $prefix.'_'.bin2hex(random_bytes(16));};$d['id']=$fresh('AE');
         $walk=function(&$items)use(&$walk,$fresh){foreach($items as &$e){$e['id']=$fresh('EL');if($e['response_key'])$e['response_key']=$fresh('R');foreach($e['options'] as &$o)$o['id']=$fresh('O');unset($o);if(isset($e['properties']['matrix_rows']))foreach($e['properties']['matrix_rows'] as &$r){$r['id']=$fresh('ROW');$r['response_key']=$fresh('R');}unset($r);if(isset($e['properties']['label_settings']))foreach($e['properties']['label_settings'] as &$l)$l['id']=$fresh('L');unset($l);$walk($e['children']);}unset($e);};$walk($d['elements']);$d['flow']['pages']=array();$d=Definition::validate($d);foreach($d['flow']['pages'] as $i=>&$p){$p['title']=$sourcePages[$i]['title'];$p['description_html']=$sourcePages[$i]['description_html'];}unset($p);return $d;
     }
     public static function delete(string $id,int $revision): void {
-        self::authorize();Definition::id($id);require_once __DIR__.'/runtime/Owner.php';$store=new Runtime\Store();$store->install();$store->transaction(function()use($store,$id,$revision){global $wpdb;$name=self::PREFIX.$id;$old=$store->db->row($store->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name=%s FOR UPDATE",$name));$record=$old?json_decode($old['option_value'],true):null;if(!$record||(int)$record['revision']!==$revision)throw new \RuntimeException('Changed before deletion',409);if($store->db->row($store->prepare('SELECT id FROM '.$store->table('versions').' WHERE assessment_id=%s LIMIT 1',$id)))throw new \RuntimeException('Assessment has published snapshots; deletion is blocked to preserve references.',409);
+        self::authorize('assessments.delete');Definition::id($id);require_once __DIR__.'/runtime/Owner.php';$store=new Runtime\Store();if(\EIPSI_Admin_Authorization_Policy::allows('schema.manage'))$store->install();else $store->ready();$store->transaction(function()use($store,$id,$revision){global $wpdb;$name=self::PREFIX.$id;$old=$store->db->row($store->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name=%s FOR UPDATE",$name));$record=$old?json_decode($old['option_value'],true):null;if(!$record||(int)$record['revision']!==$revision)throw new \RuntimeException('Changed before deletion',409);if($store->db->row($store->prepare('SELECT id FROM '.$store->table('versions').' WHERE assessment_id=%s LIMIT 1',$id)))throw new \RuntimeException('Assessment has published snapshots; deletion is blocked to preserve references.',409);
             require_once __DIR__.'/PartialProgress.php';PartialProgress::clearAssessment($id);
             $rows=$store->db->rows($store->prepare("SELECT option_name,option_value FROM {$wpdb->options} WHERE option_name LIKE %s FOR UPDATE",$wpdb->esc_like('_transient_eipsi_native_partial_').'%'));foreach($rows as $row){$r=maybe_unserialize($row['option_value']);if(is_array($r)&&($r['assessment_id']??null)===$id)delete_transient(substr($row['option_name'],strlen('_transient_')));}
             $store->db->query($store->prepare("DELETE FROM {$wpdb->options} WHERE option_name=%s AND BINARY option_value=BINARY %s",$name,$old['option_value']));wp_cache_delete($name,'options');

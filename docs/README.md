@@ -35,3 +35,11 @@ The technical documents record decisions at different development stages. An old
 
 - [Installation and distribution packages](installation.md)
 - [Compatibility matrix and measured limits](compatibility.md)
+
+- [Public Study runtime diagnostics](study-engine/public-runtime-diagnostics.md)
+
+- [Permissions and roles](permissions-and-roles.md): team access, capability matrix, data boundaries and multisite.
+
+- [Study Engine server keyrings](study-engine/server-keyrings.md): exact format, manual generation, Hostinger, web verification, rotation and recovery.
+
+- [Setup Center](setup-center.md): first-run cards, explicit encrypted key provisioning, source precedence and backup/recovery.

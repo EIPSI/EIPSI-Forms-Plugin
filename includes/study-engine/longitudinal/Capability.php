@@ -1,5 +1,6 @@
 <?php
 namespace EIPSI\StudyEngine\Longitudinal;
+require_once dirname(__DIR__).'/configuration/KeyringResolver.php';
 use EIPSI\StudyEngine\Persistence as P;
 use EIPSI\StudyEngine\Runtime\AccessDenied;
 
@@ -12,9 +13,7 @@ final class Capability {
         if(!isset($keys[$current]))throw new P\IntegrityFailure('ACCESS_KEY_UNAVAILABLE');$this->db=$db;$this->keys=$keys;$this->current=$current;$this->clock=$clock??new Clock();
     }
     public static function configured(P\Database $db,?Clock $clock=null): self {
-        $config=defined('EIPSI_STUDY_ENGINE_ACCESS_KEYRING')?EIPSI_STUDY_ENGINE_ACCESS_KEYRING:getenv('EIPSI_STUDY_ENGINE_ACCESS_KEYRING');if(is_string($config))$config=json_decode($config,true);
-        if(!is_array($config)||!isset($config['keys'],$config['current']))throw new P\IntegrityFailure('ACCESS_KEYRING_UNAVAILABLE');
-        $keys=array();foreach($config['keys'] as $id=>$hex){if(!is_string($hex)||!preg_match('/^[a-f0-9]{64}$/D',$hex))throw new P\IntegrityFailure('INVALID_ACCESS_KEYRING');$keys[$id]=hex2bin($hex);}return new self($db,$keys,$config['current'],$clock);
+        $config=\EIPSI\StudyEngine\Configuration\KeyringResolver::binary('access');return new self($db,$config['keys'],$config['current'],$clock);
     }
     public function mint(array $participant,array $study,array $execution,string $purpose,?string $block=null,?string $intent=null,int $hours=48): string {
         $this->db->requireTransaction();if(!in_array($purpose,self::PURPOSES,true)||$hours<1||$hours>48||!(bool)$participant['active']||$participant['privacy_state']!=='ACTIVE')throw new AccessDenied('INVALID_CAPABILITY_SCOPE');

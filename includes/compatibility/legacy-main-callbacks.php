@@ -4,11 +4,11 @@ if (!defined('ABSPATH')) { exit; }
 
 function eipsi_get_default_menu_capabilities() {
     return array(
-        'main' => 'edit_posts',
-        'results' => 'manage_options',
-        'configuration' => 'manage_options',
-        'longitudinal' => 'edit_posts',
-        'form_library' => 'edit_posts'
+        'main' => EIPSI_Admin_Authorization_Policy::capability('access'),
+        'results' => EIPSI_Admin_Authorization_Policy::capability('studies.view'),
+        'configuration' => EIPSI_Admin_Authorization_Policy::capability('access'),
+        'longitudinal' => EIPSI_Admin_Authorization_Policy::capability('schema.manage'),
+        'form_library' => EIPSI_Admin_Authorization_Policy::capability('assessments.view')
     );
 }
 
@@ -245,50 +245,8 @@ function eipsi_forms_load_textdomain() {
 }
 
 function eipsi_smtp_configuration_notice() {
-    // Only show to users who can manage options
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-    
-    // Only show on EIPSI admin pages
-    $screen = get_current_screen();
-    if (!$screen || strpos($screen->id, 'eipsi') === false) {
-        return;
-    }
-    
-    // Check if Double Opt-In is enabled
-    $double_optin_enabled = defined('EIPSI_DOUBLE_OPTIN_ENABLED') ? EIPSI_DOUBLE_OPTIN_ENABLED : true;
-    if (!$double_optin_enabled) {
-        return;
-    }
-    
-    // Check SMTP configuration
-    if (!class_exists('EIPSI_SMTP_Service')) {
-        require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/services/class-smtp-service.php';
-    }
-    
-    $smtp_service = new EIPSI_SMTP_Service();
-    if ($smtp_service->is_configured()) {
-        return; // SMTP is configured, no notice needed
-    }
-    
-    // Show warning notice
-    $config_url = admin_url('admin.php?page=eipsi-configuration&tab=smtp');
-    ?>
-    <div class="notice notice-warning is-dismissible">
-        <p>
-            <strong><?php echo esc_html__('EIPSI Forms - Double Opt-In Requiere SMTP', 'eipsi-forms'); ?></strong>
-        </p>
-        <p>
-            <?php echo esc_html__('El sistema Double Opt-In está habilitado pero SMTP no está configurado. Los participantes no recibirán emails de confirmación.', 'eipsi-forms'); ?>
-        </p>
-        <p>
-            <a href="<?php echo esc_url($config_url); ?>" class="button button-primary">
-                <?php echo esc_html__('Configurar SMTP Ahora', 'eipsi-forms'); ?>
-            </a>
-        </p>
-    </div>
-    <?php
+    // Configuration readiness has one owner; its notice is idempotent across hooks.
+    \EIPSI\Setup\SetupAdmin::notice();
 }
 
 function eipsi_handle_save_pool() {

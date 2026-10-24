@@ -423,7 +423,8 @@
       "document_title": "Assessment",
       "assessment_expired": "The period for this assessment has ended.",
       "withdrawal_email_not_found": "We could not find that email in this study.",
-      "paused_body": "The study is paused."
+      "paused_body": "The study is paused.",
+      "notice_close_label": "Dismiss notice"
     },
     "flow_legacy": {
       "pages": [],
@@ -926,7 +927,8 @@
       "document_title": "Evaluación",
       "assessment_expired": "El período de esta evaluación terminó.",
       "withdrawal_email_not_found": "No encontramos ese email en este estudio.",
-      "paused_body": "El estudio está pausado."
+      "paused_body": "El estudio está pausado.",
+      "notice_close_label": "Cerrar aviso"
     },
     "flow_legacy": {
       "pages": [],

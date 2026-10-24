@@ -12,7 +12,7 @@
         const url=new URL(window.location.href);
         if(root.dataset.unavailable==='1')url.searchParams.set('eipsi_notice','unavailable');else url.searchParams.delete('eipsi_notice');
         ['eipsi_confirm','eipsi_cap'].forEach(key=>url.searchParams.delete(key));
-        if(state==='WAIT'||root.dataset.unavailable==='1'){
+        if(state==='WAIT'||state==='ASSESSMENT_COMPLETED'||root.dataset.unavailable==='1'){
             ['eipsi_confirm','eipsi_cap','eipsi_completion'].forEach(key=>url.searchParams.delete(key));
             url.searchParams.set('eipsi_initial','1');
         }
@@ -64,7 +64,7 @@
                 if(!notices){notices=document.createElement('div');notices.className='eipsi-portal-notices';notices.setAttribute('aria-live','polite');root.prepend(notices);}
                 let notice=notices.querySelector('[data-operation-error]');
                 if(!notice){notice=document.createElement('section');notice.className='eipsi-portal-notice is-error';notice.dataset.operationError='1';notice.setAttribute('role','alert');notices.append(notice);}
-                notice.textContent=text;    };
+                notice.textContent=text;window.EIPSIStudyInteraction.notices(notice,true);    };
     const post = async (form, action, button) => {
         if (pending) return;
         pending = true;
@@ -82,7 +82,7 @@
             const result = await response.json();
             if (typeof result.html !== 'string') throw new Error('Invalid response');
             const root = document.getElementById('eipsi-study');
-            if (!response.ok && [429,503].includes(response.status) && typeof result.error_message === 'string') {
+            if (!response.ok && [429,500,503].includes(response.status) && typeof result.error_message === 'string') {
                 showOperationError(root,result.error_message);controls.forEach(el=>{el.disabled=false;});return;
             }
             root.outerHTML = result.html;

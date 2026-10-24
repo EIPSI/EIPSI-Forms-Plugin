@@ -904,8 +904,10 @@ body:has(.ae-rich-overlay) .mce-fullscreen { z-index: 200000; }
 .ae-library-workspace>.ae-canvas{grid-column:1/-1;min-width:0}
 
 .eipsi-email-change{max-width:min(520px,calc(100vw - 40px));padding:24px;border:1px solid #cbd5e1;border-radius:12px;color:#243247;background:#fff;box-shadow:0 16px 48px #0003}
-.eipsi-email-change::backdrop{background:#18243866}
-.eipsi-email-change button{margin:8px 12px 0 0;width:auto}
+.eipsi-email-change::backdrop{background:rgba(0,0,0,.45)}
+.eipsi-email-change button{margin:8px 12px 0 0;width:auto;min-height:44px;padding:.7rem 1rem;font:inherit;cursor:pointer;background:#fff;color:#263241;border:1px solid #cbd4df;border-radius:6px}
+.eipsi-email-change button:hover{background:#edf4fc;border-color:#2865b2;filter:brightness(.96)}
+.eipsi-email-change button:focus-visible{outline:3px solid #005fcc;outline-offset:3px}
 
 .ae-version-info{padding:12px 16px;margin:12px 0;border-left:4px solid #4673a8;background:#edf4fc;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.ae-version-info[hidden]{display:none}.ae-versions-modal{width:min(760px,92vw);max-height:85vh;overflow:auto;border:1px solid #d3deed;border-radius:8px;padding:20px}.ae-versions-modal .ae-library-item{margin:10px 0}
 
@@ -932,3 +934,5 @@ body:has(.ae-rich-overlay) .mce-fullscreen { z-index: 200000; }
 .ae-control-dialog::backdrop{background:#15243b66}
 .ae-calendar-navigation{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
 .ae-calendar table{width:100%;table-layout:fixed;border-collapse:collapse;margin-bottom:12px}.ae-calendar th{font-size:11px;overflow-wrap:anywhere}.ae-calendar td{text-align:center;padding:2px}.ae-calendar td button{width:100%;padding:8px 2px}.ae-calendar button[aria-current=date]{outline:2px solid currentColor;outline-offset:-2px}.ae-calendar-open{margin-top:8px}
+
+.wrap.eipsi-assessment-editor-page{margin:20px 20px 0 0}.eipsi-assessment-editor-page>#eipsi-assessment-editor{margin:0}

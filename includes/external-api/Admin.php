@@ -3,7 +3,7 @@ namespace EIPSI\ExternalApi;
 
 final class Admin {
     public static function dispatch(array $p): array {
-        if(!current_user_can('manage_options'))throw new ApiError('eipsi_external_forbidden',403);
+        if(!\EIPSI_Admin_Authorization_Policy::allows('api.manage'))throw new ApiError('eipsi_external_forbidden',403);
         \EIPSI_Http_Policy::post(admin_url());
         if(!isset($p['nonce'])||!is_string($p['nonce'])||!wp_verify_nonce($p['nonce'],'eipsi_external_api'))throw new ApiError('eipsi_external_forbidden',403);
         $action=$p['operation']??'';$s=new Store();$keys=new Keys($s);$actor=get_current_user_id();$request=Authenticator::requestId();
@@ -86,7 +86,7 @@ final class Admin {
         echo '<section id="api-panel-'.esc_attr($id).'" data-api-panel="'.esc_attr($id).'" role="tabpanel" aria-labelledby="api-tab-'.esc_attr($id).'" tabindex="0"'.($id==='keys'?'':' hidden').'><h3>'.esc_html($title).'</h3><div class="api-help"><p>'.esc_html($explanation).'</p></div>';
     }
     public static function render(): void {
-        if(!current_user_can('manage_options'))return;
+        if(!\EIPSI_Admin_Authorization_Policy::allows('api.manage'))return;
         nocache_headers();$s=new Store();
         try{$keyPage=(new Operations())->keys(max(1,min(10000,is_scalar($_GET['api_keys_page']??1)?(int)($_GET['api_keys_page']??1):1)));$rows=$keyPage['items'];$studies=$s->studies();$enabled=$s->enabled();}catch(\Throwable $e){echo ('<p role="alert">'.esc_html(eipsi_admin_translate('The External API schema is unavailable. Review migration status.')).'</p>');return;}
         self::appearance();echo '<div id="eipsi-api-shell">';

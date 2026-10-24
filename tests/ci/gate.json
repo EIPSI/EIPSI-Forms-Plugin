@@ -11,6 +11,8 @@
     "node": "22.23.3"
   },
   "php": {
+    "setup": 39,
+    "setup-email-review-http": 4,
     "p0": 19,
     "p1": 40,
     "p1b": 40,
@@ -52,7 +54,7 @@
     "study-public-messages": 11,
     "study-engine-authoring": 14,
     "email-templates": 13,
-    "study-engine-experience": 41,
+    "study-engine-experience": 42,
     "study-lifecycle": 13,
     "study-management": 25,
     "assessment-versions": 6,
@@ -71,7 +73,9 @@
     "data1": 18,
     "i18n1b": 12,
     "i18n1b-content": 13,
-    "i18n1c": 22
+    "i18n1c": 22,
+    "production-study-503": 35,
+    "rbac": 82
   },
   "js": {
     "tests/m3/source-contracts.js": 15,
@@ -89,14 +93,14 @@
     "tests/assessment-editor/authoring-dom.js": 47,
     "tests/assessment-editor/corrections-dom.js": 33,
     "tests/assessment-editor/functional-dom.js": 41,
-    "tests/assessment-editor/product-dom.js": 79,
+    "tests/assessment-editor/product-dom.js": 82,
     "tests/assessment-editor/randomization-dom.js": 57,
-    "tests/study-engine/builder/public-messages-dom.js": 9,
+    "tests/study-engine/builder/public-messages-dom.js": 12,
     "tests/study-engine/builder/redesign-dom.js": 72,
     "tests/study-engine/builder/trajectory-dom.js": 37,
     "tests/assessment-editor/logical-product-dom.js": 8,
     "tests/study-engine/builder/email-templates-dom.js": 7,
-    "tests/study-engine/builder/experience-dom.js": 34,
+    "tests/study-engine/builder/experience-dom.js": 35,
     "tests/study-engine/builder/lifecycle-dom.js": 3,
     "tests/study-engine/builder/management-dom.js": 5,
     "tests/assessment-editor/versions-dom.js": 6,
@@ -112,7 +116,8 @@
     "tests/i18n1b/catalog.js": 32,
     "tests/i18n1b/interface-dom.js": 37,
     "tests/i18n1c/content-dom.js": 43,
-    "tests/i18n1d/runtime-dom.js": 10
+    "tests/i18n1d/runtime-dom.js": 10,
+    "tests/rbac/admin-dom.js": 4
   },
   "pure_php": {
     "tests/run-study-engine-domain.php": 127,
@@ -127,6 +132,8 @@
     "tests/i18n1b/assets.php": 8,
     "tests/i18n1c/parity.php": 26,
     "tests/i18n1d/validation.php": 2,
-    "tests/production-activation/cron-unit.php": 3
+    "tests/production-activation/cron-unit.php": 3,
+    "tests/keyrings/generator.php": 5,
+    "tests/setup/crypto.php": 5
   }
 }

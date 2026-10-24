@@ -34,7 +34,7 @@ final class Portable {
         return $document;
     }
     public static function importQuestion(string $json): array {
-        if(!current_user_can('manage_options'))throw new \RuntimeException('Forbidden',403);
+        if(!\EIPSI_Admin_Authorization_Policy::allows('assessments.edit'))throw new \RuntimeException('Forbidden',403);
         if(strlen($json)>self::MAX_BYTES)Definition::fail('El archivo supera el máximo de 1 MB.');
         $data=json_decode($json,true,32,JSON_THROW_ON_ERROR);
         if(!is_array($data))Definition::fail('El archivo no contiene una pregunta.');

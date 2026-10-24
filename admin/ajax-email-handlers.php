@@ -19,8 +19,8 @@ add_action('wp_ajax_eipsi_test_default_email', 'eipsi_test_default_email_handler
 function eipsi_test_default_email_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')));
+    if (!EIPSI_Admin_Authorization_Policy::allows('email.manage')) {
+        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')), 403);
     }
 
     if (!class_exists('EIPSI_Email_Service')) {
@@ -59,8 +59,8 @@ add_action('wp_ajax_eipsi_get_email_diagnostic', 'eipsi_get_email_diagnostic_han
 function eipsi_get_email_diagnostic_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')));
+    if (!EIPSI_Admin_Authorization_Policy::allows('email.manage')) {
+        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')), 403);
     }
 
     if (!class_exists('EIPSI_Email_Service')) {
@@ -85,8 +85,8 @@ add_action('wp_ajax_eipsi_test_smtp', 'eipsi_test_smtp_handler');
 function eipsi_test_smtp_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')));
+    if (!EIPSI_Admin_Authorization_Policy::allows('email.manage')) {
+        wp_send_json_error(array('message' => __('Unauthorized', 'eipsi-forms')), 403);
     }
 
     if (!class_exists('EIPSI_SMTP_Service')) {

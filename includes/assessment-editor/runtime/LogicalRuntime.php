@@ -1,5 +1,6 @@
 <?php
 namespace EIPSI\AssessmentEditor\Runtime;
+require_once dirname(__DIR__,2).'/study-engine/configuration/KeyringResolver.php';
 use EIPSI\StudyEngine\Persistence as P;
 use EIPSI\AssessmentEditor\Definition as D;
 use EIPSI\AssessmentEditor\Randomization;
@@ -46,7 +47,7 @@ trait LogicalRuntime {
     private function logicalCommand(array $e,array $d,array $request): ?array {
         $binding=json_decode($e['binding_json'],true);$protocol=$this->logicalProtocol($binding);if(!$protocol||!in_array($request['action'],array('logic','next','submit','partial'),true))return null;
         require_once dirname(__DIR__,2).'/study-engine/persistence.php';
-        $config=defined('EIPSI_STUDY_ENGINE_KEYRING')?EIPSI_STUDY_ENGINE_KEYRING:getenv('EIPSI_STUDY_ENGINE_KEYRING');if(is_string($config))$config=json_decode($config,true);if(!is_array($config)||!isset($config['keys'],$config['current']))throw new P\IntegrityFailure('SEED_KEYRING_UNAVAILABLE');$keys=array();foreach($config['keys'] as $id=>$hex){if(!is_string($hex)||!ctype_xdigit($hex)||strlen($hex)!==64)throw new P\IntegrityFailure('SEED_KEYRING_UNAVAILABLE');$keys[$id]=hex2bin($hex);}
+        $config=\EIPSI\StudyEngine\Configuration\KeyringResolver::binary('seed',true);$keys=$config['keys'];
         $owner=new \EIPSI\StudyEngine\Orchestration\ExecutionOwner($this->store->db,new P\SeedVault($keys,$config['current']));
         return $this->store->db->joinNativeTransaction(function()use($owner,$binding,$protocol,$e,$d,$request){return $owner->joinNative(function($owner)use($binding,$protocol,$e,$d,$request){
             $view=$owner->view($binding['execution_id']);if(!isset($view['revision']))throw new P\IntegrityFailure('LOGICAL_CHECKPOINT_UNAVAILABLE');$block=$view['snapshot']['instances'][$binding['block_execution_id']]??null;if(!$block)throw new P\IntegrityFailure('LOGICAL_BLOCK_UNAVAILABLE');

@@ -19,7 +19,7 @@ final class ScientificDatasetOwner extends ScientificReadQuery {
         parent::__construct($study);
     }
     public static function forAdmin(Query $q): self {
-        if(!current_user_can('manage_options'))throw new \DomainException('BUILDER_FORBIDDEN');
+        if(!\EIPSI_Admin_Authorization_Policy::allows('responses.view'))throw new \DomainException('BUILDER_FORBIDDEN');
         return new self($q->study,false,$q);
     }
     public static function external(\EIPSI\ExternalApi\ExternalPrincipal $p,string $code,callable $read){

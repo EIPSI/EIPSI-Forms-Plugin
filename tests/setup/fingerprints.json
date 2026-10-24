@@ -1,0 +1,14 @@
+{
+  "eipsi_smtp_configuration_notice": {
+    "before_sha256": "867324f7402a18c65f06e0998afe4e18899b07f6725612deae6d13faee050281",
+    "after_sha256": "7f12ce5496aa54884921656d7ac82c201fa3fc21a2d44d780971524a08dba4d2",
+    "reason": "Consolidate SMTP and Setup/database readiness into the single authorized Setup notice owner; preserve the registered callback and prevent duplicate notices."
+  },
+  "assets": {
+    "assets/js/configuration-panel.js": {
+      "before_sha256": "375cf076f1a4439bf5f3824a95c620c4c078ed2ba6c21fd0714dc719d274d8c2",
+      "after_sha256": "9c538ffde6950cf5b75f80765d48427ebf837ca9661c224fa7a036505a64e618",
+      "reason": "Update the database tab warning immediately from the authorized save/disable response, without reloading or changing storage behavior."
+    }
+  }
+}

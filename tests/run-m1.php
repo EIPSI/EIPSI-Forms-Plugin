@@ -32,7 +32,7 @@ $tests['Includes: sin archivos repetidos y mismos puntos de inicialización'] = 
 $tests['Compatibilidad: 44 implementaciones globales preservadas'] = function () use ($baseline) {
     foreach ($baseline['callback_token_hashes'] as $function=>$hash) {
         $delta=json_decode(file_get_contents(__DIR__.'/sec1/boundary-changes.json'),true)['functions'][$function]??null;if($delta){m0_assert($hash===$delta['before_sha256'],'SEC1 callback predecessor mismatch');$hash=$delta['after_sha256'];}
-        $hash=i18n1b_fingerprint('functions',$function,$hash);
+        $hash=rbac_fingerprint('functions',$function,i18n1b_fingerprint('functions',$function,$hash));$hash=setup_fingerprint($function,$hash);
         m0_assert(function_exists($function) && m1_token_hash($function) === $hash, 'Callback implementation changed: '.$function);
     }
 };

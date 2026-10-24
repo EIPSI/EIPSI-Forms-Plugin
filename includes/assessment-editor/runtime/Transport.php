@@ -10,9 +10,9 @@ final class Transport {
         return \EIPSI\StudyEngine\Runtime\PublicMessages::text($definition,'paused_body');
     }
     public static function page(): void {
-        try{$id=isset($_GET['eipsi_native'])&&is_string($_GET['eipsi_native'])?wp_unslash($_GET['eipsi_native']):'';$frame=(new Owner())->pageEntry($id);if(isset($frame['redirect'])){nocache_headers();wp_safe_redirect($frame['redirect'],303);exit;}$frame=EffectiveAssessmentProjection::frame($frame);nocache_headers();header('Referrer-Policy: no-referrer');header('X-Robots-Tag: noindex, nofollow');header('X-Frame-Options: SAMEORIGIN');status_header(200);$base=EIPSI_FORMS_PLUGIN_URL;
+        try{$id=isset($_GET['eipsi_native'])&&is_string($_GET['eipsi_native'])?wp_unslash($_GET['eipsi_native']):'';$frame=(new Owner())->pageEntry($id);if(isset($frame['redirect'])){nocache_headers();wp_safe_redirect($frame['redirect'],303);exit;}$frame=EffectiveAssessmentProjection::frame($frame);nocache_headers();header('Referrer-Policy: same-origin');header('X-Robots-Tag: noindex, nofollow');header('X-Frame-Options: SAMEORIGIN');status_header(200);$base=EIPSI_FORMS_PLUGIN_URL;
             $content='<main class="ae-root ae-native-runtime" id="eipsi-native-participant"></main><script>window.eipsiNativeParticipant='.wp_json_encode(array('frame'=>$frame,'url'=>admin_url('admin-ajax.php')),JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT).';</script>';
-            echo \EIPSI\StudyEngine\Runtime\PublicPage::document($content,$frame['definition']['title'],array('assets/css/assessment-editor.css'),array('assets/js/assessment-participant.js'),\EIPSI\I18n\ContentDefaults::language($frame['definition']));exit;
+            echo \EIPSI\StudyEngine\Runtime\PublicPage::document($content,$frame['definition']['title'],array('assets/css/assessment-editor.css','assets/css/study-runtime.css'),array('assets/js/assessment-participant.js'),\EIPSI\I18n\ContentDefaults::language($frame['definition']));exit;
         }catch(\Throwable $e){nocache_headers();header('Content-Type: text/html; charset=UTF-8');header('Referrer-Policy: no-referrer');header('X-Robots-Tag: noindex, nofollow');status_header(403);echo \EIPSI\StudyEngine\Runtime\PublicPage::document('<main class="eipsi-study"></main>','EIPSI Forms',array('assets/css/study-runtime.css'));exit;}
     }
 

@@ -105,7 +105,11 @@ final class Runtime {
                 if(!isset($config['initial_screen'])||(!InitialScreen::v2($config)&&$verificationAnchor)||(InitialScreen::v2($config)&&$config['initial_screen']['authentication']['verification']!=='NEVER'&&$view['next_action']['kind']!=='OPEN_ASSESSMENT'))(new NotificationScheduler($this->db))->authentication($p['execution_id'],'VERIFY_PARTICIPANT','VERIFY_INITIAL',$view['snapshot']);
                 $result=array('generic'=>false,'execution_id'=>$p['execution_id'],'token_rotated'=>$session!==null);
             }else{
-                if($request['action']==='enroll'&&(bool)$p['active']&&$p['privacy_state']==='ACTIVE'&&$p['verification_state']==='VERIFIED'&&$p['execution_id']!==null){
+                $current=$session===null?null:$this->identity->recover($public,$token,true);
+                if($request['action']==='enroll'&&$current!==null&&in_array($current['kind'],array('PROVISIONAL','AUTHENTICATED'),true)&&$current['participant_id']===$p['id']&&$current['execution_id']===$p['execution_id']){
+                    // Reuse this participant's existing browser access without validating or promoting it.
+                    $result=array('generic'=>false,'execution_id'=>$p['execution_id'],'token_rotated'=>false);
+                }elseif($request['action']==='enroll'&&(bool)$p['active']&&$p['privacy_state']==='ACTIVE'&&$p['verification_state']==='VERIFIED'&&$p['execution_id']!==null){
                     $execution=(new P\StudyExecutionRepository($this->db))->find($p['execution_id']);if(!$execution||$execution['finalized_at']!==null)throw new R\AccessDenied('ACCESS_REQUIRED');$definition=$this->definition($execution['study_version_id']);
                     $sessionToken=hash_hmac('sha256','NEW_PARTICIPANT|'.$request['command_id'],$token);
                     $this->identity->issue($p,$study,$p['execution_id'],$execution['study_version_id'],Configuration::read($definition),$sessionToken,true);

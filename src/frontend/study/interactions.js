@@ -3,11 +3,31 @@
     'use strict';
     const show=modal=>{if(!modal)return;if(modal.showModal)modal.showModal();else modal.setAttribute('open','');};
     const hide=modal=>{if(!modal)return;if(modal.close)modal.close();else modal.removeAttribute('open');};
+    const emailModals=new WeakMap();
     const normalize=email=>String(email||'').trim().toLowerCase();
     const message=(content,key,fallback)=>{const node=content?.closest?.('[data-study-messages]')||content?.querySelector?.('[data-study-messages]');if(!node)return fallback;try{return JSON.parse(node.dataset.studyMessages)[key]??fallback;}catch(_){return fallback;}};
+    const noticeTimers=new WeakMap();
+    const notices=(content,restart=false)=>{
+        const items=[...(content.matches?.('.eipsi-portal-notice')?[content]:[]),...content.querySelectorAll('.eipsi-portal-notice')];
+        for(const notice of items){
+            const previous=noticeTimers.get(notice);
+            if(previous&&!restart&&notice.querySelector('[data-dismiss-notice]'))continue;
+            if(previous)root.clearTimeout(previous);
+            let close=notice.querySelector('[data-dismiss-notice]');
+            if(!close){
+                const text=document.createElement('div');text.dataset.noticeContent='';text.append(...notice.childNodes);
+                close=document.createElement('button');close.type='button';close.className='eipsi-notice-close';close.dataset.dismissNotice='';close.textContent='×';
+                close.setAttribute('aria-label',message(notice,'notice_close_label',document.documentElement.lang==='es'?'Cerrar aviso':'Dismiss notice'));
+                notice.append(text,close);
+            }
+            const dismiss=()=>{root.clearTimeout(noticeTimers.get(notice));noticeTimers.delete(notice);notice.remove();};
+            close.onclick=dismiss;
+            noticeTimers.set(notice,root.setTimeout(dismiss,40000));
+        }
+    };
     root.EIPSIStudyInteraction={
-        message,
-        present(content){const modal=content.querySelector('.eipsi-withdrawal-dialog[data-withdrawal-error]');if(modal){show(modal);modal.querySelector('input[name=email]')?.focus();}},
+        message,notices,
+        present(content){notices(content);const modal=content.querySelector('.eipsi-withdrawal-dialog[data-withdrawal-error]');if(modal){show(modal);modal.querySelector('input[name=email]')?.focus();}},
         invalid(event){const input=event.target;if(input.name!=='email'||!input.closest('[data-study-messages]'))return;input.setCustomValidity('');if(input.validity.valueMissing)input.setCustomValidity(message(input,'email_required','Ingresá tu email.'));else if(input.validity.typeMismatch)input.setCustomValidity(message(input,'email_invalid','Ingresá un email válido.'));},
         async click(content,event,lookupWithdrawal){
             const open=event.target.closest('[data-open-withdrawal]');
@@ -49,12 +69,13 @@
             const confirmation=form.querySelector('[name=confirm_email_change]');if(confirmation)confirmation.value='0';
             if(!changed)return true;
             if(form.dataset.approvedEmail===normalize(input.value)){if(confirmation)confirmation.value='1';return true;}
-            let modal=form.querySelector('.eipsi-email-change');if(modal)modal.remove();
-            modal=document.createElement('dialog');modal.className='eipsi-email-change';modal.setAttribute('aria-label',message(form,'change_title','Confirmar cambio de correo'));
-            const paragraph=document.createElement('p');paragraph.textContent=message(form,'change_body','El email es diferente al introducido anteriormente. ¿Estás seguro de que querés actualizar el correo?');
-            const cancel=document.createElement('button');cancel.type='button';cancel.textContent=message(form,'change_cancel','Cancelar');cancel.dataset.cancelEmailChange='';cancel.onclick=()=>{hide(modal);modal.remove();};
-            const accept=document.createElement('button');accept.type='button';accept.textContent=message(form,'change_accept','Actualizar correo');accept.dataset.acceptEmailChange='';accept.onclick=()=>{form.dataset.approvedEmail=normalize(input.value);if(confirmation)confirmation.value='1';hide(modal);modal.remove();form.requestSubmit(form.querySelector('button[value="confirm_email"]')||undefined);};
-            modal.append(paragraph,cancel,accept);form.append(modal);show(modal);cancel.focus();return false;
+            let modal=emailModals.get(form)||form.querySelector('.eipsi-email-change');if(modal)modal.remove();
+            let modalDocument=document;try{if(root.frameElement&&root.top.document)modalDocument=root.top.document;}catch(_){/* Keep the local modal when the parent is not accessible. */}
+            modal=modalDocument.createElement('dialog');emailModals.set(form,modal);modal.className='eipsi-email-change';if(modalDocument!==document){const typography=root.getComputedStyle(form);for(const key of ['fontFamily','fontSize','lineHeight'])if(typography[key])modal.style[key]=typography[key];}modal.setAttribute('aria-label',message(form,'change_title','Confirmar cambio de correo'));
+            const paragraph=modalDocument.createElement('p');paragraph.textContent=message(form,'change_body','El email es diferente al introducido anteriormente. ¿Estás seguro de que querés actualizar el correo?');
+            const cancel=modalDocument.createElement('button');cancel.type='button';cancel.textContent=message(form,'change_cancel','Cancelar');cancel.dataset.cancelEmailChange='';cancel.onclick=()=>{hide(modal);modal.remove();};
+            const accept=modalDocument.createElement('button');accept.type='button';accept.textContent=message(form,'change_accept','Actualizar correo');accept.dataset.acceptEmailChange='';accept.onclick=()=>{form.dataset.approvedEmail=normalize(input.value);if(confirmation)confirmation.value='1';hide(modal);modal.remove();form.requestSubmit(form.querySelector('button[value="confirm_email"]')||undefined);};
+            modal.append(paragraph,cancel,accept);(modalDocument===document?form:modalDocument.body).append(modal);modal.addEventListener('close',()=>{modal.remove();if(emailModals.get(form)===modal)emailModals.delete(form);},{once:true});show(modal);cancel.focus();return false;
         }
     };
 })(window);

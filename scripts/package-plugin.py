@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_DIRS = ('admin', 'assets', 'build', 'includes', 'languages', 'lib', 'templates', 'examples')
 EXCLUDED_UNUSED = {'includes/templates/progress-bar-component.php'}  # Unreferenced legacy template; invalid on 7.4 and 8.3.
 ROOT_FILES = ('eipsi-forms.php', 'readme.txt', 'README.md', 'LICENSE')
-EXTRA_FILES = ('exports/.htaccess', 'exports/index.php', 'scripts/migration-add-offset-columns.php')
+EXTRA_FILES = ('exports/.htaccess', 'exports/index.php', 'scripts/migration-add-offset-columns.php', 'scripts/generate-eipsi-keyrings.php', 'docs/study-engine/server-keyrings.md', 'docs/setup-center.md')
 
 
 def package(root, output):
@@ -39,6 +39,8 @@ def package(root, output):
     for p in selected:
         if p.is_symlink() or not p.is_file():
             raise ValueError('Missing file or forbidden symlink: ' + str(p))
+        if p.name.startswith(('eipsi-server-keyrings', 'wp-config')):
+            raise ValueError('Private server configuration cannot be packaged: ' + str(p))
         if any(part.startswith('.env') or part in {'.git', 'node_modules', '.cache'} for part in p.relative_to(root).parts) or p.suffix in {'.log', '.pem', '.key', '.sql'}:
             raise ValueError('Unexpected private/development file: ' + str(p))
     output.parent.mkdir(parents=True, exist_ok=True)

@@ -33,3 +33,11 @@ Study Engine's **Logical conditions** coordinates conditions across the protocol
 The assessment menu also provides JSON import/export and question import. These files reuse authored content, so review variable names, references, and the result before publishing. See [JSON exchange](../assessment-editor/json-portability.md) for the exact supported controls and format.
 
 The assessment's language is captured when it is created. Changing the global language does not translate its existing text or change the defaults for questions subsequently added to that assessment.
+
+## Leaving and resuming an assessment
+
+A still-valid questionnaire session can resume its last server-recorded page and answers even when permanent partial saving is disabled. The duration configured in the assessment controls this temporary session. After it expires, the questionnaire starts from the beginning; if partial saving was enabled, the previous partial response remains stored separately and is not prefilled into the new session.
+
+In a cross-sectional study, recovery uses the same browser's access cookie. In a longitudinal study, re-entering the same participant email with matching valid browser access resumes the existing opportunity; it does not send another validation email or mark the address as verified. If access is missing or belongs to someone else, the study's access rules still apply. The scheduled opportunity must remain available.
+
+After a final response, the configured completion remains visible without a repeat/return control. Refreshing returns to the study entry page. A configured email review occurs before the completion is shown: the field starts empty, a changed address requests confirmation, and a conflicting registered address must be corrected. Correction updates the same participation without rewriting its assessment response. Notices appear outside and above the final card; they expire after 40 seconds or can be closed individually with ×.

@@ -50,3 +50,9 @@ wp-content/wp-cache-config.php
 # Python test/tool caches
 __pycache__/
 *.py[cod]
+
+# Private Study Engine server configuration generated manually
+.env.*
+!.env.example
+eipsi-server-keyrings.php
+eipsi-server-keyrings*.php

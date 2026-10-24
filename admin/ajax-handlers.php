@@ -213,8 +213,8 @@ function eipsi_export_monitoring_report_handler() {
 function eipsi_test_smtp_connection_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')));
+    if (!\EIPSI_Admin_Authorization_Policy::allows('email.manage')) {
+        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')), 403);
     }
 
     if (!class_exists('EIPSI_SMTP_Service')) {
@@ -280,8 +280,8 @@ function eipsi_test_smtp_connection_handler() {
 function eipsi_save_smtp_config_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')));
+    if (!\EIPSI_Admin_Authorization_Policy::allows('email.manage')) {
+        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')), 403);
     }
 
     if (!class_exists('EIPSI_SMTP_Service')) {
@@ -331,8 +331,8 @@ function eipsi_save_smtp_config_handler() {
 function eipsi_disable_smtp_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')));
+    if (!\EIPSI_Admin_Authorization_Policy::allows('email.manage')) {
+        wp_send_json_error(array('message' => eipsi_admin_translate('Unauthorized')), 403);
     }
 
     if (!class_exists('EIPSI_SMTP_Service')) {
@@ -931,8 +931,8 @@ function eipsi_unsubscribe_reminders_handler() {
 function eipsi_save_privacy_config_handler() {
     check_ajax_referer('eipsi_privacy_nonce', 'eipsi_privacy_nonce');
     
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('No tienes permisos para realizar esta acción.', 'eipsi-forms')));
+    if (!\EIPSI_Admin_Authorization_Policy::allows('privacy.manage')) {
+        wp_send_json_error(array('message' => __('No tienes permisos para realizar esta acción.', 'eipsi-forms')), 403);
     }
     
     $form_id = isset($_POST['form_id']) ? sanitize_text_field($_POST['form_id']) : '';
@@ -977,8 +977,8 @@ function eipsi_save_privacy_config_handler() {
 function eipsi_save_global_privacy_config_handler() {
     check_ajax_referer('eipsi_global_privacy_nonce', 'eipsi_global_privacy_nonce');
     
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('No tienes permisos para realizar esta acción.', 'eipsi-forms')));
+    if (!\EIPSI_Admin_Authorization_Policy::allows('privacy.manage')) {
+        wp_send_json_error(array('message' => __('No tienes permisos para realizar esta acción.', 'eipsi-forms')), 403);
     }
     
     require_once dirname(__FILE__) . '/privacy-config.php';
@@ -1374,10 +1374,10 @@ function eipsi_track_event_handler() {
 function eipsi_test_db_connection_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
     
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => eipsi_admin_translate('Unauthorized')
-        ));
+        ), 403);
     }
     
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
@@ -1406,10 +1406,10 @@ function eipsi_test_db_connection_handler() {
 function eipsi_save_db_config_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
     
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => eipsi_admin_translate('Unauthorized')
-        ));
+        ), 403);
     }
     
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
@@ -1460,6 +1460,7 @@ function eipsi_save_db_config_handler() {
                 $db_name
             ),
             'status' => $status,
+            'database_pending' => isset(\EIPSI\Setup\SetupAdmin::pending()['database']),
             'schema_verified' => $schema_result['success'],
             'tables_created' => array(
                 'results' => $schema_result['results_table']['created'] ?? null,
@@ -1486,10 +1487,10 @@ function eipsi_save_db_config_handler() {
 function eipsi_disable_external_db_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
     
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => eipsi_admin_translate('Unauthorized')
-        ));
+        ), 403);
     }
     
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
@@ -1498,17 +1499,18 @@ function eipsi_disable_external_db_handler() {
     $db_helper->disable();
     
     wp_send_json_success(array(
-        'message' => eipsi_admin_translate('External database disabled. Form submissions will now be stored in the WordPress database.')
+        'message' => eipsi_admin_translate('External database disabled. Form submissions will now be stored in the WordPress database.'),
+        'database_pending' => isset(\EIPSI\Setup\SetupAdmin::pending()['database'])
     ));
 }
 
 function eipsi_get_db_status_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
     
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => eipsi_admin_translate('Unauthorized')
-        ));
+        ), 403);
     }
     
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
@@ -1524,10 +1526,10 @@ function eipsi_get_db_status_handler() {
 function eipsi_verify_schema_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
     
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => eipsi_admin_translate('Unauthorized')
-        ));
+        ), 403);
     }
     
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
@@ -1568,10 +1570,10 @@ function eipsi_verify_schema_handler() {
 function eipsi_verify_local_schema_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => eipsi_admin_translate('Unauthorized')
-        ));
+        ), 403);
     }
 
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
@@ -1639,10 +1641,10 @@ function eipsi_verify_local_schema_handler() {
 function eipsi_check_local_table_status_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => __('Unauthorized', 'eipsi-forms')
-        ));
+        ), 403);
     }
 
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
@@ -1660,10 +1662,10 @@ function eipsi_check_local_table_status_handler() {
 function eipsi_check_table_status_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => __('Unauthorized', 'eipsi-forms')
-        ));
+        ), 403);
     }
 
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
@@ -1681,7 +1683,7 @@ function eipsi_check_table_status_handler() {
 function eipsi_delete_all_data_handler() {
     check_ajax_referer('eipsi_delete_all_data', 'nonce');
 
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array(
             'message' => __('Unauthorized', 'eipsi-forms')
         ), 403);
@@ -3100,7 +3102,7 @@ function eipsi_get_schema_status_handler() {
     }
     
     // Check permissions
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción'), 403);
     }
     
@@ -3145,7 +3147,7 @@ function eipsi_repair_single_table_handler() {
     }
     
     // Check permissions
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción'), 403);
     }
     
@@ -3222,7 +3224,7 @@ function eipsi_export_schema_report_handler() {
     }
     
     // Check permissions
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) {
         wp_send_json_error(array('message' => 'No tienes permisos para realizar esta acción'), 403);
     }
     
@@ -3273,7 +3275,7 @@ add_action('wp_ajax_eipsi_fix_collations', 'eipsi_fix_collations_handler');
 
 function eipsi_fix_collations_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
-    if (!current_user_can('manage_options')) wp_send_json_error();
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) wp_send_json_error();
     
     // Load database schema manager if not already loaded
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database-schema-manager.php';
@@ -3292,7 +3294,7 @@ add_action('wp_ajax_eipsi_check_collation_issues', 'eipsi_check_collation_issues
 
 function eipsi_check_collation_issues_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
-    if (!current_user_can('manage_options')) wp_send_json_error();
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) wp_send_json_error();
     
     // Load database schema manager if not already loaded
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database-schema-manager.php';
@@ -3311,12 +3313,12 @@ add_action('wp_ajax_eipsi_execute_maintenance_sql', 'eipsi_execute_maintenance_s
 
 function eipsi_execute_maintenance_sql_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
-    if (!current_user_can('manage_options')) wp_send_json_error(array('message' => 'No tienes permisos'));
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) wp_send_json_error(array('message' => 'No tienes permisos'));
     
     $sql_statements = isset($_POST['sql_statements']) ? $_POST['sql_statements'] : array();
     
     if (empty($sql_statements) || !is_array($sql_statements)) {
-        wp_send_json_error(array('message' => 'No se proporcionaron sentencias SQL'));
+        wp_send_json_error(array('message' => 'No se proporcionaron sentencias SQL'), 403);
     }
     
     // Sanitize SQL statements
@@ -3338,7 +3340,7 @@ add_action('wp_ajax_eipsi_check_schema_issues', 'eipsi_check_schema_issues_handl
 
 function eipsi_check_schema_issues_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
-    if (!current_user_can('manage_options')) wp_send_json_error();
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) wp_send_json_error();
     
     global $wpdb;
     
@@ -3406,7 +3408,7 @@ add_action('wp_ajax_eipsi_auto_fix_schema_issues', 'eipsi_auto_fix_schema_issues
 
 function eipsi_auto_fix_schema_issues_handler() {
     check_ajax_referer('eipsi_admin_nonce', 'nonce');
-    if (!current_user_can('manage_options')) wp_send_json_error(array('message' => 'No tienes permisos'));
+    if (!\EIPSI_Admin_Authorization_Policy::allows('schema.manage')) wp_send_json_error(array('message' => 'No tienes permisos'), 403);
     
     global $wpdb;
     

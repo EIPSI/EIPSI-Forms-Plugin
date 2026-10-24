@@ -1,0 +1,9 @@
+<?php
+if(getenv('WORDPRESS_DB_NAME')!=='m0'||!get_option('eipsi_m0_isolated_install'))return;
+$mode=get_option('eipsi_setup_fixture_mode','STORE');
+$seed=array('current'=>'EXTERNAL_SEED','keys'=>array('EXTERNAL_SEED'=>str_repeat('4b',32)));$access=array('current'=>'EXTERNAL_ACCESS','keys'=>array('EXTERNAL_ACCESS'=>str_repeat('5c',32)));
+putenv('EIPSI_STUDY_ENGINE_KEYRING');putenv('EIPSI_STUDY_ENGINE_ACCESS_KEYRING');
+if(in_array($mode,array('ENV','BOTH','BAD_ENV','BAD_CONSTANT','EMPTY_ENV'),true)){putenv('EIPSI_STUDY_ENGINE_KEYRING='.(in_array($mode,array('BAD_ENV','BOTH'),true)?'broken':($mode==='EMPTY_ENV'?'':json_encode($seed))));putenv('EIPSI_STUDY_ENGINE_ACCESS_KEYRING='.json_encode($access));}
+if(in_array($mode,array('CONSTANT','BOTH','BAD_CONSTANT'),true)){define('EIPSI_STUDY_ENGINE_KEYRING',$mode==='BAD_CONSTANT'?'broken':$seed);define('EIPSI_STUDY_ENGINE_ACCESS_KEYRING',$access);}
+add_filter('pre_wp_mail','__return_true',PHP_INT_MAX);
+unset($mode,$seed,$access);

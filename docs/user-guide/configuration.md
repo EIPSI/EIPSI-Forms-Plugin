@@ -4,6 +4,14 @@
 
 Open **EIPSI Forms → Configuration**. These settings belong to the plugin installation; assessment and study content is edited in its own editor.
 
+## Setup and configuration warnings
+
+Start with **Setup**, the first tab. Generate the initial server keys, review the database/schema status, and check the scheduler, email, privacy and optional API cards. [Setup Center](../setup-center.md) explains the backup requirement.
+
+Outside Configuration, one combined warning identifies pending Setup, database or SMTP configuration. Inside Configuration, separate warnings link to pending components except the tab already open. Yellow icons mark the pending Setup, Database & Storage and SMTP tabs. Users see only warnings for settings they are allowed to manage. WordPress storage is valid without a separate external database. Explicitly disabling a configured connection shows a database warning; saving or disabling it updates the tab icon immediately. SMTP is needed for email delivery; its warning does not prevent preparing or running email-free assessments.
+
+Server-key diagnostics are located in **Setup**, not duplicated in Privacy & Security.
+
 ## Language
 
 The language card above the tabs selects **English** or **Spanish** for the plugin interface and newly created content. English is the default. The choice is shared across administrators and does not change the language of WordPress or other plugins.

@@ -9,10 +9,14 @@ if (!defined('ABSPATH')) {
  */
 
 function eipsi_display_configuration_page() {
-    if (!current_user_can('manage_options')) {
-        wp_die(eipsi_admin_translate('You do not have sufficient permissions to access this page.'));
+    if (!EIPSI_Admin_Authorization_Policy::configuration()) {
+        wp_die(eipsi_admin_translate('You do not have sufficient permissions to access this page.'),'',array('response'=>403));
     }
 
+    $permitted_tabs=array_filter(EIPSI_Admin_Authorization_Policy::configurationTabs(),static function($action){return EIPSI_Admin_Authorization_Policy::allows($action);});
+    $active_tab=isset($_GET['tab'])&&is_string($_GET['tab'])?sanitize_key($_GET['tab']):key($permitted_tabs);
+    if(!isset($permitted_tabs[$active_tab]))wp_die('Forbidden','',array('response'=>403));
+    if(isset($_POST['eipsi_save_public_fallback'])&&!EIPSI_Admin_Authorization_Policy::allows('settings.manage'))wp_die('Forbidden','',array('response'=>403));
     $language_notice = $GLOBALS['eipsi_admin_language_notice'] ?? '';
     require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/database.php';
     $db_helper = new EIPSI_External_Database();
@@ -48,12 +52,6 @@ function eipsi_display_configuration_page() {
     // Get current status
     $status = $db_helper->get_status();
 
-    $active_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'database';
-    $allowed_tabs = array('database', 'smtp', 'privacy-security', 'schema-status', 'external-api', 'scheduler', 'fallback-messages');
-    if (!in_array($active_tab, $allowed_tabs, true)) {
-        $active_tab = 'database';
-    }
-
     // Global notifications settings are now managed in Longitudinal Study > Recordatorios
 
     ?>
@@ -61,35 +59,36 @@ function eipsi_display_configuration_page() {
         <h1><?php echo esc_html(eipsi_admin_translate('EIPSI Forms - Configuration')); ?></h1>
 
         <?php
-        // Check SMTP status for tab warning indicator
-        $smtp_service_for_tab = class_exists('EIPSI_SMTP_Service') ? new EIPSI_SMTP_Service() : null;
-        $smtp_configured_for_tab = $smtp_service_for_tab ? $smtp_service_for_tab->is_configured() : false;
+        $pending_configuration=\EIPSI\Setup\SetupAdmin::pending();
         ?>
-        <?php eipsi_admin_language_form($language_notice); ?>
+        <?php if(EIPSI_Admin_Authorization_Policy::allows('settings.manage'))eipsi_admin_language_form($language_notice); ?>
         <h2 class="nav-tab-wrapper">
-            <a href="?page=eipsi-configuration&tab=database"
+            <?php if(isset($permitted_tabs['setup'])): ?><a href="?page=eipsi-configuration&amp;tab=setup" class="nav-tab <?php echo esc_attr($active_tab==='setup'?'nav-tab-active':''); ?>">✨ <?php echo esc_html(eipsi_admin_translate('Setup')); ?> <?php echo \EIPSI\Setup\SetupAdmin::warningIcon('setup',$pending_configuration); ?></a><?php endif; ?>
+            <?php if(isset($permitted_tabs['database'])): ?><a href="?page=eipsi-configuration&tab=database"
                class="nav-tab <?php echo esc_attr(($active_tab === 'database') ? 'nav-tab-active' : ''); ?>">
-                🗄️ <?php echo esc_html(eipsi_admin_translate('Database & Storage')); ?>
-            </a>
-            <a href="?page=eipsi-configuration&tab=smtp"
+                🗄️ <?php echo esc_html(eipsi_admin_translate('Database & Storage')); ?> <?php echo \EIPSI\Setup\SetupAdmin::warningIcon('database',$pending_configuration); ?>
+            </a><?php endif; ?>
+            <?php if(isset($permitted_tabs['smtp'])): ?><a href="?page=eipsi-configuration&tab=smtp"
                class="nav-tab <?php echo esc_attr(($active_tab === 'smtp') ? 'nav-tab-active' : ''); ?>">
                 📧 <?php echo 'SMTP'; ?>
-                <?php if (!$smtp_configured_for_tab): ?>
-                <span class="dashicons dashicons-warning" style="color: #f0b849; font-size: 14px; margin-left: 5px; vertical-align: middle;" title="<?php echo esc_attr(eipsi_admin_translate('SMTP not configured')); ?>"></span>
-                <?php endif; ?>
-            </a>
-            <a href="?page=eipsi-configuration&tab=privacy-security"
+                <?php echo \EIPSI\Setup\SetupAdmin::warningIcon('smtp',$pending_configuration); ?>
+            </a><?php endif; ?>
+            <?php if(isset($permitted_tabs['privacy-security'])): ?><a href="?page=eipsi-configuration&tab=privacy-security"
                class="nav-tab <?php echo esc_attr(($active_tab === 'privacy-security') ? 'nav-tab-active' : ''); ?>">
                 🔒 <?php echo esc_html(eipsi_admin_translate('Privacy & Security')); ?>
-            </a>
-            <a href="?page=eipsi-configuration&tab=schema-status"
+            </a><?php endif; ?>
+            <?php if(isset($permitted_tabs['schema-status'])): ?><a href="?page=eipsi-configuration&tab=schema-status"
                class="nav-tab <?php echo esc_attr(($active_tab === 'schema-status') ? 'nav-tab-active' : ''); ?>">
                 💾 <?php echo esc_html(eipsi_admin_translate('Schema Status')); ?>
-            </a>
-            <a href="?page=eipsi-configuration&amp;tab=external-api" class="nav-tab <?php echo esc_attr($active_tab === 'external-api' ? 'nav-tab-active' : ''); ?>">🔌 <?php echo esc_html(eipsi_admin_translate('External API')); ?></a>
-            <a href="?page=eipsi-configuration&amp;tab=scheduler" class="nav-tab <?php echo esc_attr($active_tab === 'scheduler' ? 'nav-tab-active' : ''); ?>">🕒 <?php echo esc_html(eipsi_admin_translate('Scheduler')); ?></a>
-            <a href="?page=eipsi-configuration&amp;tab=fallback-messages" class="nav-tab <?php echo esc_attr($active_tab === 'fallback-messages' ? 'nav-tab-active' : ''); ?>">💬 <?php echo esc_html(eipsi_admin_translate('Fallback messages')); ?></a>
+            </a><?php endif; ?>
+            <?php if(isset($permitted_tabs['external-api'])): ?><a href="?page=eipsi-configuration&amp;tab=external-api" class="nav-tab <?php echo esc_attr($active_tab === 'external-api' ? 'nav-tab-active' : ''); ?>">🔌 <?php echo esc_html(eipsi_admin_translate('External API')); ?></a><?php endif; ?>
+            <?php if(isset($permitted_tabs['scheduler'])): ?><a href="?page=eipsi-configuration&amp;tab=scheduler" class="nav-tab <?php echo esc_attr($active_tab === 'scheduler' ? 'nav-tab-active' : ''); ?>">🕒 <?php echo esc_html(eipsi_admin_translate('Scheduler')); ?></a><?php endif; ?>
+            <?php if(isset($permitted_tabs['fallback-messages'])): ?><a href="?page=eipsi-configuration&amp;tab=fallback-messages" class="nav-tab <?php echo esc_attr($active_tab === 'fallback-messages' ? 'nav-tab-active' : ''); ?>">💬 <?php echo esc_html(eipsi_admin_translate('Fallback messages')); ?></a><?php endif; ?>
         </h2>
+
+        <?php if($active_tab!=='setup')\EIPSI\Setup\SetupAdmin::configurationNotices($active_tab,$pending_configuration); ?>
+
+        <?php if ($active_tab === 'setup') { \EIPSI\Setup\SetupAdmin::render(); } ?>
 
         <?php if ($active_tab === 'fallback-messages'): ?>
         <section class="eipsi-backup-messages">
@@ -329,10 +328,10 @@ function eipsi_display_configuration_page() {
                                 <span class="dashicons dashicons-chart-pie" style="font-size: 16px; vertical-align: middle;"></span>
                                 <?php echo esc_html(eipsi_admin_translate('EIPSI data summary')); ?>
                             </h4>
-                            <a href="?page=eipsi-configuration&tab=schema-status" class="button button-small" style="display: inline-flex; align-items: center; gap: 4px;">
+                            <?php if(isset($permitted_tabs['schema-status'])): ?><a href="?page=eipsi-configuration&tab=schema-status" class="button button-small" style="display: inline-flex; align-items: center; gap: 4px;">
                                 <span class="dashicons dashicons-external" style="font-size: 14px;"></span>
                                 <?php echo esc_html(eipsi_admin_translate('Full analysis')); ?>
-                            </a>
+                            </a><?php endif; ?>
                         </div>
 
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
@@ -713,6 +712,7 @@ function eipsi_display_configuration_page() {
         <?php endif; ?>
 
         <?php if ($active_tab === 'privacy-security'): ?>
+
             <div class="eipsi-config-container" style="margin-top: 30px;">
                 <?php
                 require_once EIPSI_FORMS_PLUGIN_DIR . 'admin/privacy-dashboard.php';

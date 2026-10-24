@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "eipsi_get_default_menu_capabilities": {
+      "before_sha256": "aba29b35bc8266b20bbfd975fb2421d5d8047b216db59dc524e357fb33a21858",
+      "after_sha256": "2a5ab77c7755c58210d0e47132bad6d679703a8816befeedab5c15a4da1901ef",
+      "reason": "Native menu capabilities; retired mixed longitudinal helper restricted to schema administrators so Researcher cannot bypass identity separation."
+    },
+    "eipsi_smtp_configuration_notice": {
+      "before_sha256": "8ca1ce59eb438a9827e027c57c106c38a5f4a4eb120b160d3a2617f1be8234ad",
+      "after_sha256": "867324f7402a18c65f06e0998afe4e18899b07f6725612deae6d13faee050281",
+      "reason": "SMTP notice belongs to the email transport administrator, including EIPSI Administrator."
+    }
+  }
+}

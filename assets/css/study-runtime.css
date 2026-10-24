@@ -24,8 +24,10 @@
 .eipsi-study input[type=checkbox],.eipsi-study input[type=radio]{width:auto;max-width:none;padding:0}
 
 .eipsi-email-change{max-width:min(520px,calc(100vw - 40px));padding:24px;border:1px solid #cbd5e1;border-radius:12px;color:#243247;background:#fff;box-shadow:0 16px 48px #0003}
-.eipsi-email-change::backdrop{background:#18243866}
-.eipsi-email-change button{margin:8px 12px 0 0;width:auto}
+.eipsi-email-change::backdrop{background:rgba(0,0,0,.45)}
+.eipsi-email-change button{margin:8px 12px 0 0;width:auto;min-height:44px;padding:.7rem 1rem;font:inherit;cursor:pointer;background:#fff;color:#263241;border:1px solid #cbd4df;border-radius:6px}
+.eipsi-email-change button:hover{background:#edf4fc;border-color:#2865b2;filter:brightness(.96)}
+.eipsi-email-change button:focus-visible{outline:3px solid #005fcc;outline-offset:3px}
 
 .eipsi-study .eipsi-availability-notice{color:#9d1515;border:1px solid #e5b1b1;background:#fff2f2;margin:0 0 1rem;padding:.75rem 1rem}
 
@@ -59,3 +61,10 @@
 /* The embedded assessment supplies its own surface and spacing. */
 .eipsi-study:has(> .eipsi-native-assessment-frame){padding:0;background:transparent;border:0;box-shadow:none}
 .eipsi-study > .eipsi-native-assessment-frame{display:block}
+
+.eipsi-study.eipsi-assessment-completion{background:transparent;padding:0}
+.eipsi-assessment-completion-card{background:#fff;padding:1rem}
+
+.eipsi-study .eipsi-portal-notice,#eipsi-study-builder .eipsi-study .eipsi-portal-notice{position:relative;padding-right:36px}
+.eipsi-study button.eipsi-notice-close,#eipsi-study-builder .eipsi-study button.eipsi-notice-close{position:absolute;top:0;right:3px;display:flex;align-items:center;justify-content:center;width:28px;min-height:28px;padding:0;border:0;background:transparent;color:inherit;font-size:20px;line-height:1;cursor:pointer;opacity:.75}
+.eipsi-study button.eipsi-notice-close:hover,#eipsi-study-builder .eipsi-study button.eipsi-notice-close:hover{background:transparent;color:inherit;opacity:1}

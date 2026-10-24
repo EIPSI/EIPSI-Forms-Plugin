@@ -32,6 +32,7 @@ final class EIPSI_Lifecycle {
 
     public static function activate() {
         global $wpdb;
+        EIPSI_Admin_Authorization_Policy::upgrade();
 
         EIPSI_Cron_Registry::schedule_activation();
 
@@ -42,6 +43,9 @@ final class EIPSI_Lifecycle {
             if (!$result['success']) { throw new RuntimeException('Schema installation failed: '.wp_json_encode($result)); }
             if (!$had_tables) { update_option('eipsi_migration_version', EIPSI_Schema_Migration_Runner::LATEST_VERSION); }
         }
+
+        require_once EIPSI_FORMS_PLUGIN_DIR.'includes/assessment-editor/runtime/Store.php';
+        (new \EIPSI\AssessmentEditor\Runtime\Store())->install();
 
         // Log activation
         error_log('[EIPSI Forms] Plugin activated - Schema synchronized');

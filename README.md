@@ -54,10 +54,13 @@ The [compatibility guide](docs/compatibility.md) explains the scope and limits o
 
 1. Obtain the **installation ZIP** from the project maintainer.
 2. In WordPress, open **Plugins → Add New → Upload Plugin**, select the ZIP and install it.
-3. Activate EIPSI Forms, then open **EIPSI Forms → Configuration**.
-4. Review the setup essentials below before enrolling participants.
+3. Activate EIPSI Forms, then open **EIPSI Forms → Configuration → Setup**.
+4. Generate the server keys after confirming the backup requirement.
+5. Review Database, Scheduler, Email and Privacy settings, then create and test a Study.
 
 Use a prepared installation package: **GitHub → Code → Download ZIP is a source archive and does not include all required files**. See the [installation guide](docs/installation.md) for details.
+
+Use [Setup Center](docs/setup-center.md) for normal WordPress installation. It provisions server keys without PHP editing and shows operational readiness. Back up the database together with the original WordPress keys/salts. Existing server-managed constants/environment remain supported in the [advanced keyrings guide](docs/study-engine/server-keyrings.md).
 
 Installing the plugin does not transfer studies, responses or settings from another WordPress installation.
 
@@ -71,6 +74,10 @@ Open **EIPSI Forms → Configuration** and review these essentials before collec
 - **Scheduler:** configure WP-Cron or an external scheduler and verify that it is running. This is essential for longitudinal studies: timed evaluations and notifications depend on it.
 - **Privacy:** decide which identifying data and optional metadata to collect before recruitment.
 - **Readiness:** review Schema Status, the study's time zone/timing and validation results. Try the simulation and real public link with disposable data.
+
+**Team access:** assign EIPSI Administrator, Researcher, Data Manager or Viewer in WordPress Users. Existing WordPress administrators retain full access. See [permissions and roles](docs/permissions-and-roles.md).
+
+Configuration warnings collect pending Setup, database and SMTP settings in one notice. Inside Configuration, the corresponding tabs show specific warnings and yellow indicators. Key diagnostics are in Setup; Privacy & Security contains the metadata policy.
 
 The external API is optional. See the [configuration guide](docs/user-guide/configuration.md) for each setting.
 
