@@ -3,7 +3,7 @@ namespace EIPSI\Scheduler;
 
 final class Admin {
     public static function dispatch(array $payload): array {
-        if(!current_user_can('manage_options'))throw new \RuntimeException(eipsi_admin_translate('You do not have permission to manage scheduled tasks.'),403);
+        if(!\EIPSI_Admin_Authorization_Policy::allows('scheduler.manage'))throw new \RuntimeException(eipsi_admin_translate('You do not have permission to manage scheduled tasks.'),403);
         \EIPSI_Http_Policy::post(admin_url());
         if(!isset($payload['nonce'])||!is_string($payload['nonce'])||!wp_verify_nonce($payload['nonce'],'eipsi_scheduler'))
             throw new \RuntimeException(eipsi_admin_translate('Authorization expired. Reload the page.'),403);
@@ -48,7 +48,7 @@ final class Admin {
         return $text;
     }
     public static function render(): void {
-        if(!current_user_can('manage_options'))return;
+        if(!\EIPSI_Admin_Authorization_Policy::allows('scheduler.manage'))return;
         nocache_headers();$d=Diagnostics::inspect();$config=Config::inspect();
         $managed=!is_multisite()&&$config['writable']&&in_array($config['ownership'],array('absent','eipsi'),true);
         if(($config['ownership']==='absent'&&defined('DISABLE_WP_CRON'))||($config['ownership']==='eipsi'&&(!defined('DISABLE_WP_CRON')||$config['value']!==(bool)DISABLE_WP_CRON)))$managed=false;

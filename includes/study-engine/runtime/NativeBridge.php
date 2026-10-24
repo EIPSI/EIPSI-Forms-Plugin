@@ -1,5 +1,6 @@
 <?php
 namespace EIPSI\StudyEngine\Runtime;
+require_once dirname(__DIR__).'/configuration/KeyringResolver.php';
 use EIPSI\StudyEngine\Persistence as P;
 use EIPSI\AssessmentEditor\Runtime as N;
 require_once dirname(__DIR__,2).'/assessment-editor/runtime/Owner.php';
@@ -29,14 +30,15 @@ final class NativeBridge {
         \EIPSI\StudyEngine\Contracts\Check::id($id,'native_completion');$owner=new N\Owner();$row=$owner->store->find('executions',$id);$binding=$row?json_decode($row['binding_json'],true):array();
         if(($binding['execution_id']??null)!==$frame['access']['execution_id']||($binding['participant_id']??null)!==$frame['access']['participant_id']||($binding['public_id']??null)!==$frame['study']['public_id']||($row['state']??null)!=='COMPLETED')return $frame;
         $state=\EIPSI\StudyEngine\Longitudinal\EmailConfirmation::read($owner->store->db,$frame['access']['execution_id']);
+        if(isset($frame['email_confirmation'])&&($state['state']??null)!=='CONFIRMED'){$frame['completion_native_id']=$id;return $frame;}
         if(!in_array($state['state']??null,array('PENDING','CONFIRMED'),true))return $frame;
-        $native=N\EffectiveAssessmentProjection::frame($owner->view($id));$c=$native['definition']['flow']['completion'];if(!empty($native['allow_study_repeat'])&&$c['button_label']!=='')$frame['assessment_completion_native_url']=add_query_arg('eipsi_native',$id,home_url('/'));$frame['assessment_completion_html']=($c['title']!==''?'<h2>'.esc_html($c['title']).'</h2>':'').\EIPSI\StudyEngine\Longitudinal\InitialScreen::html($c['message_html']).($c['image_url']!==''?'<img src="'.esc_url($c['image_url']).'" alt="">':'');return $frame;
+        $native=N\EffectiveAssessmentProjection::frame($owner->view($id));$c=$native['definition']['flow']['completion'];$frame['assessment_completion_html']=($c['title']!==''?'<h2>'.esc_html($c['title']).'</h2>':'').\EIPSI\StudyEngine\Longitudinal\InitialScreen::html($c['message_html']).($c['image_url']!==''?'<img src="'.esc_url($c['image_url']).'" alt="">':'');return $frame;
     }
     public static function progress(string $native): void {self::complete($native,true);}
     public static function complete(string $native,bool $startOnly=false): void {
         $store=new N\Store();$row=$store->find('executions',$native);if(!$row||($startOnly?($row['state']!=='ACTIVE'||$row['partial_json']===null):$row['state']!=='COMPLETED'))return;
         $binding=json_decode($row['binding_json'],true);if(!isset($binding['block_execution_id']))return;
-        $config=defined('EIPSI_STUDY_ENGINE_KEYRING')?EIPSI_STUDY_ENGINE_KEYRING:getenv('EIPSI_STUDY_ENGINE_KEYRING');if(is_string($config))$config=json_decode($config,true);if(!is_array($config)||!isset($config['keys'],$config['current'])||!is_array($config['keys']))throw new P\IntegrityFailure('SEED_KEYRING_UNAVAILABLE');$keys=array();foreach($config['keys'] as $id=>$hex){if(!is_string($hex)||strlen($hex)!==64||!ctype_xdigit($hex))throw new P\IntegrityFailure('SEED_KEYRING_UNAVAILABLE');$keys[$id]=hex2bin($hex);}
+        $config=\EIPSI\StudyEngine\Configuration\KeyringResolver::binary('seed',true);$keys=$config['keys'];
         $guard=new class($binding) extends P\TransitionObserver {private $binding;public function __construct(array $binding){$this->binding=$binding;}public function reached(string $point): void {if(in_array($point,array('read_authorization','before_receipt','before_commit'),true))N\Authorization::check(new N\Store(),$this->binding);}};
         $owner=new \EIPSI\StudyEngine\Orchestration\ExecutionOwner($store->db,new P\SeedVault($keys,$config['current']),$guard);
         $view=$owner->view($binding['execution_id']);$block=$view['snapshot']['instances'][$binding['block_execution_id']]??null;if(!$block||$block['state']==='COMPLETED'||($startOnly&&$block['state']==='IN_PROGRESS'))return;

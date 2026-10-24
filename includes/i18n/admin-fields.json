@@ -192,5 +192,7 @@
   "admin_error_Falta el orden de opciones de la ejecución.": "Missing execution option order.",
   "admin_error_Identidad de opción inválida.": "Invalid option identity.",
   "admin_error_pattern_Mostrar N requiere entre 1 y %s candidatos; Mostrar siempre se agrega aparte.": "Show N requires between 1 and %s candidates; Always show is added separately.",
-  "admin_error_pattern_Mostrar N requiere entre 1 y %s elementos aleatorios; los fijos se agregan aparte.": "Show N requires between 1 and %s random items; fixed items are added separately."
+  "admin_error_pattern_Mostrar N requiere entre 1 y %s elementos aleatorios; los fijos se agregan aparte.": "Show N requires between 1 and %s random items; fixed items are added separately.",
+  "admin_error_BUILDER_FORBIDDEN": "Forbidden",
+  "notice_close_label": "Accessible label for dismissing notices"
 }

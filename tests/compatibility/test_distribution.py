@@ -32,6 +32,12 @@ class DistributionTests(unittest.TestCase):
                 names = archive.namelist()
                 self.assertIn('EIPSI-Forms-Plugin/build/blocks/form-container/index.asset.php', names)
                 self.assertIn('EIPSI-Forms-Plugin/includes/i18n/content-defaults.json', names)
+                self.assertIn('EIPSI-Forms-Plugin/scripts/generate-eipsi-keyrings.php', names)
+                self.assertIn('EIPSI-Forms-Plugin/docs/study-engine/server-keyrings.md', names)
+                self.assertIn('EIPSI-Forms-Plugin/docs/setup-center.md', names)
+                self.assertIn('EIPSI-Forms-Plugin/includes/setup/SetupAdmin.php', names)
+                self.assertIn('EIPSI-Forms-Plugin/includes/study-engine/configuration/SecretStore.php', names)
+                self.assertFalse(any(Path(name).name.startswith(('eipsi-server-keyrings', 'wp-config', '.env')) for name in names))
                 self.assertTrue(any('/examples/' in name for name in names))
                 self.assertEqual([name for name in names if '/exports/' in name], ['EIPSI-Forms-Plugin/exports/.htaccess', 'EIPSI-Forms-Plugin/exports/index.php'])
                 self.assertFalse(any('/tests/' in name or '/node_modules/' in name or '/.git/' in name or '/.cache/' in name or name.endswith('.log') for name in names))
@@ -43,3 +49,17 @@ class DistributionTests(unittest.TestCase):
             (path/'eipsi-forms.php').write_text(' * Version: 1.0.0\n')
             with self.assertRaisesRegex(ValueError, 'Missing block build'):
                 packager.package(path, path/'plugin.zip')
+
+    def test_private_keyring_output_in_runtime_directory_is_rejected(self):
+        private = ROOT / 'includes/eipsi-server-keyrings-packaging-test.php'
+        with tempfile.TemporaryDirectory() as directory:
+            created = False
+            try:
+                with private.open('x') as output:
+                    created = True
+                    output.write('<?php // Fake packaging sentinel, no secret.\n')
+                with self.assertRaisesRegex(ValueError, 'Private server configuration'):
+                    packager.package(ROOT, Path(directory) / 'plugin.zip')
+            finally:
+                if created:
+                    private.unlink(missing_ok=True)

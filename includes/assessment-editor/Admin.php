@@ -2,24 +2,25 @@
 namespace EIPSI\AssessmentEditor;
 final class Admin {
     public static function assets(): void {
-        if (!current_user_can('manage_options') || ($_GET['page'] ?? '') !== 'eipsi-assessment-editor') return;
+        if (!\EIPSI_Admin_Authorization_Policy::allows('assessments.view') || ($_GET['page'] ?? '') !== 'eipsi-assessment-editor') return;
         $base=EIPSI_FORMS_PLUGIN_URL;
         wp_enqueue_media();
         wp_enqueue_editor();
         wp_enqueue_style('eipsi-native-assessment-editor',$base.'assets/css/assessment-editor.css',array(),(string)filemtime(EIPSI_FORMS_PLUGIN_DIR.'assets/css/assessment-editor.css'));
         wp_enqueue_script('eipsi-native-assessment-editor',$base.'assets/js/assessment-editor.js',array('media-editor','eipsi-admin-i18n'),(string)filemtime(EIPSI_FORMS_PLUGIN_DIR.'assets/js/assessment-editor.js'),true);
-        wp_add_inline_script('eipsi-native-assessment-editor','window.eipsiAssessmentEditorConfig='.wp_json_encode(array('url'=>admin_url('admin-ajax.php'),'nonce'=>wp_create_nonce('eipsi_native_assessment'),'metadata_policy'=>\EIPSI\Dataset\EffectiveMetadataPolicy::resolve('detailed'))).';','before');
+        wp_add_inline_script('eipsi-native-assessment-editor','window.eipsiAssessmentEditorConfig='.wp_json_encode(array('url'=>admin_url('admin-ajax.php'),'nonce'=>wp_create_nonce('eipsi_native_assessment'),'permissions'=>\EIPSI_Admin_Authorization_Policy::client(),'metadata_policy'=>\EIPSI\Dataset\EffectiveMetadataPolicy::resolve('detailed'))).';','before');
     }
     public static function screen(): void {
-        if(!current_user_can('manage_options')) wp_die('Forbidden',403);
-        echo '<div class="wrap ae-root" id="eipsi-assessment-editor" lang="'.esc_attr(eipsi_admin_language()).'"><p>'.esc_html(eipsi_admin_translate('Loading Assessment Editor…')).'</p></div>';
+        if(!\EIPSI_Admin_Authorization_Policy::allows('assessments.view')) wp_die(eipsi_admin_translate('Unauthorized'),'',array('response'=>403));
+        echo '<div class="wrap eipsi-assessment-editor-page" lang="'.esc_attr(eipsi_admin_language()).'"><h1 class="screen-reader-text">'.esc_html(eipsi_admin_translate('Assessment Editor')).'</h1><div class="ae-root" id="eipsi-assessment-editor"><p>'.esc_html(eipsi_admin_translate('Loading Assessment Editor…')).'</p></div></div>';
     }
     public static function ajax(): void {
         try {
             \EIPSI_Http_Policy::post(admin_url());
-            if(!current_user_can('manage_options')) throw new \RuntimeException('Forbidden',403);
+            if(!\EIPSI_Admin_Authorization_Policy::allows('assessments.view')) throw new \RuntimeException('Forbidden',403);
             if(!check_ajax_referer('eipsi_native_assessment','nonce',false)) throw new \RuntimeException('Sesión vencida. Recargá la página.',403);
             $operation=isset($_POST['operation'])&&is_string($_POST['operation'])?$_POST['operation']:'';
+            \EIPSI_Admin_Authorization_Policy::demand(\EIPSI_Admin_Authorization_Policy::assessmentOperation($operation));
             switch($operation) {
                 case 'import_question':
                     require_once __DIR__.'/Portable.php';if(!isset($_POST['document'])||!is_string($_POST['document']))Definition::fail('Archivo inválido.');$result=Portable::importQuestion(wp_unslash($_POST['document']));break;

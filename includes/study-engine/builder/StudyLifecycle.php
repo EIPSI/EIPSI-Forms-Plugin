@@ -18,7 +18,7 @@ trait StudyLifecycle {
         return array('lifecycle'=>$this->lifecycle($study),'participants'=>(int)$counts['current_participants'],'assessments_in_progress'=>$assessments);
     }
     public function changeStudyState(string $id,int $revision,string $action,bool $erase,string $request): array {
-        self::authorize();C\Check::id($request,'request_id');
+        self::authorize('studies.publish');C\Check::id($request,'request_id');
         if(!in_array($action,array('ACTIVE','PAUSED','FINALIZED','REOPEN'),true))throw new \DomainException('INVALID_STUDY_STATE');
         $hash=hash('sha256',C\Canonical::json(array($action,$erase)));
         $study=$this->row($id)['study_id'];\EIPSI\StudyEngine\Runtime\PublicStudyRepository::deliveryLock($this->db,$study,function()use($id,$revision,$action,$erase,$request,$hash){return $this->db->transactional(function()use($id,$revision,$action,$erase,$request,$hash){

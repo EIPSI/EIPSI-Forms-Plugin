@@ -19,7 +19,7 @@ final class PublicStudyRepository {
         return $this->activateOwned($version,$state,$allowRestart,null,null);
     }
     public function activateFromBuilder(string $version,int $revision,string $state,int $actor): string {
-        if(!current_user_can('manage_options'))throw new \DomainException('BUILDER_FORBIDDEN');
+        if(!\EIPSI_Admin_Authorization_Policy::allows('studies.publish'))throw new \DomainException('BUILDER_FORBIDDEN');
         if(!in_array($state,array('OPEN','PAUSED','CLOSED'),true))throw new \DomainException('INVALID_ENROLLMENT_STATE');
         return $this->activateOwned($version,$state,false,$revision,$actor);
     }

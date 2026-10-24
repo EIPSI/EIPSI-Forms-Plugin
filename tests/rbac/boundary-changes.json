@@ -1,0 +1,7 @@
+{
+  "admin/privacy-config.php": {
+    "before_sha256": "e0493899e522446206e9a44be1789f589cc0cc537c77b5ebefd89d8357f6f4a1",
+    "after_sha256": "cd6f56946a997ab75ff9a83588ea2ec1827c1aa59b7058b55d1bde8242178d73",
+    "reason": "RBAC dedicated privacy authorization; no data capture changes."
+  }
+}

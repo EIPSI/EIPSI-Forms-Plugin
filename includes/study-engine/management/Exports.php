@@ -18,6 +18,13 @@ final class Exports {
     }
     private $q;private $observer;
     public function __construct(Query $q,?P\TransitionObserver $observer=null){$this->q=$q;$this->observer=$observer;}
+    private static function authorizeSpec(array $spec): void {
+        \EIPSI_Admin_Authorization_Policy::demand('data.export');
+        $kind=$spec['kind']??'';$annexes=$spec['filters']['annexes']??array();
+        if($kind==='identities'||in_array('identities',$annexes,true))\EIPSI_Admin_Authorization_Policy::demand('identities.view');
+        if($kind==='audit'||in_array('audit',$annexes,true))\EIPSI_Admin_Authorization_Policy::demand('audit.view');
+        if(in_array($kind,array('responses','canonical','dictionary','randomizations'),true))\EIPSI_Admin_Authorization_Policy::demand('responses.view');
+    }
     private function fingerprints(array $executions): array {
         if(!$executions)return array();$db=$this->q->db;$ids=implode(',',array_map(function($e)use($db){return $db->prepare('%s',$e['id']);},$executions));$native=array();
         if($this->q->nativeExists())foreach($db->rows('SELECT id,management_execution,revision,state,SHA2(COALESCE(metadata_json,\'\'),256) AS metadata_hash,SHA2(binding_json,256) AS binding_hash,SHA2(COALESCE(final_json,\'\'),256) AS final_hash,SHA2(COALESCE(partial_json,\'\'),256) AS partial_hash FROM '.$db->table('native_executions').' WHERE management_execution IN ('.$ids.') ORDER BY id') as $row){$execution=$row['management_execution'];unset($row['management_execution']);$native[$execution][]=$row;}
@@ -27,7 +34,7 @@ final class Exports {
     private function fingerprint(array $e): string {return $this->fingerprints(array($e))[$e['id']];}
     public function create(array $f,string $kind,string $request): array {
         $f=Query::filters($f);unset($f['cursor'],$f['limit'],$f['science_before'],$f['decision_after'],$f['identity']);if(!in_array($kind,array('responses','progress','dictionary','audit','identities','randomizations','canonical'),true))throw new \DomainException('MANAGEMENT_EXPORT_KIND_INVALID');\EIPSI\StudyEngine\Contracts\Check::id($request,'request');
-        $spec=array('filters'=>$f,'kind'=>$kind);$db=$this->q->db;$study=$this->q->study;
+        $spec=array('filters'=>$f,'kind'=>$kind);self::authorizeSpec($spec);$db=$this->q->db;$study=$this->q->study;
         return $db->transactional(function()use($db,$study,$spec,$f,$request){
             $old=$db->row($db->prepare('SELECT * FROM '.$db->table('management_exports').' WHERE actor_id=%d AND request_id=%s FOR UPDATE',get_current_user_id(),$request));if($old){if($old['study_id']!==$study||Canonical::json(array_diff_key(P\Database::json($old['spec_json']),array('cutoff_event'=>true,'cutoff_at'=>true)))!==Canonical::json($spec))throw new P\PersistenceConflict('EXPORT_REQUEST_REUSED');return $this->status($old);}
             $executions=$db->rows('SELECT e.id,e.participant_id,e.revision,e.checkpoint_hash,e.data_policy,e.finalized_at FROM '.$db->table('study_executions').' e WHERE '.$this->q->scope($f,$spec['kind']!=='audit').' ORDER BY e.id');$plan=array();$hashes=$this->fingerprints($executions);foreach($executions as $e)$plan[]=array('id'=>$e['id'],'hash'=>$hashes[$e['id']]);
@@ -35,9 +42,9 @@ final class Exports {
             Audit::record($study,'EXPORT_REQUESTED',null,$id,array('kind'=>$spec['kind'],'count'=>count($plan),'request_id'=>$request));return $this->status($this->row($id));
         });
     }
-    private function row(string $id,bool $lock=false): array {\EIPSI\StudyEngine\Contracts\Check::id($id,'export');$r=$this->q->db->row($this->q->db->prepare('SELECT * FROM '.$this->q->db->table('management_exports').' WHERE id=%s AND study_id=%s AND actor_id=%d'.($lock?' FOR UPDATE':''),$id,$this->q->study,get_current_user_id()));if(!$r)throw new \DomainException('MANAGEMENT_EXPORT_NOT_FOUND');return $r;}
+    private function row(string $id,bool $lock=false): array {\EIPSI\StudyEngine\Contracts\Check::id($id,'export');$r=$this->q->db->row($this->q->db->prepare('SELECT * FROM '.$this->q->db->table('management_exports').' WHERE id=%s AND study_id=%s AND actor_id=%d'.($lock?' FOR UPDATE':''),$id,$this->q->study,get_current_user_id()));if(!$r)throw new \DomainException('MANAGEMENT_EXPORT_NOT_FOUND');self::authorizeSpec(P\Database::json($r['spec_json']));return $r;}
     private function status(array $r): array {return array('id'=>$r['id'],'state'=>$r['expires_at']<gmdate('Y-m-d H:i:s')?'EXPIRED':$r['state'],'created_at'=>$r['created_at'],'expires_at'=>$r['expires_at'],'processed'=>(int)$r['cursor_position'],'total'=>count(P\Database::json($r['plan_json'])),'error'=>$r['error_code'],'manifest'=>$r['manifest_json']===null?null:P\Database::json($r['manifest_json']));}
-    public function jobs(): array {$rows=$this->q->db->rows($this->q->db->prepare('SELECT id,study_id,actor_id,state,created_at,expires_at,cursor_position,plan_json,manifest_json,error_code FROM '.$this->q->db->table('management_exports').' WHERE study_id=%s AND actor_id=%d ORDER BY created_at DESC LIMIT 20',$this->q->study,get_current_user_id()));return array_map(function($r){return $this->status($r);},$rows);}
+    public function jobs(): array {\EIPSI_Admin_Authorization_Policy::demand('data.export');$rows=$this->q->db->rows($this->q->db->prepare('SELECT id,study_id,actor_id,state,created_at,expires_at,cursor_position,plan_json,manifest_json,error_code FROM '.$this->q->db->table('management_exports').' WHERE study_id=%s AND actor_id=%d ORDER BY created_at DESC LIMIT 20',$this->q->study,get_current_user_id()));return array_map(function($r){return $this->status($r);},$rows);}
     private function valid(array $plan): bool {if(!$plan)return true;$db=$this->q->db;$ids=implode(',',array_map(function($p)use($db){return $db->prepare('%s',$p['id']);},$plan));$executions=$db->rows('SELECT e.id,e.participant_id,e.revision,e.checkpoint_hash,e.data_policy,e.finalized_at FROM '.$db->table('study_executions').' e WHERE '.$db->prepare('e.study_id=%s',$this->q->study).' AND e.id IN ('.$ids.')');if(count($executions)!==count($plan))return false;$hashes=$this->fingerprints($executions);foreach($plan as $p)if(!isset($hashes[$p['id']])||!hash_equals($p['hash'],$hashes[$p['id']]))return false;return true;}
     private function lockPlan(array $plan): void {if(!$plan)return;$db=$this->q->db;$ids=implode(',',array_map(function($p)use($db){return $db->prepare('%s',$p['id']);},$plan));$db->rows('SELECT e.id FROM '.$db->table('study_executions').' e WHERE '.$db->prepare('e.study_id=%s',$this->q->study).' AND e.id IN ('.$ids.') ORDER BY e.id FOR UPDATE');}
     public function step(string $id): array {

@@ -34,7 +34,7 @@ final class PrivateMedia {
         nocache_headers();header('Referrer-Policy: no-referrer');header('X-Content-Type-Options: nosniff');header('X-Robots-Tag: noindex, nofollow');
         try{$key=$_GET['eipsi_native_asset']??null;if(!is_string($key))throw new \RuntimeException('Media unavailable',404);
             // Author previews are a distinct, authenticated administrative context.
-            if(isset($_GET['execution'])||!current_user_can('manage_options')){
+            if(isset($_GET['execution'])||!\EIPSI_Admin_Authorization_Policy::allows('assessments.view')){
                 $execution=$_GET['execution']??null;$expires=$_GET['expires']??null;$signature=$_GET['signature']??null;
                 if(!is_string($execution)||!is_string($expires)||!ctype_digit($expires)||(int)$expires<time()||(int)$expires>time()+900||!is_string($signature)||!hash_equals(hash_hmac('sha256',$execution.'|'.$key.'|'.$expires,wp_salt('auth')),$signature))throw new \RuntimeException('Media unavailable',404);
                 $f=EffectiveAssessmentProjection::frame((new Owner())->view($execution));if(!self::contains($f['definition'],$key))throw new \RuntimeException('Media unavailable',404);

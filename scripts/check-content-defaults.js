@@ -9,8 +9,8 @@ function check(override=null){
   else assert.equal(en,es,at+' technical value');
  }
  for(const language of ['en','es']){assert.deepEqual(c[language].flow.messages,c[language].flow_messages);assert.deepEqual(c[language].initial.templates,c[language].emails);}
- walk(c.en,c.es);assert.equal(Object.keys(c.en.question_defaults).length,13);assert.equal(Object.keys(c.en.public_messages).length,42);assert.equal(Object.keys(c.en.emails).length,3);
+ walk(c.en,c.es);assert.equal(Object.keys(c.en.question_defaults).length,13);assert.equal(Object.keys(c.en.public_messages).length,43);assert.equal(Object.keys(c.en.emails).length,3);
  const generated='/* Generated from includes/i18n/content-defaults.json. */\nglobalThis.EIPSIContentCatalog='+fs.readFileSync(path.join(base,'includes/i18n/content-defaults.json'),'utf8').trim()+';\n';assert.equal(fs.readFileSync(path.join(base,'src/admin/i18n/content-catalog.js'),'utf8'),generated,'Content catalogue stale');
  for(const row of JSON.parse(fs.readFileSync(path.join(base,'includes/study-engine/runtime/public-messages.json'))))if(!row.retired)for(const language of ['en','es'])assert.equal(row.defaults[language],c[language].public_messages[row.key]);
 }
-module.exports={check};if(require.main===module){check();console.log('Content defaults: parity, tokens, types, HTML, 13 questions, 42 messages, 3 emails PASS');}
+module.exports={check};if(require.main===module){check();console.log('Content defaults: parity, tokens, types, HTML, 13 questions, 43 messages, 3 emails PASS');}

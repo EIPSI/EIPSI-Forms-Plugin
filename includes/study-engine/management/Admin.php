@@ -2,7 +2,7 @@
 namespace EIPSI\StudyEngine\Management;
 final class Admin {
     public static function handle(array $p): array {
-        if(!current_user_can('manage_options'))throw new \DomainException('BUILDER_FORBIDDEN');
+        \EIPSI_Admin_Authorization_Policy::demand(\EIPSI_Admin_Authorization_Policy::managementOperation($p));
         if(($p['operation']??null)==='manage'){global $wpdb;$db=new \EIPSI\StudyEngine\Persistence\Database($wpdb);$db->query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');return $db->transactional(function()use($p){return self::dispatch($p);});}
         if(in_array($p['operation']??null,array('manage_export','manage_export_download'),true))\EIPSI_Rate_Limiter::consume('management.'.($p['operation']??''),'user:'.get_current_user_id(),$p['operation']==='manage_export'?20:60,$p['operation']==='manage_export'?3600:60);
         return self::dispatch($p);

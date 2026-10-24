@@ -119,7 +119,7 @@
     const message = key => frame.definition.flow.messages?.[key] ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(frame.definition))[key];
     const expiredNotice=()=>message(frame.previous_partial_saved?'expired_saved':'expired');
     async function send(payload, keepalive = false, quiet = false) {
-      if (busy) return false;
+      if (busy || (frame.state === "COMPLETED" && payload.action !== "view" && payload.action !== "discard")) return false;
       busy = true; pending = payload;
       if(quiet && payload.action==='logic')queuedLogic=false;
       let okay = false, resetSession = false, transitioned = false, logicChanged = false;
@@ -129,12 +129,18 @@
       if (!quiet) { status.textContent = message("processing"); render(); }
       try {
         frame = await api(payload, keepalive);
-        if (root.history?.replaceState && root.location?.href) {
-          const url = new URL(root.location.href);
-          url.searchParams.set("eipsi_native", frame.execution_id);
-          root.history.replaceState(null, "", url);
-        }
         pending = null;
+        if (frame.state === "COMPLETED" || frame.logical_exit) {
+          root.clearTimeout(logicTimer); queuedLogic = false; queuedMove = null;
+        }
+        // URL bookkeeping cannot invalidate an acknowledged response or trigger a retry.
+        try {
+          const url = new URL(root.location.href);
+          if (url.searchParams.get("eipsi_native") !== frame.execution_id) {
+            url.searchParams.set("eipsi_native", frame.execution_id);
+            root.history?.replaceState(null, "", url);
+          }
+        } catch (_) { /* Some embedded/browser contexts restrict History API writes. */ }
         transitioned = previousExecution !== frame.execution_id;
         logicChanged=transitioned||previousLogic!==projectionKey(frame);
         const newerInput=quiet && payload.action === 'logic' && sentEpoch!==inputEpoch && !transitioned && frame.state==='ACTIVE' && !frame.logical_exit && !frame.session_reset;
@@ -202,7 +208,7 @@
       body.replaceChildren();
       actions.replaceChildren();
       discardFooter.replaceChildren();
-      if (frame.definition.flow.allow_discard === true && frame.can_discard !== false) {
+      if (frame.state !== "COMPLETED" && frame.definition.flow.allow_discard === true && frame.can_discard !== false) {
         const discard = button(message("discard_label"), async () => {
           if (busy || pending || !await A.confirmDiscard(host,message)) return;
           const okay = await send(request("discard"));
@@ -221,23 +227,19 @@
         f = d.flow;
       A.applyDesign(host, f.design);
       actions.dataset.alignment = f.design?.navigation_alignment || "edges";
-      if (f.show_title !== false) body.append(el("h1", {}, d.title));
-      if (pending && frame.state === "COMPLETED") {
-        actions.append(
-          button(pending.action === "discard" ? message("discard_label") : (f.completion.button_label || f.navigation_labels.finish || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.finish), async () => {
-            const okay = await send(pending);
-            if (okay) {
-              restore();
-              render();
-            }
-          }),
-        );
-        return;
-      }
       if (session.finished && frame.state === "COMPLETED" && frame.email_confirmation_html) {
-        const confirmation=el('div',{class:'ae-email-confirmation'});confirmation.innerHTML=frame.email_confirmation_html;body.append(confirmation);return;
+        const confirmation=el('div',{class:'ae-email-confirmation'});confirmation.innerHTML=frame.email_confirmation_html;body.append(confirmation);root.EIPSIStudyInteraction.notices(confirmation);return;
       }
+      if (f.show_title !== false) body.append(el("h1", {}, d.title));
       if ((session.finished && frame.state === "COMPLETED") || frame.logical_exit) {
+        if (frame.state === "COMPLETED" && frame.study_url) {
+          // Keep the final screen visible; a reload returns to the Study entry screen.
+          try {
+            const destination = new URL(frame.study_url, root.location.href);
+            destination.searchParams.set('eipsi_initial', '1');
+            if (destination.href !== root.location.href) root.history?.replaceState(root.history.state, '', destination);
+          } catch (_) { /* History restrictions must not invalidate a completed response. */ }
+        }
         const c = f.completion;
         body.append(
           el("h2", {}, c.title),
@@ -322,11 +324,11 @@
     body.addEventListener('input',()=>{inputEpoch++;});
     body.addEventListener("change", () => {
       inputEpoch++;
-      if (!frame.has_logic || frame.logical_exit) return;
+      if (!frame.has_logic || frame.logical_exit || frame.state !== "ACTIVE") return;
       if(busy){if(pending?.action==='logic')queuedLogic=true;return;}
       if(pending)return;
       root.clearTimeout(logicTimer);
-      logicTimer = root.setTimeout(() => { if (!closed && !busy && !pending) send(request("logic"),false,true); }, 250);
+      logicTimer = root.setTimeout(() => { if (!closed && !busy && !pending && frame.state === "ACTIVE" && !frame.logical_exit) send(request("logic"),false,true); }, 250);
     });
     let method = "unknown";
     body.addEventListener("pointerdown", () => {

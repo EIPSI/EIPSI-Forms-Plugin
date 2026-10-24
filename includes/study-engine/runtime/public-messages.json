@@ -612,5 +612,16 @@
       "en": "The study is paused.",
       "es": "El estudio está pausado."
     }
+  },
+  {
+    "key": "notice_close_label",
+    "label": "Etiqueta accesible para cerrar avisos",
+    "default": "Cerrar aviso",
+    "group": "errors",
+    "section": "Errores de acceso y operación",
+    "defaults": {
+      "en": "Dismiss notice",
+      "es": "Cerrar aviso"
+    }
   }
 ]

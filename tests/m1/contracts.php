@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__).'/setup/contracts.php';
 /** Canonicalization is deliberately narrow; baseline.json records every permitted difference. */
 function m1_callback_contract($row) {
     if ($row === null) { return null; }
@@ -6,19 +7,20 @@ function m1_callback_contract($row) {
 }
 function m1_contracts($inventory) {
     require_once dirname(__DIR__).'/sec1/contracts.php';
+    require_once dirname(__DIR__).'/rbac/contracts.php';
     require_once dirname(__DIR__).'/api0/contracts.php';
     require_once dirname(__DIR__).'/i18n1b/contracts.php';
     $baseline = json_decode(file_get_contents(__DIR__ . '/baseline.json'), true);
     $includes = array();
     foreach ($inventory['included'] as $row) {
-        if(api0_include($row['file']) || i18n1b_include($row['file']))continue;
+        if(api0_include($row['file']) || i18n1b_include($row['file']) || rbac_include($row['file']) || setup_include($row['file']))continue;
         if (in_array($row['file'],array('includes/security/bootstrap.php','includes/security/Csv.php','includes/security/Log.php','includes/security/RateLimiter.php','includes/security/Http.php','includes/security/Maintenance.php'),true)) { continue; }
         if (in_array($row['file'], $baseline['allowlist']['additional_includes'], true)) { continue; }
         $includes[] = $baseline['allowlist']['include_path_migrations'][$row['file']] ?? $row['file'];
     }
     $hooks = array();
     foreach ($inventory['hooks'] as $row) {
-        if (api0_hook($row) || sec1_new_hook($row) || i18n1b_hook($row)) { continue; }
+        if (api0_hook($row) || sec1_new_hook($row) || i18n1b_hook($row) || rbac_hook($row) || setup_hook($row)) { continue; }
         if (m1_s3_added_hook($row) || m1_builder_added_hook($row) || m1_native_assessment_added_hook($row)) { continue; }
         if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
         if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }
@@ -26,7 +28,7 @@ function m1_contracts($inventory) {
     }
     $hook_locations = array();
     foreach ($inventory['hooks'] as $row) {
-        if (api0_hook($row) || sec1_new_hook($row) || i18n1b_hook($row)) { continue; }
+        if (api0_hook($row) || sec1_new_hook($row) || i18n1b_hook($row) || rbac_hook($row) || setup_hook($row)) { continue; }
         if (m1_s3_added_hook($row) || m1_builder_added_hook($row) || m1_native_assessment_added_hook($row)) { continue; }
         if ($row['callback'] === 'eipsi_randomization_form_load_data') { continue; }
         if (in_array($row['hook'], array('wp_ajax_eipsi_download_admin_export','wp_ajax_nopriv_eipsi_download_admin_export','wp_ajax_eipsi_load_form','wp_ajax_nopriv_eipsi_load_form'), true)) { continue; }

@@ -30,6 +30,7 @@ define('EIPSI_FORMS_PLUGIN_FILE', __FILE__);
 define('EIPSI_FORMS_SLUG', 'eipsi-forms');
 require_once EIPSI_FORMS_PLUGIN_DIR.'includes/i18n/admin.php';
 require_once EIPSI_FORMS_PLUGIN_DIR.'includes/security/bootstrap.php';
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/authorization/bootstrap.php';
 require_once EIPSI_FORMS_PLUGIN_DIR.'includes/dataset/bootstrap.php';
 require_once EIPSI_FORMS_PLUGIN_DIR.'includes/external-api/bootstrap.php';
 
@@ -75,3 +76,6 @@ if (get_option('eipsi_native_runtime_enabled')) {
 
 // Plugin-wide diagnostics observe the existing WordPress cron owners.
 require_once EIPSI_FORMS_PLUGIN_DIR.'includes/scheduler/bootstrap.php';
+
+// Administrative setup is registered after existing hooks to preserve their order.
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/setup/bootstrap.php';

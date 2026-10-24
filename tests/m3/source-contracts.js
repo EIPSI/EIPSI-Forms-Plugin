@@ -16,6 +16,7 @@ const s41Migrations=require('../s41/boundary-migrations.json');
 const sec1Boundary=require('../sec1/boundary-changes.json');
 const sec1Migrations={...sec1Boundary.files,...sec1Boundary.assets};
 const i18nMigrations=require('../i18n1b/boundary-changes.json');
+const rbacMigrations=require('../rbac/boundary-changes.json');
 let count=0;
 for(const [file,expected] of Object.entries(contracts.unchanged_files)) {
     const migration=migrations[file];
@@ -50,7 +51,9 @@ for(const [file,expected] of Object.entries(contracts.unchanged_files)) {
     const beforeI18n=sec1Migration ? sec1Migration.after_sha256 : beforeSec1;
     const i18nMigration=i18nMigrations[file];
     if(i18nMigration) assert.equal(i18nMigration.before_sha256,beforeI18n,'SEC-1 history preserved for explicit per-user UI localization');
-    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),i18nMigration ? i18nMigration.after_sha256 : beforeI18n,'Boundary changed beyond explicit recorded migration: '+file);
+    const beforeRbac=i18nMigration ? i18nMigration.after_sha256 : beforeI18n;
+    const rbacMigration=rbacMigrations[file];if(rbacMigration)assert.equal(rbacMigration.before_sha256,beforeRbac,'I18N history preserved for explicit RBAC change');
+    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),rbacMigration ? rbacMigration.after_sha256 : beforeRbac,'Boundary changed beyond explicit recorded migration: '+file);
     console.log('PASS unchanged boundary '+file); count++;
 }
 const manifest=require('../../src/frontend/forms/manifest.json');

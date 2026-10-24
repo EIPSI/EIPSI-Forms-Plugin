@@ -24,6 +24,7 @@
     }
   };
   A.mount = function (host, config, transport) {
+    const can = action => config.permissions?.[action] !== false;
     let d = null,
       selected = null,
       revision = 0,
@@ -154,7 +155,7 @@
     const versionHistory = button(root.EIPSIAdminI18n.t("Published versions"), () => showVersions(d?.id));
     const historyInfo = el("div", {class:"ae-version-info",hidden:true});
     function lockHistory(container) {
-      if (!historical) return;
+      if (!historical && can('assessments.edit')) return;
       container.querySelectorAll("input,textarea,select,button").forEach(n => n.disabled = true);
       container.querySelectorAll('[contenteditable="true"]').forEach(n => n.contentEditable = "false");
       container.querySelectorAll('[draggable="true"]').forEach(n => n.draggable = false);
@@ -297,9 +298,14 @@
       publish.disabled = !!historical || saving;
       library.disabled = saving;
       create.disabled = saving;
+      create.hidden = create.hidden || !can('assessments.edit');
+      save.hidden = save.hidden || !can('assessments.edit');
+      importJson.hidden = !can('assessments.edit');
+      importQuestion.hidden = importQuestion.hidden || !can('assessments.edit');
+      publish.hidden = publish.hidden || !can('assessments.publish');
     }
     function changed() {
-      if(historical)return;
+      if(historical || !can('assessments.edit'))return;
       dirty = true;
       if (d) {
         A.refreshDerived(d);
@@ -404,7 +410,7 @@
             }),
           );
           row.append(
-            button(root.EIPSIAdminI18n.t("Duplicate"), async () => {
+            ...(can('assessments.edit') ? [button(root.EIPSIAdminI18n.t("Duplicate"), async () => {
               try {
                 await open(
                   await api("duplicate", {
@@ -415,10 +421,10 @@
               } catch (e) {
                 announce(e.message, true);
               }
-            }),
+            })] : []),
           );
           row.append(
-            button(root.EIPSIAdminI18n.t("Delete"), async () => {
+            ...(can('assessments.delete') ? [button(root.EIPSIAdminI18n.t("Delete"), async () => {
               if (
                 !root.confirm(
                   root.EIPSIAdminI18n.f("Delete assessment “%s”? This deletes its draft and authoring partials." ,r.title),
@@ -431,7 +437,7 @@
               } catch (e) {
                 announce(e.message, true);
               }
-            }),
+            })] : []),
           );
           const rowMenu=el('details',{class:'ae-more-actions'}),rowToggle=el('summary',{'aria-label':root.EIPSIAdminI18n.f("Options for %s" ,r.title),title:root.EIPSIAdminI18n.t("Assessment options")},'⋮'),rowPanel=el('div',{class:'ae-more-actions-panel'});
           rowPanel.append(button(root.EIPSIAdminI18n.t("Published versions"),()=>showVersions(r.id)));
@@ -1431,7 +1437,7 @@
       renderCanvas();
       renderInspector();
       state();
-      if(historical){palette.hidden=true;lockHistory(canvas);lockHistory(inspector);}
+      if(historical || !can('assessments.edit')){palette.hidden=true;lockHistory(canvas);lockHistory(inspector);}
       library.disabled = saving;
       create.disabled = saving;
     }

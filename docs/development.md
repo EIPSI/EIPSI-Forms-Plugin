@@ -1,5 +1,8 @@
 # Desarrollo
 
+Current product update (24 October 2026): Setup is the single location for server-key diagnostics. Configuration warnings are unified and permission-scoped. The participant flow includes email review before assessment completion, correction after an occupied address, 40-second dismissible notices outside the completion card, refresh back to study entry, and same-browser longitudinal session recovery. Earlier phase descriptions and counts below are historical. Current configured functional count: 4,018; the final consolidation report records the actual gate result. See [Setup Center](setup-center.md), [assessment sessions](user-guide/assessments.md) and [longitudinal access](study-engine/longitudinal-access-notifications.md).
+
+
 ## Gate local y CI T0
 
 Instalar Docker/Compose con acceso al daemon, Bash y Python 3.9+. Ejecutar `./tests/ci/run.sh fast` o `./tests/ci/run.sh full` desde el plugin; FULL es el modo por defecto. El wrapper usa imágenes fijadas, instala npm desde el lockfile si faltan dependencias y crea bases descartables independientes del WordPress de desarrollo. Tras modificar el lockfile, ejecutar nuevamente npm ci según [setup T0](../tests/ci/README.md).

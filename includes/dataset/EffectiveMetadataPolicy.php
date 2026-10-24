@@ -15,7 +15,7 @@ final class EffectiveMetadataPolicy {
         $raw=function_exists('get_option')?get_option(self::OPTION,array()):array();$out=self::defaults();if(is_array($raw))foreach($out as$key=>$default)if(isset($raw[$key])&&is_bool($raw[$key]))$out[$key]=$raw[$key];return $out;
     }
     public static function save(array $policy): void {
-        if(!current_user_can('manage_options'))throw new \RuntimeException('METADATA_POLICY_FORBIDDEN',403);
+        if(!\EIPSI_Admin_Authorization_Policy::allows('privacy.manage'))throw new \RuntimeException('METADATA_POLICY_FORBIDDEN',403);
         $defaults=self::defaults();if(array_diff(array_keys($policy),array_keys($defaults))||array_diff(array_keys($defaults),array_keys($policy)))throw new \RuntimeException('METADATA_POLICY_INVALID',400);foreach($policy as$value)if(!is_bool($value))throw new \RuntimeException('METADATA_POLICY_INVALID',400);
         update_option(self::OPTION,$policy,false);
     }

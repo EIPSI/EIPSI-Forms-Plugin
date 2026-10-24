@@ -99,7 +99,7 @@ function get_global_privacy_defaults() {
  * Guarda la configuración global de privacidad
  */
 function save_global_privacy_defaults($config) {
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('privacy.manage')) {
         return false;
     }
 
@@ -167,7 +167,7 @@ function get_privacy_config($form_id = null) {
  * @param array $config Privacy configuration
  */
 function save_privacy_config($form_id, $config) {
-    if (!current_user_can('manage_options')) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('privacy.manage')) {
         return false;
     }
 

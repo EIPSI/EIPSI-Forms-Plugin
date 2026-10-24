@@ -13,13 +13,13 @@ trait StudyManagement {
         return substr($prefix,0,64).'_'.substr(hash('sha256','STUDY_PUBLIC|'.$request),0,32);
     }
     public function editStudy(string $id): array {
-        self::authorize();$row=$this->row($id);
+        self::authorize('studies.edit');$row=$this->row($id);
         $draft=$this->db->row($this->db->prepare('SELECT id FROM '.$this->db->table('study_versions')." WHERE study_id=%s AND state='DRAFT' ORDER BY version_number DESC LIMIT 1",$row['study_id']));
         if($draft)return $this->load($draft['id']);
         $m=P\Database::json($row['metadata_json']);try{return $this->cloneVersion($id,$m['authoring']['revision']??0);}catch(P\PersistenceConflict $error){if($error->getMessage()!=='DRAFT_ALREADY_EXISTS')throw $error;$draft=$this->db->row($this->db->prepare('SELECT id FROM '.$this->db->table('study_versions')." WHERE study_id=%s AND state='DRAFT' ORDER BY version_number DESC LIMIT 1",$row['study_id']));if(!$draft)throw $error;return $this->load($draft['id']);}
     }
     public function duplicateStudy(string $id,int $revision,string $request): array {
-        self::authorize();C\Check::id($request,'request_id');
+        self::authorize('studies.edit');C\Check::id($request,'request_id');
         $study='STUDY_'.substr(hash('sha256','STUDY_DUPLICATE|'.$request),0,32);
         $new=$this->db->transactional(function()use($id,$revision,$study){
             $r=$this->row($id,true);$m=P\Database::json($r['metadata_json']);if(($m['authoring']['revision']??0)!==$revision)throw new P\PersistenceConflict('DRAFT_REVISION_CONFLICT');
@@ -36,14 +36,14 @@ trait StudyManagement {
         });return $this->load($new);
     }
     public function archiveStudy(string $id,int $revision): array {
-        self::authorize();$this->db->transactional(function()use($id,$revision){$r=$this->row($id,true);$m=P\Database::json($r['metadata_json']);if(($m['authoring']['revision']??0)!==$revision)throw new P\PersistenceConflict('DRAFT_REVISION_CONFLICT');
+        self::authorize('studies.publish');$this->db->transactional(function()use($id,$revision){$r=$this->row($id,true);$m=P\Database::json($r['metadata_json']);if(($m['authoring']['revision']??0)!==$revision)throw new P\PersistenceConflict('DRAFT_REVISION_CONFLICT');
             $rows=$this->db->rows($this->db->prepare('SELECT id,metadata_json FROM '.$this->db->table('study_versions').' WHERE study_id=%s FOR UPDATE',$r['study_id']));
             foreach($rows as $row){$meta=P\Database::json($row['metadata_json']);$meta['archived']=true;$meta['lifecycle'][]=array('event'=>'STUDY_ARCHIVED','actor'=>get_current_user_id(),'at'=>P\Database::now());$this->db->update('study_versions',array('metadata_json'=>C\Canonical::json($meta),'updated_at'=>P\Database::now()),$this->db->prepare('id=%s',$row['id']));}
             $this->db->update('public_studies',array('enrollment_state'=>'CLOSED','updated_at'=>P\Database::now()),$this->db->prepare("study_id=%s AND enrollment_state<>'FINALIZED'",$r['study_id']));
         });return $this->load($id);
     }
     public function deleteStudy(string $study,string $confirmation): array {
-        self::authorize();C\Check::id($study,'study_id');if($confirmation!=='ELIMINAR '.$study)throw new \DomainException('STUDY_DELETE_CONFIRMATION_REQUIRED');
+        self::authorize('studies.delete');C\Check::id($study,'study_id');if($confirmation!=='ELIMINAR '.$study)throw new \DomainException('STUDY_DELETE_CONFIRMATION_REQUIRED');
         $this->db->transactional(function()use($study){
             global $wpdb;$versions=$this->db->rows($this->db->prepare('SELECT id FROM '.$this->db->table('study_versions').' WHERE study_id=%s FOR UPDATE',$study));
             if(!$versions)return; // Idempotent retry after a lost response.

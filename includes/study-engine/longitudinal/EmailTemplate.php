@@ -30,7 +30,11 @@ final class EmailTemplate {
         $action=add_query_arg('eipsi_study',$frame['study']['public_id'],home_url('/'));
         $initial=isset($frame['definition'])?(Configuration::read($frame['definition'])['initial_screen']??InitialScreen::normalize(InitialScreen::defaults($frame['definition']['protocol_metadata']['content_language']??null))):null;
         if(isset($frame['assessment_completion_native_url']))return '<main id="eipsi-study" class="eipsi-study" data-state="ASSESSMENT_COMPLETED"><iframe class="eipsi-native-assessment-frame" title="'.esc_attr($this->m('document_title')).'" src="'.esc_url($frame['assessment_completion_native_url']).'" style="width:100%;min-height:85vh;border:0"></iframe></main>';
-        if(isset($frame['assessment_completion_html']))return '<main id="eipsi-study" class="eipsi-study" data-state="ASSESSMENT_COMPLETED">'.$frame['assessment_completion_html'].(!empty($frame['email_confirmation']['pending'])?'<p role="status">'.$this->h('review_sent').'</p>':'').'</main>';
+        if(isset($frame['assessment_completion_html'])){
+            $notices=$frame;unset($notices['email_confirmation']);
+            if(!empty($frame['email_confirmation']['pending']))$notices['notice_keys'][]='review_sent';
+            return '<main id="eipsi-study" class="eipsi-study eipsi-assessment-completion" data-state="ASSESSMENT_COMPLETED">'.$this->portalNotices($notices,$error).'<div class="eipsi-assessment-completion-card">'.$frame['assessment_completion_html'].'</div></main>';
+        }
         if($initial!==null&&(isset($frame['entry'])||isset($frame['email_confirmation'])||isset($frame['shell'])||($frame['view']['next_action']['kind']??'EMAIL_ENTRY')!=='OPEN_ASSESSMENT'))return $this->initial($frame,$action,$initial,$error);
         $html=(new \EIPSI\StudyEngine\Content\AssessmentRenderer())->render($frame,$error);
 
@@ -60,9 +64,16 @@ final class EmailTemplate {
         return $html.'</div>';
     }
     private function reviewForm(array $frame,string $action): string {
-        $c=$frame['email_confirmation'];return $this->form($frame,$action,' data-previous-email="'.esc_attr($c['email']).'"').'<input type="hidden" name="confirm_email_change" value="0"><input type="hidden" name="expected_revision" value="'.esc_attr((string)$frame['view']['revision']).'"><label for="confirm-study-email">'.$this->h('review_label').'</label><input id="confirm-study-email" name="email" type="email" value="" maxlength="254" autocomplete="off" required><button name="action" value="confirm_email">'.$this->h(!empty($c['requires_link'])?'review_link_button':'review_button').'</button></form>';
+        $c=$frame['email_confirmation'];$attributes=' data-previous-email="'.esc_attr($c['email']).'"';if(isset($frame['completion_native_id'])){$action=add_query_arg('eipsi_completion',$frame['completion_native_id'],$action);$attributes.=' target="_top"';}return $this->form($frame,$action,$attributes).'<input type="hidden" name="action" value="confirm_email"><input type="hidden" name="confirm_email_change" value="0"><input type="hidden" name="expected_revision" value="'.esc_attr((string)$frame['view']['revision']).'"><label for="confirm-study-email">'.$this->h('review_label').'</label><input id="confirm-study-email" name="email" type="email" value="" maxlength="254" autocomplete="off" required><button name="action" value="confirm_email">'.$this->h(!empty($c['requires_link'])?'review_link_button':'review_button').'</button></form>';
     }
     private function initial(array $frame,string $action,array $c,?string $error): string {
+        if(isset($frame['email_confirmation'])){
+            // Email review is a separate step, not a second rendering of the study entry screen.
+            $intro=($this->m('review_title')!==''?'<h1>'.$this->h('review_title').'</h1>':'').($this->m('review_body')!==''?'<p>'.$this->h('review_body').'</p>':'');
+            $notice=$error!==null?$this->portalNotices(array(),$error):'';
+            if(!empty($frame['email_confirmation']['pending']))$notice.='<p role="status">'.esc_html($this->m('review_pending',array('EMAIL'=>$frame['email_confirmation']['email']))).'</p>';
+            return '<main id="eipsi-study" class="eipsi-study eipsi-initial eipsi-email-review" tabindex="-1" data-state="EMAIL_CONFIRMATION_REQUIRED" style="--eipsi-screen-width:'.$c['max_width'].'px;max-width:'.$c['max_width'].'px;padding:0;background:transparent;color:'.esc_attr($c['text_color']).'">'.$notice.'<div class="eipsi-initial-card" style="padding:24px;background:'.esc_attr($c['background']).'">'.$intro.$this->reviewForm($frame,$action).'</div></main>';
+        }
         $frame+=array('message'=>null);$a=$c['authentication'];$w=$c['withdrawal'];$style='color:'.$w['text_color'].';background:'.$w['background'].';border:'.$w['border_width'].'px solid '.$w['border_color'].';border-radius:'.$w['radius'].'px;font-size:'.$w['font_size'].'px';
         $withdraw='<div class="eipsi-initial-withdrawal" style="text-align:'.strtolower($w['align']).'"><button type="button" data-open-withdrawal style="'.esc_attr($style).'">'.esc_html($w['label']).'</button></div>';
         $html='<main id="eipsi-study" class="eipsi-study eipsi-initial" tabindex="-1" data-state="'.($frame['portal_state']??(isset($frame['email_confirmation'])?'EMAIL_CONFIRMATION_REQUIRED':(!empty($frame['verification_required'])?'EMAIL_VERIFICATION_REQUIRED':($frame['view']['next_action']['kind']??'EMAIL_ENTRY')))).'" style="--eipsi-screen-width:'.$c['max_width'].'px;max-width:'.$c['max_width'].'px;padding:0;background:transparent;color:'.$c['text_color'].'">';

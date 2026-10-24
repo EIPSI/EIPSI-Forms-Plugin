@@ -20,6 +20,6 @@ final class PublicMessages {
         $all=self::all($definition);if(!array_key_exists($key,$all))throw new \DomainException('UNKNOWN_PUBLIC_MESSAGE');$text=$all[$key];
         foreach($values as $name=>$value)$text=str_replace('['.$name.']',(string)$value,$text);return $text;
     }
-    public static function attributes(array $definition): string {return ' data-study-messages="'.esc_attr(wp_json_encode(array_intersect_key(self::all($definition),array_flip(array('change_title','change_body','change_cancel','change_accept','email_required','email_invalid','withdrawal_invalid','withdrawal_email_not_found','operation_failed'))))).'"';}
+    public static function attributes(array $definition): string {return ' data-study-messages="'.esc_attr(wp_json_encode(array_intersect_key(self::all($definition),array_flip(array('notice_close_label','change_title','change_body','change_cancel','change_accept','email_required','email_invalid','withdrawal_invalid','withdrawal_email_not_found','operation_failed'))))).'"';}
     public static function fallbackFields(): array {return array_values(array_filter(self::catalog(),static function($f){return empty($f['retired'])&&in_array($f['group'],array('errors'),true);}));}
 }

@@ -201,6 +201,8 @@ class Gate:
         artifact = self.logs / 'api4-samples.json'
         artifact.write_text(sample)
         self.count('api4-openapi-runtime', self.node('api4-openapi-runtime', ['node','tests/api4/openapi.js',str(artifact.relative_to(ROOT))]), 1)
+        php('rbac-network-prepare', PLUGIN + '/tests/rbac/multisite-prepare.php')
+        self.count('rbac-multisite', php('rbac-multisite', PLUGIN + '/tests/run-rbac-multisite.php'), 5)
         output = php('rct-strict', PLUGIN + '/tests/run-s4.php', ['-e', 'EIPSI_S4_EXPECT_RCT_DENIAL=1'])
         self.count('rct-strict', output, 1)
         print(f'PHP: {sum(CONFIG["php"].values())} tests, 0 failures; RCT strict 1/1', flush=True)

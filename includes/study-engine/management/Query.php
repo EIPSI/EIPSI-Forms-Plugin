@@ -4,8 +4,11 @@ use EIPSI\StudyEngine\Persistence as P;
 use EIPSI\StudyEngine\Contracts\Canonical;
 /** Administrative reads only. Never call participant owners, tick, expire or send. */
 final class Query extends ScientificReadQuery {
-    public function __construct(string $study){if(!current_user_can('manage_options'))throw new \DomainException('BUILDER_FORBIDDEN');parent::__construct($study);}
+    public function __construct(string $study){if(!\EIPSI_Admin_Authorization_Policy::allows('progress.view'))throw new \DomainException('BUILDER_FORBIDDEN');parent::__construct($study);}
+    public function attempt(string $id,bool $audit=true): array {\EIPSI_Admin_Authorization_Policy::demand('responses.view');return parent::attempt($id,$audit);}
     public static function filters(array $f): array {
+        if(!empty($f['identity'])||!empty($f['search'])||in_array('identities',(is_array($f['annexes']??null)?$f['annexes']:array()),true))\EIPSI_Admin_Authorization_Policy::demand('identities.view');
+        if(in_array('audit',(is_array($f['annexes']??null)?$f['annexes']:array()),true))\EIPSI_Admin_Authorization_Policy::demand('audit.view');
         if(isset($f['annexes'])){if(!is_array($f['annexes']))throw new \DomainException('MANAGEMENT_FILTER_INVALID');\EIPSI\Dataset\Transport::selected($f['annexes']);}
         foreach(array('response_from','response_to')as$k)if(isset($f[$k]))\EIPSI\Dataset\CanonicalStudyDataset::filters(array($k=>$f[$k]));
         $allowed=array('version','cycle','state','from','to','cursor','limit','execution','assessment','opportunity','include_partials','include_retained','identity','search','science_before','decision_after','response_from','response_to','annexes');
@@ -21,7 +24,7 @@ final class Query extends ScientificReadQuery {
         if(isset($f['search'])&&(!is_string($f['search'])||strlen($f['search'])>128))throw new \DomainException('MANAGEMENT_FILTER_INVALID');return $f;
     }
     public static function globalStats(P\Database $db): array {
-        if(!current_user_can('manage_options'))throw new \DomainException('BUILDER_FORBIDDEN');$out=array();
+        if(!\EIPSI_Admin_Authorization_Policy::allows('progress.view'))throw new \DomainException('BUILDER_FORBIDDEN');$out=array();
         foreach($db->rows('SELECT study_id,COUNT(*) AS participations,SUM(state=\'COMPLETED\' AND data_policy<>\'DO_NOT_USE\') AS completed,SUM(finalized_at IS NOT NULL) AS finalized FROM '.$db->table('study_executions').' GROUP BY study_id') as $r)$out[$r['study_id']]=array('participations'=>(int)$r['participations'],'completed'=>(int)$r['completed'],'finalized'=>(int)$r['finalized'],'last_response'=>null,'delivery_incidents'=>0);
         global $wpdb;$native=$db->row($db->prepare('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s AND COLUMN_NAME=%s',$wpdb->prefix.'eipsi_engine_native_executions','management_execution'));
         $responses=$db->rows('SELECT e.study_id,MAX(r.submitted_at) AS last_response FROM `'.$wpdb->prefix.'vas_form_results` r JOIN '.$db->table('submission_journal').' j ON j.local_storage_ref=CONCAT(\'WORDPRESS_DB_\',r.id) JOIN '.$db->table('study_executions').' e ON e.id=j.execution_id WHERE e.data_policy<>\'DO_NOT_USE\' GROUP BY e.study_id');
@@ -36,7 +39,7 @@ final class Query extends ScientificReadQuery {
     private function page(string $sql,array $f,string $id='id'): array {
         $limit=$f['limit']??25;$rows=$this->db->rows($sql.' ORDER BY '.$id.' LIMIT '.($limit+1));$more=count($rows)>$limit;if($more)array_pop($rows);return array('items'=>$rows,'next'=>$more?(string)end($rows)['id']:null);
     }
-    public function summary(array $f): array {
+    public function summary(array $f): array {\EIPSI_Admin_Authorization_Policy::demand('progress.view');
         $w=$this->scope($f);$counts=$this->db->row('SELECT COUNT(*) AS participations,SUM(e.started_at IS NOT NULL) AS started,SUM(e.state=\'COMPLETED\') AS completed,SUM(e.finalized_at IS NOT NULL) AS finalized,SUM(e.data_policy=\'DO_NOT_USE\') AS excluded,MAX(e.updated_at) AS last_engine_update FROM '.$this->db->table('study_executions').' e WHERE '.$w);
         $ow=$this->scope($f,true);$counts['completed']=(int)($this->db->row("SELECT COUNT(*) AS n FROM ".$this->db->table('study_executions')." e WHERE ".$ow." AND e.state='COMPLETED'")['n']??0);$op=$this->db->rows('SELECT b.definition_id,b.study_version_id,b.state,COUNT(*) AS n,MAX(b.completed_at) AS last_response FROM '.$this->db->table('block_executions').' b JOIN '.$this->db->table('study_executions').' e ON e.id=b.execution_id WHERE '.$ow.' GROUP BY b.study_version_id,b.definition_id,b.state');
         $domainCompleted=0;$o=array('SCHEDULED'=>0,'AVAILABLE'=>0,'IN_PROGRESS'=>0,'COMPLETED'=>0,'EXPIRED'=>0,'SKIPPED_BY_RULE'=>0,'NOT_SCHEDULED'=>0,'WITHDRAWN'=>0,'TERMINATED_BY_RULE'=>0,'BLOCKED'=>0);$last=null;
@@ -47,16 +50,16 @@ final class Query extends ScientificReadQuery {
         $responded=$domainCompleted+(int)($native['responded_opportunities']??0);$offered=$o['AVAILABLE']+$o['IN_PROGRESS']+$o['COMPLETED']+$o['EXPIRED'];
         return array('context'=>$this->context(),'counts'=>$counts,'opportunities'=>$o,'attempts'=>array('completed'=>(int)($native['completed_attempts']??0),'saved_partials'=>(int)($native['saved_partials']??0)),'last_response'=>$last,'responded_opportunities'=>$responded,'response_rate'=>array('numerator'=>$responded,'denominator'=>$offered,'value'=>$offered?round(100*$responded/$offered,1):null),'definitions'=>array('participations'=>'Ejecuciones únicas dentro del filtro; no personas identificadas entre estudios.','rate'=>'Oportunidades con respuesta final retenida / disponibles, en curso, completadas o vencidas. Excluye datos no utilizables, futuras, no seleccionadas y omitidas.','dates'=>'El intervalo filtra fecha de ingreso de la participación (UTC).','states'=>'Estados persistidos; consultar no avanza el motor. Finalización administrativa y completitud científica son independientes.'));
     }
-    public function participants(array $f): array {
+    public function participants(array $f): array {\EIPSI_Admin_Authorization_Policy::demand('progress.view');
         $w=$this->scope($f);if(!empty($f['cursor']))$w.=$this->db->prepare(' AND e.id>%s',$f['cursor']);
         $out=$this->page('SELECT e.id,e.study_version_id,e.study_cycle,e.state,e.data_policy,e.created_at,e.started_at,e.updated_at,e.finalized_at,e.terminal_reason,p.verification_state FROM '.$this->db->table('study_executions').' e LEFT JOIN '.$this->db->table('participants').' p ON p.id=e.participant_id WHERE '.$w,$f,'e.id');
         foreach($out['items'] as &$r)$r['code']=$r['id'];unset($r);return $out;
     }
-    public function identity(string $id): array {
+    public function identity(string $id): array {\EIPSI_Admin_Authorization_Policy::demand('identities.view');
         $e=$this->participation($id);$r=$e['participant_id']===null?null:$this->db->row($this->db->prepare('SELECT email,archived_email,verification_state,privacy_state FROM '.$this->db->table('participants').' WHERE id=%s AND study_id=%s',$e['participant_id'],$this->study));
         Audit::record($this->study,'IDENTITY_VIEW',$id);return array('identity'=>$r,'anonymous'=>$e['participant_id']===null);
     }
-    public function opportunities(array $f): array {
+    public function opportunities(array $f): array {\EIPSI_Admin_Authorization_Policy::demand('progress.view');
         $w=$this->scope($f);if(!empty($f['cursor']))$w.=$this->db->prepare(' AND b.id>%s',$f['cursor']);if(!empty($f['opportunity']))$w.=$this->db->prepare(' AND b.id=%s',$f['opportunity']);if(!empty($f['assessment']))$w.=$this->db->prepare(' AND b.definition_id=%s',$f['assessment']);
         $pairs=array();foreach($this->nodes as $version=>$nodes){$ids=array();foreach($nodes as $node)if(($node['completion_boundary']??null)==='ASSESSMENT')$ids[]=$this->db->prepare('%s',$node['id']);if($ids)$pairs[]=$this->db->prepare('(b.study_version_id=%s AND b.definition_id IN (',$version).implode(',',$ids).'))';}
         $w.=' AND ('.($pairs?implode(' OR ',$pairs):'0=1').')';
@@ -64,17 +67,17 @@ final class Query extends ScientificReadQuery {
         foreach($out['items'] as &$r){$node=$this->nodes[$r['study_version_id']][$r['definition_id']];$r['label']=$node['metadata']['label']??$node['id'];$r['occurrence']=P\Database::json($r['occurrence_json']);unset($r['occurrence_json']);$r['pending_expiry']=$r['due_at']!==null&&$r['due_at']<gmdate('Y-m-d H:i:s')&&in_array($r['state'],array('AVAILABLE','IN_PROGRESS','SCHEDULED'),true);}unset($r);return $out;
     }
 
-    public function attempts(array $f): array {
+    public function attempts(array $f): array {\EIPSI_Admin_Authorization_Policy::demand('responses.view');
         if(!$this->nativeExists())return array('items'=>array(),'next'=>null);$w=$this->scope($f,true);if(!empty($f['cursor']))$w.=$this->db->prepare(' AND n.id>%s',$f['cursor']);if(!empty($f['opportunity']))$w.=$this->db->prepare(' AND n.management_opportunity=%s',$f['opportunity']);
         if(!empty($f['assessment']))$w.=$this->db->prepare(" AND JSON_UNQUOTE(JSON_EXTRACT(v.definition_json,'$.id'))=%s",$f['assessment']);
         return $this->page('SELECT n.id,n.version_id,n.management_execution AS execution_id,n.management_opportunity AS opportunity_id,n.state,n.revision,n.created_at,n.completed_at,n.expires_at,JSON_UNQUOTE(JSON_EXTRACT(v.definition_json,\'$.title\')) AS title FROM '.$this->db->table('study_executions').' e STRAIGHT_JOIN '.$this->db->table('native_executions').' n FORCE INDEX (management_binding) ON n.management_execution=e.id JOIN '.$this->db->table('native_versions').' v ON v.id=n.version_id WHERE '.$w,$f,'n.id');
     }
-    public function communications(array $f): array {
+    public function communications(array $f): array {\EIPSI_Admin_Authorization_Policy::demand('audit.view');
         $w=$this->scope($f);if(!empty($f['cursor']))$w.=$this->db->prepare(' AND i.id>%s',$f['cursor']);
         $out=$this->page('SELECT i.id,i.execution_id,i.block_execution_id,i.purpose,i.state,i.trigger_at,i.cancel_reason,i.created_at,i.updated_at,i.queue_job_id FROM '.$this->db->table('notification_intents').' i JOIN '.$this->db->table('study_executions').' e ON e.id=i.execution_id WHERE '.$w,$f,'i.id');
         $attempts=array();if($out['items']){$ids=implode(',',array_map(function($r){return $this->db->prepare('%s',$r['id']);},$out['items']));foreach($this->db->rows($this->db->prepare('SELECT id,entity_id,action,created_at,details_json FROM '.$this->db->table('management_events')." WHERE study_id=%s AND entity_id IN ($ids) AND action LIKE 'MAIL_%%' ORDER BY id",$this->study)) as $a){$a['details']=P\Database::json($a['details_json']);unset($a['details_json']);$attempts[$a['entity_id']][]=$a;}}foreach($out['items'] as &$r)$r['attempts']=$attempts[$r['id']]??array();unset($r);return $out;
     }
-    public function audit(array $f): array {
+    public function audit(array $f): array {\EIPSI_Admin_Authorization_Policy::demand('audit.view');
         $where=$this->db->prepare('study_id=%s',$this->study);if(!empty($f['version']))$where.=$this->db->prepare(" AND (entity_id=%s OR JSON_UNQUOTE(JSON_EXTRACT(details_json,'$.version'))=%s)",$f['version'],$f['version']);if(!empty($f['cycle']))$where.=$this->db->prepare(" AND JSON_EXTRACT(details_json,'$.cycle')=%d",$f['cycle']);if(!empty($f['execution'])){$this->participation($f['execution']);$where.=$this->db->prepare(' AND execution_id=%s',$f['execution']);}if(!empty($f['cursor']))$where.=$this->db->prepare(' AND id>%d',(int)$f['cursor']);
         $out=$this->page('SELECT id,execution_id,entity_id,action,actor_id,created_at,details_json FROM '.$this->db->table('management_events').' WHERE '.$where,$f);
         foreach($out['items'] as &$r){$r['details']=P\Database::json($r['details_json']);unset($r['details_json']);}unset($r);
@@ -91,7 +94,7 @@ final class Query extends ScientificReadQuery {
     public function dictionaryRows(array $f): array {
         $out=array();$seen=array();foreach($this->versions as $version=>$v){if($v['state']==='DRAFT')continue;if(!empty($f['version'])&&$f['version']!==$version)continue;foreach($this->nodes[$version] as $node){$native=$node['metadata']['native_version_id']??null;if($native){if(!empty($f['assessment'])&&$f['assessment']!==$node['id'])continue;$r=$this->db->row($this->db->prepare('SELECT definition_json,definition_hash FROM '.$this->db->table('native_versions').' WHERE id=%s',$native));if(!$r)throw new P\IntegrityFailure('MANAGEMENT_NATIVE_VERSION_MISSING');foreach(self::dictionary(P\Database::json($r['definition_json'])) as $key=>$entry){$k=$version.'|'.$native.'|'.$key;if(isset($seen[$k]))continue;$seen[$k]=true;$out[]=array('study_version_id'=>$version,'native_version_id'=>$native,'definition_hash'=>$r['definition_hash'],'response_key'=>$key)+$entry;}}elseif($node['kind']==='QUESTION'){$content=json_decode($node['content']['snapshot'],true);$out[]=array('study_version_id'=>$version,'native_version_id'=>null,'definition_hash'=>$node['content']['sha256'],'response_key'=>$node['response_key'],'item_id'=>$node['id'],'variable_name'=>$node['response_key'],'label'=>$content['label']??$node['id'],'type'=>$node['type'],'options'=>$node['options'],'validation'=>$node['validation']);}}}return $out;
     }
-    public function diagnosis(array $f): array {
+    public function diagnosis(array $f): array {\EIPSI_Admin_Authorization_Policy::demand('audit.view');
         global $wpdb;$checks=array();$tables=array('study_versions','public_studies','study_executions','block_executions','execution_events','notification_intents','management_events','management_exports');if($this->nativeExists())$tables=array_merge($tables,array('native_versions','native_executions','native_commands'));
         foreach($tables as $table){$r=$this->db->row($this->db->prepare('SELECT ENGINE,DATA_LENGTH,INDEX_LENGTH FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s',$wpdb->prefix.'eipsi_engine_'.$table));$checks[]=array('check'=>$table,'status'=>$r&&strcasecmp($r['ENGINE'],'InnoDB')===0?'OK':'ERROR','detail'=>$r?array('engine'=>$r['ENGINE'],'installation_bytes'=>(int)$r['DATA_LENGTH']+(int)$r['INDEX_LENGTH']):'Tabla ausente');}
         $scope=$this->scope($f);$orphan=$this->db->row('SELECT COUNT(*) AS n FROM '.$this->db->table('block_executions').' b JOIN '.$this->db->table('study_executions').' e ON e.id=b.execution_id WHERE '.$scope.' AND b.study_version_id<>e.study_version_id');$checks[]=array('check'=>'opportunity_version_binding','status'=>(int)$orphan['n']?'ERROR':'OK','detail'=>(int)$orphan['n']);

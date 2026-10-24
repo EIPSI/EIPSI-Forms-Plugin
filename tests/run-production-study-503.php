@@ -1,0 +1,87 @@
+<?php
+/** Full public GET in the isolated WP fixture; no precreated participant execution. */
+define('DOING_CRON',true);
+require __DIR__.'/m0/bootstrap.php';
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/builder.php';
+require_once EIPSI_FORMS_PLUGIN_DIR.'includes/assessment-editor/runtime/Owner.php';
+use EIPSI\StudyEngine\Builder as B;
+use EIPSI\StudyEngine\Persistence as P;
+use EIPSI\StudyEngine\Longitudinal as L;
+$baseline=in_array('--baseline',$argv,true);$tests=0;$failures=0;
+$db=new P\Database($wpdb);$svc=new B\Service($db);$native=new EIPSI\AssessmentEditor\Runtime\Owner();
+$mu=ABSPATH.'wp-content/mu-plugins/eipsi-503-fixture.php';
+if(file_exists($mu))throw new RuntimeException('Fixture collision');
+wp_mkdir_p(dirname($mu));copy(__DIR__.'/production-study-503/environment.php',$mu);
+$priorEnabled=get_option('eipsi_study_engine_longitudinal_enabled',null);$priorNative=get_option('eipsi_native_runtime_enabled',null);
+$originalLanguage=get_option('eipsi_forms_language',null);update_option('eipsi_forms_language','es');
+$priorCron=_get_cron_array();$owned=array();
+function p503_assert($ok,$message='Assertion failed'){if(!$ok)throw new RuntimeException($message);}
+function p503_case($name,$fn){global $tests,$failures;$tests++;try{$fn();echo "PASS $name\n";}catch(Throwable $e){$failures++;echo "FAIL $name: ".$e->getMessage()."\n";}}
+function p503_fixture($long=true){global $svc,$native,$owned;
+ $d=json_decode(file_get_contents(__DIR__.'/assessment-editor/functional-fixture.json'),true);$d['id']='AE_503_'.bin2hex(random_bytes(6));$d['elements']=array_values(array_filter($d['elements'],static function($e){return $e['type']==='text';}));$d['flow']['pages']=array();
+ EIPSI\AssessmentEditor\Repository::save($d,0);$v=$native->publish($d['id'],1);$owned[]=$d['id'];
+ $x=$svc->create(array('name'=>'Runtime diagnostic fixture','content_language'=>'es'),'CREATE_503_'.bin2hex(random_bytes(6)));$owned[]=$x['study_id'];$d=$x['definition'];
+ if($long){$d['protocol_metadata']['study_type']='LONGITUDINAL';$d=L\Configuration::apply($d,array('initial_screen'=>L\InitialScreen::defaults('es')));$b=B\Draft::block('L_503',$d['id'],$d['root_block_ids'][0],'MACRO',0);$b['metadata']=array('role'=>'LONGITUDINAL_BLOCK','independent_children'=>true);$b['children_strategy']='PARALLEL_AVAILABLE';$d['nodes'][]=$b;$parent=$b['id'];}else $parent=$d['root_block_ids'][0];
+ $n=B\Draft::block('E_503',$d['id'],$parent,'MICRO',0);$n['metadata']['native_version_id']=$v['version_id'];$n['schedule']=B\Draft::schedule();if($long){$n['schedule']=B\Draft::schedule();$n['schedule']['anchor']='EXECUTION_CREATED';$n['schedule']['temporal_rule']=array('kind'=>'OFFSET','duration'=>array('kind'=>'ELAPSED','seconds'=>0));$n['schedule']['window']=array('kind'=>'DURATION','duration'=>array('kind'=>'ELAPSED','seconds'=>7200));$n['metadata']['scheduled_interaction']=array('timing'=>'RELATIVE','delivery'=>'START','window_seconds'=>7200,'reminders'=>array(),'unique_response'=>true,'mandatory'=>false);}$d['nodes'][]=$n;
+ $x=$svc->save($x['id'],0,'SAVE_503',$d);$issues=$svc->validate($x['id'])['issues'];$acks=array();foreach($issues as $issue)if($issue['severity']==='WARNING')$acks[]=$issue['code'].'|'.($issue['node_id']??$issue['path']??'');
+ $x=$svc->publish($x['id'],$x['revision'],$acks);$x=$svc->activate($x['id'],$x['revision'],'OPEN');
+ return array('study'=>$x['study_id'],'version'=>$x['id'],'public'=>$x['definition']['study']['public_id'],'native'=>$v['version_id']);
+}
+function p503_failure($fixture,$mode,$code,$status=500){$r=p503_get($fixture,$mode);p503_assert($r['status']===$status,'Unexpected status '.$r['status']);p503_assert(count($r['events'])===1,'Expected one diagnostic');p503_assert($r['events'][0]['code']===$code,'Wrong code '.$r['events'][0]['code']);return $r;}
+function p503_mutate($table,$id,array $values,callable $test){global $db;$field=$table==='public_studies'?'public_id':'id';$where=$db->prepare($field.'=%s',$id);$old=$db->row('SELECT * FROM '.$db->table($table).' WHERE '.$where);p503_assert($old!==null);$restore=array_intersect_key($old,$values);$db->transactional(function()use($db,$table,$values,$where){$db->update($table,$values,$where);});try{return $test();}finally{$db->transactional(function()use($db,$table,$restore,$where){$db->update($table,$restore,$where);});}}
+function p503_get($fixture,$mode='VALID',$admin=false){global $wpdb;
+ update_option('eipsi_503_fixture_mode',$mode);wp_cache_delete('alloptions','options');
+ $log=WP_CONTENT_DIR.'/debug.log';if(!is_file($log))file_put_contents($log,'');chmod($log,0666);clearstatcache(true,$log);$offset=is_file($log)?filesize($log):0;
+ $r=m0_http('/?eipsi_study='.rawurlencode(is_array($fixture)?$fixture['public']:$fixture),null,$admin);p503_assert(!is_wp_error($r),'HTTP request failed');
+ clearstatcache(true,$log);$tail=is_file($log)?substr(file_get_contents($log),$offset):'';$events=array();foreach(explode("\n",$tail)as $line)if(strpos($line,'[EIPSI] ')!==false){$j=json_decode(substr($line,strpos($line,'[EIPSI] ')+8),true);if(is_array($j)&&($j['event']??'')==='STUDY_OPERATION_FAILED')$events[]=$j;}
+ return array('status'=>wp_remote_retrieve_response_code($r),'body'=>wp_remote_retrieve_body($r),'headers'=>wp_remote_retrieve_headers($r),'events'=>$events);
+}
+try{
+ $f=p503_fixture();
+ if($baseline){
+  p503_case('Baseline missing seed config reproduces 503 and unavailable context',function()use($f){$r=p503_get($f,'NO_SEED');p503_assert($r['status']===503,'Status '.$r['status']);p503_assert(strpos($r['body'],'No pudimos guardar o cargar')!==false,'Generic public message missing');p503_assert(($r['events'][0]['code']??'')==='RUNTIME_FAILURE'&&($r['events'][0]['study_id']??'')==='unavailable','Baseline event missing or unexpected');});
+  p503_case('Same published Study with explicit fixture keyrings returns 200',function()use($f){$r=p503_get($f);p503_assert($r['status']===200,'Status '.$r['status']);p503_assert(!$r['events']);});
+ }else{
+
+  require_once EIPSI_FORMS_PLUGIN_DIR.'includes/study-engine/runtime/RuntimeDiagnostics.php';
+  p503_case('T1 published Study anonymous GET 200 with no precreated execution',function()use($f,$db){p503_assert((int)$db->row($db->prepare('SELECT COUNT(*) n FROM '.$db->table('study_executions').' WHERE study_id=%s',$f['study']))['n']===0);$r=p503_get($f);p503_assert($r['status']===200&&strpos($r['body'],'eipsi-study')!==false);});
+  p503_case('T7 logged-in admin and anonymous have equivalent public landing',function()use($f){$a=p503_get($f);$b=p503_get($f,'VALID',true);p503_assert($a['status']===200&&$b['status']===200);preg_match('/data-state="([^"]+)"/',$a['body'],$am);preg_match('/data-state="([^"]+)"/',$b['body'],$bm);p503_assert(isset($am[1],$bm[1])&&$am[1]==='EMAIL_ENTRY'&&$am[1]===$bm[1]&&strpos($b['body'],'wpadminbar')===false);});
+  p503_case('T10 successful GET has no failure logs',function()use($f){p503_assert(p503_get($f)['events']===array());});
+  p503_case('Seed keyring error keeps context before lookup',function()use($f){$e=p503_failure($f,'NO_SEED','SEED_KEYRING_UNAVAILABLE')['events'][0];p503_assert(!isset($e['study_id'])&&$e['operation']==='SEED_CONFIGURATION'&&strlen($e['study_code_hash'])===20);});
+  p503_case('Access keyring error keeps resolved Study ID',function()use($f){$e=p503_failure($f,'NO_ACCESS','ACCESS_KEYRING_UNAVAILABLE')['events'][0];p503_assert($e['study_id']===$f['study']&&$e['operation']==='ACCESS_CONFIGURATION');});
+  p503_case('T2 absent Study has 404 and specific info event',function(){$r=p503_get('NO_SUCH_STUDY_503');p503_assert($r['status']===404&&$r['body']===''&&count($r['events'])===1&&$r['events'][0]['code']==='STUDY_NOT_FOUND'&&$r['events'][0]['level']==='info');});
+  foreach(array(
+   array('T3 missing published snapshot','public_studies',$f['public'],array('active_version_id'=>'SV_ABSENT_503'),'PUBLISHED_VERSION_MISSING',null),
+   array('T3 invalid protocol hash','study_versions',$f['version'],array('protocol_hash'=>str_repeat('0',64)),'SNAPSHOT_INVALID','PUBLISHED_HASH_MISMATCH'),
+   array('T3 invalid protocol JSON','study_versions',$f['version'],array('protocol_json'=>'{invalid'),'SNAPSHOT_INVALID','INVALID_DURABLE_JSON'),
+   array('Unpublished public record','study_versions',$f['version'],array('state'=>'DRAFT'),'STUDY_NOT_PUBLISHED',null),
+   array('Inconsistent public Study binding','public_studies',$f['public'],array('study_id'=>'STUDY_WRONG_503'),'PUBLIC_RECORD_INCONSISTENT',null),
+   array('Unpublished assessment snapshot','native_versions',$f['native'],array('state'=>'HIDDEN'),'ASSESSMENT_SNAPSHOT_INVALID',null),
+   array('Invalid assessment snapshot hash','native_versions',$f['native'],array('definition_hash'=>str_repeat('0',64)),'ASSESSMENT_SNAPSHOT_INVALID',null)
+  )as $case)p503_case($case[0],function()use($case,$f){p503_mutate($case[1],$case[2],$case[3],function()use($case,$f){$r=p503_failure($f,'VALID',$case[4]);if($case[5]!==null)p503_assert($r['events'][0]['cause_code']===$case[5]);});});
+  p503_case('T4 absent assessment is distinguished before admission',function()use($f,$db){$row=$db->row($db->prepare('SELECT * FROM '.$db->table('native_versions').' WHERE id=%s',$f['native']));$db->transactional(function()use($db,$f){$db->query($db->prepare('DELETE FROM '.$db->table('native_versions').' WHERE id=%s',$f['native']));});try{p503_failure($f,'VALID','ASSESSMENT_REFERENCE_MISSING');}finally{$db->transactional(function()use($db,$row){$db->insert('native_versions',$row);});}});
+  p503_case('T5 storage fault logs errno exception class and owner',function()use($f){$e=p503_failure($f,'DB_FAILURE','STORAGE_FAILURE')['events'][0];p503_assert((int)$e['db_errno']===1146&&strpos($e['exception_class'],'DatabaseFailure')!==false&&$e['component']==='Database'&&$e['operation']==='PUBLIC_URL_LOOKUP');});
+  p503_case('T6 public response never contains diagnostics',function()use($f){foreach(array('NO_SEED'=>'SEED_KEYRING_UNAVAILABLE','DB_FAILURE'=>'STORAGE_FAILURE')as $mode=>$code){$r=p503_failure($f,$mode,$code);p503_assert(strpos($r['body'],'No pudimos guardar o cargar')!==false);foreach(array('SEED_KEYRING','RuntimeException','DatabaseFailure','/var/www/','Stack trace',$f['study'],'SELECT ')as $text)p503_assert(strpos($r['body'],$text)===false);}});
+  p503_case('T8 PII responses external participant and all tokens excluded',function()use($f){$secrets=array('person503@example.test','EXTERNAL_SUBJECT_PRIVATE_503','sensitive response content 503','magic_token_private_503','session_token_private_503','capability_token_private_503',str_repeat('ab',32));$d=new EIPSI\StudyEngine\Runtime\RuntimeDiagnostics($f['public'],'GET');$exception=new RuntimeException(implode('|',$secrets));$text=json_encode($d->context($exception));$sink=tempnam(sys_get_temp_dir(),'eipsi-503-log-');$oldLog=ini_get('error_log');try{ini_set('error_log',$sink);$d->record($exception);$d->record($exception);$written=file_get_contents($sink);p503_assert(substr_count($written,'[EIPSI] ')===1,'Duplicate diagnostic');foreach($secrets as $secret)p503_assert(strpos($text.$written,$secret)===false);}finally{ini_set('error_log',$oldLog);unlink($sink);}});
+  p503_case('T9 structured event has method component class and fingerprint',function()use($f){$e=p503_failure($f,'NO_ACCESS','ACCESS_KEYRING_UNAVAILABLE')['events'][0];foreach(array('operation','route','study_code_hash','study_id','exception_class','component','source_method','source_line','stack_fingerprint')as $key)p503_assert(isset($e[$key]),'Missing '.$key);p503_assert(strlen($e['stack_fingerprint'])===64);});
+  p503_case('One principal event per failure',function()use($f){p503_assert(count(p503_failure($f,'NO_SEED','SEED_KEYRING_UNAVAILABLE')['events'])===1);});
+  p503_case('Temporary DB 503 and schema DB 500 differentiated',function()use($f){$d=new EIPSI\StudyEngine\Runtime\RuntimeDiagnostics($f['public'],'GET');p503_assert($d->status(new P\DatabaseFailure(1213))===503&&$d->status(new P\DatabaseFailure(1146))===500);});
+  p503_case('Renderer failure has specific internal code',function()use($f){$d=new EIPSI\StudyEngine\Runtime\RuntimeDiagnostics($f['public'],'GET');$d->phase('ASSESSMENT_RENDER');p503_assert($d->code(new RuntimeException('private detail'))==='RENDER_FAILURE');});
+  p503_case('HTTPS proxy context keeps GET 200 with no-store',function()use($f){$r=p503_get($f,'PROXY');p503_assert($r['status']===200&&strpos($r['headers']['cache-control']??'','no-store')!==false&&strpos($r['headers']['vary']??'','Cookie')!==false&&!$r['events']);});
+  p503_case('Longitudinal initial GET creates no execution or participant session',function()use($f,$db){p503_get($f);p503_assert((int)$db->row($db->prepare('SELECT COUNT(*) n FROM '.$db->table('study_executions').' WHERE study_id=%s',$f['study']))['n']===0);foreach(array('participants','participant_sessions','enrollment_receipts')as $t){$column=$t==='participants'?'study_id':'public_study_id';$value=$t==='participants'?$f['study']:$f['public'];p503_assert((int)$db->row($db->prepare('SELECT COUNT(*) n FROM '.$db->table($t).' WHERE '.$column.'=%s',$value))['n']===0);}});
+  foreach(array('INVALID_SEED'=>'INVALID_SERVER_KEYRING','MISSING_SEED_ACTIVE'=>'SEED_KEY_UNAVAILABLE','INVALID_ACCESS'=>'INVALID_ACCESS_KEYRING','MISSING_ACCESS_ACTIVE'=>'ACCESS_KEY_UNAVAILABLE')as $mode=>$code)p503_case('Keyring malformed/active contract '.$mode,function()use($f,$mode,$code){p503_failure($f,$mode,$code);});
+  foreach(array('ENVIRONMENT','JSON_CONSTANT','PRECEDENCE')as $mode)p503_case('Web keyring source '.$mode,function()use($f,$mode){$r=p503_get($f,$mode);p503_assert($r['status']===200&&!$r['events'],'Valid source failed');});
+  p503_case('Invalid constant never falls back to a valid environment keyring',function()use($f){p503_failure($f,'INVALID_CONSTANT','SEED_KEYRING_UNAVAILABLE');});
+  p503_case('Web admin diagnostic exposes only booleans without keys or IDs',function(){global $wpdb;foreach(array('VALID','NO_SEED','NO_ACCESS','INVALID_SEED','MISSING_ACCESS_ACTIVE')as $mode){update_option('eipsi_503_fixture_mode',$mode);wp_cache_delete('alloptions','options');$r=m0_http('/wp-admin/admin.php?page=eipsi-configuration&tab=setup',null,true);$html=wp_remote_retrieve_body($r);p503_assert(wp_remote_retrieve_response_code($r)===200&&strpos($html,'Keyring')!==false);foreach(array(str_repeat('6b',32),str_repeat('61',32),'HTTP_TEST','ACCESS_TEST')as $secret)p503_assert(strpos($html,$secret)===false);preg_match('/<section[^>]*data-component="keys"[^>]*>([\s\S]*?)<\/section>/',$html,$match);p503_assert(!empty($match[1]));p503_assert(substr_count($match[1],'<td>')===8);if($mode==='VALID')p503_assert(strpos($match[1],'<td>No</td>')===false);else p503_assert(strpos($match[1],'<td>No</td>')!==false);}});
+  p503_case('Missing server keys warn authoring users without exposing configuration to participants',function()use($f){update_option('eipsi_503_fixture_mode','NO_SEED');wp_cache_delete('alloptions','options');$r=m0_http('/wp-admin/admin.php?page=eipsi-study-builder',null,true);$html=wp_remote_retrieve_body($r);p503_assert(wp_remote_retrieve_response_code($r)===200&&strpos($html,'notice-warning')!==false);$public=p503_get($f,'NO_SEED');p503_assert(strpos($public['body'],'notice-warning')===false&&strpos($public['body'],'KEYRING')===false);});
+  p503_case('Seed rotation preserves old ciphertext and replacing or losing its key fails closed',function(){ $old=new P\SeedVault(array('OLD'=>str_repeat('a',32)),'OLD');$envelope=$old->create('EX_KEY_ROTATION');$rotated=new P\SeedVault(array('OLD'=>str_repeat('a',32),'NEW'=>str_repeat('b',32)),'NEW');p503_assert($rotated->open('EX_KEY_ROTATION','OLD',$envelope['ciphertext'])===$envelope['seed_hex']);p503_assert($rotated->create('EX_NEW')['key_id']==='NEW');foreach(array(array('NEW'=>str_repeat('b',32)),array('OLD'=>str_repeat('c',32),'NEW'=>str_repeat('b',32)))as $keys){try{(new P\SeedVault($keys,'NEW'))->open('EX_KEY_ROTATION','OLD',$envelope['ciphertext']);throw new RuntimeException('Loss accepted');}catch(P\IntegrityFailure $expected){p503_assert(in_array($expected->getMessage(),array('SEED_KEY_UNAVAILABLE','SEED_AUTHENTICATION_FAILED'),true));}}});
+  p503_case('Transversal GET creates execution via the real owner',function()use($db){$f=p503_fixture(false);$r=p503_get($f);p503_assert($r['status']===200&&strpos($r['body'],'eipsi-native-assessment-frame')!==false,'HTTP '.$r['status']);p503_assert((int)$db->row($db->prepare('SELECT COUNT(*) n FROM '.$db->table('study_executions').' WHERE study_id=%s',$f['study']))['n']===1&&!$r['events']);});
+
+ }
+}finally{
+ unlink($mu);delete_option('eipsi_503_fixture_mode');$originalLanguage===null?delete_option('eipsi_forms_language'):update_option('eipsi_forms_language',$originalLanguage);wp_set_current_user(1);
+ foreach($owned as $id)if(strpos($id,'STUDY_')===0)$svc->deleteStudy($id,'ELIMINAR '.$id);foreach($owned as $id)if(strpos($id,'STUDY_')!==0){delete_option(EIPSI\AssessmentEditor\Repository::PREFIX.$id);$db->query($db->prepare('DELETE FROM '.$db->table('native_versions').' WHERE assessment_id=%s',$id));}
+ $priorEnabled===null?delete_option('eipsi_study_engine_longitudinal_enabled'):update_option('eipsi_study_engine_longitudinal_enabled',$priorEnabled);$priorNative===null?delete_option('eipsi_native_runtime_enabled'):update_option('eipsi_native_runtime_enabled',$priorNative);
+ _set_cron_array($priorCron);
+}
+echo "$tests tests, $failures failures\n";ob_end_flush();exit($failures?1:0);

@@ -1,6 +1,6 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
-if (!current_user_can('manage_options')) { return; }
+if (!EIPSI_Admin_Authorization_Policy::allows('schema.manage')) { return; }
 require_once EIPSI_FORMS_PLUGIN_DIR . 'includes/schema/class-schema-diagnostic.php';
 $report = EIPSI_Schema_Diagnostic::report();
 $ok = $report['status'] === 'ok';

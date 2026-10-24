@@ -2,7 +2,7 @@
 namespace EIPSI\ExternalApi;
 final class Operations {
     const STATE_OPTION='eipsi_external_maintenance_v1';
-    public static function admin(): void {if(!current_user_can('manage_options')&&!(defined('WP_CLI')&&WP_CLI))throw new ApiError('eipsi_external_forbidden',403);}
+    public static function admin(): void {if(!\EIPSI_Admin_Authorization_Policy::allows('api.manage')&&!(defined('WP_CLI')&&WP_CLI))throw new ApiError('eipsi_external_forbidden',403);}
     public static function failureReason(\Throwable $e,int $attempts): string {
         if($e instanceof \EIPSI\StudyEngine\Persistence\IntegrityFailure)return 'SOURCE_CHANGED';
         if($e instanceof \EIPSI\StudyEngine\Management\DatasetLimit)return 'SIZE_LIMIT';

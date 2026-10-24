@@ -64,7 +64,7 @@ function eipsi_admin_elapsed($seconds) {
 
 function eipsi_admin_language_save() {
     if (!isset($_POST['eipsi_save_admin_language'])) { return ''; }
-    if (!current_user_can('manage_options') || !get_current_user_id()) {
+    if (!\EIPSI_Admin_Authorization_Policy::allows('settings.manage') || !get_current_user_id()) {
         wp_die('EIPSI_LANGUAGE_FORBIDDEN', '', array('response' => 403));
     }
     check_admin_referer('eipsi_admin_language');

@@ -156,6 +156,7 @@
                             true,
                             response.data.status
                         );
+                        $( '.nav-tab[href*="tab=database"] .eipsi-setup-tab-warning' ).prop( 'hidden', ! response.data.database_pending );
 
                         // Clear password field after successful save
                         $( '#db_password' ).val( '' );
@@ -223,6 +224,7 @@
                             response.data.message
                         );
                         EIPSIConfig.updateStatusBox( false, {} );
+                        $( '.nav-tab[href*="tab=database"] .eipsi-setup-tab-warning' ).prop( 'hidden', ! response.data.database_pending );
                         $button.remove();
                         EIPSIConfig.connectionTested = false;
                         $( '#eipsi-save-config' ).prop( 'disabled', true );

@@ -82,7 +82,7 @@
             if (result.withdrawal_html) { const content=html(result.withdrawal_html);bindStudyContent(content);surface.append(content);return; }
             if (result.snapshot.withdrawal) { notices.append(B.el('p',{class:'sb-experience-notice',text:window.EIPSIAdminI18n.t("Participation withdrawn. This simulated participant has no assessments available.")}));return; }
             if (result.inside && result.review) { renderReview();return; }
-            if (result.completion && result.inside && !result.review) { surface.lang=result.completion_content_language||window.EIPSIContent.language(app.draft);const c=result.completion;if(c.title)surface.append(B.el('h2',{text:c.title}));surface.append(html(c.message_html));if(c.image_url)surface.append(B.el('img',{src:c.image_url,alt:''}));if(c.button_label&&result.completion_can_repeat===true)surface.append(B.button(c.button_label, () => {return send('REPEAT');}));return; }
+            if (result.completion && result.inside && !result.review) { surface.lang=result.completion_content_language||window.EIPSIContent.language(app.draft);const c=result.completion;if(c.title)surface.append(B.el('h2',{text:c.title}));surface.append(html(c.message_html));if(c.image_url)surface.append(B.el('img',{src:c.image_url,alt:''}));return; }
             if (!result.inside || !result.enrolled || result.verification_required) { renderEntry();return; }
             if (result.assessment) { renderAssessment();return; }
             if(result.status_html){const content=html(result.status_html);bindStudyContent(content);surface.append(content);return;}
@@ -91,6 +91,7 @@
         };
         // Bind only the injected dummy surface; no public transport or real form action.
         const bindStudyContent = content => {
+            window.EIPSIStudyInteraction.notices(content);
             content.addEventListener('invalid',event=>window.EIPSIStudyInteraction.invalid(event),true);
             content.querySelectorAll('noscript').forEach(e=>e.remove());
             content.addEventListener('click',e=>{const link=e.target.closest('a');if(link){e.preventDefault();const url=new URL(link.getAttribute('href')||'',window.location.href);if(url.searchParams.has('eipsi_initial')){pane='initial';render();}return;}window.EIPSIStudyInteraction.click(content,e,async email=>{if(!result.enrolled||email.trim().toLowerCase()!==result.email.toLowerCase())throw Error(result.public_messages.withdrawal_email_not_found);return {revision:result.snapshot.execution.revision};});});

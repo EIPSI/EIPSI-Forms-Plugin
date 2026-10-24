@@ -42,7 +42,7 @@ function eipsi_get_last_access_log_purge_date() {
 
 /** Global Native metadata policy. No per-response/form selector or historical deletion. */
 function render_privacy_dashboard($form_id = null) {
-    if (!current_user_can('manage_options')) return;
+    if (!EIPSI_Admin_Authorization_Policy::allows('privacy.manage')) return;
     $policyClass = \EIPSI\Dataset\EffectiveMetadataPolicy::class;
     $message = ''; $error = false;
     if (isset($_POST['eipsi_metadata_policy_nonce'])) {

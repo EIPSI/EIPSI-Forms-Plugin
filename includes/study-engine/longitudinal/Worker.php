@@ -1,5 +1,6 @@
 <?php
 namespace EIPSI\StudyEngine\Longitudinal;
+require_once dirname(__DIR__).'/configuration/KeyringResolver.php';
 use EIPSI\StudyEngine\Persistence as P;
 use EIPSI\StudyEngine\Orchestration\ExecutionOwner;
 use EIPSI\StudyEngine\Runtime as R;
@@ -9,8 +10,8 @@ final class Worker {
     private $db;private $vault;private $caps;private $clock;private $observer;
     public function __construct(P\Database $db,P\SeedVault $vault,Capability $caps,?Clock $clock=null,?P\TransitionObserver $observer=null){$this->db=$db;$this->vault=$vault;$this->caps=$caps;$this->clock=$clock??new Clock();$this->observer=$observer;new Identity($db,$this->clock);}
     public static function configured(): self {
-        global $wpdb;$db=new P\Database($wpdb);$c=defined('EIPSI_STUDY_ENGINE_KEYRING')?EIPSI_STUDY_ENGINE_KEYRING:getenv('EIPSI_STUDY_ENGINE_KEYRING');if(is_string($c))$c=json_decode($c,true);if(!is_array($c)||!isset($c['keys'],$c['current']))throw new P\IntegrityFailure('SEED_KEYRING_UNAVAILABLE');
-        $keys=array();foreach($c['keys'] as $id=>$hex){if(!is_string($hex)||!preg_match('/^[a-f0-9]{64}$/D',$hex))throw new P\IntegrityFailure('INVALID_SERVER_KEYRING');$keys[$id]=hex2bin($hex);}return new self($db,new P\SeedVault($keys,$c['current']),Capability::configured($db));
+        global $wpdb;$db=new P\Database($wpdb);$c=\EIPSI\StudyEngine\Configuration\KeyringResolver::binary('seed');$keys=$c['keys'];
+        return new self($db,new P\SeedVault($keys,$c['current']),Capability::configured($db));
     }
     public static function dispatch($job): array {try{return self::configured()->execute($job);}catch(\Throwable $e){error_log('[EIPSI STUDY EMAIL] job='.(int)$job->id.' result=RETRYABLE');return array('success'=>false,'error'=>'Study Engine delivery failed');}}
     public static function tick(): void {try{require_once dirname(__DIR__).'/privacy.php';global $wpdb;(new \EIPSI\StudyEngine\Privacy\CleanupAdapter(new P\Database($wpdb)))->batch();$worker=self::configured();$worker->advanceBatch();$worker->processBatch();update_option('eipsi_management_worker_success',gmdate('c'),false);}catch(\Throwable $e){error_log('[EIPSI STUDY EMAIL] operation=catchup result=RETRYABLE');}}
