@@ -2473,5 +2473,11 @@
   "Review configuration": "Revisar configuración",
   "Generate or configure the Study Engine server keys in Setup.": "Generá o configurá las claves del motor de estudios en Configuración inicial.",
   "Review the database configuration or schema status.": "Revisá la configuración de la base de datos o el estado del esquema.",
-  "Configure SMTP and test email delivery before using email notifications.": "Configurá SMTP y probá el envío de emails antes de usar las notificaciones."
+  "Configure SMTP and test email delivery before using email notifications.": "Configurá SMTP y probá el envío de emails antes de usar las notificaciones.",
+  "Use this version for new participants": "Usar esta versión para nuevos participantes",
+  "Study Engine delivery attempts. SMTP acceptance does not confirm inbox delivery. Test emails are excluded.": "Intentos de envío de Study Engine. La aceptación SMTP no confirma la entrega en la bandeja. Los emails de prueba no se incluyen.",
+  "Public URL": "URL pública",
+  "Save draft → Validate → Review warnings → Publish version → Activate in General settings.": "Guardar borrador → Validar → Revisar advertencias → Publicar versión → Activar en Configuración general.",
+  "Published protocol is read-only. Participants keep their assessment and schedule version; published Initial screen settings apply to everyone.": "El protocolo publicado es de sólo lectura. Los participantes conservan la versión de sus evaluaciones y horarios; la configuración publicada de Pantalla Inicial se aplica a todos.",
+  "Version %d published.": "Versión %d publicada."
 }

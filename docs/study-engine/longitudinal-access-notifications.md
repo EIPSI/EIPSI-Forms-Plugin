@@ -1,5 +1,7 @@
 # Longitudinal access, email confirmation and notifications
 
+Published Initial screen settings are shared across all participations, including those assigned to an earlier scientific version. They include the email validation mode, confirmation option, membership controls, availability-notice policy and selected templates. Live access checks, Native authorization and the email worker read that same current scope. Draft edits remain private. The participant's assessments, calendar, conditions, random decisions, responses and scientific version are preserved.
+
 This guide describes the current Study Engine participant flow. Configure its texts and appearance in Study Engine; email bodies belong to Email Templates and transport belongs to SMTP.
 
 ## Entering and resuming

@@ -25,6 +25,23 @@ final class InitialScreen {
         foreach(array('label','modal_title','retain_label','delete_label','confirm_label') as $k)self::text($w[$k]);$w['modal_html']=self::content($w['modal_html']);unset($w);
         if(!is_array($c['templates']))throw new \DomainException('INVALID_EMAIL_TEMPLATES');Check::fields($c['templates'],array_keys($defaults['templates']));foreach($c['templates'] as &$t)$t=self::template($t);unset($t);return $c;
     }
+    /** Current published portal settings are shared; scientific execution definitions remain pinned. */
+    private static function published(\EIPSI\StudyEngine\Persistence\Database $db,string $study): ?array {
+        $row=$db->row($db->prepare('SELECT id FROM '.$db->table('study_versions')." WHERE study_id=%s AND state='PUBLISHED' ORDER BY version_number DESC LIMIT 1",$study));
+        if(!$row)return null;$repo=new \EIPSI\StudyEngine\Persistence\StudyVersionRepository($db);return $repo->compiled($repo->find($row['id']))->definition();
+    }
+    public static function publishedPresentation(\EIPSI\StudyEngine\Persistence\Database $db,string $study,array $base): array {
+        $definition=self::published($db,$study);return $definition===null?$base:(Configuration::read($definition)['initial_screen']??$base);
+    }
+    public static function effectiveDefinition(\EIPSI\StudyEngine\Persistence\Database $db,array $base): array {
+        if(($base['protocol_metadata']['enrollment_mode']??null)!=='EMAIL_LONGITUDINAL')return $base;
+        $latest=self::published($db,$base['study']['logical_id']);if($latest===null)return $base;
+        $current=Configuration::read($latest);
+        foreach(array('initial_screen','email_enabled','immediate_availability_policy','show_next_time','verification_policy') as $key)if(array_key_exists($key,$current))$base['protocol_metadata']['longitudinal'][$key]=$current[$key];
+        $messages=\EIPSI\StudyEngine\Runtime\PublicMessages::all($latest);
+        foreach(\EIPSI\StudyEngine\Runtime\PublicMessages::catalog() as $field)if(in_array($field['group'],array('auth_access','auth_status','auth_review','auth_change','withdrawal_messages','withdrawal_access_messages','wait','status'),true)||in_array($field['key'],array('conflict','invalid_fields','change_unconfirmed','email_collision'),true))$base['protocol_metadata']['public_messages'][$field['key']]=$messages[$field['key']];
+        return $base;
+    }
     public static function buttonStyle(array $c,string $key): string {
         $w=$c['withdrawal']??array();$base=array('text_color'=>'#243247','background'=>'#edf3fa','border_color'=>'#d5dce5','border_width'=>1,'radius'=>6,'font_size'=>13);
         if($key==='withdrawal')foreach($base as $field=>$value)$base[$field]=$w[$field]??$value;

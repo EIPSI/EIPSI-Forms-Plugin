@@ -1,6 +1,6 @@
 # T0 — Gate técnico mínimo
 
-Conteo configurado tras RBAC, corrección de simulación transversal, configuración de keyrings y Setup: **4021 funcionales** = 2640 PHP WordPress + 5 multisite + 538 PHP puros + 838 JS; suites en `gate.json` y cinco casos multisite en el gate. El fixture de activación también comprueba cero output/errores, metadata de tabla ausente, convergencia completa y cron mensual idempotente; ver [regresión de activación](../production-activation/README.md). Los conteos inferiores describen baselines históricos. RCT strict, smoke, activación y harness se reportan aparte; los casos repetidos no se suman dos veces.
+Conteo configurado tras RBAC, corrección de simulación transversal, configuración de keyrings y Setup: **4047 funcionales** = 2660 PHP WordPress + 5 multisite + 538 PHP puros + 844 JS; suites en `gate.json` y cinco casos multisite en el gate. El fixture de activación también comprueba cero output/errores, metadata de tabla ausente, convergencia completa y cron mensual idempotente; ver [regresión de activación](../production-activation/README.md). Los conteos inferiores describen baselines históricos. RCT strict, smoke, activación y harness se reportan aparte; los casos repetidos no se suman dos veces.
 
 Un único entorno Linux con Docker Engine, Docker Compose v2.20+ (soporte `up --wait`), Bash y Python 3.9+. El wrapper usa solo la biblioteca estándar Python. Referencia local: Python 3.12.3 / Compose 5.3.1. No exige PHP, Node ni WordPress instalados en el host.
 

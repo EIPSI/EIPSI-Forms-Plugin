@@ -22,7 +22,7 @@ final class EmailTemplate {
     private function m(string $key,array $values=array()): string {return \EIPSI\StudyEngine\Runtime\PublicMessages::text($this->definition,$key,$values);}
     private function h(string $key,array $values=array()): string {return esc_html($this->m($key,$values));}
     public function screen(array $frame,?string $error=null): string {
-        $this->definition=$frame['definition']??array();$html=$this->renderScreen($frame,$error);
+        $this->definition=$frame['definition']??array();if(isset($frame['study']['study_id'])){global $wpdb;$this->definition=InitialScreen::effectiveDefinition(new \EIPSI\StudyEngine\Persistence\Database($wpdb),$this->definition);$frame['definition']=$this->definition;}$html=$this->renderScreen($frame,$error);
         $html=preg_replace_callback('/<main\b(?![^>]*data-study-messages)/',function(){return '<main'.\EIPSI\StudyEngine\Runtime\PublicMessages::attributes($this->definition);},$html,1);
         return $html;
     }
@@ -54,7 +54,7 @@ final class EmailTemplate {
             if(!isset($keys['unavailable_title']))$add('wait_title','error');
             if($this->definition['protocol_metadata']['longitudinal']['email_enabled']??true)$add('email_future_notices');
             $until=$view['next_action']['payload']['until']??null;
-            if($until&&($this->definition['protocol_metadata']['longitudinal']['show_next_time']??false))$items[]=array('key'=>'next_time','level'=>'info','text'=>$this->m('next_time'),'time'=>$until,'zone'=>$view['snapshot']['execution']['timezone']??$this->definition['timezone']['default']);
+            if($until&&$until>($view['snapshot']['clock']??gmdate('Y-m-d\TH:i:s\Z'))&&($this->definition['protocol_metadata']['longitudinal']['show_next_time']??false))$items[]=array('key'=>'next_time','level'=>'info','text'=>$this->m('next_time'),'time'=>$until,'zone'=>$view['snapshot']['execution']['timezone']??$this->definition['timezone']['default']);
         }elseif($kind==='FINISHED')$add('finished_body');
         elseif($kind==='TERMINATED')$add('terminated_body');
         elseif($kind==='OPERATIONAL_ERROR')$add('operation_failed','error');

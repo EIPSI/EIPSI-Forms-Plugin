@@ -9,14 +9,14 @@ final class NotificationScheduler {
     private $db;
     public function __construct(P\Database $db){$this->db=$db;}
     public function synchronize(array $s,CompiledStudy $graph,array $subject,string $version): void {
-        $this->db->requireTransaction();$config=Configuration::read($graph->definition());if($subject['kind']!=='PARTICIPANT')throw new P\IntegrityFailure('PARTICIPANT_REQUIRED');
+        $this->db->requireTransaction();$definition=InitialScreen::effectiveDefinition($this->db,$graph->definition());$config=Configuration::read($definition);if($subject['kind']!=='PARTICIPANT')throw new P\IntegrityFailure('PARTICIPANT_REQUIRED');
         $study=\EIPSI\StudyEngine\Runtime\PausePolicy::study($this->db,$s['execution']['study_id']);$allowed=null;if(\EIPSI\StudyEngine\Runtime\PausePolicy::paused($study)){$e=(new P\StudyExecutionRepository($this->db))->find($s['execution']['id']);$allowed=\EIPSI\StudyEngine\Runtime\PausePolicy::openBlocks($this->db,$e,$graph->definition(),true);}
         $identity=new Identity($this->db);$p=$identity->participant($subject['id'],true);if(!$p)throw new P\IntegrityFailure('PARTICIPANT_REQUIRED');
         if(isset($config['initial_screen'])&&(bool)$p['active']&&$p['privacy_state']==='ACTIVE'&&$p['verification_state']!=='VERIFIED'&&!$s['notifications_cancelled']&&in_array($s['execution']['state'],array('ACTIVE','WAITING'),true)&&InitialScreen::required($config,$s,$graph->definition())){
             foreach($s['instances'] as $i)if(($allowed===null||isset($allowed[$i['id']]))&&!P\NotificationIntentRepository::logicalCancellation($s,$i)&&$graph->node($i['definition_id'])['completion_boundary']==='ASSESSMENT'&&in_array($i['state'],array('SCHEDULED','AVAILABLE','IN_PROGRESS'),true)&&$i['available_at']!==null&&($i['due_at']===null||$i['available_at']<$i['due_at']))$this->enqueue($s['execution']['id'],array('key'=>'VERIFY_OPPORTUNITY','block_execution_id'=>$i['id'],'trigger_at'=>$i['available_at'],'channel'=>'EMAIL','purpose'=>'VERIFY_PARTICIPANT'),$s);
         }
         $repo=new P\NotificationIntentRepository($this->db);$exec=$s['execution']['id'];
-        if(!(bool)$p['active']||$p['privacy_state']!=='ACTIVE'||!$config['email_enabled']||$s['notifications_cancelled']||in_array($s['execution']['state'],array('COMPLETED','WITHDRAWN','TERMINATED_BY_RULE'),true)){
+        if(!(bool)$p['active']||$p['privacy_state']!=='ACTIVE'||$s['notifications_cancelled']||in_array($s['execution']['state'],array('COMPLETED','WITHDRAWN','TERMINATED_BY_RULE'),true)){
             // Required identity verification is independent of optional scientific notices.
             $preserveVerification=isset($config['initial_screen'])&&(bool)$p['active']&&$p['privacy_state']==='ACTIVE'&&!$s['notifications_cancelled']&&in_array($s['execution']['state'],array('ACTIVE','WAITING'),true);
             $this->cancel($exec,'PARTICIPANT_OR_EXECUTION_CLOSED',$preserveVerification);return;

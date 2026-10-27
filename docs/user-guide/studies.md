@@ -8,7 +8,7 @@ A study connects published assessment versions with a participant route. Open **
 
 Set the study name, public URL key, time zone policy, date format, and applicable participant messages. Choose cross-sectional or longitudinal design. The study keeps the language captured at creation; it has no separate language selector.
 
-Saving keeps a draft. Publishing creates a fixed protocol version. **Activation is a separate action**: a published draft is not automatically an open study. Participants and responses remain tied to the versions used for their route.
+Saving keeps a draft. Publishing creates a fixed protocol version. **Activation is a separate action**: a published draft is not automatically an open study. Participants and responses remain tied to the versions used for their route. If an older version is already active, open the newly published version and use **General → Study status → Use this version for new participants**. The public study link stays the same; existing participations keep their assigned protocol.
 
 ## Cross-sectional
 
@@ -21,6 +21,8 @@ Use an immediate assessment, or add several candidate assessments in a randomiza
 Add a longitudinal block and schedule its interactions in the visual editor. Each interaction can present a selected assessment or a randomization among candidate assessments, with versions and weights as offered in its properties.
 
 Choose fixed or relative timing. Fixed timing uses the calendar's start/end controls. Relative timing uses a trigger and an elapsed delay, such as time after study start or email validation. The displayed relative day is derived from the delay; it is not another independent delay.
+
+For fixed interactions, day 1 is the participant's local enrollment date. Entering during an open window can immediately offer that interaction, even if an earlier window has expired. Longitudinal blocks group interactions; they have no separate availability, expiration, repetition or editable duration. Configure timing and expiration in each interaction, repetition through **Repetition rules**, email verification in **Initial screen**, and dependencies through **Logical conditions**. Saving or publishing a draft removes retired block availability settings; published protocols and existing participations keep their assigned version. To apply the simplified configuration to a published study, create and publish a new version and activate it for new participants.
 
 Configure expiration, reminders, required opportunities, and unique response as needed. Longitudinal unique response applies per scheduled opportunity. When repetition is allowed, it is limited by that opportunity's open period.
 
@@ -38,11 +40,11 @@ This tab appears for longitudinal studies. Edit the title, description, email au
 
 Email authentication controls verification before the first assessment, from the second opportunity, or without requiring initial verification. Where enabled, confirming the address after a directly entered first assessment lets the participant check/correct it. Choose the three email templates in this element's properties; edit their content in Email Templates.
 
-Edit withdrawal separately: the choice dialog, confirmation dialog, and final message have their own visual sections. Participants enter a registered email and confirm the chosen action on screen. The two choices retain data for analysis or request removal from use and local deletion. Withdrawal is distinct from the researcher's administrative finalization of the study.
+Edit withdrawal separately: the choice dialog, confirmation dialog, and final message have their own visual sections. Participants enter a registered email and confirm the chosen action on screen. The two choices retain data for analysis or request removal from use and local deletion. Withdrawal is distinct from the researcher's administrative finalization of the study. All published Initial screen settings apply throughout the study, including existing participants: appearance, email validation, confirmation after the first assessment, membership controls, notices, selected email templates, withdrawal dialogs and their messages. Draft changes remain private. Assigned assessments, schedules, randomizations, logical conditions and recorded responses keep their original scientific version.
 
 ## Tests
 
-Validation checks whether the current draft can be published and reports problems to review. The simulation uses a dummy participant and captured, simulated emails; it does not save real participant responses or deliver mail.
+Publication is in **Tests**, beside validation: save the draft, validate it, review and acknowledge warnings, then publish. A successful publication does not activate a new scientific version automatically; manage activation in **General → Study status**. The public URL and copy button appear beside study status while the study is active; publishing does not open a URL dialog. Validation checks whether the current draft can be published and reports problems to review. The simulation uses a dummy participant and captured, simulated emails; it does not save real participant responses or deliver mail.
 
 In a longitudinal simulation, advance time, open the initial screen or simulated email link, and answer assessments to explore conditions. Change the numeric seed and restart to try another randomization. Cross-sectional simulation has no longitudinal time/email controls. Complete a real disposable participant route before sharing a study for collection.
 

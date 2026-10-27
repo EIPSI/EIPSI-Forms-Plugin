@@ -13,7 +13,6 @@
         if(B.isRelative(n)){const delta=day-B.calendarSlot(n).day;if(n.schedule.temporal_rule.duration?.kind==='ELAPSED')n.schedule.temporal_rule.duration.seconds=Math.max(0,n.schedule.temporal_rule.duration.seconds+delta*86400);else if(n.schedule.temporal_rule.duration)n.schedule.temporal_rule.duration.amount=Math.max(0,n.schedule.temporal_rule.duration.amount+delta);n.metadata.relative_day=day;n.metadata.relative_time=start;}
         else n.schedule.temporal_rule={kind:'LOCAL_DAY_TIME',day_index:day,time:start};
         n.metadata.scheduled_interaction={delivery:'START',reminders:[],...n.metadata.scheduled_interaction,window_seconds:duration*60};
-        const parent=B.node(out,n.parent_id);if(parent)parent.metadata.duration_days=Math.max(parent.metadata.duration_days||7,day);
         return out;
     };
     B.calendarEditor = (app,d,block) => {

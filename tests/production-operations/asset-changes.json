@@ -1,0 +1,7 @@
+{
+  "assets/js/email-test.js": {
+    "before_sha256": "4b2e0bcfd2352112e93e9779c2dcfdae6dcf2bea7f156f741e64c1c5ef68196d",
+    "after_sha256": "b520924c66ae058bc8e7e9d97363ce39a44d0522b1abef191672dca77234bdd6",
+    "reason": "Use current engine delivery attempts and display no rate without outcomes."
+  }
+}

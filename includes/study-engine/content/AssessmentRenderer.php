@@ -22,7 +22,7 @@ final class AssessmentRenderer {
             }
             $screens=array();foreach(array('FINISHED'=>'finished','WAIT'=>'wait','TERMINATED'=>'terminated','WITHDRAWN'=>'withdrawn') as $state=>$prefix)$screens[$state]=array($m($prefix.'_title'),$m($prefix.'_body'));
             $screen=$screens[$kind]??array($m('unavailable_title'),$m('operation_failed'));$html.='<h1 tabindex="-1">'.esc_html($screen[0]).'</h1><p>'.esc_html($screen[1]).'</p>';
-            if($kind==='WAIT'){$until=$view['next_action']['payload']['until']??null;if($until&&(!(bool)($frame['longitudinal']??false)||($d['protocol_metadata']['longitudinal']['show_next_time']??false)))$html.='<p>'.esc_html($m('next_time')).' <time datetime="'.esc_attr($until).'">'.esc_html(\EIPSI\StudyEngine\Runtime\DateFormat::local($until,$view['snapshot']['execution']['timezone']??$d['timezone']['default'],\EIPSI\StudyEngine\Runtime\DateFormat::read($d))).'</time></p>';}
+            if($kind==='WAIT'){$until=$view['next_action']['payload']['until']??null;if($until&&$until>($view['snapshot']['clock']??gmdate('Y-m-d\TH:i:s\Z'))&&(!(bool)($frame['longitudinal']??false)||($d['protocol_metadata']['longitudinal']['show_next_time']??false)))$html.='<p>'.esc_html($m('next_time')).' <time datetime="'.esc_attr($until).'">'.esc_html(\EIPSI\StudyEngine\Runtime\DateFormat::local($until,$view['snapshot']['execution']['timezone']??$d['timezone']['default'],\EIPSI\StudyEngine\Runtime\DateFormat::read($d))).'</time></p>';}
         }return $html.'</main>';
     }
 }

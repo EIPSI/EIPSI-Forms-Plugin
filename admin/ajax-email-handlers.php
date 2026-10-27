@@ -29,7 +29,7 @@ function eipsi_test_default_email_handler() {
 
     $test_email = isset($_POST['test_email']) ? sanitize_email(wp_unslash($_POST['test_email'])) : '';
     if (empty($test_email)) {
-        $test_email = get_option('eipsi_investigator_email', get_option('admin_email'));
+        $test_email = get_option('eipsi_investigator_email', '') ?: get_option('admin_email');
     }
 
     $diagnostic = EIPSI_Email_Service::diagnose_email_system();
@@ -98,7 +98,7 @@ function eipsi_test_smtp_handler() {
     // Get test email from request or use default
     $test_email = isset($_POST['test_email']) ? sanitize_email(wp_unslash($_POST['test_email'])) : '';
     if (empty($test_email)) {
-        $test_email = get_option('eipsi_investigator_email', get_option('admin_email'));
+        $test_email = get_option('eipsi_investigator_email', '') ?: get_option('admin_email');
     }
 
     if (!is_email($test_email)) {

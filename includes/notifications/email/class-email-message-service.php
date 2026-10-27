@@ -1044,7 +1044,7 @@ public static function send_test_email($to = null) {
 
         // Use provided email or default to investigator/admin email
         if (empty($recipient)) {
-            $recipient = get_option('eipsi_investigator_email', get_option('admin_email', ''));
+            $recipient = get_option('eipsi_investigator_email', '') ?: get_option('admin_email', '');
         }
 
         if (empty($recipient) || !is_email($recipient)) {
@@ -1112,8 +1112,8 @@ public static function send_test_email($to = null) {
         );
 
         try {
-            // Use the send_email method for consistency and logging
-            $result = EIPSI_Notification_Email_Delivery_Service::send_email(0, 0, $recipient, 'test', $subject, $content);
+            // Test transport acceptance independently of participant audit IDs.
+            $result = EIPSI_Notification_Email_Delivery_Service::send_study_engine($recipient, $subject, $content, 'SMTP_TEST');
 
             if ($result) {
                 return array(
@@ -1155,15 +1155,8 @@ public static function diagnose_email_system() {
             $recommendations[] = 'Para mejor entregabilidad, configura SMTP en Configuración > SMTP';
         }
 
-        // Check investigator email
+        // Optional Reply-To identity is not an SMTP prerequisite.
         $investigator_email = get_option('eipsi_investigator_email', '');
-        if (empty($investigator_email)) {
-            $issues[] = 'Email del investigador no configurado';
-            $recommendations[] = 'Configura el email del investigador en Configuración > SMTP';
-        } elseif (!is_email($investigator_email)) {
-            $issues[] = 'Email del investigador inválido';
-            $recommendations[] = 'Corrige el formato del email del investigador';
-        }
 
         // Check admin email
         $admin_email = get_option('admin_email', '');

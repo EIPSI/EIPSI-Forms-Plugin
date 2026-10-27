@@ -90,7 +90,7 @@ final class Worker {
         $execution=(new P\StudyExecutionRepository($this->db))->find($intent['execution_id']);$p=(new Identity($this->db,$this->clock))->participant($execution['participant_id'],true);$study=$this->db->row($this->db->prepare('SELECT * FROM '.$this->db->table('public_studies').' WHERE study_id=%s',$execution['study_id']));
         if($execution['finalized_at']!==null||!$p||!$study||!(bool)$p['active']||$p['privacy_state']!=='ACTIVE'||$execution['state']==='WITHDRAWN')return array('cancel'=>'PARTICIPANT_INACTIVE');if($study['enrollment_state']==='FINALIZED')return array('cancel'=>'STUDY_FINALIZED');
         if(R\PausePolicy::paused($study)){if($intent['purpose']==='ASSESSMENT_AVAILABLE'||($intent['block_execution_id']!==null&&!isset(R\PausePolicy::openBlocks($this->db,$execution,(new P\StudyVersionRepository($this->db))->compiled((new P\StudyVersionRepository($this->db))->find($execution['study_version_id']))->definition(),true)[$intent['block_execution_id']])))return array('defer'=>true);}
-        $versions=new P\StudyVersionRepository($this->db);$definition=$versions->compiled($versions->find($execution['study_version_id']))->definition();$config=Configuration::read($definition);$block=$intent['block_execution_id']===null?null:($s['instances'][$intent['block_execution_id']]??null);
+        $versions=new P\StudyVersionRepository($this->db);$definition=InitialScreen::effectiveDefinition($this->db,$versions->compiled($versions->find($execution['study_version_id']))->definition());$config=Configuration::read($definition);$block=$intent['block_execution_id']===null?null:($s['instances'][$intent['block_execution_id']]??null);
         $confirmation=EmailConfirmation::read($this->db,$intent['execution_id']);$confirmIntent=$confirmation!==null&&$confirmation['intent_id']===$intent['id'];
         if($confirmIntent){
             if($confirmation['state']!=='PENDING'||$confirmation['previous_email']!==$p['email']||$confirmation['access_revision']!==(int)$p['access_revision'])return array('cancel'=>'EMAIL_CONFIRMATION_SUPERSEDED');
@@ -101,11 +101,14 @@ final class Worker {
         if($verification&&$p['verification_state']==='VERIFIED')return array('cancel'=>'ALREADY_VERIFIED');
         if(!$auth){
             if(P\NotificationIntentRepository::logicalCancellation($s,$block))return array('cancel'=>'BLOCK_CANCELLED_BY_CONDITION');
-            if(!$verification&&(!$config['email_enabled']||(!InitialScreen::v2($config)&&$config['verification_policy']==='VERIFIED_ONLY'&&$p['verification_state']!=='VERIFIED')))return array('cancel'=>'COMMUNICATION_POLICY');
-            if(!in_array($execution['state'],array('ACTIVE','WAITING'),true)||!$block||!in_array($block['state'],array('AVAILABLE','IN_PROGRESS'),true))return array('cancel'=>'TARGET_CLOSED');
+            if(!$verification&&((!InitialScreen::v2($config)&&$config['verification_policy']==='VERIFIED_ONLY'&&$p['verification_state']!=='VERIFIED')))return array('cancel'=>'COMMUNICATION_POLICY');
+            if(!in_array($execution['state'],array('ACTIVE','WAITING'),true)||!$block||\EIPSI\StudyEngine\Engine\Simulator::terminal($block['state']))return array('cancel'=>'TARGET_CLOSED');
             if((int)$intent['schedule_revision']!==$block['schedule_revision'])return array('cancel'=>'SCHEDULE_REVISION_CHANGED');
             if(($s['barrier']['target_execution_id']??$block['id'])!==$block['id'])return array('cancel'=>'WAIT_SUPERSEDED');
-            if(($block['due_at']!==null&&$block['due_at']<=$this->clock->now())||$block['available_at']>$this->clock->now())return array('cancel'=>'WINDOW_CLOSED');
+            if($block['due_at']!==null&&$block['due_at']<=$this->clock->now())return array('cancel'=>'WINDOW_CLOSED');
+            if(!$verification&&!$config['email_enabled'])return array('defer'=>true);
+            // A live opportunity can be scheduled or dependency-blocked without being closed.
+            if($block['available_at']===null||$block['available_at']>$this->clock->now()||!in_array($block['state'],array('AVAILABLE','IN_PROGRESS'),true))return array('defer'=>true);
             $graph=$versions->compiled($versions->find($execution['study_version_id']));
             if(!(new \EIPSI\StudyEngine\Engine\TraversalResolver())->eligible($graph,$block,$s['instances'],$s['random_decisions']))return array('defer'=>true);
             if($intent['purpose']==='ASSESSMENT_AVAILABLE'&&InitialScreen::suppressInitialAvailability($config,$s,$definition,$block))return array('cancel'=>'INITIAL_DIRECT_ACCESS');

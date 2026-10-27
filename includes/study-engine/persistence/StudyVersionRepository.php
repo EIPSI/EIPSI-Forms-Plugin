@@ -64,7 +64,7 @@ final class StudyVersionRepository {
             if($row['state']==='PUBLISHED'&&($a['published_revision']??null)===$revision)return $id;
             if($row['state']!=='DRAFT')throw new PersistenceConflict('PUBLISHED_VERSION_IMMUTABLE');
             if(($a['revision']??0)!==$revision)throw new PersistenceConflict('DRAFT_REVISION_CONFLICT');
-            $d=Database::json($row['protocol_json']);$issues=\EIPSI\StudyEngine\Builder\Draft::diagnostics($d);
+            $d=\EIPSI\StudyEngine\Builder\Draft::validate(Database::json($row['protocol_json']));$issues=\EIPSI\StudyEngine\Builder\Draft::diagnostics($d);
             if(array_filter($issues,static function($v){return ($v['severity']??'ERROR')==='ERROR';}))throw new \EIPSI\StudyEngine\Engine\CompilationException($issues);
             $required=array_values(array_unique(array_map(static function($v){return $v['code'].'|'.($v['node_id']??$v['path']??'');},$issues)));sort($required);$acks=$acknowledgements;sort($acks);
             if($required!==$acks)throw new PersistenceConflict('WARNING_ACKNOWLEDGEMENT_REQUIRED');

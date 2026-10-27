@@ -165,7 +165,7 @@ final class Owner {
         $row=$this->store->find('executions',$frame['execution_id']);$binding=json_decode($row['binding_json'],true);
         if(($binding['kind']??null)!=='STUDY_SESSION')return $frame;
         require_once dirname(__DIR__,2).'/study-engine/longitudinal.php';
-        $db=$this->store->db;$repo=new \EIPSI\StudyEngine\Persistence\StudyVersionRepository($db);$definition=$repo->compiled($repo->find($binding['study_version_id']))->definition();$config=\EIPSI\StudyEngine\Longitudinal\Configuration::read($definition);
+        $db=$this->store->db;$repo=new \EIPSI\StudyEngine\Persistence\StudyVersionRepository($db);$definition=$repo->compiled($repo->find($binding['study_version_id']))->definition();$definition=\EIPSI\StudyEngine\Longitudinal\InitialScreen::effectiveDefinition($db,$definition);$config=\EIPSI\StudyEngine\Longitudinal\Configuration::read($definition);
         $instances=$db->rows($db->prepare('SELECT definition_id,state,available_at,due_at FROM '.$db->table('block_executions').' WHERE execution_id=%s',$binding['execution_id']));
         if(!\EIPSI\StudyEngine\Longitudinal\EmailConfirmation::needs($db,$config,array('execution'=>array('id'=>$binding['execution_id']),'instances'=>$instances),$definition))return $frame;
         $identity=new \EIPSI\StudyEngine\Longitudinal\Identity($db);$name=\EIPSI\StudyEngine\Longitudinal\Identity::cookieName($binding['public_id']);$token=$_COOKIE[$name]??null;

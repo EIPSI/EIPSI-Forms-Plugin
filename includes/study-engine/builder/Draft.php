@@ -27,6 +27,11 @@ final class Draft {
         return array('kind'=>'BLOCK','id'=>$id,'logical_id'=>$id,'version_id'=>$version,'parent_id'=>$parent,'scope'=>$scope,'position'=>$position,'children_strategy'=>'SEQUENTIAL','randomization'=>null,'schedule'=>$internal?null:self::schedule($parent===$version?'EXECUTION_CREATED':'BLOCK_AVAILABLE',$parent===$version?null:$parent),'completion_boundary'=>$scope==='MACRO'?'NONE':($internal?'GROUP':'ASSESSMENT'),'metadata'=>array('label'=>$scope==='MACRO'?'Macro':'Evaluación'));
     }
     public static function validate(array $d): array {
+        if(($d['state']??null)==='DRAFT'&&($d['protocol_metadata']['study_type']??null)==='LONGITUDINAL'&&is_array($d['nodes']??null)){
+            foreach($d['nodes'] as &$node)if(is_array($node)&&($node['metadata']['role']??null)==='LONGITUDINAL_BLOCK'){
+                $node['schedule']=self::schedule();$node['schedule']['timezone_policy']=$d['timezone']['policy']??'STUDY_TIMEZONE';unset($node['metadata']['duration_days']);
+            }unset($node);
+        }
         if(array_key_exists('content_language',$d['protocol_metadata']??array()))\EIPSI\I18n\ContentDefaults::valid($d['protocol_metadata']['content_language']);
         if(strlen(C\Canonical::json($d))>2097152||count($d['nodes']??array())>2000)throw new \DomainException('DRAFT_SIZE_LIMIT');
         if(($d['state']??null)!=='DRAFT')throw new \DomainException('DRAFT_REQUIRED');
