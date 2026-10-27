@@ -40,7 +40,7 @@
             panel.append(B.el('div',{class:'sb-toolbar'},B.button(window.EIPSIAdminI18n.t("Logical operations guide"),()=>B.logicalHelp(app))),B.trajectoryWorkspace(app));
         }else if(app.view==='initial'){panel.append(B.initialScreenWorkspace(app));
         }else panel.append(B.validationPanel(app),B.simulationPanel(app));
-        if(app.readOnly)panel.querySelectorAll('input,select,textarea').forEach(control=>control.disabled=true);
+        if(app.readOnly)panel.querySelectorAll('input,select,textarea').forEach(control=>{if(!control.closest('.sb-public-url'))control.disabled=true;});
         box.append(panel);return box;
     };
     B.globalNotifications=(d,change)=>{

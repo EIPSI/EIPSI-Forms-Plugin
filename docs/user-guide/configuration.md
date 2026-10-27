@@ -59,3 +59,9 @@ See the [scheduler guide](../scheduler/Scheduler%20and%20WP-Cron%20Guide.md) for
 **Fallback messages / Mensajes de respaldo** contains the texts used when a study definition cannot be loaded. These fields also have their own locations in Study Engine. Whenever the definition is available, the study's saved messages take precedence.
 
 Changing a fallback does not edit an existing study or assessment. A nonexistent study link is not a separate participant page populated from these fields.
+
+### Email testing and delivery diagnostics
+
+The test reports whether the configured transport accepts the message; it does not require a participant record. An optional researcher Reply-To address is not an SMTP prerequisite. Delivery statistics use current Study Engine transport attempts, including retryable failures; an accepted message is not proof of inbox delivery. Test messages are excluded, and the success rate is unavailable until there are outcomes. If automatic emails do not arrive, inspect Scheduler activity and the study communication/job records as well as SMTP. A successful manual test does not establish that scheduled jobs are running.
+
+A still-open opportunity blocked by a protocol dependency keeps its email pending until it becomes eligible. Study-level notice settings and selected templates are read from the latest published Initial screen settings even for earlier participations. Disabling notices defers eligible queued notices; re-enabling can deliver them while their original opportunity remains open. Expired or closed opportunities do not send their notices. Historical cancelled notices are not resent automatically.

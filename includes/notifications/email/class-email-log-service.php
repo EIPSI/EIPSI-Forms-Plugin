@@ -173,55 +173,22 @@ public static function get_email_details($email_log_id) {
 
 public static function get_email_deliverability_stats() {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'survey_email_log';
-
-        // Check if table exists
-        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$table_name}'") === $table_name;
-
-        if (!$table_exists) {
-            return array(
-                'has_data' => false,
-                'message' => __('No hay datos de email disponibles aún.', 'eipsi-forms')
-            );
-        }
-
-        // Overall stats
-        $total = $wpdb->get_var("SELECT COUNT(*) FROM {$table_name}");
-        $sent = $wpdb->get_var("SELECT COUNT(*) FROM {$table_name} WHERE status = 'sent'");
-        $failed = $wpdb->get_var("SELECT COUNT(*) FROM {$table_name} WHERE status = 'failed'");
-
-        // Last 7 days
-        $last_7_days = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$table_name} WHERE sent_at >= DATE_SUB(NOW(), INTERVAL %d DAY)",
-            7
-        ));
-
-        // Last 30 days
-        $last_30_days = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$table_name} WHERE sent_at >= DATE_SUB(NOW(), INTERVAL %d DAY)",
-            30
-        ));
-
-        // Success rate
-        $success_rate = $total > 0 ? round(($sent / $total) * 100, 1) : 0;
-
-        // Most common error
-        $common_error = $wpdb->get_var(
-            "SELECT error_message FROM {$table_name}
-             WHERE status = 'failed' AND error_message IS NOT NULL
-             GROUP BY error_message ORDER BY COUNT(*) DESC LIMIT 1"
-        );
-
-        return array(
-            'has_data' => $total > 0,
-            'total_emails' => (int) $total,
-            'sent' => (int) $sent,
-            'failed' => (int) $failed,
-            'success_rate' => $success_rate,
-            'last_7_days' => (int) $last_7_days,
-            'last_30_days' => (int) $last_30_days,
-            'common_error' => $common_error ?: null,
-            'health_status' => $success_rate >= 95 ? 'excellent' : ($success_rate >= 85 ? 'good' : 'needs_attention')
-        );
+        // Current Study Engine transport outcomes; do not mix retired survey logs.
+        $table = $wpdb->prefix . 'eipsi_engine_management_events';
+        $empty = array('has_data'=>false,'total_emails'=>0,'sent'=>0,'failed'=>0,
+            'success_rate'=>null,'last_7_days'=>0,'last_30_days'=>0,
+            'common_error'=>null,'health_status'=>'no_data');
+        if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table))) !== $table) return $empty;
+        $row = $wpdb->get_row("SELECT COUNT(*) AS total,
+            SUM(action='MAIL_ACCEPTED') AS sent, SUM(action='MAIL_RETRYABLE') AS failed,
+            SUM(created_at >= UTC_TIMESTAMP() - INTERVAL 7 DAY) AS recent7,
+            SUM(created_at >= UTC_TIMESTAMP() - INTERVAL 30 DAY) AS recent30
+            FROM `$table` WHERE action IN ('MAIL_ACCEPTED','MAIL_RETRYABLE')", ARRAY_A);
+        if (!$row || !(int)$row['total']) return $empty;
+        $rate = round((int)$row['sent'] / (int)$row['total'] * 100, 1);
+        return array('has_data'=>true,'total_emails'=>(int)$row['total'],
+            'sent'=>(int)$row['sent'],'failed'=>(int)$row['failed'],'success_rate'=>$rate,
+            'last_7_days'=>(int)$row['recent7'],'last_30_days'=>(int)$row['recent30'],
+            'common_error'=>null,'health_status'=>$rate>=95?'excellent':($rate>=85?'good':'needs_attention'));
     }
 }

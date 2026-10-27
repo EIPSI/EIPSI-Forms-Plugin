@@ -86,7 +86,7 @@
             if (!result.inside || !result.enrolled || result.verification_required) { renderEntry();return; }
             if (result.assessment) { renderAssessment();return; }
             if(result.status_html){const content=html(result.status_html);bindStudyContent(content);surface.append(content);return;}
-            if(result.show_next_time&&result.next_action.kind==='WAIT'&&result.next_action.payload?.until)surface.append(B.note((result.public_messages?.next_time??'Próxima disponibilidad:')+' '+result.next_action.payload.until));
+            if(result.show_next_time&&result.next_action.kind==='WAIT'&&result.next_action.payload?.until&&result.next_action.payload.until>result.snapshot.clock)surface.append(B.note((result.public_messages?.next_time??'Próxima disponibilidad:')+' '+result.next_action.payload.until));
             const finished=['COMPLETED','TERMINATED_BY_RULE','WITHDRAWN'].includes(result.snapshot.execution.state);notices.append(B.el('h2', { text: finished ? 'Participación finalizada' : 'Por ahora no hay evaluaciones disponibles' }), B.note(finished ? 'Este recorrido terminó.' : 'Te avisaremos por email cuando haya una evaluación disponible. Podés avanzar el reloj para continuar.'));
         };
         // Bind only the injected dummy surface; no public transport or real form action.

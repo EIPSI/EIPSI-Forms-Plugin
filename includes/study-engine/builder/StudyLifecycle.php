@@ -8,7 +8,8 @@ trait StudyLifecycle {
     private function lifecycle(string $study): array {
         $row=$this->db->row($this->db->prepare('SELECT * FROM '.$this->db->table('public_studies').' WHERE study_id=%s',$study));
         $version=$row['active_version_id']??null;if($version===null){$v=$this->db->row($this->db->prepare('SELECT id FROM '.$this->db->table('study_versions')." WHERE study_id=%s AND state='PUBLISHED' ORDER BY version_number DESC LIMIT 1",$study));$version=$v['id']??null;}
-        return array('published_version_id'=>$version,'state'=>$row?($row['enrollment_state']==='FINALIZED'?'FINALIZED':($row['enrollment_state']==='OPEN'?'ACTIVE':'PAUSED')):'DRAFT','revision'=>(int)($row['lifecycle_revision']??0),'cycle'=>(int)($row['study_cycle']??1),'active_version_id'=>$row['active_version_id']??null,'finalized_at'=>$row['finalized_at']??null);
+        $activeVersion=empty($row['active_version_id'])?null:$this->db->row($this->db->prepare('SELECT version_number FROM '.$this->db->table('study_versions').' WHERE id=%s AND study_id=%s',$row['active_version_id'],$study));
+        return array('active_version_number'=>$activeVersion?(int)$activeVersion['version_number']:null,'published_version_id'=>$version,'state'=>$row?($row['enrollment_state']==='FINALIZED'?'FINALIZED':($row['enrollment_state']==='OPEN'?'ACTIVE':'PAUSED')):'DRAFT','revision'=>(int)($row['lifecycle_revision']??0),'cycle'=>(int)($row['study_cycle']??1),'active_version_id'=>$row['active_version_id']??null,'finalized_at'=>$row['finalized_at']??null);
     }
     public function lifecycleSummary(string $id): array {
         self::authorize();$r=$this->row($id);$study=$r['study_id'];
@@ -30,7 +31,7 @@ trait StudyLifecycle {
             $previous=$public?($public['enrollment_state']==='FINALIZED'?'FINALIZED':($public['enrollment_state']==='OPEN'?'ACTIVE':'PAUSED')):'DRAFT';
             if($previous==='FINALIZED'&&$action!=='REOPEN')throw new \DomainException('STUDY_FINALIZED');
             if($action==='REOPEN'&&$previous!=='FINALIZED')throw new \DomainException('STUDY_NOT_FINALIZED');
-            if($action===$previous)return;
+            if($action===$previous&& !($action==='ACTIVE'&&$r['state']==='PUBLISHED'&&($public['active_version_id']??null)!==$r['id']))return;
             $now=P\Database::now();$cycle=(int)($public['study_cycle']??1);
             if($action==='FINALIZED'){
                 if(!$public)throw new \DomainException('STUDY_NOT_STARTED');

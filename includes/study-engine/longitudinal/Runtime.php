@@ -16,7 +16,7 @@ final class Runtime {
         $observer=$session===null?$this->observer:new SessionGuard($this->identity,$public,$token,$session,$this->observer);
         return new ExecutionOwner($this->db,$this->vault,$observer,new R\LocalResponseSink($metadata),function(){return $this->clock->now();});
     }
-    private function definition(string $version): array {$repo=new P\StudyVersionRepository($this->db);$v=$repo->find($version);if(!$v)throw new P\IntegrityFailure('PINNED_VERSION_UNAVAILABLE');$d=$repo->compiled($v)->definition();Configuration::read($d);return $d;}
+    private function definition(string $version): array {$repo=new P\StudyVersionRepository($this->db);$v=$repo->find($version);if(!$v)throw new P\IntegrityFailure('PINNED_VERSION_UNAVAILABLE');$d=$repo->compiled($v)->definition();Configuration::read($d);return InitialScreen::effectiveDefinition($this->db,$d);}
     public function handle(string $public,?string $token=null,?array $request=null): array {
         $study=$this->study($public);$token=$token??Identity::token();$session=in_array($request['action']??null,array('withdrawal_lookup','withdraw'),true)?null:$this->identity->recover($public,$token);
         if($request!==null){
@@ -159,7 +159,8 @@ final class Runtime {
         if(!isset($request['mode'],$request['expected_revision']))throw new \DomainException('WITHDRAWAL_MODE');
         Check::integer($request['expected_revision'],'revision');
         if(!in_array($request['mode'],array('RETAIN_FOR_ANALYSIS','DO_NOT_USE'),true))throw new \DomainException('WITHDRAWAL_MODE');
-        $withdrawal=Configuration::read($frame['definition'])['initial_screen']['withdrawal']??InitialScreen::defaults()['withdrawal'];
+        $initial=Configuration::read($frame['definition'])['initial_screen']??InitialScreen::defaults();
+        $withdrawal=InitialScreen::publishedPresentation($this->db,$study['study_id'],$initial)['withdrawal'];
         if(!is_string($request['confirmation_text']??null)||!hash_equals(InitialScreen::withdrawalPhrase($withdrawal,$request['mode']),$request['confirmation_text']))throw new \DomainException('WITHDRAWAL_CONFIRMATION_REQUIRED');
         $access=\EIPSI\StudyEngine\Privacy\AccessContext::email($this->db,$study['public_id'],$email,$this->clock);
         $this->owner()->withdrawExecution($p['execution_id'],$request['mode'],$request['command_id'],$request['expected_revision'],$access);

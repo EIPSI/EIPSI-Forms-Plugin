@@ -30,7 +30,7 @@ add_action('template_redirect', static function () {
         $diagnostics->phase('STUDY_LOOKUP');
         $study=(new \EIPSI\StudyEngine\Runtime\PublicStudyRepository($db))->find($public);if(!$study)throw new \EIPSI\StudyEngine\Runtime\AccessDenied('STUDY_UNAVAILABLE');$diagnostics->study($study);$longitudinal=($study['enrollment_mode']??'ANONYMOUS')==='EMAIL_LONGITUDINAL';
         $diagnostics->phase('PUBLISHED_SNAPSHOT');
-        $displayDefinition=\EIPSI\StudyEngine\Runtime\PublicEntrySnapshot::definition($db,$study);
+        $displayDefinition=\EIPSI\StudyEngine\Runtime\PublicEntrySnapshot::definition($db,$study);if($longitudinal){require_once dirname(__DIR__).'/longitudinal.php';$displayDefinition=\EIPSI\StudyEngine\Longitudinal\InitialScreen::effectiveDefinition($db,$displayDefinition);}
         $diagnostics->phase('ACCESS_CONFIGURATION');
         if($longitudinal){require_once dirname(__DIR__).'/longitudinal.php';$runtime=new \EIPSI\StudyEngine\Longitudinal\Runtime($db,$vault,\EIPSI\StudyEngine\Longitudinal\Capability::configured($db));$name=\EIPSI\StudyEngine\Longitudinal\Identity::cookieName($public);header('Referrer-Policy: no-referrer');}
         else{$runtime=new \EIPSI\StudyEngine\Runtime\CrossSectionalRuntime($db,$vault);$name=\EIPSI\StudyEngine\Runtime\AnonymousAccess::cookieName($public);}

@@ -1,10 +1,19 @@
 (function(B){
     'use strict';
+    B.cleanLongitudinalBlocks=d=>{
+        if(d.state!=='DRAFT'||d.protocol_metadata.study_type!=='LONGITUDINAL')return d;
+        const ordered=v=>Array.isArray(v)?v.map(ordered):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,ordered(v[k])])):v;
+        for(const n of d.nodes)if(n.metadata?.role==='LONGITUDINAL_BLOCK'){
+            const schedule=B.schedule('EXECUTION_CREATED');schedule.timezone_policy=d.timezone.policy;
+            if(JSON.stringify(ordered(n.schedule))!==JSON.stringify(ordered(schedule)))n.schedule=schedule;
+            delete n.metadata.duration_days;
+        }return d;
+    };
     B.longitudinalAdd=(d,kind,parent)=>{
         const group=B.node(d,parent);if(group?.metadata.role!=='BLOCK_RANDOMIZATION')parent=d.root_block_ids[0];
         if(kind==='randomization')parent=d.root_block_ids[0];
         let x=B.add(d,parent,'MACRO'),n=x.nodes[x.nodes.length-1];
-        n.metadata={label:window.EIPSIContent.get('authoring',window.EIPSIContent.language(d))[kind==='randomization'?'block_selection':'new_block'],role:kind==='randomization'?'BLOCK_RANDOMIZATION':'LONGITUDINAL_BLOCK',independent_children:true,...(kind==='block'?{duration_days:7}:{})};
+        n.metadata={label:window.EIPSIContent.get('authoring',window.EIPSIContent.language(d))[kind==='randomization'?'block_selection':'new_block'],role:kind==='randomization'?'BLOCK_RANDOMIZATION':'LONGITUDINAL_BLOCK',independent_children:true};
         n.children_strategy='PARALLEL_AVAILABLE';n.schedule=B.schedule('EXECUTION_CREATED');n.schedule.timezone_policy=x.timezone.policy;
         const owner=B.node(x,parent);
         if(kind==='block'&&owner?.metadata.role==='BLOCK_RANDOMIZATION'){
@@ -24,7 +33,7 @@
         const drag=e=>{if(!app.readOnly){e.preventDefault();e.currentTarget.classList.add('sb-drag-over');}};
         const palette=B.el('aside',{class:'sb-palette'},B.el('h3',{text:window.EIPSIAdminI18n.t("Elements")}),B.note(window.EIPSIAdminI18n.t("Drag a longitudinal block or randomization into the workspace. You can also click to add one.")),item(window.EIPSIAdminI18n.t("＋ Randomization"),'randomization'),item(window.EIPSIAdminI18n.t("\uff0b Longitudinal block"),'block'));
         const canvas=B.el('div',{class:'sb-canvas','aria-label':window.EIPSIAdminI18n.t("Longitudinal composition"),ondragover:drag,ondragleave:e=>e.currentTarget.classList.remove('sb-drag-over'),ondrop:drop(null)},B.el('h3',{text:window.EIPSIAdminI18n.t("Longitudinal study")}));
-        const card=n=>B.el('button',{type:'button',class:'sb-assessment-card'+(selected?.id===n.id?' sb-selected':''),onclick:()=>choose(n.id)},B.el('strong',{text:B.label(n)}),B.el('span',{text:window.EIPSIAdminI18n.f("Longitudinal block · interactions: %1$d · days: %2$d" ,B.children(d,n.id).length,(n.metadata.duration_days||7))}));
+        const card=n=>B.el('button',{type:'button',class:'sb-assessment-card'+(selected?.id===n.id?' sb-selected':''),onclick:()=>choose(n.id)},B.el('strong',{text:B.label(n)}),B.el('span',{text:window.EIPSIAdminI18n.n('%d interaction',B.children(d,n.id).length)}));
         B.children(d,d.root_block_ids[0]).forEach(n=>{
             if(n.metadata?.role==='LONGITUDINAL_BLOCK')canvas.append(card(n));
             else if(n.metadata?.role==='BLOCK_RANDOMIZATION'){
@@ -39,7 +48,7 @@
             if(selected.metadata.role==='BLOCK_RANDOMIZATION'){
                 inspector.append(B.el('h4',{text:window.EIPSIAdminI18n.t("Block selection")}),B.note(window.EIPSIAdminI18n.t("Selection is retained per participant. Selected blocks keep their calendars.")),B.blockRandomControls(app,selected.id),B.button(window.EIPSIAdminI18n.t("Remove randomization"),()=>app.mutate(x=>{const owner=B.node(x,selected.id);for(const child of B.children(x,owner.id))child.parent_id=owner.parent_id;return B.remove(B.reindex(x),owner.id);}),app.readOnly));
             }else{
-                inspector.append(B.el('h4',{text:window.EIPSIAdminI18n.t("Calendar")}),B.field(window.EIPSIAdminI18n.t("Block duration (days)"),selected.metadata.duration_days||7,v=>{const last=Math.max(1,...B.children(d,selected.id).map(n=>B.calendarSlot(n).day));if(!Number.isInteger(v)||v<last)throw Error(window.EIPSIAdminI18n.f("Duration must cover scheduled interactions (minimum %d days)." ,last));app.mutate(x=>{B.node(x,selected.id).metadata.duration_days=v;return x;});},'number',{min:1,step:1}),B.el('details',{},B.el('summary',{text:window.EIPSIAdminI18n.t("Block availability")}),B.scheduleEditor(d,selected,s=>app.mutate(x=>{B.node(x,selected.id).schedule=s;return x;}))),B.button(window.EIPSIAdminI18n.t("Move up"),()=>app.mutate(x=>B.move(x,selected.id,selected.parent_id,Math.max(0,selected.position-1))),app.readOnly),B.button(window.EIPSIAdminI18n.t("Move down"),()=>app.mutate(x=>B.move(x,selected.id,selected.parent_id,selected.position+1)),app.readOnly),B.button(window.EIPSIAdminI18n.t("Duplicate block"),()=>app.mutate(x=>B.longitudinalDuplicate(x,selected.id)),app.readOnly),B.button(window.EIPSIAdminI18n.t("Delete block"),()=>{if(confirm(window.EIPSIAdminI18n.t("Delete this block and all its interactions from the draft?")))app.mutate(x=>B.remove(x,selected.id));},app.readOnly));
+                inspector.append(B.button(window.EIPSIAdminI18n.t("Move up"),()=>app.mutate(x=>B.move(x,selected.id,selected.parent_id,Math.max(0,selected.position-1))),app.readOnly),B.button(window.EIPSIAdminI18n.t("Move down"),()=>app.mutate(x=>B.move(x,selected.id,selected.parent_id,selected.position+1)),app.readOnly),B.button(window.EIPSIAdminI18n.t("Duplicate block"),()=>app.mutate(x=>B.longitudinalDuplicate(x,selected.id)),app.readOnly),B.button(window.EIPSIAdminI18n.t("Delete block"),()=>{if(confirm(window.EIPSIAdminI18n.t("Delete this block and all its interactions from the draft?")))app.mutate(x=>B.remove(x,selected.id));},app.readOnly));
             }
         }else inspector.append(B.note(window.EIPSIAdminI18n.t("Select an element to configure its properties.")));
         B.organizeProperties(inspector);

@@ -220,9 +220,10 @@
         if ( ! stats ) return;
 
         let html = '<div class="email-stats">';
+        html += '<p>' + window.EIPSIAdminI18n.h("Study Engine delivery attempts. SMTP acceptance does not confirm inbox delivery. Test emails are excluded.") + '</p>';
         html += ("<p><strong>"+window.EIPSIAdminI18n.h("Emails sent:")+"</strong> ") + stats.sent + '</p>';
         html += ("<p><strong>"+window.EIPSIAdminI18n.h("Emails failed:")+"</strong> ") + stats.failed + '</p>';
-        html += ("<p><strong>"+window.EIPSIAdminI18n.h("Success rate:")+"</strong> ") + stats.success_rate + '%</p>';
+        html += ("<p><strong>"+window.EIPSIAdminI18n.h("Success rate:")+"</strong> ") + ( stats.success_rate == null ? '—' : stats.success_rate + '%' ) + '</p>';
         html += '</div>';
         
         $container.find( '.stats-content' ).html( html );
