@@ -982,3 +982,5 @@ body:has(.ae-rich-overlay) .mce-fullscreen { z-index: 200000; }
 
 .ae-vas-axis.is-vertical .ae-coincident-labels{display:flex;align-items:center;gap:4px;max-width:100%}
 .ae-vas-axis.is-vertical .ae-coincident-labels>.ae-semantic-label{flex:1 1 0;margin:0}
+
+.ae-likert.ae-horizontal>.ae-choice>.ae-option-label{width:100%;max-width:100%;overflow-wrap:anywhere}
