@@ -175,6 +175,7 @@
       box.append(select);
     }
     if (["single_choice", "multiple_choice", "likert"].includes(e.type)) {
+      if (e.type !== "likert") box.classList.add("ae-choice-cards");
       box.classList.add(
         p.presentation === "horizontal" ? "ae-horizontal" : "ae-vertical",
       );

@@ -984,3 +984,172 @@ body:has(.ae-rich-overlay) .mce-fullscreen { z-index: 200000; }
 .ae-vas-axis.is-vertical .ae-coincident-labels>.ae-semantic-label{flex:1 1 0;margin:0}
 
 .ae-likert.ae-horizontal>.ae-choice>.ae-option-label{width:100%;max-width:100%;overflow-wrap:anywhere}
+
+/* Shared single/multiple choice cards: editor, preview and participant. */
+.ae-choice-cards {
+  --ae-choice-color: var(--ae-primary, var(--ae-accent, #2865b2));
+  gap: 12px;
+}
+.ae-choice-cards.ae-vertical:not(.ae-columns) {
+  display: flex;
+  flex-direction: column;
+}
+.ae-choice-cards > .ae-choice {
+  box-sizing: border-box;
+  position: relative;
+  min-width: 0;
+  min-height: 60px;
+  margin: 0;
+  padding: 16px 18px;
+  gap: 14px;
+  border: 1px solid var(--ae-border, #dce2e8);
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1.5;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+}
+.ae-choice-cards.ae-horizontal:not(.ae-columns) > .ae-choice {
+  flex: 1 1 180px;
+}
+.ae-choice-cards > .ae-choice:hover {
+  border-color: var(--ae-choice-color);
+  background: color-mix(in srgb, var(--ae-choice-color) 4%, transparent);
+}
+.ae-choice-cards > .ae-choice:has(> input:checked) {
+  border-color: var(--ae-choice-color);
+  background: color-mix(in srgb, var(--ae-choice-color) 9%, transparent);
+  box-shadow: inset 0 0 0 1px var(--ae-choice-color);
+}
+.ae-choice-cards > .ae-choice:has(> input:focus-visible) {
+  outline: 2px solid var(--ae-choice-color);
+  outline-offset: 3px;
+}
+.ae-choice-cards > .ae-choice > input:is([type="radio"], [type="checkbox"]) {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #8795a5;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+.ae-choice-cards > .ae-choice > input[type="radio"] { border-radius: 50%; }
+.ae-choice-cards > .ae-choice > input:checked {
+  border-color: var(--ae-choice-color);
+  background-color: var(--ae-choice-color);
+}
+.ae-choice-cards > .ae-choice > input::before { content: none; }
+.ae-choice-cards > .ae-choice > input[type="radio"]:checked {
+  background-image: radial-gradient(circle, white 0 5px, transparent 5.5px);
+}
+.ae-choice-cards > .ae-choice > input[type="checkbox"]:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12 4.5 4.5L19 7' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.ae-choice-cards > .ae-choice > .ae-option-label { overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) {
+  .ae-choice-cards > .ae-choice { transition: none; }
+}
+@media (forced-colors: active) {
+  .ae-choice-cards > .ae-choice > input:is([type="radio"], [type="checkbox"]) {
+    appearance: auto;
+    background-image: none;
+  }
+}
+
+/* Likert controls share the larger choice indicators without changing scale layout. */
+:is(.ae-likert, .ae-matrix) {
+  --ae-choice-color: var(--ae-primary, var(--ae-accent, #2865b2));
+}
+.ae-likert > .ae-choice,
+.ae-matrix .ae-matrix-choice {
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.ae-likert > .ae-choice { padding: 12px 6px; }
+.ae-matrix .ae-matrix-choice { min-height: 44px; padding: 8px 4px; }
+.ae-likert > .ae-choice:hover,
+.ae-matrix .ae-matrix-choice:hover {
+  background: color-mix(in srgb, var(--ae-choice-color) 4%, transparent);
+  border-color: var(--ae-choice-color);
+}
+.ae-likert > .ae-choice:has(> input:checked),
+.ae-matrix .ae-matrix-choice:has(> input:checked) {
+  background: color-mix(in srgb, var(--ae-choice-color) 9%, transparent);
+  border-color: var(--ae-choice-color);
+  box-shadow: inset 0 0 0 1px var(--ae-choice-color);
+}
+.ae-likert > .ae-choice:has(> input:focus-visible),
+.ae-matrix .ae-matrix-choice:has(> input:focus-visible) {
+  outline: 2px solid var(--ae-choice-color);
+  outline-offset: 2px;
+}
+.ae-likert > .ae-choice > input[type="radio"],
+.ae-matrix .ae-matrix-choice > input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #8795a5;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+.ae-likert > .ae-choice > input[type="radio"]::before,
+.ae-matrix .ae-matrix-choice > input[type="radio"]::before { content: none; }
+.ae-likert > .ae-choice > input[type="radio"]:checked,
+.ae-matrix .ae-matrix-choice > input[type="radio"]:checked {
+  border-color: var(--ae-choice-color);
+  background-color: var(--ae-choice-color);
+  background-image: radial-gradient(circle, white 0 5px, transparent 5.5px);
+}
+@media (forced-colors: active) {
+  .ae-likert > .ae-choice > input[type="radio"],
+  .ae-matrix .ae-matrix-choice > input[type="radio"] {
+    appearance: auto;
+    background-image: none;
+  }
+}
+
+/* Keep the current page in place while its navigation is acknowledged. */
+.ae-native-runtime > [role="status"]:empty { display: none; }
+.ae-designed button.ae-is-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: wait;
+}
+.ae-loading-spinner {
+  box-sizing: border-box;
+  display: inline-block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: ae-loading-spin .8s linear infinite;
+}
+@keyframes ae-loading-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ae-loading-spinner { animation: none; }
+}

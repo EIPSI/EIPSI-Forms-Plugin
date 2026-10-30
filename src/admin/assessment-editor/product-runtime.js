@@ -118,6 +118,17 @@
     }
     const message = key => frame.definition.flow.messages?.[key] ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(frame.definition))[key];
     const expiredNotice=()=>message(frame.previous_partial_saved?'expired_saved':'expired');
+    function showPending(action) {
+      host.setAttribute("aria-busy", "true");
+      const target = action === "back" ? ".ae-nav-back" : action === "discard" ? ".ae-discard-response" : ".ae-nav-forward";
+      const active = host.querySelector(target);
+      if (active) {
+        active.classList.add("ae-is-loading");
+        active.setAttribute("aria-busy", "true");
+        active.prepend(el("span", {class: "ae-loading-spinner", "aria-hidden": "true"}));
+      }
+      host.querySelectorAll("input,textarea,select,button").forEach(control => { control.disabled = true; });
+    }
     async function send(payload, keepalive = false, quiet = false) {
       if (busy || (frame.state === "COMPLETED" && payload.action !== "view" && payload.action !== "discard")) return false;
       busy = true; pending = payload;
@@ -126,7 +137,7 @@
       const previousLogic=renderedProjection || projectionKey(frame), sentEpoch=inputEpoch;
       const previousExecution = frame.execution_id;
 
-      if (!quiet) { status.textContent = message("processing"); render(); }
+      if (!quiet) { status.textContent = ""; showPending(payload.action); }
       try {
         frame = await api(payload, keepalive);
         pending = null;
@@ -151,7 +162,7 @@
         if (resetSession) {  restore(false); }
         if (!quiet || resetSession) status.textContent = frame.state === "COMPLETED"
           ? message("completed")
-          : resetSession || frame.previous_partial_saved ? expiredNotice() : message("updated");
+          : resetSession || frame.previous_partial_saved ? expiredNotice() : "";
         if(!resetSession&&(transitioned||frame.logical_exit||logicChanged))status.textContent="";
         okay = true;
       } catch (e) {
@@ -160,7 +171,7 @@
         status.textContent = Array.isArray(e.validationErrors) ? e.validationErrors.map(item=>item.message).join(" ") : e.status === 400
           ? message("invalid")
           : message("delivery_error");
-      } finally { busy = false; if (!quiet || !okay || resetSession || logicChanged) render(); if(logicChanged) body.querySelector("input,textarea,select,button")?.focus(); }
+      } finally { busy = false; if (!quiet) host.removeAttribute("aria-busy"); if (!quiet || !okay || resetSession || logicChanged) render(); if(logicChanged) body.querySelector("input,textarea,select,button")?.focus(); }
       if (transitioned && frame.session == null && frame.state === "ACTIVE") { await send(request("open"),false,true); restore(false); render(); }
       if (resetSession) {
         const notice = status.textContent;
@@ -184,14 +195,15 @@
         status.textContent = errors.map((e) => e.message).join(" ");
         return;
       }
+      // Navigation submits the latest answers itself; do not recheck the same page
+      // through a delayed change handler after its navigation has completed.
+      root.clearTimeout(logicTimer);
       if (frame.participant_contract && !frame.has_logic && direction === "submit") session.metadata.complete();
       else if(frame.has_logic || frame.participant_contract)session.metadata.leave(direction === "back" ? "previous" : "next");
       if (!frame.has_logic && !frame.participant_contract) { if (direction === "back") session.previous(); else if (!session.next()) return; }
-      const okay = await send(request(direction));
-      if (!okay) {
-        /* Keep exact attempted command and local state: retry is idempotent. */
-      }
-      render();
+      // send renders the acknowledged page (or the retry state) once.
+      // Keep the exact attempted command on failure: retries remain idempotent.
+      await send(request(direction));
     }
     async function recoverAutomatically() {
       if (busy || pending) return;

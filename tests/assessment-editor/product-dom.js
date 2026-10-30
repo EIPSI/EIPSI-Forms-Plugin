@@ -441,19 +441,32 @@ async function runtime(e, d = fixture()) {
     const d = fixture(),
       f = frame(d),
       calls = [];
-    let failure = true;
+    let failure = true, release;
     const view = e.A.mountProductRuntime(e.host, f, async (q) => {
       calls.push(plain(q));
       if (q.action === "open") return { ...f, revision: 1 };
       if (failure) {
         failure = false;
+        await new Promise(resolve => { release = resolve; });
         throw Error("Network lost");
       }
       return { ...f, revision: 2, page: 1 };
     });
     await view.ready;
+    const control = e.host.querySelector(".ae-widget input,.ae-widget textarea"), next = e.host.querySelector(".ae-nav-forward");
     click(e.host, "Siguiente");
+    assert.equal(e.host.querySelector(".ae-widget input,.ae-widget textarea"), control, "Waiting must preserve question controls");
+    assert.equal(e.host.querySelector(".ae-nav-forward"), next, "Waiting must preserve the clicked button");
+    assert(next.disabled);
+    assert(next.querySelector(".ae-loading-spinner"));
+    assert.equal(e.host.getAttribute("aria-busy"), "true");
+    assert.equal(e.host.querySelector('[role="status"]').textContent, "");
+    next.click();
+    assert.equal(calls.length, 2, "Double click must not duplicate the request");
+    release();
     await tick();
+    assert.equal(e.host.getAttribute("aria-busy"), null);
+    assert.equal(e.host.querySelector(".ae-loading-spinner"), null);
     assert.equal(e.host.querySelector('[role="status"]').textContent, "No se pudo confirmar el guardado de tus respuestas. Volvé a intentarlo con el mismo botón.");
     assert(!e.host.textContent.includes("Reintentar guardado"));
     assert(e.host.querySelector(".ae-nav-forward"));
@@ -792,7 +805,7 @@ async function runtime(e, d = fixture()) {
   await test('A confirmed submit survives blocked History API without delivery error or repeat button',async e=>{let d=fixture();d.elements=d.elements.filter(q=>q.type==='text');d.flow.pages=[];d=e.A.normalizeDefinition(d);d.flow.completion.button_label='Responder nuevamente';let f=frame(d);f.participant_contract='NATIVE_PARTICIPANT_V1';let submits=0,historyWrites=0;const view=e.A.mountProductRuntime(e.host,f,async q=>{if(q.action==='submit'){submits++;f={...f,state:'COMPLETED',execution_id:'NX_DONE',revision:f.revision+1};}return plain(f);});await view.ready;e.w.history.replaceState=()=>{historyWrites++;throw new e.w.DOMException('History write blocked','SecurityError');};const input=e.host.querySelector('.ae-widget input');input.value='Valid response';input.dispatchEvent(new e.w.Event('input',{bubbles:true}));e.host.querySelector('.ae-nav-forward').click();await tick();await tick();assert.equal(submits,1);assert.equal(historyWrites,1);assert.equal(view.frame.state,'COMPLETED');assert(view.session.finished);assert(e.host.textContent.includes(d.flow.completion.title));assert(!e.host.textContent.includes(e.w.EIPSIContent.get('flow_messages',e.w.EIPSIContent.language(d)).delivery_error));assert(!e.host.textContent.includes('Responder nuevamente'));assert.equal(e.host.querySelector('.ae-preview-actions button'),null);view.destroy();});
   await test('Acknowledged commands do not rewrite an unchanged execution URL',async e=>{let d=fixture();d.elements=d.elements.filter(q=>q.type==='text');d.flow.pages=[];d=e.A.normalizeDefinition(d);const r=await runtime(e,d);let writes=0;e.w.history.replaceState=()=>{writes++;};const input=e.host.querySelector('.ae-widget input');input.value='Valid response';input.dispatchEvent(new e.w.Event('input',{bubbles:true}));e.host.querySelector('.ae-nav-forward').click();await tick();assert.equal(writes,0);assert.equal(r.view.frame.state,'COMPLETED');assert(e.host.textContent.includes(d.flow.completion.title));r.view.destroy();});
   await test('Completed Study does not repurpose a forbidden repeat label as a return button',async e=>{const d=fixture();d.flow.completion.button_label='Responder nuevamente';const f=frame(d);f.state='COMPLETED';f.study_url='http://localhost/?eipsi_study=PUBLIC_TEST';f.allow_study_repeat=false;const view=e.A.mountProductRuntime(e.host,f,async()=>plain(f));await view.ready;assert(!e.host.textContent.includes('Responder nuevamente'));assert(e.host.textContent.includes(d.flow.completion.title));assert.equal(e.w.location.search,'?eipsi_study=PUBLIC_TEST&eipsi_initial=1');assert.equal(e.host.querySelector('a'),null);view.destroy();});
-  await test('Question messages and progress use researcher content',async e=>{const d=fixture(),q=d.elements[0];q.properties.required=true;q.properties.required_message='Mi obligatoriedad';q.properties.validation_message='Mi validación';q.properties.length_message='Mi longitud';q.properties.min_length=5;assert.equal(e.A.controls.answerError(q,'',true),'Mi obligatoriedad');assert.equal(e.A.controls.answerError(q,'a',true),'Mi longitud');d.flow.messages={progress:'Paso [ACTUAL] / [TOTAL]',updated:'Mi estado'};const {view}=await runtime(e,d);assert(e.host.textContent.includes('Paso 1 /'));assert(e.host.textContent.includes('Mi estado'));view.destroy();});
+  await test('Question messages and progress use researcher content',async e=>{const d=fixture(),q=d.elements[0];q.properties.required=true;q.properties.required_message='Mi obligatoriedad';q.properties.validation_message='Mi validación';q.properties.length_message='Mi longitud';q.properties.min_length=5;assert.equal(e.A.controls.answerError(q,'',true),'Mi obligatoriedad');assert.equal(e.A.controls.answerError(q,'a',true),'Mi longitud');d.flow.messages={progress:'Paso [ACTUAL] / [TOTAL]',updated:'Mi estado'};const {view}=await runtime(e,d);assert(e.host.textContent.includes('Paso 1 /'));assert(!e.host.textContent.includes('Mi estado'),'Routine session updates should stay silent');view.destroy();});
   await test('Text mode changes preserve both researcher messages for every text format',async e=>{const q=e.A.element('text');q.properties.required_message='Obligatorio propio';q.properties.validation_message='Formato propio';for(const format of ['email','url','tel','letters','number','free'])for(const mode of ['single','multiline']){e.A.textMode(q,mode,format);assert.equal(q.properties.required_message,'Obligatorio propio');assert.equal(q.properties.validation_message,'Formato propio');if(mode==='multiline'){assert.equal(q.type,'textarea');assert.equal(q.properties.content_type,'free');}} });
   await test('Multiple choice count limits use their own messages for zero one and excessive answers',async e=>{const q=e.A.element('multiple_choice');Object.assign(q.properties,{required:true,min_selected:2,max_selected:2,required_message:'Obligatorio',validation_message:'NO USAR',selection_min_message:'Mínimo [MINIMO]',selection_max_message:'Máximo [MAXIMO]'});q.options.push({id:'EXTRA',label:'Extra'});const ids=q.options.map(o=>o.id),C=e.A.controls;for(const v of [undefined,[],ids.slice(0,1)])assert.equal(C.answerError(q,v,true),'Mínimo 2');assert.equal(C.answerError(q,ids.slice(0,2),true),'');assert.equal(C.answerError(q,ids,true),'Máximo 2');assert(!C.answerError(q,['INVALID'],true).includes('NO USAR'));q.properties.min_selected=0;assert.equal(C.answerError(q,[],true),'Obligatorio');});
   await test('Only text formats expose validation messages and count messages follow configured limits',async e=>{for(const type of ['text','textarea','number','date','multiple_choice','likert','matrix','vas']){const q=e.A.element(type),keys=[];if(type==='multiple_choice'){q.properties.min_selected=2;q.properties.max_selected=2;}e.A.controlInspector(q,{inspector:e.w.document.createElement('div'),el:e.A.el,property:(_q,key)=>keys.push(key),options:()=>e.w.document.createElement('div'),semantic:()=>e.w.document.createElement('div'),rows:()=>e.w.document.createElement('div'),refresh:()=>{}});assert.equal(keys.includes('validation_message'),['text','number'].includes(type));if(type==='multiple_choice'){assert(keys.includes('selection_min_message'));assert(keys.includes('selection_max_message'));}}const date=e.A.element('date');date.properties.validation_message='NO USAR';assert.equal(e.A.controls.answerError(date,'invalid',true),'Ingresá una fecha válida.');});
