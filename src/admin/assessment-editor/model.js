@@ -75,6 +75,7 @@
       node.options.forEach((o, i) => (o.value = node.properties.min + i));
     if (node.response_key)
       node.properties.variable_name = V.prefix(type) + "_1";
+    if (type === "vas") Object.assign(node.properties,{label_placement:"above",edge_spacing:"auto",edge_margin:24,mobile_orientation:"horizontal",vertical_top:"max",vertical_height:320});
     if (type === "vas")
       node.properties.label_settings = node.properties.labels.map(() => ({
         id: id("L"),

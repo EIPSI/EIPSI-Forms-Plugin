@@ -44,7 +44,7 @@ trait LogicalExecution {
         $rules=array_values(array_filter(LogicalConditions::rules($this->graph->definition()),function($r)use($assessment,$data,$state,$instance){return $r['source']['assessment_id']===$assessment&&(!isset($r['trigger'])||$this->logicalPastAllows($r,array('kind'=>'BLOCK_STATE','node_id'=>$r['trigger']['node_id']),$state))&&($r['event']===($data['event']??'ANSWER')||$this->dependencyPlanning()&&($data['event']??'ANSWER')==='COMPLETE'&&array_filter($r['actions'],function($action)use($assessment){return $this->planningExternalAction($action,$assessment);}))&&(!isset($r['trigger'])||($data['state_transition']['node_id']??null)===$r['trigger']['node_id']&&($data['state_transition']['state']??null)===$r['trigger']['state'])&&($this->dependencyPlanning()||!isset($state['applied'][$instance.'|'.$r['id']]))&&(!isset($r['trigger'])||!isset($state['settled'][$instance.'|'.$r['id']]))&&(!isset($r['source']['question_id'])||!in_array($r['event'],array('ANSWER','COMPLETE'),true)||in_array($r['source']['question_id'],$data['changed_questions']??array(),true));}));
         $resolution=LogicalConditions::resolve($rules,function($ref,$rule)use($state){return $this->logicalScopedLookup($ref,$state,$rule);},function($rule,$action)use($state){return $this->logicalFutureAllows($rule,$action,$state);});
         $this->context['logical_state']=$state;
-        foreach($resolution['actions'] as $entry){if($this->dependencyPlanning()){
+        foreach($resolution['actions'] as $entry){if($this->state->execution['state']==='TERMINATED_BY_RULE')break;if($this->dependencyPlanning()){
             $action=$entry['action'];$receipt=$instance.'|'.$entry['condition_id'].'|'.$entry['index'];
             $reason=$this->planningIntraAction($action,$assessment)?'RESPONSIVE_NATIVE_EVALUATION':($this->planningExternalAction($action,$assessment)&&($data['event']??'ANSWER')!=='COMPLETE'?'DEFERRED_UNTIL_COMPLETION':(isset($this->logicalState()['action_receipts'][$receipt])?'ALREADY_APPLIED':null));
             if($reason!==null){foreach($resolution['audit'] as &$record)if($record['condition_id']===$entry['condition_id']){$record['applied']=array_values(array_filter($record['applied'],static function($a)use($action){return Canonical::json($a)!==Canonical::json($action);}));$record['suppressed'][]=array('action'=>$action,'reason'=>$reason);}unset($record);continue;}
@@ -71,6 +71,11 @@ trait LogicalExecution {
                 if($destination)$state['cancelled_opportunities'][$destination['id']]=array('definition_id'=>$target,'condition_id'=>$rule['id'],'at'=>$this->clock->now());
             }else $state['cancelled_blocks'][$target]=array('condition_id'=>$rule['id'],'at'=>$this->clock->now());
         }
+        elseif($type==='END_STUDY'){
+            $decision='CD_'.count($this->state->events);
+            $this->applyRule(array('id'=>$rule['id'],'action'=>'TERMINATE'),$source,$decision);
+            $state['navigation']=array('type'=>'END_STUDY','source_execution_id'=>$source['id'],'condition_id'=>$rule['id']);
+        }
         elseif($type==='END_ASSESSMENT'){$state['navigation']=array('type'=>'END_ASSESSMENT','source_execution_id'=>$source['id'],'condition_id'=>$rule['id']);if(!self::terminal($this->state->instances[$source['id']]['state']))$this->transition($source['id'],'SKIPPED_BY_RULE','LOGICAL_ASSESSMENT_EXIT',$rule);}
         else{
             $destination=$this->logicalInstance($target);if(!$destination)throw new \DomainException('LOGICAL_TARGET_UNAVAILABLE');
@@ -94,7 +99,7 @@ trait LogicalExecution {
                 if($from!==false&&$to!==false&&$to>$from)foreach(array_slice($siblings,$from+1,$to-$from-1) as $id)$this->markSubtree($id,$source,'SKIPPED_BY_RULE','BYPASSED_BY_JUMP',$rule);
             }
         }
-        if(in_array($type,array('GO_QUESTION','END_ASSESSMENT','JUMP','WAIT'),true))$state['navigation']['transition_id']=$entry['transition_id']??null;
+        if(in_array($type,array('GO_QUESTION','END_ASSESSMENT','END_STUDY','JUMP','WAIT'),true))$state['navigation']['transition_id']=$entry['transition_id']??null;
         $this->context['logical_state']=$state;$this->emit('LOGICAL_ACTION_APPLIED',$source['id'],null,null,$rule['id'],null,$type,$action);return true;
     }
     private function logicalSystemEvent(string $event): void {

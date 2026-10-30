@@ -18,6 +18,10 @@ Set whether a question is required. Where applicable, configure a validation for
 
 Use general properties for navigation labels, progress, assessment messages, session duration, partial saving, appearance, and the final screen. Some fields appear only after enabling the feature they describe.
 
+In **General settings → Design**, choose the maximum questionnaire width and side margins for desktop, tablet, and mobile. New defaults are a centered 960 px container, 24 px desktop/tablet margins, and 16 px mobile margins. **Use full available width** overrides the maximum width while retaining the selected margins. Existing authored design dimensions remain editable.
+
+Select a **VAS → Properties → Presentation** to set **Relative label size (%)** from 25 to 300 (100 is the automatic size); labels still adapt to the available space and retain their value anchors. This section also lets you choose label placement (all above, all below, or alternating), automatic or custom space at the scale ends, and horizontal or vertical presentation on mobile. For a vertical VAS, select which numeric end appears at the top and its height. Labels remain anchored to their configured values; above/below becomes left/right in vertical mode. Orientation changes presentation, not response values or scoring. The default remains horizontal with labels at the same level above the rail. Automatic end spacing reserves room for centered endpoint labels; a custom margin can reserve more or less room.
+
 Keeping a session available lets a participant continue the current attempt. Saving a partial response is a separate setting. If a session expires, the participant starts at the beginning; a previously saved partial is handled according to the configured flow. **Discard response**, when enabled, acts on the current assessment attempt and its stored response, not on other scheduled assessments.
 
 ## Randomization and logic

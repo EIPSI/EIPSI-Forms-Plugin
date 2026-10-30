@@ -954,6 +954,7 @@
         });
       if (type !== "textarea") input.type = type;
       if (type === "number") input.step = "any";
+      if(e.type==='vas'&&['edge_margin','vertical_height'].includes(key)){input.step='1';input.min=key==='edge_margin'?'0':'200';input.max=key==='edge_margin'?'80':'600';}
       if (e.type === "randomization" && key === "count") {input.step = "1"; input.min = "1"; input.max = String(Math.max(0, root.EIPSIAssessmentRandomization.eligible(e).length - 1));}
       row.append(el("span", {}, label));
       if (type === "checkbox") {

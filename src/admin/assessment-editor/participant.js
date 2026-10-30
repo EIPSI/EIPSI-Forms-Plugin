@@ -26,9 +26,9 @@
           );
         if (e.properties.required) {
           const title = block.lastElementChild;
-          const marker = A.el("span", { class: "ae-required", "aria-hidden": "true" }, " *");
-          const end = title?.querySelector("p:last-child,h1:last-child,h2:last-child,h3:last-child,h4:last-child,h5:last-child,h6:last-child") || title;
-          if (end) end.append(marker);
+          const marker = A.el("span", { class: "ae-required", "aria-hidden": "true" }, "* ");
+          const end = title?.querySelector("p,h1,h2,h3,h4,h5,h6") || title;
+          if (end) end.prepend(marker);
         }
         if (e.properties.helper || e.properties.helper_html)
           block.append(A.richText.render(e.properties, "helper"));

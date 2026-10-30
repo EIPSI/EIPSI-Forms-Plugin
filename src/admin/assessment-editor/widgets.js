@@ -2,6 +2,40 @@
   "use strict";
   const A = root.EIPSIAssessment,
     C = A.controls;
+  function responsiveLikert(box) {
+    let attached = false, observer;
+    const refresh = () => {
+      if (!box.isConnected) {
+        if (attached) { observer?.disconnect(); root.removeEventListener("resize", refresh); }
+        return;
+      }
+      attached = true;
+      if (!box.classList.contains("ae-horizontal")) return;
+      const style = root.getComputedStyle(box), number = value => parseFloat(value) || 0;
+      const width = box.clientWidth - number(style.paddingLeft) - number(style.paddingRight);
+      if (width <= 0) return;
+      const choices = [...box.querySelectorAll(":scope > .ae-choice")];
+      const probe = el("span", { class: "ae-likert-measure", "aria-hidden": "true" });
+      Object.assign(probe.style, { position: "absolute", visibility: "hidden", whiteSpace: "pre", width: "max-content", maxWidth: "none", pointerEvents: "none" });
+      box.append(probe);
+      let widest = 0;
+      choices.forEach(choice => {
+        const label = choice.querySelector(".ae-option-label"), css = root.getComputedStyle(choice), textStyle = root.getComputedStyle(label);
+        probe.style.font = textStyle.font; probe.style.letterSpacing = textStyle.letterSpacing;
+        probe.textContent = label.value ?? label.textContent;
+        const textWidth = probe.getBoundingClientRect().width;
+        widest = Math.max(widest, number(style.getPropertyValue("--ae-likert-choice-min")) || 60, textWidth + number(css.paddingLeft) + number(css.paddingRight) + number(css.borderLeftWidth) + number(css.borderRightWidth), 24);
+      });
+      probe.remove();
+      const needed = widest * choices.length + number(style.columnGap || style.gap) * Math.max(0, choices.length - 1);
+      box.classList.toggle("is-stacked", needed > width + 0.5);
+    };
+    box.addEventListener("eipsi:likert-layout", refresh);
+    if (root.ResizeObserver) { observer = new root.ResizeObserver(refresh); observer.observe(box); }
+    else root.addEventListener("resize", refresh);
+    root.setTimeout(refresh, 0);
+    if (document.fonts?.ready) document.fonts.ready.then(refresh);
+  }
   function el(tag, attrs = {}, text) {
     const n = document.createElement(tag);
     Object.entries(attrs).forEach(([k, v]) => {
@@ -98,8 +132,11 @@
           );
         } else title.append(A.richText.render(r, "label"));
         if (r.helper_html) title.append(A.richText.render(r, "helper"));
-        if (p.required || r.required)
-          title.append(el("span", { class: "ae-required" }, " *"));
+        if (p.required || r.required) {
+          const label = title.querySelector(".ae-label");
+          const start = label?.querySelector("p,h1,h2,h3,h4,h5,h6") || label || title;
+          start.prepend(el("span", { class: "ae-required", "aria-hidden": "true" }, "* "));
+        }
         tr.append(title);
         ordered.forEach(({ o, index }) => {
           const cell = el("td"),
@@ -199,6 +236,7 @@
         if(e.type==="likert")label.append(text,input);else label.append(input, text);
         box.append(label);
       });
+      if (e.type === "likert") responsiveLikert(box);
     }
     if (e.type === "vas") {
       box.classList.add("ae-vas");
@@ -218,9 +256,11 @@
       rail.style.backgroundImage = C.gradient(p);
       rail.append(thumb);
       control.append(rail, slider);
+      let vertical = false;
       const paintThumb = () => {
-        thumb.style.left =
-          ((Number(slider.value) - p.min) / (p.max - p.min)) * 100 + "%";
+        const ratio=(Number(slider.value)-p.min)/(p.max-p.min);
+        thumb.style.left=vertical?"50%":ratio*100+"%";
+        thumb.style.top=vertical?(p.vertical_top==='min'?ratio:1-ratio)*100+"%":"50%";
       };
       paintThumb();
       slider.style.backgroundImage = C.gradient(p);
@@ -261,6 +301,10 @@
           }),
       );
       slider.addEventListener("keydown", (event) => {
+        if(vertical&&["ArrowUp","ArrowDown"].includes(event.key)) {
+          event.preventDefault();const up=event.key==='ArrowUp',increase=p.vertical_top==='min'?!up:up;
+          if(increase)slider.stepUp();else slider.stepDown();touch();return;
+        }
         if (
           [
             "ArrowLeft",
@@ -276,9 +320,11 @@
           touch();
       });
       const axis = el("div", { class: "ae-vas-axis" }),
-        labels = el("div", { class: "ae-vas-labels" });
+        labels = el("div", { class: "ae-vas-labels" }),
+        lowerLabels = el("div", { class: "ae-vas-labels ae-vas-labels-below" });
       labels.classList.toggle("ae-label-boxes", p.label_boxes);
-      labels.style.fontWeight = p.bold_labels ? "700" : "400";
+      labels.style.fontWeight = lowerLabels.style.fontWeight = p.bold_labels ? "700" : "400";
+      lowerLabels.classList.toggle("ae-label-boxes",p.label_boxes);
       let refreshLayout = () => {};
       const nodes = p.labels.map((text, index) => {
         const label = el(
@@ -333,84 +379,55 @@
           clusters.push(group);
           labels.append(group);
         });
-      axis.append(labels, control);
+      axis.append(labels, control, lowerLabels);
       box.append(axis);
       refreshLayout = () => {
-        const lr = labels.getBoundingClientRect(),
-          rr = rail.getBoundingClientRect(),
-          width = lr.width || axis.clientWidth || 800,
-          measured = rr.width > 0 && lr.width > 0,
-          track = measured
-            ? { start: rr.left - lr.left, width: rr.width }
-            : {
-                start: Math.min(64, Math.max(24, width * 0.1)) + 11,
-                width:
-                  width - 2 * (Math.min(64, Math.max(24, width * 0.1)) + 11),
-              };
-        labels.dataset.trackMeasured = String(measured);
-        labels.dataset.trackStart = String(track.start);
-        labels.dataset.trackWidth = String(track.width);
-        const family=root.getComputedStyle(labels).fontFamily||'sans-serif';let previousFont=null;
-        const measure=measureContext?(text,size)=>{const font=(p.bold_labels?'700 ':'400 ')+size+'px '+family;if(previousFont!==font){measureContext.font=font;previousFont=font;}return measureContext.measureText(text).width;}:undefined;
-        const geometry = root.EIPSIVASGeometry.layout(p, track, width,measure);
-        let height = 0;
-        clusters.forEach((group) => {
-          let groupHeight = 0;
-          Array.from(group.children).forEach((node) => {
-            const i = Number(node.dataset.labelIndex),
-              g = geometry[i];
-            group.style.left = g.anchor + "px";
-            node.dataset.labelPosition = String(g.ratio);
-            node.dataset.anchorPx = String(g.anchor);
-            node.style.maxWidth = g.maxWidth + "px";
-            node.style.fontSize = g.fontSize + "px";
-            node.classList.toggle("ae-label-compact", g.compact);
-            node.title = p.labels[i];
-            node.setAttribute(
-              "aria-label",
-              edit ? root.EIPSIAdminI18n.f("Semantic label %d",i+1) : p.labels[i],
-            );
-            if (g.compact && edit)
-              node.setAttribute(
-                "aria-description",
-                root.EIPSIAdminI18n.t("Limited space: edit the full text in Properties"),
-              );
-            const estimatedLines = Math.max(
-              p.labels[i].split("\n").length,
-              Math.ceil(
-                (Array.from(p.labels[i]).length * g.fontSize * 0.55) /
-                  Math.max(1, g.maxWidth - 8),
-              ),
-            );
-            groupHeight +=
-              node.getBoundingClientRect().height ||
-              (g.compact ? 20 : estimatedLines * g.fontSize * 1.4 + 8);
-          });
-          height = Math.max(height, groupHeight);
+        const viewport=root.matchMedia?root.matchMedia('(max-width: 600px)').matches:root.innerWidth<=600;
+        vertical=p.mobile_orientation==='vertical'&&(viewport||!!axis.closest('.ae-preview-frame[data-width="mobile"]'));
+        const size=p.vertical_height??320;
+        axis.classList.toggle('is-vertical',vertical);axis.style.setProperty('--ae-vas-vertical-height',size+'px');
+        slider.setAttribute('aria-orientation',vertical?'vertical':'horizontal');
+        slider.style.setProperty('--ae-vas-rotation',p.vertical_top==='min'?'90deg':'-90deg');
+        rail.style.backgroundImage=vertical?C.gradient(p).replace('to right',p.vertical_top==='min'?'to bottom':'to top'):C.gradient(p);paintThumb();
+        const sides=[[],[]];clusters.forEach((group,index)=>{
+          const side=p.label_placement==='below'?1:p.label_placement==='alternate'?index%2:0;
+          const plane=side?lowerLabels:labels;if(group.parentElement!==plane)plane.append(group);group.dataset.side=String(side);
+          Array.from(group.children).forEach(node=>sides[side].push(Number(node.dataset.labelIndex)));
         });
-        labels.style.height = Math.ceil(height) + "px";
+        labels.hidden=!sides[0].length;lowerLabels.hidden=!sides[1].length;
+        const ar=axis.getBoundingClientRect(),initialPlane=(sides[0].length?labels:lowerLabels).getBoundingClientRect(),width=ar.width||initialPlane.width||axis.clientWidth||800;
+        const family=root.getComputedStyle(labels).fontFamily||'sans-serif';let previousFont=null;
+        const measure=measureContext?(text,fontSize)=>{const font=(p.bold_labels?'700 ':'400 ')+fontSize+'px '+family;if(previousFont!==font){measureContext.font=font;previousFont=font;}return measureContext.measureText(text).width;}:undefined;
+        const gutter=root.EIPSIVASGeometry.gutter(p,width,measure);axis.style.setProperty('--ae-vas-gutter',gutter+'px');
+        const rr=rail.getBoundingClientRect(),plane=(sides[0].length?labels:lowerLabels).getBoundingClientRect();
+        const measured=vertical?rr.height>0&&plane.height>0:rr.width>0&&(ar.width>0||plane.width>0);
+        const track=vertical?(measured?{start:rr.top-plane.top,width:rr.height}:{start:11,width:size-22}):(measured?{start:rr.left-(ar.width>0?ar.left:plane.left),width:rr.width}:{start:gutter+11,width:Math.max(1,width-2*(gutter+11))});
+        const geometry=[];sides.forEach(indices=>{
+          const g=vertical?root.EIPSIVASGeometry.verticalLayout(p,track,size,Math.max(24,(width-44)/2),p.vertical_top!=='min',measure,indices):root.EIPSIVASGeometry.layout(p,track,width,measure,indices);
+          g.forEach((entry,i)=>geometry[i]=entry);
+        });
+        const common=Math.min(...geometry.filter(Boolean).map(g=>g.fontSize)),heights=[0,0];
+        [labels,lowerLabels].forEach(plane=>{plane.dataset.trackMeasured=String(measured);plane.dataset.trackStart=String(track.start);plane.dataset.trackWidth=String(track.width);});
+        clusters.forEach(group=>{
+          let groupHeight=0;Array.from(group.children).forEach(node=>{
+            const i=Number(node.dataset.labelIndex),g=geometry[i];
+            group.style.left=vertical?'':g.anchor+'px';group.style.top=vertical?g.anchor+'px':'0px';
+            node.dataset.labelPosition=String(g.ratio);node.dataset.anchorPx=String(g.anchor);
+            node.style.maxWidth=g.maxWidth+'px';node.style.fontSize=common+'px';node.classList.toggle('ae-label-compact',g.compact);node.title=p.labels[i];
+            node.setAttribute('aria-label',edit?root.EIPSIAdminI18n.f('Semantic label %d',i+1):p.labels[i]);
+            const lines=Math.max(p.labels[i].split('\n').length,Math.ceil(Array.from(p.labels[i]).length*common*.55/Math.max(1,g.maxWidth-8)));
+            groupHeight+=node.getBoundingClientRect().height||(g.compact?20:lines*common*1.4+8);
+          });heights[Number(group.dataset.side)]=Math.max(heights[Number(group.dataset.side)],groupHeight);
+        });
+        labels.style.height=Math.ceil(vertical?size:heights[0])+'px';lowerLabels.style.height=Math.ceil(vertical?size:heights[1])+'px';
       };
       axis.addEventListener("eipsi:vas-layout", refreshLayout);
       refreshLayout();
-      if (root.ResizeObserver) {
-        const observer = new root.ResizeObserver(() => {
-          if (!axis.isConnected) {
-            observer.disconnect();
-            return;
-          }
-          refreshLayout();
-        });
-        observer.observe(rail);
-      } else {
-        const resize = () => {
-          if (!axis.isConnected) {
-            root.removeEventListener("resize", resize);
-            return;
-          }
-          refreshLayout();
-        };
-        root.addEventListener("resize", resize);
-      }
+      let observer,connected=false;
+      const resize=()=>{if(!axis.isConnected){if(connected){observer?.disconnect();root.removeEventListener('resize',resize);}return;}connected=true;refreshLayout();};
+      root.addEventListener('resize',resize);
+      if(root.ResizeObserver){observer=new root.ResizeObserver(resize);observer.observe(axis);}
+      root.setTimeout(resize,0);
       if (document.fonts?.ready)
         document.fonts.ready.then(() => {
           if (axis.isConnected) refreshLayout();

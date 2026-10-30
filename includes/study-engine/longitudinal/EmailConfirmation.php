@@ -12,10 +12,10 @@ final class EmailConfirmation {
     public static function needs(P\Database $db,array $config,array $snapshot,array $definition): bool {
         if(InitialScreen::v2($config)){
             $execution=(new P\StudyExecutionRepository($db))->find($snapshot['execution']['id']);$participant=$execution?$db->row($db->prepare('SELECT verification_state FROM '.$db->table('participants').' WHERE id=%s',$execution['participant_id'])):null;
-            $access=$snapshot['first_access_at']??$execution['first_access_at']??null;
+            $access=$snapshot['first_access_at']??$execution['first_access_at']??null;$snapshot['first_access_at']=$access;
             if(!$participant||$participant['verification_state']==='VERIFIED'||$access===null||!InitialScreen::available($snapshot,$definition,$access))return false;
         }
-        return InitialScreen::reviewRequired($config)&&InitialScreen::firstCompleted($snapshot,$definition)&&(self::read($db,$snapshot['execution']['id'])['state']??null)!=='CONFIRMED';
+        return InitialScreen::reviewRequired($config)&&InitialScreen::firstTakeCompleted($snapshot,$definition)&&(self::read($db,$snapshot['execution']['id'])['state']??null)!=='CONFIRMED';
     }
     public static function request(P\Database $db,array $study,array $participant,array $snapshot,string $email,string $command,Clock $clock,?array $reviewSession=null): void {
         $db->requireTransaction();$execution=$snapshot['execution']['id'];$email=Identity::email($email);$key=hash('sha256','EMAIL_CONFIRM_COMMAND_V1|'.$execution.'|'.$command);$hash=hash('sha256',Canonical::json(array('email'=>$email,'participant'=>$participant['id'])));

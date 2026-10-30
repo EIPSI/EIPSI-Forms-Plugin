@@ -22,7 +22,7 @@
       );
       control.value =
         e.properties[key] ??
-        (key === "date_format" ? "YYYY-MM-DD" : key === "display_mode"
+        (key === "label_placement" ? "above" : key === "edge_spacing" ? "auto" : key === "mobile_orientation" ? "horizontal" : key === "vertical_top" ? "max" : key === "date_format" ? "YYYY-MM-DD" : key === "display_mode"
           ? "single"
           : key === "content_type" && e.type === "number"
           ? "number"
@@ -209,11 +209,20 @@
         "number",
       );
       heading(root.EIPSIAdminI18n.t("Presentation"));
-      select("label_scale", root.EIPSIAdminI18n.t("Relative label size"), [
-        ["small", root.EIPSIAdminI18n.t("Small")],
-        ["normal", root.EIPSIAdminI18n.t("Normal")],
-        ["large", root.EIPSIAdminI18n.t("Large")],
-      ]);
+      const sizeRow=el('label',{class:'ae-property'}),sizeInput=el('input',{type:'number','data-property':'label_scale',min:25,max:300,step:1});
+      sizeInput.value=typeof e.properties.label_scale==='number'?e.properties.label_scale:({small:80,normal:100,large:120}[e.properties.label_scale]??100);
+      sizeInput.onchange=()=>{e.properties.label_scale=Number(sizeInput.value);refresh();};
+      sizeRow.append(el('span',{},root.EIPSIAdminI18n.t('Relative label size (%)')),sizeInput);inspector.append(sizeRow);
+      inspector.append(el('p',{class:'ae-helper'},root.EIPSIAdminI18n.t('Automatic size: 100%. Labels still adapt to the available space.')));
+      select("label_placement",root.EIPSIAdminI18n.t("Label placement"),[["above",root.EIPSIAdminI18n.t("All above")],["below",root.EIPSIAdminI18n.t("All below")],["alternate",root.EIPSIAdminI18n.t("Alternate above and below")]]);
+      inspector.append(el("p",{class:"ae-helper"},root.EIPSIAdminI18n.t("Labels stay centered on their values. In vertical mode, above and below become left and right.")));
+      select("edge_spacing",root.EIPSIAdminI18n.t("Space at scale ends"),[["auto",root.EIPSIAdminI18n.t("Automatic")],["custom",root.EIPSIAdminI18n.t("Custom")]],v=>{e.properties.edge_spacing=v;if(v==='custom')e.properties.edge_margin??=24;});
+      if(e.properties.edge_spacing==='custom')property(e,"edge_margin",root.EIPSIAdminI18n.t("Margin at each end (px)"),"number");
+      select("mobile_orientation",root.EIPSIAdminI18n.t("VAS orientation on mobile"),[["horizontal",root.EIPSIAdminI18n.t("Horizontal")],["vertical",root.EIPSIAdminI18n.t("Vertical")]],v=>{e.properties.mobile_orientation=v;if(v==='vertical'){e.properties.vertical_top??='max';e.properties.vertical_height??=320;}});
+      if(e.properties.mobile_orientation==='vertical') {
+        select("vertical_top",root.EIPSIAdminI18n.t("Upper end on mobile"),[["max",root.EIPSIAdminI18n.t("Maximum above, minimum below")],["min",root.EIPSIAdminI18n.t("Minimum above, maximum below")]]);
+        property(e,"vertical_height",root.EIPSIAdminI18n.t("Vertical scale height (px)"),"number");
+      }
       property(e, "bold_labels", root.EIPSIAdminI18n.t("Bold labels"), "checkbox");
       property(e, "label_boxes", root.EIPSIAdminI18n.t("Label background"), "checkbox");
       property(e, "show_value", root.EIPSIAdminI18n.t("Show value"), "checkbox");

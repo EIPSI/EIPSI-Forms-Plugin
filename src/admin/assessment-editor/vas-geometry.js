@@ -1,6 +1,8 @@
 (function (root) {
   "use strict";
   const factors = { small: 0.8, normal: 1, large: 1.2 };
+  const numericScale=p=>typeof p.label_scale==='number'&&Number.isFinite(p.label_scale);
+  const scale=p=>numericScale(p)?Math.max(.25,Math.min(3,p.label_scale/100)):(factors[p.label_scale]||1);
   function ratio(p, index) {
     const position = p.label_settings?.[index]?.position;
     if (position !== null && position !== undefined)
@@ -30,7 +32,9 @@
         ratio: ratio(p, index),
       })),
       groups = [];
+    const active=arguments[4];
     entries
+      .filter(e=>!active||active.includes(e.index))
       .sort((a, b) => a.ratio - b.ratio || a.index - b.index)
       .forEach((e) => {
         let g = groups[groups.length - 1];
@@ -82,19 +86,34 @@
         return (lines * size * 1.4 + 8) * g.cluster.length <= heightBudget;
       });
     }
-    let low = 8,
-      high = 20;
+    let low = numericScale(p)?6:8,
+      high = numericScale(p)?20*scale(p):20;
     for (let i = 0; i < 18; i++) {
       const middle = (low + high) / 2;
       if (fits(middle)) low = middle;
       else high = middle;
     }
     const common = Math.max(
-      8,
-      Math.min(24, low * (factors[p.label_scale] || 1)),
+      numericScale(p)?6:8,
+      Math.min(numericScale(p)?60:24, numericScale(p)?low:low*scale(p)),
     );
     result.forEach((g) => (g.fontSize = common));
     return result;
   }
-  root.EIPSIVASGeometry = { ratio, layout, factors };
+  function gutter(p,width,measure) {
+    if(p.edge_spacing==='custom')return Math.min(p.edge_margin??24,Math.max(0,width/2-24));
+    const size=16*scale(p),textWidth=measure||((text,s)=>Array.from(text).length*s*.56);let inset=12;
+    p.labels.forEach((text,i)=>{const r=ratio(p,i),near=Math.min(r,1-r);if(near>=.5)return;const desired=Math.min(160,Math.max(64,width*.3),Math.max(...text.split("\n").map(line=>textWidth(line,size)))+8);inset=Math.max(inset,((desired+6)/2-near*width)/(1-2*near)-11);});
+    return Math.max(0,Math.min(48,width*.2,inset));
+  }
+  function verticalLayout(p,track,height,labelWidth,maxAtTop,measure,indices) {
+    const mapped=layout(p,{start:track.start+24,width:track.width},height+48,measure,indices),result=[];
+    const available=Math.max(8,Math.min(220,labelWidth-8)),m=measure||((text,size)=>Array.from(text).length*size*.56);
+    let low=numericScale(p)?6:8,high=numericScale(p)?20*scale(p):20;
+    const boxWidth=g=>Math.max(8,(available-4*(g.cluster.length-1))/g.cluster.length);
+    const fits=size=>mapped.every((g,i)=>!g||wrappedLines(p.labels[i],Math.max(1,boxWidth(g)-8),size,m)*size*1.4+8<=g.maxWidth);
+    for(let i=0;i<18;i++){const middle=(low+high)/2;if(fits(middle))low=middle;else high=middle;}
+    mapped.forEach((g,i)=>{const r=maxAtTop?1-g.ratio:g.ratio;result[i]={...g,anchor:track.start+r*track.width,maxWidth:boxWidth(g),fontSize:Math.max(numericScale(p)?6:8,Math.min(numericScale(p)?60:24,numericScale(p)?low:low*scale(p))),compact:boxWidth(g)<18};});return result;
+  }
+  root.EIPSIVASGeometry = { ratio, layout, gutter, verticalLayout, factors };
 })(typeof window !== "undefined" ? window : globalThis);

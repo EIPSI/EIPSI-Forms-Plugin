@@ -72,6 +72,7 @@
     };
     for(const action of r.actions){
       if(action.type==='CANCEL_BLOCK'){const ids=new Set([action.target_id,...B.descendants(app.draft,action.target_id)]);result=result.filter((t,i)=>i<=source+1||!ids.has(t.id));result.splice(source+2,0,{...marker,kind:'cancel',key:'X|'+r.id+'|'+action.target_id,label:window.EIPSIAdminI18n.t("Cancelled element: ")+B.label(B.node(app.draft,action.target_id))});}
+      if(action.type==='END_STUDY'){result=result.slice(0,source+2);break;}
       if(action.type==='END_ASSESSMENT')result=result.filter((t,i)=>i<=source+1||t.id!==r.source.assessment_id);
       if(['GO_QUESTION','JUMP','WAIT'].includes(action.type)){
         const target=sequence.findIndex(t=>t.id===action.target_id&&(action.question_id?t.question?.id===action.question_id:t.kind==='header'));
@@ -116,7 +117,7 @@
     const futureBlocks=new Set(suffix.filter(t=>t.id!==context.assessment_id).flatMap(t=>ancestors(t.id))),futureAssessments=new Set(suffix.filter(t=>t.kind==='header'&&t.id!==context.assessment_id).map(t=>t.id)),futureQuestions=new Set(suffix.filter(t=>t.question).map(t=>t.id+'|'+t.question.id));
     const allows=ref=>ref.randomization_id?(ref.assessment_id?randoms.has(ref.assessment_id+'|'+ref.randomization_id):blocks.has(ref.randomization_id)):ref.question_id?questions.has(ref.assessment_id+'|'+ref.question_id):blocks.has(ref.node_id||ref.assessment_id);
     const future=action=>{
-      if(action.type==='END_ASSESSMENT')return true;
+      if(['END_ASSESSMENT','END_STUDY'].includes(action.type))return true;
       if(action.type==='GO_QUESTION')return action.target_id===context.assessment_id&&futureQuestions.has(action.target_id+'|'+action.question_id);
       if(['JUMP','WAIT'].includes(action.type))return futureAssessments.has(action.target_id)&&(!action.question_id||futureQuestions.has(action.target_id+'|'+action.question_id));
       if(action.type==='CANCEL_BLOCK')return action.target_id!==context.assessment_id&&futureBlocks.has(action.target_id);

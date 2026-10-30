@@ -936,3 +936,49 @@ body:has(.ae-rich-overlay) .mce-fullscreen { z-index: 200000; }
 .ae-calendar table{width:100%;table-layout:fixed;border-collapse:collapse;margin-bottom:12px}.ae-calendar th{font-size:11px;overflow-wrap:anywhere}.ae-calendar td{text-align:center;padding:2px}.ae-calendar td button{width:100%;padding:8px 2px}.ae-calendar button[aria-current=date]{outline:2px solid currentColor;outline-offset:-2px}.ae-calendar-open{margin-top:8px}
 
 .wrap.eipsi-assessment-editor-page{margin:20px 20px 0 0}.eipsi-assessment-editor-page>#eipsi-assessment-editor{margin:0}
+
+/* Participant assessments fill the available viewport; editor columns stay unchanged. */
+.ae-root.ae-native-runtime{width:100%;max-width:none;margin:0}
+.ae-native-runtime.ae-designed,.ae-preview-frame.ae-designed[data-width="desktop"],.sb-experience-assessment.ae-designed{max-width:100%}
+
+/* A simple Likert is one complete row or one complete column, never wrapped rows. */
+.ae-likert{--ae-likert-choice-min:60px}
+@media(max-width:600px){.ae-likert{--ae-likert-choice-min:70px}}
+.ae-likert.ae-horizontal{flex-wrap:nowrap}
+.ae-likert.ae-horizontal>.ae-choice{min-width:var(--ae-likert-choice-min)}
+.ae-likert.is-stacked,.ae-likert.ae-vertical{display:flex;flex-direction:column;align-items:stretch}
+.ae-likert.is-stacked>.ae-choice,.ae-likert.ae-vertical>.ae-choice{flex:none;flex-direction:row;justify-content:flex-start;min-width:0;width:100%;text-align:left}
+.ae-likert.is-stacked>.ae-choice>input,.ae-likert.ae-vertical>.ae-choice>input{order:-1;flex-shrink:0}
+.ae-likert.is-stacked .ae-option-label,.ae-likert.ae-vertical .ae-option-label{min-width:0;overflow-wrap:anywhere}
+
+/* Authored assessment width and responsive outer spacing. */
+.ae-designed{--ae-outer-margin:var(--ae-desktop-margin,24px)}
+.ae-root.ae-native-runtime.ae-designed,.ae-preview-frame.ae-designed[data-width="desktop"],.sb-experience .sb-experience-assessment.ae-preview.ae-designed{width:calc(100% - 2 * var(--ae-outer-margin));max-width:var(--ae-content-width,960px);margin:24px auto}
+@media(max-width:1024px){.ae-designed{--ae-outer-margin:var(--ae-tablet-margin,24px)}}
+@media(max-width:600px){.ae-designed{--ae-outer-margin:var(--ae-mobile-margin,16px)}.ae-root.ae-native-runtime.ae-designed,.sb-experience-assessment.ae-designed{margin-block:16px;padding:min(4vw,var(--ae-padding))}}
+.ae-preview-frame.ae-designed[data-width="tablet"]{width:min(calc(100% - 2 * var(--ae-tablet-margin,24px)),calc(768px - 2 * var(--ae-tablet-margin,24px)));max-width:var(--ae-content-width,960px)}
+.ae-preview-frame.ae-designed[data-width="mobile"]{width:min(calc(100% - 2 * var(--ae-mobile-margin,16px)),calc(360px - 2 * var(--ae-mobile-margin,16px)));max-width:var(--ae-content-width,960px);padding:min(16px,var(--ae-padding))}
+
+/* The labels remain centered on the actual rail in every presentation. */
+.ae-vas-control{height:44px}
+.ae-vas-track{top:19px}
+.ae-widget input.ae-vas-native-range{height:44px}
+.ae-vas-labels[hidden]{display:none}
+.ae-vas-labels-below{padding:8px 0 0}
+.ae-vas-axis.is-vertical{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-rows:var(--ae-vas-vertical-height,320px);padding-block:24px;align-items:stretch}
+.ae-vas-axis.is-vertical>.ae-vas-control{grid-column:2;grid-row:1;margin:0;width:44px;height:var(--ae-vas-vertical-height,320px)}
+.ae-vas-axis.is-vertical>.ae-vas-labels{grid-column:1;grid-row:1;min-width:0;padding:0}
+.ae-vas-axis.is-vertical>.ae-vas-labels-below{grid-column:3}
+.ae-vas-axis.is-vertical .ae-vas-track{left:19px;right:auto;top:11px;bottom:11px;width:6px;height:auto}
+.ae-vas-axis.is-vertical input.ae-vas-native-range{inset:auto;left:50%;top:50%;width:var(--ae-vas-vertical-height,320px);height:44px;transform:translate(-50%,-50%) rotate(var(--ae-vas-rotation,-90deg));transform-origin:center}
+.ae-vas-axis.is-vertical .ae-vas-label-anchor{right:0;left:auto;transform:translateY(-50%);max-width:100%}
+.ae-vas-axis.is-vertical .ae-vas-labels-below>.ae-vas-label-anchor{left:0;right:auto}
+.ae-vas-axis.is-vertical .ae-semantic-label{max-width:100%;margin:0}
+
+.ae-widget input.ae-vas-native-range{touch-action:pan-y}
+.ae-vas-axis.is-vertical input.ae-vas-native-range{touch-action:none}
+
+.ae-vas-axis.is-vertical input.ae-vas-native-range,#eipsi-study-builder .sb-experience-assessment .ae-vas-axis.is-vertical input.ae-vas-native-range{width:var(--ae-vas-vertical-height,320px);max-width:none;margin:0;padding:0}
+
+.ae-vas-axis.is-vertical .ae-coincident-labels{display:flex;align-items:center;gap:4px;max-width:100%}
+.ae-vas-axis.is-vertical .ae-coincident-labels>.ae-semantic-label{flex:1 1 0;margin:0}
