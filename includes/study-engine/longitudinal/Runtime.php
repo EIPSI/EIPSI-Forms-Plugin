@@ -202,8 +202,9 @@ final class Runtime {
             $row=(new P\StudyExecutionRepository($this->db))->find($session['execution_id'],true);
             $current=$this->identity->recover($study['public_id'],$token,true);if(!$current||$current['execution_id']!==$session['execution_id']||!in_array($current['kind'],array('PROVISIONAL','AUTHENTICATED'),true))throw new R\AccessDenied('ACCESS_REQUIRED');
             $view=$owner->view($session['execution_id']);$this->loaded($view);$definition=$this->definition($session['study_version_id']);$config=Configuration::read($definition);
-            if(!InitialScreen::reviewRequired($config)||!InitialScreen::firstCompleted($view['snapshot'],$definition))throw new \DomainException('EMAIL_CONFIRMATION_NOT_REQUIRED');
-            if($request['expected_revision']!==$view['revision'])throw new P\PersistenceConflict('EMAIL_CONFIRMATION_REVISION');
+            if(!InitialScreen::reviewRequired($config)||!InitialScreen::firstTakeCompleted($view['snapshot'],$definition))throw new \DomainException('EMAIL_CONFIRMATION_NOT_REQUIRED');
+            // Email review changes identity only; scheduler revisions do not invalidate it.
+            // Ownership, participant revision, collision checks and command receipts remain locked below.
             $participant=$this->identity->participant($current['participant_id'],true);if(InitialScreen::v2($config)&&Identity::email($request['email'])!==$participant['email']&&($request['confirm_email_change']??null)!=='1')throw new \DomainException('EMAIL_CHANGE_CONFIRMATION_REQUIRED');EmailConfirmation::request($this->db,$study,$participant,$view['snapshot'],$request['email'],$request['command_id'],$this->clock,InitialScreen::reviewLink($config)?null:$current);return array('accepted'=>true);
         });$frame=$this->handle($study['public_id'],$token);if(isset($frame['definition'])&&!InitialScreen::reviewLink(Configuration::read($frame['definition']))){$frame['notice_keys']=array('review_done');$frame['status_message']=R\PublicMessages::text($frame['definition'],'review_done').' '.R\PublicMessages::text($frame['definition'],'email_future_notices');}return $frame;
     }

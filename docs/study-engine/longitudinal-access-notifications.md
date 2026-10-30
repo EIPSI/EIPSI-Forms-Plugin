@@ -18,9 +18,9 @@ An assessment's temporary session has its own configured duration. A valid sessi
 
 A browser close or connection loss can prevent the newest local edit from reaching the server; recovery can only use acknowledged state.
 
-## Reviewing the address after the first assessment
+## Reviewing the address after the first take
 
-The optional review applies to direct first access where the participant has not already validated through a link. It precedes the configured final screen and contains its own heading, description, empty email field and confirmation control; it does not repeat the study presentation or withdrawal controls.
+The optional review applies to direct first access where the participant has not already validated through a link. When several assessments are already open at that first access, they form the initial take: they concatenate in longitudinal block order, retain independent response records, and show only the final screen of the last assessment. Email review and validation from the second take wait until that initial set has finished. It precedes the configured final screen and contains its own heading, description, empty email field and confirmation control; it does not repeat the study presentation or withdrawal controls.
 
 The same normalized address proceeds to the final screen. A different address opens the change-confirmation modal; accepting updates the same participation. An address already belonging to another participant is rejected. The retry preserves the original assessment, and a valid correction still reaches its final screen. Responses and their process metadata are unchanged by correcting the address.
 

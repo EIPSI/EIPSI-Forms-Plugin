@@ -34,6 +34,27 @@ final class NativeBridge {
         if(!in_array($state['state']??null,array('PENDING','CONFIRMED'),true))return $frame;
         $native=N\EffectiveAssessmentProjection::frame($owner->view($id));$c=$native['definition']['flow']['completion'];$frame['assessment_completion_html']=($c['title']!==''?'<h2>'.esc_html($c['title']).'</h2>':'').\EIPSI\StudyEngine\Longitudinal\InitialScreen::html($c['message_html']).($c['image_url']!==''?'<img src="'.esc_url($c['image_url']).'" alt="">':'');return $frame;
     }
+    /** Advance between simultaneously available assessments without an intermediate final screen. */
+    public static function continuation(string $native): ?string {
+        $store=new N\Store();$row=$store->find('executions',$native);$binding=$row?json_decode($row['binding_json'],true):array();
+        $logicalEnd=($row['state']??null)==='LOGICAL_EXIT'&&(json_decode($row['metadata_json']??'{}',true)['logical_exit']['type']??null)==='END_ASSESSMENT';
+        if((($row['state']??null)!=='COMPLETED'&&!$logicalEnd)||($binding['kind']??null)!=='STUDY_SESSION')return null;
+        if(isset($binding['continuation_native_id']))return $binding['continuation_native_id'];
+        $parent=(new P\StudyExecutionRepository($store->db))->find($binding['execution_id']);if(!$parent||!in_array($parent['state'],array('ACTIVE','WAITING'),true))return null;
+        $keys=\EIPSI\StudyEngine\Configuration\KeyringResolver::binary('seed',true);
+        $owner=new \EIPSI\StudyEngine\Orchestration\ExecutionOwner($store->db,new P\SeedVault($keys['keys'],$keys['current']));$view=$owner->view($binding['execution_id']);
+        if(!isset($view['snapshot']))throw new P\IntegrityFailure('CONTINUATION_VIEW_UNAVAILABLE');
+        if(($view['next_action']['kind']??null)!=='OPEN_ASSESSMENT')return null;
+        $candidate=$view['snapshot']['instances'][$view['next_action']['payload']['assessment_execution_id']];
+        if($candidate['available_at']===null||strtotime($candidate['available_at'])>(int)$row['completed_at'])return null;
+        $repo=new P\StudyVersionRepository($store->db);$definition=$repo->compiled($repo->find($binding['study_version_id']))->definition();
+        $next=self::offer(array('study'=>array('public_id'=>$binding['public_id']),'definition'=>$definition,'view'=>$view));if($next===null)return null;
+        return $store->transaction(function()use($store,$native,$next){
+            $source=$store->find('executions',$native,true);$binding=json_decode($source['binding_json'],true);N\Authorization::check($store,$binding,false,null,$source['state']==='LOGICAL_EXIT'&&!empty($binding['logical_transition_exit']));
+            if(isset($binding['continuation_native_id']))return $binding['continuation_native_id'];
+            $binding['continuation_native_id']=$next['execution_id'];$store->update('executions',array('binding_json'=>\EIPSI\AssessmentEditor\Definition::json($binding)),$store->prepare('id=%s',$native));return $next['execution_id'];
+        });
+    }
     public static function progress(string $native): void {self::complete($native,true);}
     public static function complete(string $native,bool $startOnly=false): void {
         $store=new N\Store();$row=$store->find('executions',$native);if(!$row||($startOnly?($row['state']!=='ACTIVE'||$row['partial_json']===null):$row['state']!=='COMPLETED'))return;
@@ -41,9 +62,11 @@ final class NativeBridge {
         $config=\EIPSI\StudyEngine\Configuration\KeyringResolver::binary('seed',true);$keys=$config['keys'];
         $guard=new class($binding) extends P\TransitionObserver {private $binding;public function __construct(array $binding){$this->binding=$binding;}public function reached(string $point): void {if(in_array($point,array('read_authorization','before_receipt','before_commit'),true))N\Authorization::check(new N\Store(),$this->binding);}};
         $owner=new \EIPSI\StudyEngine\Orchestration\ExecutionOwner($store->db,new P\SeedVault($keys,$config['current']),$guard);
-        $view=$owner->view($binding['execution_id']);$block=$view['snapshot']['instances'][$binding['block_execution_id']]??null;if(!$block||$block['state']==='COMPLETED'||($startOnly&&$block['state']==='IN_PROGRESS'))return;
+        $owner->admit(function()use($owner,$binding,$startOnly,$native,$row){
+        $view=$owner->view($binding['execution_id']);$block=$view['snapshot']['instances'][$binding['block_execution_id']]??null;if(!$block||$block['state']==='COMPLETED'||($startOnly&&$block['state']==='IN_PROGRESS'))return array();
         if(!in_array($block['state'],array('AVAILABLE','IN_PROGRESS'),true))throw new \RuntimeException('Study opportunity closed',409);
         $result=$owner->dispatch($binding['execution_id'],array('id'=>($startOnly?'NATIVE_START_':'NATIVE_COMPLETE_').$native,'kind'=>$startOnly?'OPEN_ASSESSMENT':'SUBMIT_ASSESSMENT','expected_revision'=>$view['revision'],'data'=>array('block_execution_id'=>$binding['block_execution_id'],'responses'=>array(),'at'=>max($view['snapshot']['clock'],gmdate('Y-m-d\TH:i:s\Z',(int)($startOnly?$row['partial_started_at']:$row['completed_at']))))));
-        if(!isset($result['revision']))throw new P\IntegrityFailure('STUDY_COMPLETION_RETRY_REQUIRED');
+        if(!isset($result['revision']))throw new P\IntegrityFailure('STUDY_COMPLETION_RETRY_REQUIRED');return array();
+        });
     }
 }

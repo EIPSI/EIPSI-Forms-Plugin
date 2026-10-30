@@ -28,9 +28,11 @@ Configure expiration, reminders, required opportunities, and unique response as 
 
 Use **Repetition rules** to add patterned interactions or extend the last block of days, weeks, fortnights, months, or a custom number of days. Review the generated opportunities and their relative offsets before publishing.
 
+When several longitudinal assessments are available together, their longitudinal block order determines the route; a response already in progress stays in progress. Completing one opens the next available assessment directly, preserving separate response records. Only the last assessment displays its final screen. For an immediate first take with email review enabled, the review appears after the whole initial sequence and before that last final screen.
+
 ## Logical conditions
 
-The track view shows possible routes through randomizations and conditions. Select an assessment or question and open the condition dialog. Build its expression using the available sources and operators, then choose its action and destination.
+The track view shows possible routes through randomizations and conditions. Select an assessment or question and open the condition dialog. Build its expression using the available sources and operators, then choose its action and destination. **End assessment** ends only the current questionnaire. **End study** ends the current participant’s route, preserves recorded responses, and cancels future notifications for that participant; it does not finalize the study for everyone.
 
 Sources and destinations depend on the track: earlier answers can inform a condition, while actions point to eligible future elements. Actions include question jumps, ending an assessment, waiting, and cancelling elements. Cancelling a repeated assessment targets the selected scheduled opportunity. Use the help dialog for operation details and inspect truncated/impossible routes in the track view.
 

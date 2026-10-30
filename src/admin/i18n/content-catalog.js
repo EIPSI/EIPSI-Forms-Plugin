@@ -352,7 +352,7 @@ globalThis.EIPSIContentCatalog={
           "Very much"
         ],
         "label_font_size": 16,
-        "label_scale": "normal",
+        "label_scale": 100,
         "value_font_size": 36,
         "bold_labels": true,
         "label_boxes": false,
@@ -856,7 +856,7 @@ globalThis.EIPSIContentCatalog={
           "Mucho"
         ],
         "label_font_size": 16,
-        "label_scale": "normal",
+        "label_scale": 100,
         "value_font_size": 36,
         "bold_labels": true,
         "label_boxes": false,

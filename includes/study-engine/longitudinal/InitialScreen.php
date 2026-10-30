@@ -80,7 +80,7 @@ final class InitialScreen {
     }
     public static function required(array $config,array $snapshot,array $definition): bool {
         $mode=$config['initial_screen']['authentication']['verification']??'NEVER';if($mode==='IMMEDIATE')return true;if($mode!=='AFTER_FIRST')return false;
-        return self::firstCompleted($snapshot,$definition)||(self::v2($config)&&!self::available($snapshot,$definition,$snapshot['execution']['created_at']??null));
+        return self::firstTakeCompleted($snapshot,$definition)||(self::v2($config)&&!self::available($snapshot,$definition,$snapshot['execution']['created_at']??null));
     }
     public static function v2(array $config): bool {return ($config['initial_screen']['contract']??null)==='INITIAL_SCREEN_V2';}
     public static function available(array $snapshot,array $definition,?string $at=null): bool {
@@ -90,7 +90,7 @@ final class InitialScreen {
     }
     public static function suppressInitialAvailability(array $config,array $snapshot,array $definition,array $block): bool {
         $access=$snapshot['first_access_at']??$snapshot['execution']['first_access_at']??null;
-        return self::v2($config)&&($config['initial_screen']['authentication']['verification']??'NEVER')!=='IMMEDIATE'&&!self::firstCompleted($snapshot,$definition)&&$access!==null&&$block['available_at']!==null&&strtotime($block['available_at'])<=strtotime($access);
+        return self::v2($config)&&($config['initial_screen']['authentication']['verification']??'NEVER')!=='IMMEDIATE'&&!self::firstTakeCompleted($snapshot,$definition)&&$access!==null&&$block['available_at']!==null&&strtotime($block['available_at'])<=strtotime($access);
     }
     public static function reviewRequired(array $config): bool {
         return (!self::v2($config)||($config['initial_screen']['authentication']['verification']??'NEVER')!=='IMMEDIATE')&&!empty($config['initial_screen']['authentication']['confirm_after_first']);
@@ -99,6 +99,15 @@ final class InitialScreen {
     public static function firstCompleted(array $snapshot,array $definition): bool {
         $assessments=array();foreach($definition['nodes'] as $n)if(($n['completion_boundary']??null)==='ASSESSMENT')$assessments[$n['id']]=true;
         foreach($snapshot['instances'] as $i)if($i['state']==='COMPLETED'&&isset($assessments[$i['definition_id']]))return true;return false;
+    }
+    /** The first take includes every opportunity already open at first access. */
+    public static function firstTakeCompleted(array $snapshot,array $definition): bool {
+        if(!self::firstCompleted($snapshot,$definition))return false;
+        $access=$snapshot['first_access_at']??$snapshot['execution']['first_access_at']??null;
+        if($access===null)return true;
+        $assessments=array();foreach($definition['nodes'] as $n)if(($n['completion_boundary']??null)==='ASSESSMENT')$assessments[$n['id']]=true;
+        foreach($snapshot['instances'] as $i)if(isset($assessments[$i['definition_id']])&&in_array($i['state'],array('AVAILABLE','IN_PROGRESS'),true)&&($i['available_at']??null)!==null&&strtotime($i['available_at'])<=strtotime($access)&&(($i['due_at']??null)===null||strtotime($i['due_at'])>strtotime($access)))return false;
+        return true;
     }
     /** Pure compilers validate bounds; WordPress save/render additionally sanitizes presentation. */
     private static function content($value): string {if(!is_string($value)||strlen($value)>80000)throw new \DomainException('INVALID_INITIAL_HTML');return function_exists('wp_kses')?self::html($value):$value;}

@@ -59,7 +59,7 @@
 .sb-experience-surface .eipsi-study-state{min-height:280px}
 
 /* The embedded assessment supplies its own surface and spacing. */
-.eipsi-study:has(> .eipsi-native-assessment-frame){padding:0;background:transparent;border:0;box-shadow:none}
+.eipsi-study:has(> .eipsi-native-assessment-frame){width:100%;max-width:none;margin:0;padding:0;background:transparent;border:0;box-shadow:none}
 .eipsi-study > .eipsi-native-assessment-frame{display:block}
 
 .eipsi-study.eipsi-assessment-completion{background:transparent;padding:0}

@@ -30,7 +30,7 @@ final class LogicalPast {
         return false;
     }
     public static function actionAllows(array $d,array $rule,array $action,array $choices,array $native,array $times=array()): bool {
-        if($action['type']==='END_ASSESSMENT')return true;
+        if(in_array($action['type'],array('END_ASSESSMENT','END_STUDY'),true))return true;
         $target=$action['target_id'];$source=$rule['source']['assessment_id'];
         if(in_array($action['type'],array('JUMP','WAIT'),true)&&$target===$source)return false;
         if($action['type']==='GO_QUESTION'&&$target!==$source)return false;

@@ -49,6 +49,7 @@ final class Definition {
             if (in_array($e['type'],array('likert','matrix'),true)) $fields=array_merge($fields,array('min','preset','reversed','gradient','gradient_start','gradient_end'));
             if (in_array($e['type'],array('single_choice','multiple_choice','likert','matrix'),true)) $fields[]='presentation';
             if ($e['type']==='vas') $fields=array_merge($fields,array('min','max','step','initial','left_label','right_label','show_value','labels','label_settings','value_position','value_font_size','label_font_size','label_scale','bold_labels','label_boxes','label_alignment','gradient','gradient_start','gradient_end'));
+            if($e['type']==='vas')foreach(array('label_placement','edge_spacing','edge_margin','mobile_orientation','vertical_top','vertical_height') as $key)if(array_key_exists($key,$p))$fields[]=$key;
             if ($e['type']==='image') $fields=array_merge($fields,array('alt','caption','src'));
             if($e['type']==='randomization')$fields=array_merge($fields,array('mode','count','order'));
             if(array_key_exists('algorithm',$p)&&$e['type']==='randomization'){$fields[]='algorithm';if(!in_array($p['algorithm'],array('weighted_positions','selection_uniform_order'),true))self::fail('Invalid randomization algorithm');}

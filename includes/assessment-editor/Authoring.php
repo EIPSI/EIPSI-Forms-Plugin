@@ -28,7 +28,10 @@ final class Authoring {
         if($t==='number'&&!is_bool($p['integer_only']))Definition::fail('Invalid integer-only setting');
         if(isset($p['columns'])&&(!is_int($p['columns'])||$p['columns']<1||$p['columns']>12))Definition::fail('Columns must be 1–12');
         if($t==='vas'){
-            if(!in_array($p['label_scale'],array('small','normal','large'),true))Definition::fail('Invalid VAS label scale');
+            foreach(array('label_placement'=>array('above','below','alternate'),'edge_spacing'=>array('auto','custom'),'mobile_orientation'=>array('horizontal','vertical'),'vertical_top'=>array('min','max')) as $key=>$values)if(array_key_exists($key,$p)&&!in_array($p[$key],$values,true))Definition::fail('Invalid VAS presentation choice');
+            if(array_key_exists('edge_margin',$p)&&(!is_int($p['edge_margin'])||$p['edge_margin']<0||$p['edge_margin']>80))Definition::fail('Invalid VAS edge margin');
+            if(array_key_exists('vertical_height',$p)&&(!is_int($p['vertical_height'])||$p['vertical_height']<200||$p['vertical_height']>600))Definition::fail('Invalid VAS vertical height');
+            if(!((is_int($p['label_scale'])&&$p['label_scale']>=25&&$p['label_scale']<=300)||in_array($p['label_scale'],array('small','normal','large'),true)))Definition::fail('Invalid VAS label scale');
             if(!is_array($p['label_settings'])||array_keys($p['label_settings'])!==array_keys($p['labels']))Definition::fail('VAS label settings mismatch');
             foreach($p['label_settings'] as $label){if(!is_array($label))Definition::fail('Invalid label settings');Definition::fields($label,array('id','position'));Definition::id($label['id']);if(isset($seen[$label['id']]))Definition::fail('Duplicate label identity');$seen[$label['id']]=true;$v=$label['position'];if($v!==null&&((!is_int($v)&&!is_float($v))||!is_finite((float)$v)||$v<$p['min']||$v>$p['max']))Definition::fail('VAS label position outside scale');}
         }

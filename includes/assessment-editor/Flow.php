@@ -22,8 +22,10 @@ final class Flow {
     }
     private static function validateDesign($d): void {
         if(!is_array($d))Definition::fail('Invalid design');
-        Definition::fields($d,array('preset','primary','background','text','button_text','font','font_size','width','padding','gap','radius','shadow','navigation_alignment'));
+        $keys=array('preset','primary','background','text','button_text','font','font_size','width','padding','gap','radius','shadow','navigation_alignment');foreach(array('desktop_margin','tablet_margin','mobile_margin','full_width') as $key)if(array_key_exists($key,$d))$keys[]=$key;Definition::fields($d,$keys);
         if(!in_array($d['preset'],array('Clinical Blue','Minimal White','Warm Neutral','Serene Teal'),true)||!in_array($d['font'],array('system','sans','serif'),true)||!in_array($d['navigation_alignment'],array('edges','center'),true)||!is_bool($d['shadow']))Definition::fail('Invalid design choice');
+        foreach(array('desktop_margin','tablet_margin','mobile_margin') as $key)if(array_key_exists($key,$d)&&(!is_int($d[$key])||$d[$key]<0||$d[$key]>96))Definition::fail('Invalid design margin');
+        if(array_key_exists('full_width',$d)&&!is_bool($d['full_width']))Definition::fail('Invalid full width');
         foreach(array('primary','background','text','button_text') as $key)if(!is_string($d[$key])||!preg_match('/^#[0-9a-fA-F]{6}$/D',$d[$key]))Definition::fail('Invalid design color');
         foreach(array('font_size'=>array(12,32),'width'=>array(320,1400),'padding'=>array(0,96),'gap'=>array(8,80),'radius'=>array(0,32)) as $key=>$bounds)if(!is_int($d[$key])||$d[$key]<$bounds[0]||$d[$key]>$bounds[1])Definition::fail('Invalid design dimension');
     }

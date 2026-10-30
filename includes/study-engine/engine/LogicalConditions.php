@@ -5,7 +5,7 @@ require_once __DIR__.'/LogicalPast.php';
 
 /** Versioned scientific rules, independent of track coordinates and WordPress. */
 final class LogicalConditions {
-    const ACTIONS=array('GO_QUESTION','END_ASSESSMENT','JUMP','WAIT','CANCEL_BLOCK','RESTRICT_RANDOM','EXCLUDE_RANDOM','FORCE_RANDOM');
+    const ACTIONS=array('GO_QUESTION','END_ASSESSMENT','END_STUDY','JUMP','WAIT','CANCEL_BLOCK','RESTRICT_RANDOM','EXCLUDE_RANDOM','FORCE_RANDOM');
     public static function rules(array $d): array {return $d['protocol_metadata']['trajectory_conditions']??array();}
     public static function catalog(array $d): array {
         $out=array();foreach($d['nodes'] as $n){foreach($n['metadata']['native_questions']??array() as $q)$out[$n['id']][$q['id']]=$q;}
@@ -30,6 +30,7 @@ final class LogicalConditions {
                 if(!is_array($r['actions'])||array_values($r['actions'])!==$r['actions']||!$r['actions']||count($r['actions'])>32)throw new \DomainException('INVALID_CONDITION_ACTIONS');
                 foreach($r['actions'] as $a){
                     self::fields($a,array('type'),array('target_id','question_id','candidate_ids','randomization_id'));if(!in_array($a['type'],self::ACTIONS,true))throw new \DomainException('INVALID_CONDITION_ACTION');
+                    if($a['type']==='END_STUDY'){self::fields($a,array('type'));continue;}
                     if($a['type']==='END_ASSESSMENT')continue;
                     $target=$a['target_id']??null;if(!isset($nodes[$target]))throw new \DomainException('INVALID_ACTION_TARGET');$n=$nodes[$target];
                     if(in_array($a['type'],array('GO_QUESTION','JUMP','WAIT'),true)){
@@ -103,11 +104,11 @@ final class LogicalConditions {
     }
     /** Smaller ordinal wins; compatible actions survive. No hidden action-type precedence. */
     public static function resolve(array $rules,callable $lookup,?callable $actionAllowed=null): array {
-        usort($rules,static function($a,$b){return ($a['priority']<=>$b['priority'])?:strcmp($a['id'],$b['id']);});$audit=array();$actions=array();$claims=array();
+        usort($rules,static function($a,$b){return ($a['priority']<=>$b['priority'])?:strcmp($a['id'],$b['id']);});$audit=array();$actions=array();$claims=array();$terminated=false;
         foreach($rules as $rule){$values=array();$truth=self::evaluate($rule['predicate'],function($ref)use($lookup,&$values,$rule){$v=$lookup($ref,$rule);$values[]=array('reference'=>$ref,'state'=>$v);return $v;});$record=array('condition_id'=>$rule['id'],'priority'=>$rule['priority'],'result'=>$truth,'sources'=>$values,'attempted'=>$rule['actions'],'applied'=>array(),'suppressed'=>array());
-            if($truth==='TRUE')foreach($rule['actions'] as $index=>$action){if($actionAllowed!==null&&!$actionAllowed($rule,$action)){$record['suppressed'][]=array('action'=>$action,'reason'=>'OUTSIDE_TRACK_FUTURE');continue;}$key=in_array($action['type'],array('GO_QUESTION','END_ASSESSMENT','JUMP','WAIT'),true)?'FLOW':($action['type']==='FORCE_RANDOM'?'RANDOM:'.$action['target_id'].'|'.($action['randomization_id']??''):null);
+            if($truth==='TRUE')foreach($rule['actions'] as $index=>$action){if($terminated){$record['suppressed'][]=array('action'=>$action,'reason'=>'STUDY_TERMINATED');continue;}if($actionAllowed!==null&&!$actionAllowed($rule,$action)){$record['suppressed'][]=array('action'=>$action,'reason'=>'OUTSIDE_TRACK_FUTURE');continue;}$key=in_array($action['type'],array('GO_QUESTION','END_ASSESSMENT','END_STUDY','JUMP','WAIT'),true)?'FLOW':($action['type']==='FORCE_RANDOM'?'RANDOM:'.$action['target_id'].'|'.($action['randomization_id']??''):null);
                 if($key!==null&&isset($claims[$key])&&$claims[$key]!==$rule['id']){$record['suppressed'][]=array('action'=>$action,'winner'=>$claims[$key]);continue;}
-                if($key!==null)$claims[$key]=$rule['id'];$entry=array('condition_id'=>$rule['id'],'priority'=>$rule['priority'],'index'=>$index,'action'=>$action);$actions[]=$entry;$record['applied'][]=$action;
+                if($key!==null)$claims[$key]=$rule['id'];$entry=array('condition_id'=>$rule['id'],'priority'=>$rule['priority'],'index'=>$index,'action'=>$action);$actions[]=$entry;$record['applied'][]=$action;if($action['type']==='END_STUDY')$terminated=true;
             }$audit[]=$record;
         }return array('actions'=>$actions,'audit'=>$audit);
     }

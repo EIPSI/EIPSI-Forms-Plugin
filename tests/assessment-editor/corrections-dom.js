@@ -403,6 +403,33 @@ test("content fit centered wrapping CSS and Firefox range geometry are explicit"
   assert(css.includes("::-moz-range-thumb"));
   assert(css.includes("overflow-wrap"));
 });
+test("VAS alternating planes retain exact value anchors and one common font",()=>{
+  const e=one('vas'),p=e.properties;p.min=0;p.max=100;p.label_placement='alternate';p.label_settings.forEach((l,i)=>l.position=i*25);
+  const widget=A.widget(e);doc.body.append(widget);const axis=widget.querySelector('.ae-vas-axis');axis.getBoundingClientRect=()=>({left:100,width:320});widget.querySelector('.ae-vas-track').getBoundingClientRect=()=>({left:143,width:234});axis.dispatchEvent(new w.Event('eipsi:vas-layout'));
+  const labels=[...widget.querySelectorAll('.ae-semantic-label')];labels.forEach(n=>assert.equal(Number(n.dataset.anchorPx),43+Number(n.dataset.labelPosition)*234));assert.equal(new Set(labels.map(n=>n.style.fontSize)).size,1);assert.equal(widget.querySelector('.ae-vas-labels-below').children.length,2);
+  p.label_placement='below';const below=A.widget(e);assert(below.querySelector('.ae-vas-labels').hidden);assert.equal(below.querySelector('.ae-vas-labels-below').children.length,5);widget.remove();
+});
+test("VAS mobile vertical reverses visual endpoints without changing response values",()=>{
+  const old=w.innerWidth;Object.defineProperty(w,'innerWidth',{configurable:true,value:375});
+  try{
+    const e=one('vas'),p=e.properties;p.min=0;p.max=100;p.step=1;p.mobile_orientation='vertical';p.vertical_top='max';p.vertical_height=320;p.label_placement='alternate';p.label_settings.forEach((l,i)=>l.position=i*25);
+    const d=A.assessment();d.elements=[e];const session=new A.PreviewSession(d);let widget,axis,slider;
+    const mount=()=>{widget?.remove();widget=A.widget(e,session);doc.body.append(widget);axis=widget.querySelector('.ae-vas-axis');slider=widget.querySelector('input[type=range]');axis.getBoundingClientRect=()=>({left:0,top:0,width:320});widget.querySelectorAll('.ae-vas-labels').forEach(plane=>plane.getBoundingClientRect=()=>({top:24,width:138,height:320}));widget.querySelector('.ae-vas-track').getBoundingClientRect=()=>({top:35,height:298,left:157,width:6});};
+    const refresh=()=>axis.dispatchEvent(new w.Event('eipsi:vas-layout')),point=i=>Number(widget.querySelector('[data-label-index="'+i+'"]').dataset.anchorPx);
+    mount();refresh();assert(axis.classList.contains('is-vertical'));assert.equal(slider.getAttribute('aria-orientation'),'vertical');assert.equal(session.answers[e.response_key],undefined);assert.equal(point(0),309);assert.equal(point(4),11);
+    slider.value='25';slider.dispatchEvent(new w.Event('input'));assert.equal(session.answers[e.response_key],25);slider.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowUp',cancelable:true}));assert.equal(session.answers[e.response_key],26);
+    p.vertical_top='min';mount();refresh();assert.equal(point(0),11);assert.equal(point(4),309);assert.equal(session.answers[e.response_key],26);slider.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowDown',cancelable:true}));assert.equal(session.answers[e.response_key],27);
+    Object.defineProperty(w,'innerWidth',{configurable:true,value:1200});refresh();assert(!axis.classList.contains('is-vertical'));assert.equal(session.answers[e.response_key],27);widget.remove();
+  }finally{Object.defineProperty(w,'innerWidth',{configurable:true,value:old});}
+});
+test("VAS numeric percentages provide multiple sizes while keeping value anchors fixed",()=>{
+  const p=one('vas').properties;p.min=0;p.max=100;p.labels=['Low','High'];p.label_settings=[{position:0},{position:100}];let previous=0;
+  for(const percent of [25,50,75,100,125,150,200,300]){p.label_scale=percent;const g=G.layout(p,{start:160,width:640},960);assert(g[0].fontSize>=previous);previous=g[0].fontSize;assert.equal(g[0].anchor,160);assert.equal(g[1].anchor,800);assert.equal(g[0].fontSize,g[1].fontSize);}
+  p.label_scale=100;const normal=G.layout(p,{start:160,width:640},960)[0].fontSize;p.label_scale=50;assert(G.layout(p,{start:160,width:640},960)[0].fontSize<normal);
+});
+test("VAS automatic end spacing reserves centered endpoint text and supports a custom margin",()=>{
+  const e=one('vas'),p=e.properties;p.min=0;p.max=100;p.labels=['Low','High'];p.label_settings=[{position:0},{position:100}];const inset=G.gutter(p,320);assert(inset<32);const g=G.layout(p,{start:inset+11,width:320-2*(inset+11)},320);assert.equal(g[0].anchor,inset+11);assert.equal(g[1].anchor,320-inset-11);p.edge_spacing='custom';p.edge_margin=40;assert.equal(G.gutter(p,320),40);p.labels=['Same','Point'];p.label_settings=[{position:50},{position:50}];const same=G.verticalLayout(p,{start:11,width:298},320,138,true);assert.equal(same[0].anchor,same[1].anchor);assert.equal(same[0].fontSize,same[1].fontSize);assert(same[0].maxWidth<=65);
+});
 test("VAS required touched and Matrix independent keys unchanged", () => {
   const d = fixture(),
     v = d.elements.find((e) => e.type === "vas");
