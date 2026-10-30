@@ -15,19 +15,11 @@
       const width = box.clientWidth - number(style.paddingLeft) - number(style.paddingRight);
       if (width <= 0) return;
       const choices = [...box.querySelectorAll(":scope > .ae-choice")];
-      const probe = el("span", { class: "ae-likert-measure", "aria-hidden": "true" });
-      Object.assign(probe.style, { position: "absolute", visibility: "hidden", whiteSpace: "pre", width: "max-content", maxWidth: "none", pointerEvents: "none" });
-      box.append(probe);
-      let widest = 0;
-      choices.forEach(choice => {
-        const label = choice.querySelector(".ae-option-label"), css = root.getComputedStyle(choice), textStyle = root.getComputedStyle(label);
-        probe.style.font = textStyle.font; probe.style.letterSpacing = textStyle.letterSpacing;
-        probe.textContent = label.value ?? label.textContent;
-        const textWidth = probe.getBoundingClientRect().width;
-        widest = Math.max(widest, number(style.getPropertyValue("--ae-likert-choice-min")) || 60, textWidth + number(css.paddingLeft) + number(css.paddingRight) + number(css.borderLeftWidth) + number(css.borderRightWidth), 24);
-      });
-      probe.remove();
-      const needed = widest * choices.length + number(style.columnGap || style.gap) * Math.max(0, choices.length - 1);
+      // Labels may wrap inside each equal-width option. Only the option columns
+      // need to fit on one row; measuring unwrapped text stacked ordinary scales.
+      const minimum = number(style.getPropertyValue("--ae-likert-choice-min")) || 60;
+      const gap = number(style.columnGap) || number(style.gap);
+      const needed = minimum * choices.length + gap * Math.max(0, choices.length - 1);
       box.classList.toggle("is-stacked", needed > width + 0.5);
     };
     box.addEventListener("eipsi:likert-layout", refresh);
@@ -183,6 +175,7 @@
       box.append(select);
     }
     if (["single_choice", "multiple_choice", "likert"].includes(e.type)) {
+      if (e.type !== "likert") box.classList.add("ae-choice-cards");
       box.classList.add(
         p.presentation === "horizontal" ? "ae-horizontal" : "ae-vertical",
       );

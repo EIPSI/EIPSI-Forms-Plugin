@@ -8,7 +8,7 @@ An assessment contains the questions and pages that a participant answers. A stu
 
 Open **EIPSI Forms → Assessment Editor**. Create an assessment from the list or open an existing one. Add elements to the visual area and select one to edit its properties.
 
-Supported question families include text, email, telephone, number, date, single and multiple choice, dropdowns, Likert scales, Likert matrices, and VAS scales. Instructions, images, groups, randomizations, and page breaks organize the content. A group organizes elements; a page break creates a navigation boundary.
+Supported question families include text, email, telephone, number, date, single and multiple choice, dropdowns, Likert scales, Likert matrices, and VAS scales. Instructions, images, groups, randomizations, and page breaks organize the content. A group organizes elements; a page break creates a navigation boundary. A horizontal simple Likert keeps its options in one row while the columns fit; option labels may wrap within each column. If the columns no longer fit, the entire scale switches to one vertical column.
 
 Use rich text for the fields that offer it and the WordPress media picker for images. Give questions useful **variable names** before collecting data: these names become analytical columns, whereas labels are participant-facing text.
 
