@@ -38,7 +38,7 @@
     "study-engine-persistence": 87,
     "study-engine-content-unit": 47,
     "study-engine-cross-sectional": 30,
-    "study-engine-longitudinal": 181,
+    "study-engine-longitudinal": 184,
     "study-engine-privacy": 84,
     "study-engine-builder": 69,
     "study-engine-pilot": 10,
@@ -48,7 +48,7 @@
     "assessment-controls": 29,
     "assessment-authoring": 44,
     "assessment-corrections": 25,
-    "assessment-functional": 47,
+    "assessment-functional": 48,
     "assessment-product": 118,
     "assessment-product-http": 16,
     "study-public-messages": 11,
@@ -123,7 +123,8 @@
     "tests/ux-f1a/runtime-dom.js": 53,
     "tests/date-fluidity/runtime-dom.js": 14,
     "tests/ux-f1b/runtime-dom.js": 57,
-    "tests/registration/runtime-dom.js": 9
+    "tests/registration/runtime-dom.js": 9,
+    "tests/runtime-polish/runtime-dom.js": 15
   },
   "pure_php": {
     "tests/run-study-engine-domain.php": 127,

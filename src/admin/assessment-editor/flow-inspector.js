@@ -110,6 +110,8 @@
       ["both", root.EIPSIAdminI18n.t("Bar and pages")],
     ]);
     host.append(progressFields);
+    const progressPosition=field(progressFields,f,"progress_position",root.EIPSIAdminI18n.t("Progress position"),onchange,"text",[["top",root.EIPSIAdminI18n.t("Above all content")],["bottom",root.EIPSIAdminI18n.t("Below navigation buttons")]]);
+    progressPosition.value=f.progress_position??"top";
     field(progressText,texts,"progress",root.EIPSIAdminI18n.t("Progress text — [ACTUAL] and [TOTAL]"),updateMessages);
     progressText.hidden=!["pages","both"].includes(f.progress);
     field(progressFields,texts,"progress_accessible",root.EIPSIAdminI18n.t("Accessible progress label"),updateMessages);

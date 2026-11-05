@@ -286,10 +286,12 @@
         value === undefined ? (p.unanswered_value_message ?? "Sin responder") : String(value),
       );
       output.style.fontSize = p.value_font_size + "px";
-      const touch = () => {
+      const touch = (event) => {
         const number = Number(slider.value);
         if (Number.isFinite(number)) {
+          const changed=session && (session.answers[e.response_key]!==number || !session.touched[e.response_key]);
           change(number);
+          if(changed && event?.type!=="input")slider.dispatchEvent(new root.CustomEvent("eipsi:answer",{bubbles:true,detail:{nativeEvent:event?.type}}));
           paintThumb();
           slider.dataset.touched = "true";
           output.textContent = String(number);
@@ -314,13 +316,13 @@
               ].includes(event.key)
             )
               return;
-            touch();
+            touch(event);
           }),
       );
       slider.addEventListener("keydown", (event) => {
         if(vertical&&["ArrowUp","ArrowDown"].includes(event.key)) {
           event.preventDefault();const up=event.key==='ArrowUp',increase=p.vertical_top==='min'?!up:up;
-          if(increase)slider.stepUp();else slider.stepDown();touch();return;
+          if(increase)slider.stepUp();else slider.stepDown();touch(event);return;
         }
       });
       const axis = el("div", { class: "ae-vas-axis" }),

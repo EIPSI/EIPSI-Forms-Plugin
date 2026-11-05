@@ -224,6 +224,7 @@
     }
     function render() {
       renderAudit();
+      frame.querySelector(":scope > .ae-assessment-progress")?.remove();
       body.replaceChildren();
       foot.replaceChildren();
       if (session.definition.flow.show_title !== false) body.append(el("h2", {}, session.definition.title));
@@ -270,22 +271,8 @@
         body.append(
           A.richText.render({ label_html: page.description_html }, "label"),
         );
-      if (["pages", "both"].includes(flow.progress))
-        body.append(
-          el(
-            "p",
-            { class: "ae-page-count" },
-            (flow.messages?.progress ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(session.definition)).progress).replaceAll("[ACTUAL]",String(session.page+1)).replaceAll("[TOTAL]",String(session.pages.length)),
-          ),
-        );
-      if (["bar", "both"].includes(flow.progress))
-        body.append(
-          el("progress", {
-            max: session.pages.length,
-            value: session.page + 1,
-            "aria-label": flow.messages?.progress_accessible ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(session.definition)).progress_accessible,
-          }),
-        );
+      const progress=A.renderProgress(session.definition,session.page+1,session.pages.length);
+      if(progress){if(flow.progress_position==='bottom')foot.after(progress);else frame.prepend(progress);}
       renderElements(session.pages[session.page], body);
       const back = el(
         "button",

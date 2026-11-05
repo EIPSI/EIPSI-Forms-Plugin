@@ -1,6 +1,15 @@
 (function (root) {
   "use strict";
   const A = root.EIPSIAssessment;
+  A.renderProgress = function (definition, current, total) {
+    const flow=definition.flow;
+    if (flow.progress === "none") return null;
+    const message=key=>flow.messages?.[key] ?? root.EIPSIContent.get('flow_messages',root.EIPSIContent.language(definition))[key];
+    const progress=A.el("div",{class:"ae-assessment-progress"});
+    if (["pages","both"].includes(flow.progress)) progress.append(A.el("p",{class:"ae-page-count"},message("progress").replaceAll("[ACTUAL]",String(current)).replaceAll("[TOTAL]",String(total))));
+    if (["bar","both"].includes(flow.progress)) progress.append(A.el("progress",{max:total,value:current,"aria-label":message("progress_accessible")}));
+    return progress;
+  };
   /** One native content/widget renderer shared by Preview and a host-owned participant surface. */
   A.renderParticipantElements = function (
     items,
