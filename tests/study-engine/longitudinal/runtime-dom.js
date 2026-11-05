@@ -12,6 +12,14 @@ const response = html => ({ ok: true, json: async () => ({ html, state: 'EMAIL_E
 async function test(name, fn) { tests++;try { await fn();console.log('PASS ' + name); } catch (e) { failed++;console.log('FAIL ' + name + ': ' + e.message); } }
 (async () => {
  await test('Longitudinal Enter submits enrollment email csrf and attempt once', async () => { let body;const d = dom(entry, async (u, o) => { body = o.body;return response(entry); });submit(d);await tick();assert.equal(body.get('action'), 'enroll');assert.equal(body.get('email'), 'participant@example.test');assert.equal(body.get('csrf'), 'ENTRY');assert.equal(body.get('command_id'), 'ADMIT_ONE');d.window.close(); });
+ await test('Entry loading is immediate, blocks duplicate submissions and clears on failure',async()=>{
+   let release,calls=0;const d=dom(entry,async()=>{calls++;await new Promise(resolve=>{release=resolve;});throw Error('Network');});
+   const form=d.window.document.querySelector('form'),button=form.querySelector('button');
+   submit(d);assert.equal(form.getAttribute('aria-busy'),'true');assert(button.disabled);assert(button.querySelector('.eipsi-loading-spinner'));
+   submit(d);assert.equal(calls,1);release();await tick();
+   assert.equal(form.getAttribute('aria-busy'),null);assert.equal(button.disabled,false);assert.equal(button.querySelector('.eipsi-loading-spinner'),null);
+   assert.equal(form.querySelector('[name=email]').value,'participant@example.test');d.window.close();
+ });
  await test('Enrollment proposes browser IANA timezone without changing existing science', async () => { let body;const d = dom(entry, async (u, o) => { body = o.body;return response(entry); });submit(d);await tick();assert.equal(body.get('timezone'), d.window.Intl.DateTimeFormat().resolvedOptions().timeZone);d.window.close(); });
  await test('Generic access message survives success without false saved or sent claim', async () => { const html = entry.replace('<h1>Participar</h1>', '<h1>Participar</h1><p role="status">Si corresponde, te enviamos un enlace.</p>');const d = dom(entry, async () => response(html));submit(d);await tick();assert.match(d.window.document.querySelector('[role=status]').textContent, /^Si corresponde/);assert.doesNotMatch(d.window.document.querySelector('[role=status]').textContent, /guardado/);d.window.close(); });
  await test('Removed generic assessment submission is not sent by Study transport',async()=>{let calls=0;const html=entry.replace('value="enroll"','value="submit"');const d=dom(html,async()=>{calls++;return response(html);});submit(d,d.window.document.querySelector('button'));await tick();assert.equal(calls,0);d.window.close();});

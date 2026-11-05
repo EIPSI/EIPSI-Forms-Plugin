@@ -1,0 +1,1049 @@
+[
+  {
+    "initial_metadata": {
+      "started_at": 1700000000000,
+      "completed_at": null,
+      "duration": 0,
+      "recovery_used": false,
+      "recovery_count": 0,
+      "dropped_events": 0,
+      "pages": {
+        "PG_AE_6b86b273ff34fce19d6b804eff5a3f57": {
+          "page_id": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+          "presented_at": 1700000000000,
+          "leave_at": null,
+          "duration": 0,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "next_transitions": 0,
+          "previous_transitions": 0,
+          "resumed_here": false,
+          "current_presented_at": 1700000000000
+        }
+      },
+      "items": {
+        "R_4e07408562bedb8b60ce05c1decfe3ad": {
+          "item_id": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "response_key": "R_4e07408562bedb8b60ce05c1decfe3ad",
+          "variable_name": "date_1",
+          "presented_at": 1700000000000,
+          "first_interaction_at": null,
+          "final_response_at": null,
+          "time_to_first_interaction": null,
+          "time_to_final_response": null,
+          "interaction_count": 0,
+          "change_count": 0,
+          "focus_count": 0,
+          "focus_duration": 0,
+          "initial_state": null,
+          "first_interacted_state": null,
+          "final_state": null,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "trajectory": []
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1700000000000,
+          "kind": "presented",
+          "identity": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+          "state": null
+        }
+      ],
+      "contract": "NATIVE_PROCESS_V1",
+      "assessment_id": "AE_6b86b273ff34fce19d6b804eff5a3f57",
+      "definition_ref": {
+        "kind": "NATIVE_SESSION_SNAPSHOT",
+        "assessment_id": "AE_6b86b273ff34fce19d6b804eff5a3f57",
+        "contract": "EIPSI_ASSESSMENT_V1"
+      },
+      "status": "active",
+      "context": {
+        "device": "desktop-or-unknown",
+        "browser": "unknown",
+        "os": "unknown",
+        "screen": {
+          "width": 0,
+          "height": 0
+        },
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "timezone": "UTC",
+        "language": "en-US",
+        "input_capabilities": {
+          "touch": false,
+          "pointer": true
+        },
+        "webgl_renderer": null,
+        "screen_depth": 24,
+        "pixel_ratio": 1,
+        "cpu_cores": 4,
+        "cookies_enabled": true
+      }
+    },
+    "definition": {
+      "contract": "EIPSI_ASSESSMENT_V1",
+      "id": "AE_6b86b273ff34fce19d6b804eff5a3f57",
+      "title": "Nueva evaluación",
+      "content_language": "es",
+      "elements": [
+        {
+          "id": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "type": "date",
+          "response_key": "R_4e07408562bedb8b60ce05c1decfe3ad",
+          "properties": {
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "required_message": "Respondé esta pregunta para continuar.",
+            "invalid_value_message": "Ingresá una fecha válida.",
+            "date_year_label": "Año",
+            "date_placeholder": "AAAA-MM-DD",
+            "date_open_label": "Abrir calendario",
+            "date_close_label": "Cerrar calendario",
+            "date_previous_label": "Mes anterior",
+            "date_next_label": "Mes siguiente",
+            "date_month_names": "Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre",
+            "date_weekday_names": "Domingo|Lunes|Martes|Miércoles|Jueves|Viernes|Sábado",
+            "label": "Escribí tu pregunta",
+            "helper": "",
+            "required": false,
+            "variable_name": "date_1",
+            "date_format": "YYYY-MM-DD"
+          },
+          "options": [],
+          "children": []
+        }
+      ],
+      "authoring": {
+        "variable_policy": "MATRIX_ORDINAL_V1",
+        "variable_next": {
+          "text": 1,
+          "date": 2,
+          "single": 1,
+          "multiple": 1,
+          "select": 1,
+          "likert": 1,
+          "vas": 1,
+          "matrix": 1
+        },
+        "legacy_row_variables": []
+      },
+      "flow": {
+        "pages": [
+          {
+            "id": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+            "boundary_id": null,
+            "title": "",
+            "description_html": ""
+          }
+        ],
+        "allow_back": true,
+        "navigation_labels": {
+          "back": "Anterior",
+          "next": "Siguiente",
+          "finish": "Terminar"
+        },
+        "progress": "pages",
+        "completion": {
+          "title": "Gracias por responder",
+          "message_html": "<p>Gracias por completar la evaluación.</p>",
+          "image_url": "",
+          "button_label": "",
+          "allow_restart": true
+        },
+        "save_continue": {
+          "enabled": false,
+          "window": {
+            "value": 7,
+            "unit": "days"
+          }
+        },
+        "metadata_profile": "detailed",
+        "messages": {
+          "expired": "La sesión anterior venció. Empezá nuevamente desde la primera página.",
+          "expired_saved": "Las respuestas parciales de la sesión anterior quedaron guardadas. Empezá nuevamente desde la primera página.",
+          "processing": "Actualizando sesión…",
+          "updated": "Sesión actualizada.",
+          "completed": "Respuestas guardadas correctamente.",
+          "invalid": "No se pudieron procesar tus respuestas. Volvé a intentarlo.",
+          "delivery_error": "No se pudo confirmar el guardado de tus respuestas. Volvé a intentarlo con el mismo botón.",
+          "discard_accept": "Aceptar",
+          "discard_cancel": "Cancelar",
+          "discard_label": "Descartar respuesta",
+          "discard_confirm": "¿Descartar esta respuesta? Se eliminarán la sesión y las respuestas de esta evaluación para comenzar desde cero.",
+          "discarded": "Respuesta descartada. Podés empezar desde el comienzo.",
+          "progress": "Página [ACTUAL] de [TOTAL]",
+          "progress_accessible": "Progreso por páginas"
+        }
+      }
+    },
+    "answers": {
+      "R_4e07408562bedb8b60ce05c1decfe3ad": "2026-11-04"
+    },
+    "touched": {
+      "R_4e07408562bedb8b60ce05c1decfe3ad": true
+    },
+    "metadata": {
+      "started_at": 1700000000000,
+      "completed_at": null,
+      "duration": 0,
+      "recovery_used": false,
+      "recovery_count": 0,
+      "dropped_events": 0,
+      "pages": {
+        "PG_AE_6b86b273ff34fce19d6b804eff5a3f57": {
+          "page_id": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+          "presented_at": 1700000000000,
+          "leave_at": null,
+          "duration": 0,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "next_transitions": 0,
+          "previous_transitions": 0,
+          "resumed_here": false,
+          "current_presented_at": 1700000000000
+        }
+      },
+      "items": {
+        "R_4e07408562bedb8b60ce05c1decfe3ad": {
+          "item_id": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "response_key": "R_4e07408562bedb8b60ce05c1decfe3ad",
+          "variable_name": "date_1",
+          "presented_at": 1700000000000,
+          "first_interaction_at": 1700000000000,
+          "final_response_at": 1700000000000,
+          "time_to_first_interaction": 0,
+          "time_to_final_response": 0,
+          "interaction_count": 10,
+          "change_count": 10,
+          "focus_count": 0,
+          "focus_duration": 0,
+          "initial_state": null,
+          "first_interacted_state": null,
+          "final_state": "2026-11-04",
+          "visit_count": 1,
+          "revisit_count": 0,
+          "trajectory": [
+            {
+              "timestamp": 1700000000000,
+              "state": null
+            },
+            {
+              "timestamp": 1700000000000,
+              "state": "2026-11-04"
+            }
+          ],
+          "input_method": "unknown"
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1700000000000,
+          "kind": "presented",
+          "identity": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "first_interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": "2026-11-04"
+        }
+      ],
+      "contract": "NATIVE_PROCESS_V1",
+      "assessment_id": "AE_6b86b273ff34fce19d6b804eff5a3f57",
+      "definition_ref": {
+        "kind": "NATIVE_SESSION_SNAPSHOT",
+        "assessment_id": "AE_6b86b273ff34fce19d6b804eff5a3f57",
+        "contract": "EIPSI_ASSESSMENT_V1"
+      },
+      "status": "active",
+      "context": {
+        "device": "desktop-or-unknown",
+        "browser": "unknown",
+        "os": "unknown",
+        "screen": {
+          "width": 0,
+          "height": 0
+        },
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "timezone": "UTC",
+        "language": "en-US",
+        "input_capabilities": {
+          "touch": false,
+          "pointer": true
+        },
+        "webgl_renderer": null,
+        "screen_depth": 24,
+        "pixel_ratio": 1,
+        "cpu_cores": 4,
+        "cookies_enabled": true
+      }
+    }
+  },
+  {
+    "initial_metadata": {
+      "started_at": 1700000000000,
+      "completed_at": null,
+      "duration": 0,
+      "recovery_used": false,
+      "recovery_count": 0,
+      "dropped_events": 0,
+      "pages": {
+        "PG_AE_ef2d127de37b942baad06145e54b0c61": {
+          "page_id": "PG_AE_ef2d127de37b942baad06145e54b0c61",
+          "presented_at": 1700000000000,
+          "leave_at": null,
+          "duration": 0,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "next_transitions": 0,
+          "previous_transitions": 0,
+          "resumed_here": false,
+          "current_presented_at": 1700000000000
+        }
+      },
+      "items": {
+        "R_7902699be42c8a8e46fbbb4501726517": {
+          "item_id": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "response_key": "R_7902699be42c8a8e46fbbb4501726517",
+          "variable_name": "date_1",
+          "presented_at": 1700000000000,
+          "first_interaction_at": null,
+          "final_response_at": null,
+          "time_to_first_interaction": null,
+          "time_to_final_response": null,
+          "interaction_count": 0,
+          "change_count": 0,
+          "focus_count": 0,
+          "focus_duration": 0,
+          "initial_state": null,
+          "first_interacted_state": null,
+          "final_state": null,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "trajectory": []
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1700000000000,
+          "kind": "presented",
+          "identity": "PG_AE_ef2d127de37b942baad06145e54b0c61",
+          "state": null
+        }
+      ],
+      "contract": "NATIVE_PROCESS_V1",
+      "assessment_id": "AE_ef2d127de37b942baad06145e54b0c61",
+      "definition_ref": {
+        "kind": "NATIVE_SESSION_SNAPSHOT",
+        "assessment_id": "AE_ef2d127de37b942baad06145e54b0c61",
+        "contract": "EIPSI_ASSESSMENT_V1"
+      },
+      "status": "active",
+      "context": {
+        "device": "desktop-or-unknown",
+        "browser": "unknown",
+        "os": "unknown",
+        "screen": {
+          "width": 0,
+          "height": 0
+        },
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "timezone": "UTC",
+        "language": "en-US",
+        "input_capabilities": {
+          "touch": false,
+          "pointer": true
+        },
+        "webgl_renderer": null,
+        "screen_depth": 24,
+        "pixel_ratio": 1,
+        "cpu_cores": 4,
+        "cookies_enabled": true
+      }
+    },
+    "definition": {
+      "contract": "EIPSI_ASSESSMENT_V1",
+      "id": "AE_ef2d127de37b942baad06145e54b0c61",
+      "title": "Nueva evaluación",
+      "content_language": "es",
+      "elements": [
+        {
+          "id": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "type": "date",
+          "response_key": "R_7902699be42c8a8e46fbbb4501726517",
+          "properties": {
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "required_message": "Respondé esta pregunta para continuar.",
+            "invalid_value_message": "Ingresá una fecha válida.",
+            "date_year_label": "Año",
+            "date_placeholder": "AAAA-MM-DD",
+            "date_open_label": "Abrir calendario",
+            "date_close_label": "Cerrar calendario",
+            "date_previous_label": "Mes anterior",
+            "date_next_label": "Mes siguiente",
+            "date_month_names": "Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre",
+            "date_weekday_names": "Domingo|Lunes|Martes|Miércoles|Jueves|Viernes|Sábado",
+            "label": "Escribí tu pregunta",
+            "helper": "",
+            "required": false,
+            "variable_name": "date_1",
+            "date_format": "DD/MM/YYYY"
+          },
+          "options": [],
+          "children": []
+        }
+      ],
+      "authoring": {
+        "variable_policy": "MATRIX_ORDINAL_V1",
+        "variable_next": {
+          "text": 1,
+          "date": 2,
+          "single": 1,
+          "multiple": 1,
+          "select": 1,
+          "likert": 1,
+          "vas": 1,
+          "matrix": 1
+        },
+        "legacy_row_variables": []
+      },
+      "flow": {
+        "pages": [
+          {
+            "id": "PG_AE_ef2d127de37b942baad06145e54b0c61",
+            "boundary_id": null,
+            "title": "",
+            "description_html": ""
+          }
+        ],
+        "allow_back": true,
+        "navigation_labels": {
+          "back": "Anterior",
+          "next": "Siguiente",
+          "finish": "Terminar"
+        },
+        "progress": "pages",
+        "completion": {
+          "title": "Gracias por responder",
+          "message_html": "<p>Gracias por completar la evaluación.</p>",
+          "image_url": "",
+          "button_label": "",
+          "allow_restart": true
+        },
+        "save_continue": {
+          "enabled": false,
+          "window": {
+            "value": 7,
+            "unit": "days"
+          }
+        },
+        "metadata_profile": "detailed",
+        "messages": {
+          "expired": "La sesión anterior venció. Empezá nuevamente desde la primera página.",
+          "expired_saved": "Las respuestas parciales de la sesión anterior quedaron guardadas. Empezá nuevamente desde la primera página.",
+          "processing": "Actualizando sesión…",
+          "updated": "Sesión actualizada.",
+          "completed": "Respuestas guardadas correctamente.",
+          "invalid": "No se pudieron procesar tus respuestas. Volvé a intentarlo.",
+          "delivery_error": "No se pudo confirmar el guardado de tus respuestas. Volvé a intentarlo con el mismo botón.",
+          "discard_accept": "Aceptar",
+          "discard_cancel": "Cancelar",
+          "discard_label": "Descartar respuesta",
+          "discard_confirm": "¿Descartar esta respuesta? Se eliminarán la sesión y las respuestas de esta evaluación para comenzar desde cero.",
+          "discarded": "Respuesta descartada. Podés empezar desde el comienzo.",
+          "progress": "Página [ACTUAL] de [TOTAL]",
+          "progress_accessible": "Progreso por páginas"
+        }
+      }
+    },
+    "answers": {
+      "R_7902699be42c8a8e46fbbb4501726517": "2026-11-04"
+    },
+    "touched": {
+      "R_7902699be42c8a8e46fbbb4501726517": true
+    },
+    "metadata": {
+      "started_at": 1700000000000,
+      "completed_at": null,
+      "duration": 0,
+      "recovery_used": false,
+      "recovery_count": 0,
+      "dropped_events": 0,
+      "pages": {
+        "PG_AE_ef2d127de37b942baad06145e54b0c61": {
+          "page_id": "PG_AE_ef2d127de37b942baad06145e54b0c61",
+          "presented_at": 1700000000000,
+          "leave_at": null,
+          "duration": 0,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "next_transitions": 0,
+          "previous_transitions": 0,
+          "resumed_here": false,
+          "current_presented_at": 1700000000000
+        }
+      },
+      "items": {
+        "R_7902699be42c8a8e46fbbb4501726517": {
+          "item_id": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "response_key": "R_7902699be42c8a8e46fbbb4501726517",
+          "variable_name": "date_1",
+          "presented_at": 1700000000000,
+          "first_interaction_at": 1700000000000,
+          "final_response_at": 1700000000000,
+          "time_to_first_interaction": 0,
+          "time_to_final_response": 0,
+          "interaction_count": 10,
+          "change_count": 10,
+          "focus_count": 0,
+          "focus_duration": 0,
+          "initial_state": null,
+          "first_interacted_state": null,
+          "final_state": "2026-11-04",
+          "visit_count": 1,
+          "revisit_count": 0,
+          "trajectory": [
+            {
+              "timestamp": 1700000000000,
+              "state": null
+            },
+            {
+              "timestamp": 1700000000000,
+              "state": "2026-11-04"
+            }
+          ],
+          "input_method": "unknown"
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1700000000000,
+          "kind": "presented",
+          "identity": "PG_AE_ef2d127de37b942baad06145e54b0c61",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "first_interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_e7f6c011776e8db7cd330b54174fd76f",
+          "state": "2026-11-04"
+        }
+      ],
+      "contract": "NATIVE_PROCESS_V1",
+      "assessment_id": "AE_ef2d127de37b942baad06145e54b0c61",
+      "definition_ref": {
+        "kind": "NATIVE_SESSION_SNAPSHOT",
+        "assessment_id": "AE_ef2d127de37b942baad06145e54b0c61",
+        "contract": "EIPSI_ASSESSMENT_V1"
+      },
+      "status": "active",
+      "context": {
+        "device": "desktop-or-unknown",
+        "browser": "unknown",
+        "os": "unknown",
+        "screen": {
+          "width": 0,
+          "height": 0
+        },
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "timezone": "UTC",
+        "language": "en-US",
+        "input_capabilities": {
+          "touch": false,
+          "pointer": true
+        },
+        "webgl_renderer": null,
+        "screen_depth": 24,
+        "pixel_ratio": 1,
+        "cpu_cores": 4,
+        "cookies_enabled": true
+      }
+    }
+  },
+  {
+    "initial_metadata": {
+      "started_at": 1700000000000,
+      "completed_at": null,
+      "duration": 0,
+      "recovery_used": false,
+      "recovery_count": 0,
+      "dropped_events": 0,
+      "pages": {
+        "PG_AE_19581e27de7ced00ff1ce50b2047e7a5": {
+          "page_id": "PG_AE_19581e27de7ced00ff1ce50b2047e7a5",
+          "presented_at": 1700000000000,
+          "leave_at": null,
+          "duration": 0,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "next_transitions": 0,
+          "previous_transitions": 0,
+          "resumed_here": false,
+          "current_presented_at": 1700000000000
+        }
+      },
+      "items": {
+        "R_4fc82b26aecb47d2868c4efbe3581732": {
+          "item_id": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "response_key": "R_4fc82b26aecb47d2868c4efbe3581732",
+          "variable_name": "date_1",
+          "presented_at": 1700000000000,
+          "first_interaction_at": null,
+          "final_response_at": null,
+          "time_to_first_interaction": null,
+          "time_to_final_response": null,
+          "interaction_count": 0,
+          "change_count": 0,
+          "focus_count": 0,
+          "focus_duration": 0,
+          "initial_state": null,
+          "first_interacted_state": null,
+          "final_state": null,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "trajectory": []
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1700000000000,
+          "kind": "presented",
+          "identity": "PG_AE_19581e27de7ced00ff1ce50b2047e7a5",
+          "state": null
+        }
+      ],
+      "contract": "NATIVE_PROCESS_V1",
+      "assessment_id": "AE_19581e27de7ced00ff1ce50b2047e7a5",
+      "definition_ref": {
+        "kind": "NATIVE_SESSION_SNAPSHOT",
+        "assessment_id": "AE_19581e27de7ced00ff1ce50b2047e7a5",
+        "contract": "EIPSI_ASSESSMENT_V1"
+      },
+      "status": "active",
+      "context": {
+        "device": "desktop-or-unknown",
+        "browser": "unknown",
+        "os": "unknown",
+        "screen": {
+          "width": 0,
+          "height": 0
+        },
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "timezone": "UTC",
+        "language": "en-US",
+        "input_capabilities": {
+          "touch": false,
+          "pointer": true
+        },
+        "webgl_renderer": null,
+        "screen_depth": 24,
+        "pixel_ratio": 1,
+        "cpu_cores": 4,
+        "cookies_enabled": true
+      }
+    },
+    "definition": {
+      "contract": "EIPSI_ASSESSMENT_V1",
+      "id": "AE_19581e27de7ced00ff1ce50b2047e7a5",
+      "title": "Nueva evaluación",
+      "content_language": "es",
+      "elements": [
+        {
+          "id": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "type": "date",
+          "response_key": "R_4fc82b26aecb47d2868c4efbe3581732",
+          "properties": {
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "required_message": "Respondé esta pregunta para continuar.",
+            "invalid_value_message": "Ingresá una fecha válida.",
+            "date_year_label": "Año",
+            "date_placeholder": "AAAA-MM-DD",
+            "date_open_label": "Abrir calendario",
+            "date_close_label": "Cerrar calendario",
+            "date_previous_label": "Mes anterior",
+            "date_next_label": "Mes siguiente",
+            "date_month_names": "Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre",
+            "date_weekday_names": "Domingo|Lunes|Martes|Miércoles|Jueves|Viernes|Sábado",
+            "label": "Escribí tu pregunta",
+            "helper": "",
+            "required": false,
+            "variable_name": "date_1",
+            "date_format": "MM/DD/YYYY"
+          },
+          "options": [],
+          "children": []
+        }
+      ],
+      "authoring": {
+        "variable_policy": "MATRIX_ORDINAL_V1",
+        "variable_next": {
+          "text": 1,
+          "date": 2,
+          "single": 1,
+          "multiple": 1,
+          "select": 1,
+          "likert": 1,
+          "vas": 1,
+          "matrix": 1
+        },
+        "legacy_row_variables": []
+      },
+      "flow": {
+        "pages": [
+          {
+            "id": "PG_AE_19581e27de7ced00ff1ce50b2047e7a5",
+            "boundary_id": null,
+            "title": "",
+            "description_html": ""
+          }
+        ],
+        "allow_back": true,
+        "navigation_labels": {
+          "back": "Anterior",
+          "next": "Siguiente",
+          "finish": "Terminar"
+        },
+        "progress": "pages",
+        "completion": {
+          "title": "Gracias por responder",
+          "message_html": "<p>Gracias por completar la evaluación.</p>",
+          "image_url": "",
+          "button_label": "",
+          "allow_restart": true
+        },
+        "save_continue": {
+          "enabled": false,
+          "window": {
+            "value": 7,
+            "unit": "days"
+          }
+        },
+        "metadata_profile": "detailed",
+        "messages": {
+          "expired": "La sesión anterior venció. Empezá nuevamente desde la primera página.",
+          "expired_saved": "Las respuestas parciales de la sesión anterior quedaron guardadas. Empezá nuevamente desde la primera página.",
+          "processing": "Actualizando sesión…",
+          "updated": "Sesión actualizada.",
+          "completed": "Respuestas guardadas correctamente.",
+          "invalid": "No se pudieron procesar tus respuestas. Volvé a intentarlo.",
+          "delivery_error": "No se pudo confirmar el guardado de tus respuestas. Volvé a intentarlo con el mismo botón.",
+          "discard_accept": "Aceptar",
+          "discard_cancel": "Cancelar",
+          "discard_label": "Descartar respuesta",
+          "discard_confirm": "¿Descartar esta respuesta? Se eliminarán la sesión y las respuestas de esta evaluación para comenzar desde cero.",
+          "discarded": "Respuesta descartada. Podés empezar desde el comienzo.",
+          "progress": "Página [ACTUAL] de [TOTAL]",
+          "progress_accessible": "Progreso por páginas"
+        }
+      }
+    },
+    "answers": {
+      "R_4fc82b26aecb47d2868c4efbe3581732": "2026-11-04"
+    },
+    "touched": {
+      "R_4fc82b26aecb47d2868c4efbe3581732": true
+    },
+    "metadata": {
+      "started_at": 1700000000000,
+      "completed_at": null,
+      "duration": 0,
+      "recovery_used": false,
+      "recovery_count": 0,
+      "dropped_events": 0,
+      "pages": {
+        "PG_AE_19581e27de7ced00ff1ce50b2047e7a5": {
+          "page_id": "PG_AE_19581e27de7ced00ff1ce50b2047e7a5",
+          "presented_at": 1700000000000,
+          "leave_at": null,
+          "duration": 0,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "next_transitions": 0,
+          "previous_transitions": 0,
+          "resumed_here": false,
+          "current_presented_at": 1700000000000
+        }
+      },
+      "items": {
+        "R_4fc82b26aecb47d2868c4efbe3581732": {
+          "item_id": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "response_key": "R_4fc82b26aecb47d2868c4efbe3581732",
+          "variable_name": "date_1",
+          "presented_at": 1700000000000,
+          "first_interaction_at": 1700000000000,
+          "final_response_at": 1700000000000,
+          "time_to_first_interaction": 0,
+          "time_to_final_response": 0,
+          "interaction_count": 10,
+          "change_count": 10,
+          "focus_count": 0,
+          "focus_duration": 0,
+          "initial_state": null,
+          "first_interacted_state": null,
+          "final_state": "2026-11-04",
+          "visit_count": 1,
+          "revisit_count": 0,
+          "trajectory": [
+            {
+              "timestamp": 1700000000000,
+              "state": null
+            },
+            {
+              "timestamp": 1700000000000,
+              "state": "2026-11-04"
+            }
+          ],
+          "input_method": "unknown"
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1700000000000,
+          "kind": "presented",
+          "identity": "PG_AE_19581e27de7ced00ff1ce50b2047e7a5",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "first_interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_4a44dc15364204a80fe80e9039455cc1",
+          "state": "2026-11-04"
+        }
+      ],
+      "contract": "NATIVE_PROCESS_V1",
+      "assessment_id": "AE_19581e27de7ced00ff1ce50b2047e7a5",
+      "definition_ref": {
+        "kind": "NATIVE_SESSION_SNAPSHOT",
+        "assessment_id": "AE_19581e27de7ced00ff1ce50b2047e7a5",
+        "contract": "EIPSI_ASSESSMENT_V1"
+      },
+      "status": "active",
+      "context": {
+        "device": "desktop-or-unknown",
+        "browser": "unknown",
+        "os": "unknown",
+        "screen": {
+          "width": 0,
+          "height": 0
+        },
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "timezone": "UTC",
+        "language": "en-US",
+        "input_capabilities": {
+          "touch": false,
+          "pointer": true
+        },
+        "webgl_renderer": null,
+        "screen_depth": 24,
+        "pixel_ratio": 1,
+        "cpu_cores": 4,
+        "cookies_enabled": true
+      }
+    }
+  }
+]

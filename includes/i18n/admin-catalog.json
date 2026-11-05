@@ -2506,5 +2506,11 @@
   "Invalid full width": "Opción de ancho completo inválida",
   "Relative label size (%)": "Tamaño relativo de las etiquetas (%)",
   "Invalid VAS label scale": "Tamaño relativo de las etiquetas VAS inválido",
-  "Automatic size: 100%. Labels still adapt to the available space.": "Tamaño automático: 100%. Las etiquetas siguen adaptándose al espacio disponible."
+  "Automatic size: 100%. Labels still adapt to the available space.": "Tamaño automático: 100%. Las etiquetas siguen adaptándose al espacio disponible.",
+  "Year selector label": "Etiqueta del selector de año",
+  "Registration information": "Datos de registro",
+  "Register option": "Opción registrar",
+  "Do not register option": "Opción no registrar",
+  "Registration field label": "Etiqueta del campo de registro",
+  "Registration field placeholder": "Placeholder del campo de registro"
 }

@@ -30,7 +30,7 @@ final class CanonicalStudyDataset {
     private static function family(string $type,$value,array $dictionary): string {
         if(in_array($type,array('number','vas'),true))return 'number';
         if(in_array($type,array('likert','matrix'),true))return count(array_filter($dictionary['options']??array(),static function($o){return is_string($o['value']??null);}))?'string':'number';
-        if($type==='consent')return 'boolean';if($type==='multiple_choice')return 'array';if($type==='date')return 'date';return 'string';
+        if($type==='registration')return 'object';if($type==='consent')return 'boolean';if($type==='multiple_choice')return 'array';if($type==='date')return 'date';return 'string';
     }
     public static function project(array $long,array $dictionary,array $attempts=array(),array $filters=array(),string $code=''): array {
         $filters=self::filters($filters);$dict=array();foreach($dictionary as$d)$dict[self::variantKey($d)]=$d;

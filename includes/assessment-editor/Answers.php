@@ -29,12 +29,18 @@ final class Answers {
         if(array_key_exists('min_length',$p)&&is_string($value)&&trim($value)!==''){$length=preg_match_all('/./us',$value);if(($p['min_length']!==null&&$length<$p['min_length'])||($p['max_length']!==null&&$length>$p['max_length'])){$custom=$p['length_message']??'';return str_replace(array('[MINIMO]','[MAXIMO]'),array((string)($p['min_length']??0),(string)($p['max_length']??'∞')),trim($custom)!==''?$custom:'La respuesta debe tener entre [MINIMO] - [MAXIMO] caracteres.');}}
         if($e['type']==='number'&&(is_int($value)||is_float($value))&&is_finite((float)$value)&&(($p['min']!==null&&$value<$p['min'])||($p['max']!==null&&$value>$p['max']))){$custom=$p['number_range_message']??'';return str_replace(array('[MINIMO]','[MAXIMO]'),array((string)($p['min']??'−∞'),(string)($p['max']??'∞')),trim($custom)!==''?$custom:'La respuesta debe estar entre [MINIMO] - [MAXIMO].');}
         $empty=$value===null||$value===''||(is_string($value)&&trim($value)==='')||$value===array()||($e['type']==='vas'&&!$touched);
+        $empty=$e['type']==='registration'?$value===null:$empty;
         $text=in_array($e['type'],array('text','textarea','email','tel','url','number'),true);
         $custom=$empty?($p['required_message']??''):($text?($p['validation_message']??''):($p['invalid_value_message']??''));return trim($custom)!==''?$custom:($empty?'Respondé esta pregunta para continuar.':$message);
     }
     private static function defaultError(array $e,$value,bool $touched): string {
         $p=$e['properties'];$type=$e['type'];$empty=$value===null||$value===''||(is_string($value)&&trim($value)==='')||$value===array();
         if($type==='vas'&&!$touched)return $p['required']?'Tocá la escala para responder.':'';
+        if($type==='registration'&&$value!==null){
+            if(!is_array($value)||count($value)!==2||!array_key_exists('register',$value)||!array_key_exists('value',$value)||!is_bool($value['register']))return 'Respuesta de registro inválida.';
+            if(!$value['register'])return $value['value']===null?'':'Respuesta de registro inválida.';
+            return is_string($value['value'])&&preg_match('//u',$value['value'])===1&&trim($value['value'])!==''&&preg_match_all('/./us',$value['value'])<=2000?'':'Ingresá el dato que querés registrar.';
+        }
         if($empty)return ($p['required']||($type==='multiple_choice'&&$p['min_selected']>0))?'Respondé esta pregunta para continuar.':'';
         if(in_array($type,array('text','textarea','email','tel','url'),true)){
             if(!is_string($value)||preg_match('//u',$value)!==1)return 'Ingresá texto válido.';$length=preg_match_all('/./us',$value);

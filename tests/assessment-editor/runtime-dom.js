@@ -419,9 +419,14 @@ function drop(n, payload) {
     p.dialog.querySelector("input[type=checkbox]").click();
     p.dialog.querySelector("input[type=radio]").click();
     input(p.dialog.querySelector("textarea"), "Texto largo");
-    p.dialog
-      .querySelector("input[type=range]")
-      .dispatchEvent(new w.KeyboardEvent("keydown", { key: "ArrowRight" }));
+    const range = p.dialog.querySelector("input[type=range]");
+    range.dispatchEvent(new w.KeyboardEvent("keydown", { key: "ArrowRight" }));
+    assert.equal(p.session.answers[vas.response_key],undefined);
+    // jsdom has no native range keyboard action: emulate its updated value/input.
+    range.value = "51";
+    range.dispatchEvent(new w.Event("input", {bubbles:true}));
+    range.dispatchEvent(new w.KeyboardEvent("keyup", { key: "ArrowRight" }));
+    assert.equal(p.session.answers[vas.response_key],51);
     assert.equal(p.session.answers[multi.response_key].length, 1);
     assert.equal(p.session.answers[likert.response_key], likert.options[0].id);
     assert.equal(p.session.answers[area.response_key], "Texto largo");

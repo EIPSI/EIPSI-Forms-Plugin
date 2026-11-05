@@ -1,0 +1,4 @@
+# Only the unique disposable profiling project; no main-site database.
+services:
+  db:
+    command: ["--performance-schema=ON", "--performance-schema-instrument=statement/%=ON"]

@@ -11,6 +11,7 @@ final class Authoring {
         }
         if(in_array($t,array('text','textarea','email','tel','url'),true))$p+=array('content_type'=>$t==='textarea'?'free':($t==='text'?'free':$t),'display_mode'=>$t==='textarea'?'multiline':'single');
         if($t==='number')$p+=array('integer_only'=>false);
+        if($t==='registration')$p+=array('register_label'=>'Registrar','decline_label'=>'No registrar','value_label'=>'Dato de registro','placeholder'=>'','invalid_value_message'=>'Ingresá el dato que querés registrar.');
         if(in_array($t,array('single_choice','multiple_choice'),true))$p+=array('columns'=>1);
         if($t==='vas')$p+=array('label_scale'=>($p['label_font_size']??16)<=14?'small':(($p['label_font_size']??16)<=24?'normal':'large'));
         if($t==='vas'&&!array_key_exists('label_settings',$p)){if(!is_array($p['labels']))Definition::fail('Invalid VAS labels');$p['label_settings']=array();foreach($p['labels'] as $i=>$text)$p['label_settings'][]=array('id'=>'L_'.substr($e['id'],0,70).'_'.$i,'position'=>null);}

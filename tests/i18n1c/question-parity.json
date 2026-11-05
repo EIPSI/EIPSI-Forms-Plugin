@@ -71,6 +71,7 @@
       "footer_html": "",
       "required_message": "Answer this question to continue.",
       "invalid_value_message": "Enter a valid date.",
+      "date_year_label": "Year",
       "date_placeholder": "YYYY-MM-DD",
       "date_open_label": "Open calendar",
       "date_close_label": "Close calendar",
@@ -171,6 +172,14 @@
       "required_message": "Answer this question to continue.",
       "invalid_value_message": "Select an available option.",
       "matrix_heading": "Item"
+    },
+    "registration": {
+      "register_label": "Register",
+      "decline_label": "Do not register",
+      "value_label": "Registration information",
+      "placeholder": "",
+      "invalid_value_message": "Enter the information you want to register.",
+      "required_message": "Answer this question to continue."
     }
   },
   "es": {
@@ -245,6 +254,7 @@
       "footer_html": "",
       "required_message": "Respondé esta pregunta para continuar.",
       "invalid_value_message": "Ingresá una fecha válida.",
+      "date_year_label": "Año",
       "date_placeholder": "AAAA-MM-DD",
       "date_open_label": "Abrir calendario",
       "date_close_label": "Cerrar calendario",
@@ -345,6 +355,14 @@
       "required_message": "Respondé esta pregunta para continuar.",
       "invalid_value_message": "Elegí una opción disponible.",
       "matrix_heading": "Ítem"
+    },
+    "registration": {
+      "register_label": "Registrar",
+      "decline_label": "No registrar",
+      "value_label": "Dato de registro",
+      "placeholder": "",
+      "invalid_value_message": "Ingresá el dato que querés registrar.",
+      "required_message": "Respondé esta pregunta para continuar."
     }
   }
 }

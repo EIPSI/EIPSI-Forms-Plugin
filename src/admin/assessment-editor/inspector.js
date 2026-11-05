@@ -83,7 +83,7 @@
       property(e,"required_message",root.EIPSIAdminI18n.t("Required response message"));
       if(["text","email","tel","url","number"].includes(e.type))property(e,"validation_message",root.EIPSIAdminI18n.t("Validation message"));
       if(e.type==='matrix'){property(e,'matrix_heading',root.EIPSIAdminI18n.t("Item heading"));}
-      if(['date','vas','single_choice','multiple_choice','select','likert','matrix'].includes(e.type))property(e,'invalid_value_message',e.type==='date'?root.EIPSIAdminI18n.t("Invalid date message"):root.EIPSIAdminI18n.t("Invalid value message"));
+      if(['registration','date','vas','single_choice','multiple_choice','select','likert','matrix'].includes(e.type))property(e,'invalid_value_message',e.type==='date'?root.EIPSIAdminI18n.t("Invalid date message"):root.EIPSIAdminI18n.t("Invalid value message"));
       property(e, "variable_name", root.EIPSIAdminI18n.t("Variable name"));
       inspector.append(
         el(
@@ -92,6 +92,13 @@
           root.EIPSIAdminI18n.t("Edit content and footer directly on the canvas."),
         ),
       );
+    }
+    if(e.type==="registration"){
+      heading(root.EIPSIAdminI18n.t("Registration information"));
+      property(e,"register_label",root.EIPSIAdminI18n.t("Register option"));
+      property(e,"decline_label",root.EIPSIAdminI18n.t("Do not register option"));
+      property(e,"value_label",root.EIPSIAdminI18n.t("Registration field label"));
+      property(e,"placeholder",root.EIPSIAdminI18n.t("Registration field placeholder"));
     }
     if (C.textTypes.includes(e.type) && e.type !== "date") {
       heading(root.EIPSIAdminI18n.t("Text content"));
@@ -141,7 +148,7 @@
     }
     if(e.type==='date'){
       heading(root.EIPSIAdminI18n.t("Calendar"));
-      for(const [key,label] of [['date_placeholder',root.EIPSIAdminI18n.t("Date placeholder")],['date_open_label',root.EIPSIAdminI18n.t("Open calendar button")],['date_close_label',root.EIPSIAdminI18n.t("Close calendar button")],['date_previous_label',root.EIPSIAdminI18n.t("Previous month button")],['date_next_label',root.EIPSIAdminI18n.t("Next month button")],['date_month_names',root.EIPSIAdminI18n.t("Months — separated by |")],['date_weekday_names',root.EIPSIAdminI18n.t("Days from Sunday to Saturday — separated by |")]])property(e,key,label);
+      for(const [key,label] of [['date_year_label',root.EIPSIAdminI18n.t("Year selector label")],['date_placeholder',root.EIPSIAdminI18n.t("Date placeholder")],['date_open_label',root.EIPSIAdminI18n.t("Open calendar button")],['date_close_label',root.EIPSIAdminI18n.t("Close calendar button")],['date_previous_label',root.EIPSIAdminI18n.t("Previous month button")],['date_next_label',root.EIPSIAdminI18n.t("Next month button")],['date_month_names',root.EIPSIAdminI18n.t("Months — separated by |")],['date_weekday_names',root.EIPSIAdminI18n.t("Days from Sunday to Saturday — separated by |")]])property(e,key,label);
     }
     if (e.type === "number") {
       property(e, "integer_only", root.EIPSIAdminI18n.t("Integers only"), "checkbox");

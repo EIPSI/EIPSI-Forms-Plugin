@@ -19,7 +19,7 @@ final class EngineMapper {
     private static function elements(array $elements,string $parent,string $version,array &$nodes): void {
         foreach($elements as $position=>$e) {
             $base=array('id'=>$e['id'],'version_id'=>$version,'parent_id'=>$parent,'position'=>$position);$p=$e['properties'];
-            if(in_array($e['type'],array('multiple_choice','date','url','matrix','randomization'),true)||($p['randomize_options']??false)===true||($p['content_type']??null)==='url') throw new \DomainException('Tipo '.$e['type'].' conservado nativamente; Engine sin contrato completo. No se exporta parcialmente.');
+            if(in_array($e['type'],array('registration','multiple_choice','date','url','matrix','randomization'),true)||($p['randomize_options']??false)===true||($p['content_type']??null)==='url') throw new \DomainException('Tipo '.$e['type'].' conservado nativamente; Engine sin contrato completo. No se exporta parcialmente.');
             if($e['type']==='group') { $group=self::block($e['id'],$version,$parent,$position,'MICRO','GROUP',null);$group['metadata']['native_element']=$e;$nodes[]=$group;self::elements($e['children'],$e['id'],$version,$nodes);continue; }
             if($e['type']==='page_break') { $nodes[]=array_merge($base,array('kind'=>'DIRECTIVE','directive_kind'=>'PAGE_BREAK','target'=>null,'resume_target'=>null,'on_target_unavailable'=>null));continue; }
             $presentation=array('label'=>$p['label'],'helper'=>$p['helper']??'','native_element'=>$e);

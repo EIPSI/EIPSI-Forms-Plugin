@@ -60,8 +60,14 @@
     const defaults=root.EIPSIContent.question('date',language),monthNames=names('date_month_names',defaults.date_month_names,12),weekdays=names('date_weekday_names',defaults.date_weekday_names,7);let cursor=new Date();
     const date=(year,month,day)=>{const d=new Date();d.setHours(12,0,0,0);d.setFullYear(year,month,day);return d;};
     const finish=()=>{modalClose(dialog);open.focus();};close.onclick=finish;dialog.addEventListener('cancel',event=>{event.preventDefault();finish();});
-    function render(){content.replaceChildren();const year=cursor.getFullYear(),month=cursor.getMonth(),header=el('div',{class:'ae-calendar-navigation'}),previous=el('button',{type:'button'},label('date_previous_label','Anterior')),next=el('button',{type:'button'},label('date_next_label','Siguiente')),title=el('strong',{'aria-live':'polite'},monthNames[month]+' '+year);previous.disabled=year<=1&&month===0;next.disabled=year>=9999&&month===11;previous.onclick=()=>{cursor=date(year,month-1,1);render();};next.onclick=()=>{cursor=date(year,month+1,1);render();};header.append(previous,title,next);const table=el('table'),head=el('tr'),body=el('tbody');weekdays.forEach(name=>head.append(el('th',{scope:'col'},name)));const thead=el('thead');thead.append(head);table.append(thead,body);const start=date(year,month,1).getDay(),days=date(year,month+1,0).getDate();let row;
-      for(let index=0;index<Math.ceil((start+days)/7)*7;index++){if(index%7===0){row=el('tr');body.append(row);}const cell=el('td'),day=index-start+1;if(day>0&&day<=days){const iso=String(year).padStart(4,'0')+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'),button=el('button',{type:'button','aria-label':String(day)+' '+monthNames[month]+' '+year},String(day));if(dateValue(input.value,p.date_format)===iso)button.setAttribute('aria-current','date');button.onclick=()=>{input.value=dateDisplay(iso,p.date_format);input.dispatchEvent(new root.Event("input",{bubbles:true}));input.dispatchEvent(new root.Event("change",{bubbles:true}));finish();input.focus();};cell.append(button);}row.append(cell);}content.append(header,table);
+    const header=el('div',{class:'ae-calendar-navigation'}),previous=el('button',{type:'button'},label('date_previous_label','Anterior')),next=el('button',{type:'button'},label('date_next_label','Siguiente')),title=el('strong',{'aria-live':'polite'}),yearInput=el('input',{type:'number',min:1,max:9999,step:1,inputmode:'numeric','data-ae-calendar-year':'','aria-label':label('date_year_label',defaults.date_year_label)}),grid=el('div');
+    header.append(previous,title,yearInput,next);
+    const setYear=()=>{const raw=yearInput.value;if(/^\d{1,4}$/.test(raw)&&Number(raw)>=1&&Number(raw)<=9999){cursor=date(Number(raw),cursor.getMonth(),1);render();}else yearInput.value=String(cursor.getFullYear());};
+    yearInput.addEventListener('input',event=>event.stopPropagation());
+    yearInput.addEventListener('change',event=>{event.stopPropagation();setYear();});
+    yearInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();setYear();}});
+    function render(){if(!content.contains(header))content.append(header,grid);const year=cursor.getFullYear(),month=cursor.getMonth();title.textContent=monthNames[month];yearInput.value=String(year);previous.disabled=year<=1&&month===0;next.disabled=year>=9999&&month===11;previous.onclick=()=>{cursor=date(year,month-1,1);render();};next.onclick=()=>{cursor=date(year,month+1,1);render();};const table=el('table'),head=el('tr'),body=el('tbody');weekdays.forEach(name=>head.append(el('th',{scope:'col'},name)));const thead=el('thead');thead.append(head);table.append(thead,body);const start=date(year,month,1).getDay(),days=date(year,month+1,0).getDate();let row;
+      for(let index=0;index<Math.ceil((start+days)/7)*7;index++){if(index%7===0){row=el('tr');body.append(row);}const cell=el('td'),day=index-start+1;if(day>0&&day<=days){const iso=String(year).padStart(4,'0')+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'),button=el('button',{type:'button','aria-label':String(day)+' '+monthNames[month]+' '+year},String(day));if(dateValue(input.value,p.date_format)===iso)button.setAttribute('aria-current','date');button.onclick=()=>{input.value=dateDisplay(iso,p.date_format);input.dispatchEvent(new root.Event("input",{bubbles:true}));input.dispatchEvent(new root.Event("change",{bubbles:true}));finish();input.focus();};cell.append(button);}row.append(cell);}grid.replaceChildren(table);
     }
     open.onclick=()=>{const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(dateValue(input.value,p.date_format));cursor=match&&Number(match[1])>=1&&Number(match[1])<=9999&&Number(match[2])>=1&&Number(match[2])<=12?date(Number(match[1]),Number(match[2])-1,1):date(new Date().getFullYear(),new Date().getMonth(),1);render();modalOpen(dialog);close.focus();};dialog.append(content,close);return [open,dialog];
   }
@@ -72,6 +78,20 @@
     const change = (v) => {
       if (session) session.set(e, v);
     };
+    if(e.type==="registration"){
+      box.classList.add("ae-registration");
+      const choices=el("div",{class:"ae-choice-cards ae-vertical",role:"radiogroup","aria-label":p.label});
+      const field=el("label",{class:"ae-registration-field"}), caption=el("span",{},p.value_label), control=el("input",{type:"text","aria-label":p.value_label,maxlength:2000,placeholder:p.placeholder});
+      control.value=value?.register?value.value??"":"";
+      field.hidden=value?.register!==true;field.append(caption,control);
+      for(const [register,text] of [[true,p.register_label],[false,p.decline_label]]){
+        const label=el("label",{class:"ae-choice"}),radio=el("input",{type:"radio",name:"registration-"+(session?"preview-":"canvas-")+e.id,value:register?"register":"decline",checked:value?.register===register});
+        radio.onchange=()=>{field.hidden=!register;control.value=register?(session?.answers[e.response_key]?.register?session.answers[e.response_key].value:session?.registrationSource??""):"";change({register,value:register?control.value:null});};
+        label.append(radio,el("span",{class:"ae-option-label"},text));choices.append(label);
+      }
+      control.oninput=()=>change({register:true,value:control.value});
+      box.append(choices,field);
+    }
     if (C.textTypes.includes(e.type)) {
       const control = el(e.type === "textarea" ? "textarea" : "input", {
         "aria-label": p.label,
@@ -84,6 +104,7 @@
       if (p.min_length !== undefined && p.min_length !== null)
         control.minLength = p.min_length;
       if (e.type === "textarea") control.rows = p.rows;
+      if (e.type === "text" && p.content_type === "number") control.inputMode = "decimal";
       if (e.type === "number") {
         control.inputMode = "decimal";
         for (const k of ["min", "max"])
@@ -100,6 +121,7 @@
         change(numeric&&Number.isFinite(number)?number:raw);
       });
       box.append(control);
+      if(e.type==="textarea")root.EIPSIStudyInteraction.autosize(control);
       if(e.type==="date")box.append(...calendar(e,control,change,root.EIPSIContent.language(definition)));
     }
     if (e.type === "matrix") {
@@ -273,7 +295,9 @@
           output.textContent = String(number);
         }
       };
-      ["input", "pointerdown", "pointerup", "touchend", "keyup"].forEach(
+      // pointerdown runs before the native range moves to the clicked position.
+      // Record its updated value, or pointerup for a click on the current value.
+      ["input", "pointerup", "touchend", "keyup"].forEach(
         (name) =>
           slider.addEventListener(name, (event) => {
             if (
@@ -298,19 +322,6 @@
           event.preventDefault();const up=event.key==='ArrowUp',increase=p.vertical_top==='min'?!up:up;
           if(increase)slider.stepUp();else slider.stepDown();touch();return;
         }
-        if (
-          [
-            "ArrowLeft",
-            "ArrowRight",
-            "ArrowUp",
-            "ArrowDown",
-            "Home",
-            "End",
-            "PageUp",
-            "PageDown",
-          ].includes(event.key)
-        )
-          touch();
       });
       const axis = el("div", { class: "ae-vas-axis" }),
         labels = el("div", { class: "ae-vas-labels" }),

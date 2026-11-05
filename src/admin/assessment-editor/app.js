@@ -2,7 +2,7 @@
   "use strict";
   const A = root.EIPSIAssessment,
     el = A.el;
-  const typeNames = {text: 'Text', textarea: 'Long text', email: 'Email', number: 'Number', tel: 'Phone', date: 'Date', url: 'URL', single_choice: 'Single choice', multiple_choice: 'Multiple choice', select: 'Dropdown', likert: 'Likert', vas: 'VAS', matrix: 'Likert matrix', instruction: 'Text / instructions', image: 'Image', group: 'Group / section', randomization: 'Randomization', page_break: 'Page break'};
+  const typeNames = {text: 'Text', textarea: 'Long text', email: 'Email', number: 'Number', tel: 'Phone', date: 'Date', url: 'URL', registration: 'Registration information', single_choice: 'Single choice', multiple_choice: 'Multiple choice', select: 'Dropdown', likert: 'Likert', vas: 'VAS', matrix: 'Likert matrix', instruction: 'Text / instructions', image: 'Image', group: 'Group / section', randomization: 'Randomization', page_break: 'Page break'};
   const typeLabel = type => root.EIPSIAdminI18n.t(typeNames[type] || A.labels[type]);
   const editorViews = new WeakMap();
   // Rebuilding an editor must preserve navigation state, not change authored data.
@@ -523,7 +523,7 @@
       palette.replaceChildren(el("h2", {}, root.EIPSIAdminI18n.t("Elements")));
       [
         [root.EIPSIAdminI18n.t("Text"), ["text", "date"]],
-        [root.EIPSIAdminI18n.t("Selection"), ["single_choice", "multiple_choice", "select"]],
+        [root.EIPSIAdminI18n.t("Selection"), ["single_choice", "multiple_choice", "select", "registration"]],
         ["Escalas", ["likert", "vas", "matrix"]],
         [root.EIPSIAdminI18n.t("Content"), ["instruction", "image"]],
         [root.EIPSIAdminI18n.t("Structure"), ["group", "randomization", "page_break"]],

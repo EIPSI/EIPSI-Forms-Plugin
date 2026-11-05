@@ -437,6 +437,30 @@ async function runtime(e, d = fixture()) {
     assert.equal(view.frame.state, "COMPLETED");
     assert(e.host.textContent.includes(d.flow.completion.title));
   });
+  await test("Navigation shows loading while waiting for background logic or heartbeat",async e=>{
+    for(const action of ['logic','flush']) {
+      const d=fixture();let f=frame(d),release,held=false;const calls=[];
+      f.has_logic=true;
+      const view=e.A.mountProductRuntime(e.host,f,async q=>{
+        calls.push(q.action);
+        if(q.action===action&&held){await new Promise(resolve=>{release=resolve;});held=false;}
+        if(q.action==='next')f={...f,page:1};
+        return plain(f);
+      });
+      await view.ready;held=true;
+      let wait;
+      if(action==='flush')wait=view.heartbeat();
+      else {const input=e.host.querySelector('input,textarea');input.dispatchEvent(new e.w.Event('change',{bubbles:true}));await new Promise(resolve=>setTimeout(resolve,280));}
+      assert(release,'Background request should be in flight');
+      const next=e.host.querySelector('.ae-nav-forward');next.click();
+      assert(next.querySelector('.ae-loading-spinner'),'Loading must appear before the previous response');
+      assert(next.disabled);assert.equal(e.host.getAttribute('aria-busy'),'true');
+      release();if(wait)await wait;await tick();await tick();
+      assert.equal(calls.filter(a=>a==='next').length,1);
+      assert.equal(e.host.getAttribute('aria-busy'),null);assert.equal(e.host.querySelector('.ae-loading-spinner'),null);
+      view.destroy();
+    }
+  });
   await test("Native ambiguous transport failure retries exact command identity rather than overwrite", async (e) => {
     const d = fixture(),
       f = frame(d),
@@ -814,7 +838,7 @@ async function runtime(e, d = fixture()) {
   await test('Server validation leaves a malformed numeric answer editable after an automatic flush',async e=>{const d=e.A.assessment(),q=e.A.element('number');q.properties.required_message='Obligatorio';q.properties.validation_message='Número inválido';d.elements=[q];const f=frame(d),view=e.A.mountProductRuntime(e.host,f,async request=>{if(request.action==='flush'){const error=new Error('Validation');error.status=400;error.validationErrors=[{id:q.id,message:'Número inválido'}];throw error;}return plain(f);});await view.ready;let input=e.host.querySelector('[data-widget=number] input');input.value='1e';input.dispatchEvent(new e.w.Event('input'));await view.heartbeat();input=e.host.querySelector('[data-widget=number] input');assert.equal(input.value,'1e');assert.equal(input.disabled,false);assert(e.host.textContent.includes('Número inválido'));input.value='5';input.dispatchEvent(new e.w.Event('input'));assert.equal(view.session.answers[q.response_key],5);view.destroy();});
   await test('Multiline length and internal value errors use their own researcher messages',async e=>{const q=e.A.element('textarea');Object.assign(q.properties,{min_length:3,max_length:5,length_message:'Entre [MINIMO] y [MAXIMO]'});assert.equal(e.A.controls.answerError(q,'a',true),'Entre 3 y 5');assert.equal(e.A.controls.answerError(q,'abcdef',true),'Entre 3 y 5');for(const type of ['date','vas','likert','select','multiple_choice']){const item=e.A.element(type);item.properties.invalid_value_message='Error propio';assert.equal(e.A.controls.answerError(item,'bad',true),'Error propio');}});
   await test('Empty image renders only editable plain text and accessible alternative',async e=>{const q=e.A.element('image');q.properties.empty_image_message='<b>Sin foto</b>';q.properties.alt='Alternativa propia';const widget=e.A.widget(q);assert.equal(widget.textContent,'<b>Sin foto</b>');assert(!widget.querySelector('b'));assert.equal(widget.querySelector('[role=img]').getAttribute('aria-label'),'Alternativa propia');});
-  await test('Calendar uses researcher text navigates months selects ISO date and permits cancellation',async e=>{const d=e.A.assessment(),q=e.A.element('date');Object.assign(q.properties,{date_open_label:'Abrir fecha',date_close_label:'Salir fecha',date_previous_label:'Antes',date_next_label:'Después',date_month_names:'M1|M2|M3|M4|M5|M6|M7|M8|M9|M10|M11|M12',date_weekday_names:'D0|D1|D2|D3|D4|D5|D6',date_placeholder:'Fecha propia'});d.elements=[q];const session=new e.A.PreviewSession(d),widget=e.A.widget(q,session);e.host.append(widget);const input=widget.querySelector('input');assert.equal(input.placeholder,'Fecha propia');input.value='2028-02-10';click(widget,'Abrir fecha');assert(widget.textContent.includes('M2 2028'));assert(widget.textContent.includes('D0'));const day=[...widget.querySelectorAll('td button')].find(b=>b.textContent==='29');assert(day);day.click();assert.equal(session.answers[q.response_key],'2028-02-29');assert(!widget.querySelector('dialog').open);click(widget,'Abrir fecha');click(widget,'Después');assert(widget.textContent.includes('M3 2028'));click(widget,'Antes');assert(widget.textContent.includes('M2 2028'));click(widget,'Salir fecha');assert.equal(session.answers[q.response_key],'2028-02-29');q.properties.date_month_names=' ';q.properties.date_weekday_names=' ';const fallback=e.A.widget(q,session);e.host.append(fallback);click(fallback,'Abrir fecha');assert(fallback.textContent.includes('Febrero 2028'));assert(fallback.textContent.includes('Domingo'));click(fallback,'Salir fecha');});
+  await test('Calendar uses researcher text navigates months selects ISO date and permits cancellation',async e=>{const d=e.A.assessment(),q=e.A.element('date');Object.assign(q.properties,{date_open_label:'Abrir fecha',date_close_label:'Salir fecha',date_previous_label:'Antes',date_next_label:'Después',date_month_names:'M1|M2|M3|M4|M5|M6|M7|M8|M9|M10|M11|M12',date_weekday_names:'D0|D1|D2|D3|D4|D5|D6',date_placeholder:'Fecha propia'});d.elements=[q];const session=new e.A.PreviewSession(d),widget=e.A.widget(q,session);e.host.append(widget);const input=widget.querySelector('input');assert.equal(input.placeholder,'Fecha propia');input.value='2028-02-10';click(widget,'Abrir fecha');assert.equal(widget.querySelector('.ae-calendar-navigation strong').textContent,'M2');assert.equal(widget.querySelector('[data-ae-calendar-year]').value,'2028');assert(widget.textContent.includes('D0'));const day=[...widget.querySelectorAll('td button')].find(b=>b.textContent==='29');assert(day);day.click();assert.equal(session.answers[q.response_key],'2028-02-29');assert(!widget.querySelector('dialog').open);click(widget,'Abrir fecha');click(widget,'Después');assert.equal(widget.querySelector('.ae-calendar-navigation strong').textContent,'M3');assert.equal(widget.querySelector('[data-ae-calendar-year]').value,'2028');click(widget,'Antes');assert.equal(widget.querySelector('.ae-calendar-navigation strong').textContent,'M2');assert.equal(widget.querySelector('[data-ae-calendar-year]').value,'2028');click(widget,'Salir fecha');assert.equal(session.answers[q.response_key],'2028-02-29');q.properties.date_month_names=' ';q.properties.date_weekday_names=' ';const fallback=e.A.widget(q,session);e.host.append(fallback);click(fallback,'Abrir fecha');assert.equal(fallback.querySelector('.ae-calendar-navigation strong').textContent,'Febrero');assert.equal(fallback.querySelector('[data-ae-calendar-year]').value,'2028');assert(fallback.textContent.includes('Domingo'));click(fallback,'Salir fecha');});
   await test('Discard dialog exposes configured labels and cancellation never discards',async e=>{const labels={discard_confirm:'¿Borrar?',discard_cancel:'Conservar',discard_accept:'Eliminar'};let pending=e.A.confirmDiscard(e.host,k=>labels[k]);assert(e.host.textContent.includes('¿Borrar?'));click(e.host,'Conservar');assert.equal(await pending,false);pending=e.A.confirmDiscard(e.host,k=>labels[k]);click(e.host,'Eliminar');assert.equal(await pending,true);assert(!e.host.querySelector('dialog'));});
 
   await test('All character-limited text formats share the combined length message',async e=>{

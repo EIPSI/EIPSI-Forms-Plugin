@@ -14,7 +14,7 @@ Use rich text for the fields that offer it and the WordPress media picker for im
 
 ## Responses and messages
 
-Set whether a question is required. Where applicable, configure a validation format, range, or length and edit its validation message. A missing required response and an invalid non-empty response are different cases and can have different messages. Multiline text is free text.
+Set whether a question is required. Where applicable, configure a validation format, range, or length and edit its validation message. A missing required response and an invalid non-empty response are different cases and can have different messages. Multiline text is free text. In the public assessment, the same validation message appears beside its question or matrix row and is associated with the control for assistive technology. Validation does not automatically move focus to another question. Single-choice, multiple-choice and Likert groups expose the authored question title and instructions as their accessible context. Calendar month navigation keeps the same Previous/Next controls while updating the dates. You can enter a year directly in the calendar header; its accessible label is editable under Calendar in the question properties. Invalid questions use a burgundy outline and a pale background around the entire question.
 
 Use general properties for navigation labels, progress, assessment messages, session duration, partial saving, appearance, and the final screen. Some fields appear only after enabling the feature they describe.
 
@@ -45,3 +45,31 @@ A still-valid questionnaire session can resume its last server-recorded page and
 In a cross-sectional study, recovery uses the same browser's access cookie. In a longitudinal study, re-entering the same participant email with matching valid browser access resumes the existing opportunity; it does not send another validation email or mark the address as verified. If access is missing or belongs to someone else, the study's access rules still apply. The scheduled opportunity must remain available.
 
 After a final response, the configured completion remains visible without a repeat/return control. Refreshing returns to the study entry page. A configured email review occurs before the completion is shown: the field starts empty, a changed address requests confirmation, and a conflicting registered address must be corrected. Correction updates the same participation without rewriting its assessment response. Notices appear outside and above the final card; they expire after 40 seconds or can be closed individually with ×.
+
+### Registration information
+
+In **Assessment Editor → Elements → Selection**, add **Registration information**
+(**Datos de registro** in Spanish). Edit the question on the canvas. Its properties
+let you edit both option labels, the registration field label and placeholder,
+and its required/invalid-response messages.
+
+Choosing **Register** reveals an editable field prefilled with the participant's
+email in a longitudinal study or the anonymous participation identifier in a
+cross-sectional study. This identifier is not the access cookie or credential.
+An assessment opened independently uses its own execution identifier. The editor
+preview has no participant authentication value; the Study simulation uses its
+dummy participant value.
+
+The response stores both fields, for example
+`{"register":true,"value":"participant-edited value"}`. **Do not register** stores
+`{"register":false,"value":null}`. A required question requires a choice; declining
+is a valid answer. The choice and the edited value are retained in partial/final
+responses and in the shared manual/API dataset. Structured values are JSON in CSV
+or spreadsheet cells. The dictionary identifies the question as `registration`
+and retains both option labels. Conditions can use the boolean choice.
+
+Editing this response never changes authentication, enrollment or session data.
+Later email corrections, or removing participant emails when finalizing the study,
+do not rewrite this response. Explicitly collecting an email here therefore keeps
+it as response content. Process metadata records only the boolean choice, not the
+registration text. Leaving the question unanswered differs from declining.

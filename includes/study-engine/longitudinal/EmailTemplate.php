@@ -59,7 +59,7 @@ final class EmailTemplate {
         elseif($kind==='TERMINATED')$add('terminated_body');
         elseif($kind==='OPERATIONAL_ERROR')$add('operation_failed','error');
         if(isset($frame['email_confirmation'])){$add('review_title');$add('review_body');if($frame['email_confirmation']['pending'])$add('review_pending','info',array('EMAIL'=>$frame['email_confirmation']['email']));}
-        $html='<div class="eipsi-portal-notices" aria-live="polite">';
+        $html='<div class="eipsi-portal-notices">';
         foreach($items as $item){if(($item['text']??null)===''&&!isset($item['time'])&&!isset($item['html']))continue;$role=$item['level']==='error'?'alert':'status';$html.='<section class="eipsi-portal-notice is-'.$item['level'].'" data-notice="'.esc_attr($item['key']).'" role="'.$role.'">'.(isset($item['html'])?InitialScreen::html($item['html']):esc_html($item['text']??''));if(isset($item['time']))$html.=' <time datetime="'.esc_attr($item['time']).'">'.esc_html(self::local($item['time'],$item['zone'],\EIPSI\StudyEngine\Runtime\DateFormat::read($this->definition))).'</time>';$html.='</section>';}
         return $html.'</div>';
     }

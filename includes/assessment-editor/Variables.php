@@ -4,7 +4,7 @@ namespace EIPSI\AssessmentEditor;
 final class Variables {
     const POLICY='MATRIX_ORDINAL_V1';
     const PREFIXES=array('text','date','single','multiple','select','likert','vas','matrix');
-    public static function prefix(string $type): string {return array('textarea'=>'text','email'=>'text','number'=>'text','tel'=>'text','url'=>'text','single_choice'=>'single','multiple_choice'=>'multiple')[$type]??$type;}
+    public static function prefix(string $type): string {return array('registration'=>'text','textarea'=>'text','email'=>'text','number'=>'text','tel'=>'text','url'=>'text','single_choice'=>'single','multiple_choice'=>'multiple')[$type]??$type;}
     public static function normalize(array $d): array {
         $legacy=!array_key_exists('authoring',$d);
         if($legacy)$d['authoring']=array('variable_policy'=>self::POLICY,'variable_next'=>array_fill_keys(self::PREFIXES,1),'legacy_row_variables'=>array());

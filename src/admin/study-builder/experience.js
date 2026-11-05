@@ -120,7 +120,7 @@
         };
         const renderReview = () => { const content=html(result.review_html);bindStudyContent(content);surface.append(content); };
         const renderAssessment = () => {
-            const packet=result.assessment, d=packet.definition, saved=packet.session, a=A();session=new a.PreviewSession(d,saved.randomization);session.page=saved.page;session.answers={...B.copy(saved.answers)};session.touched={...B.copy(saved.touched)};
+            const packet=result.assessment, d=packet.definition, saved=packet.session, a=A();session=new a.PreviewSession(d,saved.randomization);session.registrationSource=packet.registration_source??"";session.page=saved.page;session.answers={...B.copy(saved.answers)};session.touched={...B.copy(saved.touched)};
             const form=B.el('div',{class:'ae-preview sb-experience-assessment',lang:window.EIPSIContent.language(d)}), flow=d.flow,page=flow.pages[saved.page];
             if(flow.show_title!==false)form.append(B.el('h2',{text:d.title}));if(page?.title)form.append(B.el('h3',{text:page.title}));if(page?.description_html)form.append(html(page.description_html));
             if(saved.expired)form.append(B.note((flow.messages||window.EIPSIContent.get('flow_messages',window.EIPSIContent.language(d)))[flow.save_continue.enabled?'expired_saved':'expired']));

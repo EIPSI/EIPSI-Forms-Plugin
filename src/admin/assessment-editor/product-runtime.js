@@ -9,6 +9,7 @@
       pending = null,
       closed = false;
     const checkedRandomFrames = new Map();
+    let validationErrors = [];
     let renderedProjection = null, inputEpoch = 0, queuedLogic = false, queuedMove = null;
     // The public projection describes visible content; its randomization reference also
     // changes for audit/dependency bookkeeping that must not rebuild the controls.
@@ -16,7 +17,7 @@
       ? [value.execution_id,value.page,value.projection_ref]
       : [value.execution_id,value.state,value.logical_exit,value.page,value.logical_entry_question,value.logical_skipped_ids,value.randomization,value.projection_ref]);
     const mountedWithSession = !!(initial.session ?? initial.partial);
-    const status = el("p", { role: "status", "aria-live": "polite" }),
+    const status = el("p", { role: "status" }),
       body = el("div"),
       actions = el("div", { class: "ae-preview-actions" });
     const discardFooter = el("footer", {class: "ae-discard-footer"});
@@ -55,6 +56,7 @@
       const optional = items => items.forEach(item => { if (skipped.has(item.id)) { item.properties.required = false; if (item.type === "multiple_choice") item.properties.min_selected = 0; } if (item.type === "matrix") item.properties.matrix_rows.forEach(row => { if (skipped.has(row.id)) row.required = false; }); optional(item.children); });
       optional(definition.elements);
       session = new A.PreviewSession(definition, frame.randomization);
+      session.registrationSource = frame.registration_source ?? "";
       const hidden=new Set(skipped);if(frame.logical_entry_question){const order=[];const walk=items=>items.forEach(item=>{if(item.response_key)order.push(item.id);if(item.type==='matrix')item.properties.matrix_rows.forEach(row=>order.push(row.id));walk(item.children);});walk(session.resolvedDefinition.elements);const stop=order.indexOf(frame.logical_entry_question);if(stop>=0)order.slice(0,stop).forEach(id=>hidden.add(id));}
       const visible = items => items.filter(item => !hidden.has(item.id)).map(item => { const copy = A.copy(item); copy.children = visible(copy.children); if (copy.type === "matrix") copy.properties.matrix_rows = copy.properties.matrix_rows.filter(row => !hidden.has(row.id)); return copy; });
       session.pages = session.pages.map(visible);
@@ -125,7 +127,7 @@
       if (active) {
         active.classList.add("ae-is-loading");
         active.setAttribute("aria-busy", "true");
-        active.prepend(el("span", {class: "ae-loading-spinner", "aria-hidden": "true"}));
+        if (!active.querySelector(".ae-loading-spinner")) active.prepend(el("span", {class: "ae-loading-spinner", "aria-hidden": "true"}));
       }
       host.querySelectorAll("input,textarea,select,button").forEach(control => { control.disabled = true; });
     }
@@ -135,12 +137,13 @@
       if(quiet && payload.action==='logic')queuedLogic=false;
       let okay = false, resetSession = false, transitioned = false, logicChanged = false;
       const previousLogic=renderedProjection || projectionKey(frame), sentEpoch=inputEpoch;
-      const previousExecution = frame.execution_id;
+      const previousExecution = frame.execution_id, previousPage = frame.page || 0;
 
       if (!quiet) { status.textContent = ""; showPending(payload.action); }
       try {
         frame = await api(payload, keepalive);
         pending = null;
+        if (["open", "next", "back", "submit", "discard"].includes(payload.action)) validationErrors = [];
         if (frame.state === "COMPLETED" || frame.logical_exit) {
           root.clearTimeout(logicTimer); queuedLogic = false; queuedMove = null;
         }
@@ -159,19 +162,20 @@
         if(quiet && !logicChanged && frame.participant_contract && frame.randomization){session.randomization=A.copy(frame.randomization);session.metadata.data.randomization=A.copy(frame.randomization);}
         if (!newerInput && (frame.has_logic || frame.participant_contract) && (logicChanged || ["open","next","back","submit","partial","discard"].includes(payload.action))) restore(false);
         resetSession = !!frame.session_reset;
-        if (resetSession) {  restore(false); }
+        if (resetSession) { queuedMove = null; restore(false); }
         if (!quiet || resetSession) status.textContent = frame.state === "COMPLETED"
           ? message("completed")
           : resetSession || frame.previous_partial_saved ? expiredNotice() : "";
         if(!resetSession&&(transitioned||frame.logical_exit||logicChanged))status.textContent="";
         okay = true;
       } catch (e) {
-        if(Array.isArray(e.validationErrors))pending=null;
+        queuedMove = null;
+        if(Array.isArray(e.validationErrors)){pending=null;validationErrors=e.validationErrors;}
         if(e.status===403&&e.entryUrl){root.location.replace(e.entryUrl);return false;}
         status.textContent = Array.isArray(e.validationErrors) ? e.validationErrors.map(item=>item.message).join(" ") : e.status === 400
           ? message("invalid")
           : message("delivery_error");
-      } finally { busy = false; if (!quiet) host.removeAttribute("aria-busy"); if (!quiet || !okay || resetSession || logicChanged) render(); if(logicChanged) body.querySelector("input,textarea,select,button")?.focus(); }
+      } finally { busy = false; if (!quiet || !okay || resetSession || logicChanged) { host.removeAttribute("aria-busy"); render(); } if(logicChanged) body.querySelector("input,textarea,select,button")?.focus({preventScroll:true}); if(okay&&(previousExecution!==frame.execution_id||previousPage!==(frame.page||0)))root.EIPSIStudyInteraction.viewport(host); }
       if (transitioned && frame.session == null && frame.state === "ACTIVE") { await send(request("open"),false,true); restore(false); render(); }
       if (resetSession) {
         const notice = status.textContent;
@@ -189,15 +193,27 @@
       return okay;
     }
     async function move(direction) {
-      if (busy || pending) {if(busy && pending?.action==='logic')queuedMove=direction;return;}
+      if (busy || pending) {
+        if (busy && ["logic", "flush"].includes(pending?.action)) {
+          queuedMove=direction;
+          showPending(direction);
+        }
+        return;
+      }
       const errors = direction === "back" || frame.has_logic ? [] : session.errors();
       if (errors.length) {
+        validationErrors = errors;
         status.textContent = errors.map((e) => e.message).join(" ");
+        A.presentValidationErrors(body, validationErrors);
+        if (host.hasAttribute("aria-busy")) { host.removeAttribute("aria-busy"); render(); }
         return;
       }
       // Navigation submits the latest answers itself; do not recheck the same page
       // through a delayed change handler after its navigation has completed.
       root.clearTimeout(logicTimer);
+      validationErrors = [];
+      A.presentValidationErrors(body, validationErrors);
+      showPending(direction);
       if (frame.participant_contract && !frame.has_logic && direction === "submit") session.metadata.complete();
       else if(frame.has_logic || frame.participant_contract)session.metadata.leave(direction === "back" ? "previous" : "next");
       if (!frame.has_logic && !frame.participant_contract) { if (direction === "back") session.previous(); else if (!session.next()) return; }
@@ -216,6 +232,8 @@
     }
     function render() {
       host.lang=root.EIPSIContent.language(frame.definition);
+      const viewportContext=frame.execution_id+"|"+(frame.page||0)+"|"+frame.state;
+      if(host.dataset.eipsiViewportContext!==viewportContext)host.dataset.eipsiViewportContext=viewportContext;
       renderedProjection=projectionKey(frame);
       body.replaceChildren();
       actions.replaceChildren();
@@ -296,6 +314,7 @@
         session,
         "native",
       );
+      A.presentValidationErrors(body, validationErrors);
       if (busy || pending)
         body
           .querySelectorAll("input,textarea,select,button")
@@ -333,9 +352,22 @@
 
     }
     let logicTimer = null;
-    body.addEventListener('input',()=>{inputEpoch++;});
-    body.addEventListener("change", () => {
+    function refreshValidation(event) {
+      if (!validationErrors.length) return;
+      const source = event.target.closest('[data-row-id],[data-ae-question-id]');
+      const id = source?.dataset.rowId || source?.dataset.aeQuestionId;
+      if (!id || !validationErrors.some(error => error.id === id)) return;
+      const previous = validationErrors.map(error => error.message).join(" ");
+      const current = session.errors().filter(error => error.id === id);
+      validationErrors = validationErrors.filter(error => error.id !== id).concat(current);
+      A.presentValidationErrors(body, validationErrors);
+      if (status.textContent === previous)
+        status.textContent = validationErrors.map(error => error.message).join(" ");
+    }
+    body.addEventListener('input',event=>{inputEpoch++;refreshValidation(event);});
+    body.addEventListener("change", event => {
       inputEpoch++;
+      refreshValidation(event);
       if (!frame.has_logic || frame.logical_exit || frame.state !== "ACTIVE") return;
       if(busy){if(pending?.action==='logic')queuedLogic=true;return;}
       if(pending)return;
