@@ -140,6 +140,7 @@
     "tests/i18n1d/validation.php": 2,
     "tests/production-activation/cron-unit.php": 3,
     "tests/keyrings/generator.php": 5,
-    "tests/setup/crypto.php": 5
+    "tests/setup/crypto.php": 5,
+    "tests/study-engine/management/timing-budget-unit.php": 7
   }
 }

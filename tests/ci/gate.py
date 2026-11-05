@@ -194,6 +194,9 @@ class Gate:
                 output = php(name, base + 'm1/debug-off.php', ['-e', 'WORDPRESS_DEBUG=0'])
             elif name == 'p0':
                 output = call(name, ['exec', '-T', 'wordpress', 'php', base + 'run-p0.php', '--integration'])
+            elif name == 'study-management' and 'EIPSI_MANAGEMENT_MAX_SECONDS' in os.environ:
+                output = php(name, base + 'run-' + name + '.php',
+                             ['-e', 'EIPSI_MANAGEMENT_MAX_SECONDS=' + os.environ['EIPSI_MANAGEMENT_MAX_SECONDS']])
             else:
                 output = php(name, base + 'run-' + name + '.php')
             self.count('php-' + name, output, count)

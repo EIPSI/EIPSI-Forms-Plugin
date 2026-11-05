@@ -119,3 +119,24 @@ FULL vigente **1944 únicos:1810 PHP +134 JS**, FAST1936; añade25 casos de inte
 Permanent suites: `tests/run-data1-unit.php` (36), `tests/run-data1.php` (18), `tests/data1/metadata-dom.js` (7) and `tests/data1/management-dom.js` (3). They cover wide observations, provenance/collisions, historical dictionary/types, UTC/partials, manual/live/snapshot parity, typed secure XLSX, private binary percent preservation, Range/withdrawal/retained semantics and global metadata intersection with historical preservation. API-4 additionally records HTTP V2 payloads and validates them against the versioned OpenAPI schemas.
 
 Current configured suites: **3,564 cases** (2,421 WordPress/PHP + 464 pure PHP + 679 JS). FULL also runs strict RCT, observed OpenAPI validation, build, clean activation, smoke, lifecycle and cold reactivation; repeated smoke/RCT do not inflate the suite count. DATA-1 final evidence is documented in the project report. No human review is implied by automated PASS.
+
+### Management volume checks and timing
+
+`study-management` always checks 100/1,000/10,000 synthetic participations, exact
+counts, pages of 25, at most 20 dashboard queries, the Native index and fixture
+rollback. Each point prints `VOLUME_POINT` with per-section seconds and query count
+before budget assertions, including whether the former 10-second reference was
+exceeded. Time uses a monotonic clock.
+
+Shared CI runners do not enforce an absolute wall-clock benchmark: machine load
+and host speed vary. The job/stage timeouts remain in force. For a controlled
+benchmark, the original strict limit can still be requested explicitly:
+
+```sh
+EIPSI_MANAGEMENT_MAX_SECONDS=10 ./tests/ci/run.sh php
+```
+
+The gate forwards only this explicit test setting to the management PHP process.
+A positive finite value is required; invalid settings fail rather than silently
+disabling the guard. A benchmark failure includes the population and elapsed time.
+This changes test policy only, not production queries, indexes or data behavior.
