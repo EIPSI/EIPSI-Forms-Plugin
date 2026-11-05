@@ -38,12 +38,12 @@
         };
         const measure=()=>{
             job=0;if(disposed)return;if(!frame.isConnected){cleanup();return;}
-            if(doc.querySelector('.ae-native-runtime[aria-busy="true"]'))return;
             const bottom=Math.max(doc.body.getBoundingClientRect().bottom,...Array.from(doc.body.children,node=>node.getBoundingClientRect().bottom+Math.max(0,parseFloat(child.getComputedStyle(node).marginBottom)||0)));
             const height=Math.ceil(bottom+(child.scrollY||0)+(parseFloat(child.getComputedStyle(doc.body).marginBottom)||0));
             if(!Number.isFinite(height)||height<=0)return; // Keep the last valid height while content is transiently empty.
+            if(height<=last&&doc.querySelector('.ae-native-runtime[aria-busy="true"]'))return;
             if(settled&&height===last){candidate=0;return;}
-            if(candidate!==height){candidate=height;schedule();return;} // Confirm a positive measurement on the next frame.
+            if(height<last&&candidate!==height){candidate=height;schedule();return;} // Stabilize shrinking; never delay growth.
             last=height;candidate=0;settled=true;
             frame.style.height=height+'px';frame.style.minHeight='0px';
         };
@@ -51,7 +51,7 @@
         if(window.ResizeObserver){observer=new ResizeObserver(schedule);observer.observe(doc.body);}else window.addEventListener('resize',schedule);
         mutation=new MutationObserver(schedule);mutation.observe(doc.body,{childList:true,subtree:true,attributes:true,characterData:true});
         removal=new MutationObserver(()=>{if(!frame.isConnected)cleanup();});removal.observe(frame.ownerDocument.documentElement,{childList:true,subtree:true});
-        frameObservers.set(frame,cleanup);doc.addEventListener('load',schedule,true);child?.addEventListener('pagehide',cleanup,{once:true});doc.fonts?.ready.then(schedule);schedule();
+        frameObservers.set(frame,cleanup);doc.addEventListener('load',schedule,true);child?.addEventListener('pagehide',cleanup,{once:true});doc.fonts?.ready.then(schedule);measure();
     };
     window.EIPSIStudyInteraction.fitAssessment=fitAssessment;
     document.addEventListener('load', event => fitAssessment(event.target), true);

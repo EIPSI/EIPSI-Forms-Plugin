@@ -235,6 +235,7 @@
       const viewportContext=frame.execution_id+"|"+(frame.page||0)+"|"+frame.state;
       if(host.dataset.eipsiViewportContext!==viewportContext)host.dataset.eipsiViewportContext=viewportContext;
       renderedProjection=projectionKey(frame);
+      host.querySelector(":scope > .ae-assessment-progress")?.remove();
       body.replaceChildren();
       actions.replaceChildren();
       discardFooter.replaceChildren();
@@ -292,22 +293,11 @@
         body.append(
           A.richText.render({ label_html: page.description_html }, "label"),
         );
-      if (["pages", "both"].includes(f.progress))
-        body.append(
-          el(
-            "p",
-            {},
-            message("progress").replaceAll("[ACTUAL]",String(session.page - (frame.logical_entry_page || 0) + 1)).replaceAll("[TOTAL]",String(session.pages.length - (frame.logical_entry_page || 0))),
-          ),
-        );
-      if (["bar", "both"].includes(f.progress))
-        body.append(
-          el("progress", {
-            max: session.pages.length - (frame.logical_entry_page || 0),
-            value: session.page - (frame.logical_entry_page || 0) + 1,
-            "aria-label": message("progress_accessible"),
-          }),
-        );
+      const progress=A.renderProgress(frame.definition,session.page-(frame.logical_entry_page||0)+1,session.pages.length-(frame.logical_entry_page||0));
+      if(progress) {
+        if(f.progress_position==='bottom')actions.after(progress);
+        else host.prepend(progress);
+      }
       A.renderParticipantElements(
         session.pages[session.page],
         body,
@@ -365,7 +355,7 @@
         status.textContent = validationErrors.map(error => error.message).join(" ");
     }
     body.addEventListener('input',event=>{inputEpoch++;refreshValidation(event);});
-    body.addEventListener("change", event => {
+    const answerChanged = event => {
       inputEpoch++;
       refreshValidation(event);
       if (!frame.has_logic || frame.logical_exit || frame.state !== "ACTIVE") return;
@@ -373,7 +363,9 @@
       if(pending)return;
       root.clearTimeout(logicTimer);
       logicTimer = root.setTimeout(() => { if (!closed && !busy && !pending && frame.state === "ACTIVE" && !frame.logical_exit) send(request("logic"),false,true); }, 250);
-    });
+    };
+    body.addEventListener("change",answerChanged);
+    body.addEventListener("eipsi:answer",answerChanged);
     let method = "unknown";
     body.addEventListener("pointerdown", () => {
       session.inputMethod = method = "pointer";

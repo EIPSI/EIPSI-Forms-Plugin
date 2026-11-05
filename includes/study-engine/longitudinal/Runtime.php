@@ -98,12 +98,14 @@ final class Runtime {
                 if(isset($request['timezone'])){Check::timezone($request['timezone'],'timezone');$context['timezone']=$request['timezone'];$context['timezone_source']='PARTICIPANT_LOCAL';}else{$context['timezone_source']='STUDY_FALLBACK';}
                 $created=$create($study['active_version_id'],array('kind'=>'PARTICIPANT','id'=>$p['id']),'ENROLL_'.$p['id'],$context);if(!isset($created['execution_id']))throw new P\IntegrityFailure('ENROLLMENT_CREATION_FAILED');
                 $p['execution_id']=$created['execution_id'];$this->db->update('participants',array('execution_id'=>$p['execution_id']),$this->db->prepare('id=%s',$p['id']));
-                $sessionToken=$session===null?$token:hash_hmac('sha256','NEW_PARTICIPANT|'.$request['command_id'],$token);
+                // Expired/revoked credentials still occupy their unique recovery hash.
+                $rotate=$session!==null||$this->db->row($this->db->prepare('SELECT id FROM '.$this->db->table('participant_sessions').' WHERE recovery_hash=%s',hash('sha256',$token)))!==null;
+                $sessionToken=$rotate?hash_hmac('sha256','NEW_PARTICIPANT|'.$request['command_id'],$token):$token;
                 $this->identity->issue($p,$study,$p['execution_id'],$study['active_version_id'],$config,$sessionToken);
                 $view=$owner->view($p['execution_id']);$this->loaded($view);
                 $verificationAnchor=false;foreach($definition['nodes'] as $node)if(($node['schedule']['anchor']??null)==='PARTICIPANT_VERIFIED')$verificationAnchor=true;
                 if(!isset($config['initial_screen'])||(!InitialScreen::v2($config)&&$verificationAnchor)||(InitialScreen::v2($config)&&$config['initial_screen']['authentication']['verification']!=='NEVER'&&$view['next_action']['kind']!=='OPEN_ASSESSMENT'))(new NotificationScheduler($this->db))->authentication($p['execution_id'],'VERIFY_PARTICIPANT','VERIFY_INITIAL',$view['snapshot']);
-                $result=array('generic'=>false,'execution_id'=>$p['execution_id'],'token_rotated'=>$session!==null);
+                $result=array('generic'=>false,'execution_id'=>$p['execution_id'],'token_rotated'=>$rotate);
             }else{
                 $current=$session===null?null:$this->identity->recover($public,$token,true);
                 if($request['action']==='enroll'&&$current!==null&&in_array($current['kind'],array('PROVISIONAL','AUTHENTICATED'),true)&&$current['participant_id']===$p['id']&&$current['execution_id']===$p['execution_id']){

@@ -34,3 +34,14 @@ pf_case('Email confirmation landing and expired link messages are standalone HTM
  pf_db()->transactional(function()use($cap){pf_db()->update('access_capabilities',array('expires_at'=>'2000-01-01 00:00:00'),pf_db()->prepare('token_hash=%s',hash('sha256',$cap)));});$expired=pf_http($p['public'],array(),null,$cap,array('Accept'=>'text/html'),false);pe_assert($expired['status']===303&&strpos($expired['headers']['location'],'eipsi_initial=1')!==false&&strpos($expired['headers']['location'],'eipsi_notice=unavailable')!==false&&strpos($expired['headers']['location'],'eipsi_cap')===false,'No clean redirect to Initial Screen');$initial=wp_remote_get('http://127.0.0.1/?eipsi_study='.rawurlencode($p['public']).'&eipsi_initial=1&eipsi_notice=unavailable',array('timeout'=>15,'headers'=>array('Host'=>'127.0.0.1:18080'),'redirection'=>0));$initialHtml=wp_remote_retrieve_body($initial);pe_assert(wp_remote_retrieve_response_code($initial)===200&&strpos($initialHtml,'data-unavailable="1"')!==false&&strpos($initialHtml,'name="email"')!==false&&strpos($initialHtml,'role="alert"')!==false&&strpos($initialHtml,'Volver al inicio y solicitar un nuevo enlace')===false,'Initial Screen notice missing');
 
 });
+
+foreach(array('valid','expired','revoked') as $priorState)pf_case('F HTTP new email replaces '.$priorState.' browser access without token collision',function()use($priorState){
+ list($p,$first,$cookies)=pf_http_enroll(null,array('initial_screen'=>L\InitialScreen::defaults()));$original=pf_http_frame($p,$first,$cookies);
+ if($priorState!=='valid')pf_db()->transactional(function()use($original,$priorState){pf_db()->update('participant_sessions',$priorState==='expired'?array('expires_at'=>'2000-01-01 00:00:00'):array('revoked_at'=>gmdate('Y-m-d H:i:s')),pf_db()->prepare('id=%s',$original['access']['id']));});
+ $entry=pf_http($p['public'],$cookies);$request=pe_http_request($entry,'enroll');$request['email']='replacement-'.bin2hex(random_bytes(6)).'@example.test';
+ $next=pf_http($p['public'],$cookies,$request);pe_assert($next['status']===200&&$next['data']['state']==='OPEN_ASSESSMENT','New email enrollment failed: HTTP '.$next['status']);
+ $updated=$next['cookies']?:$cookies;$current=pf_http_frame($p,$next,$updated);pe_assert($current['access']['participant_id']!==$original['access']['participant_id'],'Old participant reused');
+ pe_assert($current['token']!==$original['token'],'Browser credential reused');pe_assert(strpos($next['data']['html'],'eipsi_native=')!==false,'No assessment offered');
+ $again=pf_http($p['public'],$cookies,$request);pe_assert($again['status']===200&&$again['data']['state']==='OPEN_ASSESSMENT','Retry lost admission');
+ pe_assert(pf_http_frame($p,$again,$again['cookies']?:$updated)['access']['id']===$current['access']['id'],'Retry duplicated session');
+});

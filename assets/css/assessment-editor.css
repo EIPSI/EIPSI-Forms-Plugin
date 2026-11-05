@@ -1172,3 +1172,8 @@ body:has(.ae-rich-overlay) .mce-fullscreen { z-index: 200000; }
 .ae-registration-field { display:flex;flex-direction:column;gap:.4rem;margin-top:1rem;min-width:0; }
 .ae-registration-field[hidden] { display:none!important; }
 .ae-registration-field input { width:100%;box-sizing:border-box; }
+
+/* Progress owns a centered row above the whole assessment or below its buttons. */
+.ae-assessment-progress { width:100%; box-sizing:border-box; text-align:center; margin-block:16px; clear:both; }
+.ae-assessment-progress .ae-page-count { text-align:center; margin:0 0 8px; }
+.ae-assessment-progress progress { display:block; width:100%; margin-inline:auto; }

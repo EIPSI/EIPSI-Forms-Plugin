@@ -2512,5 +2512,8 @@
   "Register option": "Opción registrar",
   "Do not register option": "Opción no registrar",
   "Registration field label": "Etiqueta del campo de registro",
-  "Registration field placeholder": "Placeholder del campo de registro"
+  "Registration field placeholder": "Placeholder del campo de registro",
+  "Progress position": "Posición del progreso",
+  "Above all content": "Por encima de todo el contenido",
+  "Below navigation buttons": "Debajo de los botones de navegación"
 }
