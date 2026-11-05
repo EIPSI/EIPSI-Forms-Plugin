@@ -1,0 +1,3 @@
+<?php
+if(getenv('WORDPRESS_DB_HOST')!=='eipsi-m0-db:3306'||PHP_SAPI!=='cli')exit(2);
+require __DIR__.'/../m0/bootstrap.php';require_once EIPSI_FORMS_PLUGIN_DIR.'includes/assessment-editor/runtime/Owner.php';$input=json_decode(stream_get_contents(STDIN),true);$dir=$argv[1];$slot=$argv[2];if(!preg_match('~^/tmp/perf1-race-[a-f0-9]+$~D',$dir))exit(2);$_COOKIE[$input['cookie_name']]=$input['token'];touch($dir.'/ready'.$slot);$until=hrtime(true)+15000000000;while(!is_file($dir.'/start')){if(hrtime(true)>$until)exit(3);usleep(10000);}try{$f=(new EIPSI\AssessmentEditor\Runtime\Owner())->command($input['execution'],$input['command']);$out=array('ok'=>true,'execution'=>$f['execution_id']);}catch(Throwable $e){$out=array('ok'=>false,'code'=>$e->getCode());}echo json_encode($out);

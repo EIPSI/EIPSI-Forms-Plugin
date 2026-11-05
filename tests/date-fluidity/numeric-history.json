@@ -1,0 +1,318 @@
+[
+  {
+    "initial_metadata": {
+      "started_at": 1700000000000,
+      "completed_at": null,
+      "duration": 0,
+      "recovery_used": false,
+      "recovery_count": 0,
+      "dropped_events": 0,
+      "pages": {
+        "PG_AE_6b86b273ff34fce19d6b804eff5a3f57": {
+          "page_id": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+          "presented_at": 1700000000000,
+          "leave_at": null,
+          "duration": 0,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "next_transitions": 0,
+          "previous_transitions": 0,
+          "resumed_here": false,
+          "current_presented_at": 1700000000000
+        }
+      },
+      "items": {
+        "R_4e07408562bedb8b60ce05c1decfe3ad": {
+          "item_id": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "response_key": "R_4e07408562bedb8b60ce05c1decfe3ad",
+          "variable_name": "text_1",
+          "presented_at": 1700000000000,
+          "first_interaction_at": null,
+          "final_response_at": null,
+          "time_to_first_interaction": null,
+          "time_to_final_response": null,
+          "interaction_count": 0,
+          "change_count": 0,
+          "focus_count": 0,
+          "focus_duration": 0,
+          "initial_state": null,
+          "first_interacted_state": null,
+          "final_state": null,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "trajectory": []
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1700000000000,
+          "kind": "presented",
+          "identity": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+          "state": null
+        }
+      ],
+      "contract": "NATIVE_PROCESS_V1",
+      "assessment_id": "AE_ffffffffffffffffffffffffffffffff",
+      "definition_ref": {
+        "kind": "NATIVE_SESSION_SNAPSHOT",
+        "assessment_id": "AE_ffffffffffffffffffffffffffffffff",
+        "contract": "EIPSI_ASSESSMENT_V1"
+      },
+      "status": "active",
+      "context": {
+        "device": "desktop-or-unknown",
+        "browser": "unknown",
+        "os": "unknown",
+        "screen": {
+          "width": 0,
+          "height": 0
+        },
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "timezone": "UTC",
+        "language": "en-US",
+        "input_capabilities": {
+          "touch": false,
+          "pointer": true
+        },
+        "webgl_renderer": null,
+        "screen_depth": 24,
+        "pixel_ratio": 1,
+        "cpu_cores": 4,
+        "cookies_enabled": true
+      }
+    },
+    "definition": {
+      "contract": "EIPSI_ASSESSMENT_V1",
+      "id": "AE_ffffffffffffffffffffffffffffffff",
+      "title": "Nueva evaluación",
+      "content_language": "es",
+      "elements": [
+        {
+          "id": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "type": "number",
+          "response_key": "R_4e07408562bedb8b60ce05c1decfe3ad",
+          "properties": {
+            "label_html": null,
+            "helper_html": null,
+            "footer_html": "",
+            "integer_only": false,
+            "placeholder": "",
+            "min": null,
+            "max": null,
+            "step": 1,
+            "required_message": "Respondé esta pregunta para continuar.",
+            "validation_message": "Ingresá un número dentro del rango configurado.",
+            "number_range_message": "La respuesta debe estar entre [MINIMO] - [MAXIMO].",
+            "label": "Escribí tu pregunta",
+            "helper": "",
+            "required": false,
+            "variable_name": "text_1"
+          },
+          "options": [],
+          "children": []
+        }
+      ],
+      "authoring": {
+        "variable_policy": "MATRIX_ORDINAL_V1",
+        "variable_next": {
+          "text": 2,
+          "date": 1,
+          "single": 1,
+          "multiple": 1,
+          "select": 1,
+          "likert": 1,
+          "vas": 1,
+          "matrix": 1
+        },
+        "legacy_row_variables": []
+      },
+      "flow": {
+        "pages": [
+          {
+            "id": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+            "boundary_id": null,
+            "title": "",
+            "description_html": ""
+          }
+        ],
+        "allow_back": true,
+        "navigation_labels": {
+          "back": "Anterior",
+          "next": "Siguiente",
+          "finish": "Terminar"
+        },
+        "progress": "pages",
+        "completion": {
+          "title": "Gracias por responder",
+          "message_html": "<p>Gracias por completar la evaluación.</p>",
+          "image_url": "",
+          "button_label": "",
+          "allow_restart": true
+        },
+        "save_continue": {
+          "enabled": false,
+          "window": {
+            "value": 7,
+            "unit": "days"
+          }
+        },
+        "metadata_profile": "detailed",
+        "messages": {
+          "expired": "La sesión anterior venció. Empezá nuevamente desde la primera página.",
+          "expired_saved": "Las respuestas parciales de la sesión anterior quedaron guardadas. Empezá nuevamente desde la primera página.",
+          "processing": "Actualizando sesión…",
+          "updated": "Sesión actualizada.",
+          "completed": "Respuestas guardadas correctamente.",
+          "invalid": "No se pudieron procesar tus respuestas. Volvé a intentarlo.",
+          "delivery_error": "No se pudo confirmar el guardado de tus respuestas. Volvé a intentarlo con el mismo botón.",
+          "discard_accept": "Aceptar",
+          "discard_cancel": "Cancelar",
+          "discard_label": "Descartar respuesta",
+          "discard_confirm": "¿Descartar esta respuesta? Se eliminarán la sesión y las respuestas de esta evaluación para comenzar desde cero.",
+          "discarded": "Respuesta descartada. Podés empezar desde el comienzo.",
+          "progress": "Página [ACTUAL] de [TOTAL]",
+          "progress_accessible": "Progreso por páginas"
+        }
+      }
+    },
+    "answers": {
+      "R_4e07408562bedb8b60ce05c1decfe3ad": 12.5
+    },
+    "touched": {
+      "R_4e07408562bedb8b60ce05c1decfe3ad": true
+    },
+    "metadata": {
+      "started_at": 1700000000000,
+      "completed_at": null,
+      "duration": 0,
+      "recovery_used": false,
+      "recovery_count": 0,
+      "dropped_events": 0,
+      "pages": {
+        "PG_AE_6b86b273ff34fce19d6b804eff5a3f57": {
+          "page_id": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+          "presented_at": 1700000000000,
+          "leave_at": null,
+          "duration": 0,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "next_transitions": 0,
+          "previous_transitions": 0,
+          "resumed_here": false,
+          "current_presented_at": 1700000000000
+        }
+      },
+      "items": {
+        "R_4e07408562bedb8b60ce05c1decfe3ad": {
+          "item_id": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "response_key": "R_4e07408562bedb8b60ce05c1decfe3ad",
+          "variable_name": "text_1",
+          "presented_at": 1700000000000,
+          "first_interaction_at": 1700000000000,
+          "final_response_at": 1700000000000,
+          "time_to_first_interaction": 0,
+          "time_to_final_response": 0,
+          "interaction_count": 5,
+          "change_count": 5,
+          "focus_count": 0,
+          "focus_duration": 0,
+          "initial_state": null,
+          "first_interacted_state": null,
+          "final_state": 12.5,
+          "visit_count": 1,
+          "revisit_count": 0,
+          "trajectory": [
+            {
+              "timestamp": 1700000000000,
+              "state": null
+            },
+            {
+              "timestamp": 1700000000000,
+              "state": 12.5
+            }
+          ],
+          "input_method": "unknown"
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1700000000000,
+          "kind": "presented",
+          "identity": "PG_AE_6b86b273ff34fce19d6b804eff5a3f57",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "first_interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": null
+        },
+        {
+          "timestamp": 1700000000000,
+          "kind": "interaction",
+          "identity": "EL_d4735e3a265e16eee03f59718b9b5d03",
+          "state": 12.5
+        }
+      ],
+      "contract": "NATIVE_PROCESS_V1",
+      "assessment_id": "AE_ffffffffffffffffffffffffffffffff",
+      "definition_ref": {
+        "kind": "NATIVE_SESSION_SNAPSHOT",
+        "assessment_id": "AE_ffffffffffffffffffffffffffffffff",
+        "contract": "EIPSI_ASSESSMENT_V1"
+      },
+      "status": "active",
+      "context": {
+        "device": "desktop-or-unknown",
+        "browser": "unknown",
+        "os": "unknown",
+        "screen": {
+          "width": 0,
+          "height": 0
+        },
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "timezone": "UTC",
+        "language": "en-US",
+        "input_capabilities": {
+          "touch": false,
+          "pointer": true
+        },
+        "webgl_renderer": null,
+        "screen_depth": 24,
+        "pixel_ratio": 1,
+        "cpu_cores": 4,
+        "cookies_enabled": true
+      }
+    }
+  }
+]

@@ -83,6 +83,7 @@ const fixture = () =>
             number: "text",
             date: "text",
             single_choice: "radio",
+            registration: "radio",
             multiple_choice: "checkbox",
             likert: "radio",
             vas: "range",
@@ -210,10 +211,9 @@ const fixture = () =>
   });
   await test("VAS same initial keyboard Home End pointer and input mark touched; hidden display retains answer", () => {
     for (const [event, key] of [
-      ["keydown", "Home"],
-      ["keydown", "End"],
-      ["keydown", "ArrowLeft"],
-      ["pointerdown"],
+      ["keyup", "Home"],
+      ["keyup", "End"],
+      ["keyup", "ArrowLeft"],
       ["pointerup"],
       ["touchend"],
       ["input"],

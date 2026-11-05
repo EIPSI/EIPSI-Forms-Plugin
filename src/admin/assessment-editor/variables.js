@@ -14,6 +14,7 @@
   function prefix(t) {
     return (
       {
+        registration: "text",
         textarea: "text",
         email: "text",
         number: "text",

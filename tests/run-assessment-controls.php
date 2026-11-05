@@ -12,7 +12,7 @@ function ac_case($name,$fn){global $tests,$failures;$tests++;try{$fn();echo "PAS
 function ac_assert($v,$message='Assertion failed'){if(!$v)throw new RuntimeException($message);}
 function ac_reject($fn){try{$fn();}catch(Throwable $e){return;}throw new RuntimeException('Expected rejection');}
 function ac_fixture(){return D::validate(json_decode(file_get_contents(__DIR__.'/assessment-editor/parity-fixture.json'),true));}
-function ac_one($type){$d=ac_fixture();$d['elements']=array_values(array_filter($d['elements'],static function($e)use($type){return $e['type']===$type;}));return $d;}
+function ac_one($type){$d=ac_fixture();$d['elements']=array_values(array_filter($d['elements'],static function($e)use($type){return $e['type']===$type;}));if($type==='registration'){$d['elements']=array(array('id'=>'EL_REGISTRATION','type'=>'registration','response_key'=>'R_REGISTRATION','properties'=>array('label'=>'Registration','helper'=>'','required'=>true,'label_html'=>'<p><strong>Registration</strong></p>','footer_html'=>'<p>Footer</p>'),'options'=>array(),'children'=>array()));$d['flow']['pages']=array();return D::validate($d);}return $d;}
 function ac_errors($type,$value,$touched=true){$d=ac_one($type);return A::errors($d,array($d['elements'][0]['response_key']=>$value),array($d['elements'][0]['response_key']=>$touched));}
 wp_set_current_user(1);
 try {

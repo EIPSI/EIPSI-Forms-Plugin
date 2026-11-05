@@ -7,7 +7,7 @@ final class Metadata {
     private static function number($v): void {if(!is_int($v)&&!is_float($v))D::fail('Invalid metadata number');if(!is_finite((float)$v)||$v<0||$v>1e15)D::fail('Invalid metadata number');}
     private static function state($v,array $e): void {
         if(in_array($e['type'],array('text','textarea','email','tel','url'),true)){if(!is_array($v)||array_keys($v)!==array('length')||!is_int($v['length'])||$v['length']<0||$v['length']>100000)D::fail('Text metadata must contain length only');return;}
-        if($v===null)return;if($e['type']==='consent'){if(!is_bool($v))D::fail('Invalid consent metadata');return;}
+        if($v===null)return;if($e['type']==='registration'){if(!is_bool($v))D::fail('Invalid registration metadata');return;}if($e['type']==='consent'){if(!is_bool($v))D::fail('Invalid consent metadata');return;}
         if(in_array($e['type'],array('single_choice','select','likert','matrix'),true)){if(!is_string($v)||!in_array($v,array_column($e['options'],'id'),true))D::fail('Invalid metadata choice');return;}
         if($e['type']==='multiple_choice'){if(!is_array($v)||count($v)>100||($v&&array_keys($v)!==range(0,count($v)-1)))D::fail('Invalid metadata choices');foreach($v as $id)if(!is_string($id)||!in_array($id,array_column($e['options'],'id'),true))D::fail('Invalid metadata choice');return;}
         if($e['type']==='date'){if($v==='')return;if(!is_string($v)||!preg_match('/^\d{4}-\d{2}-\d{2}$/D',$v))D::fail('Invalid metadata date');return;}

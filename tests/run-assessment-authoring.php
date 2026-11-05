@@ -15,7 +15,7 @@ function aa_case($name,$fn){global $tests,$failures;$tests++;try{$fn();echo "PAS
 function aa_assert($v,$m='Assertion failed'){if(!$v)throw new RuntimeException($m);}
 function aa_reject($fn){try{$fn();}catch(Throwable $e){return;}throw new RuntimeException('Expected rejection');}
 function aa_fixture(){return D::validate(json_decode(file_get_contents(__DIR__.'/assessment-editor/authoring-fixture.json'),true));}
-function aa_one($t){$d=aa_fixture();$d['elements']=array_values(array_filter($d['elements'],static function($e)use($t){return $e['type']===$t;}));return $d;}
+function aa_one($t){$d=aa_fixture();$d['elements']=array_values(array_filter($d['elements'],static function($e)use($t){return $e['type']===$t;}));if($t==='registration'){$d['elements']=array(array('id'=>'EL_REGISTRATION','type'=>'registration','response_key'=>'R_REGISTRATION','properties'=>array('label'=>'Registration','helper'=>'','required'=>true,'label_html'=>'<p><strong>Registration</strong></p>','footer_html'=>'<p>Footer</p>'),'options'=>array(),'children'=>array()));$d['flow']['pages']=array();return D::validate($d);}return $d;}
 function aa_bad($t,$k,$v){$d=aa_one($t);$d['elements'][0]['properties'][$k]=$v;aa_reject(static function()use($d){D::validate($d);});}
 wp_set_current_user(1);
 try{

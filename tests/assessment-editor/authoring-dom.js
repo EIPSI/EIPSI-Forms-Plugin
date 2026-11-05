@@ -255,7 +255,7 @@ function change(n, v, event = "change") {
       t +
         " shared footer rich content renders after response and variables hidden in Preview",
       () => {
-        const e = t === "matrix" ? one("matrix") : one(t);
+        const e = t === "registration" ? A.element(t) : one(t);
         e.properties.footer_html =
           '<p><b>Footer</b><img src="https://example.test/a.png" alt="A"></p>';
         const panel = A.openPreview({ ...A.assessment(), elements: [e] });

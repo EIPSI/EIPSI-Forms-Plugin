@@ -1,6 +1,6 @@
 # T0 — Gate técnico mínimo
 
-Conteo configurado tras RBAC, corrección de simulación transversal, configuración de keyrings y Setup: **4060 funcionales** = 2665 PHP WordPress + 5 multisite + 539 PHP puros + 851 JS; suites en `gate.json` y cinco casos multisite en el gate. El fixture de activación también comprueba cero output/errores, metadata de tabla ausente, convergencia completa y cron mensual idempotente; ver [regresión de activación](../production-activation/README.md). Los conteos inferiores describen baselines históricos. RCT strict, smoke, activación y harness se reportan aparte; los casos repetidos no se suman dos veces.
+Conteo configurado tras RBAC, corrección de simulación transversal, configuración de keyrings y Setup: **4191 funcionales** = 2669 PHP WordPress + 5 multisite + 539 PHP puros + 978 JS; suites en `gate.json` y cinco casos multisite en el gate. El fixture de activación también comprueba cero output/errores, metadata de tabla ausente, convergencia completa y cron mensual idempotente; ver [regresión de activación](../production-activation/README.md). Los conteos inferiores describen baselines históricos. RCT strict, smoke, activación y harness se reportan aparte; los casos repetidos no se suman dos veces.
 
 Un único entorno Linux con Docker Engine, Docker Compose v2.20+ (soporte `up --wait`), Bash y Python 3.9+. El wrapper usa solo la biblioteca estándar Python. Referencia local: Python 3.12.3 / Compose 5.3.1. No exige PHP, Node ni WordPress instalados en el host.
 
@@ -119,3 +119,24 @@ FULL vigente **1944 únicos:1810 PHP +134 JS**, FAST1936; añade25 casos de inte
 Permanent suites: `tests/run-data1-unit.php` (36), `tests/run-data1.php` (18), `tests/data1/metadata-dom.js` (7) and `tests/data1/management-dom.js` (3). They cover wide observations, provenance/collisions, historical dictionary/types, UTC/partials, manual/live/snapshot parity, typed secure XLSX, private binary percent preservation, Range/withdrawal/retained semantics and global metadata intersection with historical preservation. API-4 additionally records HTTP V2 payloads and validates them against the versioned OpenAPI schemas.
 
 Current configured suites: **3,564 cases** (2,421 WordPress/PHP + 464 pure PHP + 679 JS). FULL also runs strict RCT, observed OpenAPI validation, build, clean activation, smoke, lifecycle and cold reactivation; repeated smoke/RCT do not inflate the suite count. DATA-1 final evidence is documented in the project report. No human review is implied by automated PASS.
+
+### Management volume checks and timing
+
+`study-management` always checks 100/1,000/10,000 synthetic participations, exact
+counts, pages of 25, at most 20 dashboard queries, the Native index and fixture
+rollback. Each point prints `VOLUME_POINT` with per-section seconds and query count
+before budget assertions, including whether the former 10-second reference was
+exceeded. Time uses a monotonic clock.
+
+Shared CI runners do not enforce an absolute wall-clock benchmark: machine load
+and host speed vary. The job/stage timeouts remain in force. For a controlled
+benchmark, the original strict limit can still be requested explicitly:
+
+```sh
+EIPSI_MANAGEMENT_MAX_SECONDS=10 ./tests/ci/run.sh php
+```
+
+The gate forwards only this explicit test setting to the management PHP process.
+A positive finite value is required; invalid settings fail rather than silently
+disabling the guard. A benchmark failure includes the population and elapsed time.
+This changes test policy only, not production queries, indexes or data behavior.

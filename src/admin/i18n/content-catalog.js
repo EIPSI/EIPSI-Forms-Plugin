@@ -195,7 +195,8 @@ globalThis.EIPSIContentCatalog={
         "image": "Image",
         "group": "Group / section",
         "randomization": "Randomization",
-        "page_break": "Salto de página"
+        "page_break": "Salto de página",
+        "registration": "Registration information"
       },
       "study_title": "Study title",
       "text": "Text",
@@ -223,6 +224,7 @@ globalThis.EIPSIContentCatalog={
       "unanswered_value_message": "Unanswered",
       "matrix_heading": "Item",
       "empty_image_message": "Image not configured",
+      "date_year_label": "Year",
       "date_placeholder": "YYYY-MM-DD",
       "date_open_label": "Open calendar",
       "date_close_label": "Close calendar",
@@ -372,6 +374,13 @@ globalThis.EIPSIContentCatalog={
         "gradient": "none",
         "gradient_start": "#f44336",
         "gradient_end": "#4caf50"
+      },
+      "registration": {
+        "register_label": "Register",
+        "decline_label": "Do not register",
+        "value_label": "Registration information",
+        "placeholder": "",
+        "invalid_value_message": "Enter the information you want to register."
       }
     },
     "vas_endpoints": [
@@ -699,7 +708,8 @@ globalThis.EIPSIContentCatalog={
         "image": "Imagen",
         "group": "Grupo / sección",
         "randomization": "Randomización",
-        "page_break": "Salto de página"
+        "page_break": "Salto de página",
+        "registration": "Datos de registro"
       },
       "study_title": "Título del estudio",
       "text": "Texto",
@@ -727,6 +737,7 @@ globalThis.EIPSIContentCatalog={
       "unanswered_value_message": "Sin responder",
       "matrix_heading": "Ítem",
       "empty_image_message": "Imagen no configurada",
+      "date_year_label": "Año",
       "date_placeholder": "AAAA-MM-DD",
       "date_open_label": "Abrir calendario",
       "date_close_label": "Cerrar calendario",
@@ -876,6 +887,13 @@ globalThis.EIPSIContentCatalog={
         "gradient": "none",
         "gradient_start": "#f44336",
         "gradient_end": "#4caf50"
+      },
+      "registration": {
+        "register_label": "Registrar",
+        "decline_label": "No registrar",
+        "value_label": "Dato de registro",
+        "placeholder": "",
+        "invalid_value_message": "Ingresá el dato que querés registrar."
       }
     },
     "vas_endpoints": [

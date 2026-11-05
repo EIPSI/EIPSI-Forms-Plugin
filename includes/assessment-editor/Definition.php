@@ -8,8 +8,8 @@ require_once __DIR__.'/Flow.php';
 /** Native authoring DTO. No WordPress or Gutenberg dependency. */
 final class Definition {
     const CONTRACT = 'EIPSI_ASSESSMENT_V1';
-    const TYPES = array('text','textarea','email','number','tel','date','url','single_choice','multiple_choice','select','likert','matrix','vas','instruction','image','group','randomization','page_break');
-    const QUESTIONS = array('text','textarea','email','number','tel','date','url','single_choice','multiple_choice','select','likert','matrix','vas');
+    const TYPES = array('text','textarea','email','number','tel','date','url','single_choice','multiple_choice','select','likert','matrix','vas','registration','instruction','image','group','randomization','page_break');
+    const QUESTIONS = array('text','textarea','email','number','tel','date','url','single_choice','multiple_choice','select','likert','matrix','vas','registration');
     public static function validate(array $d): array {
         self::fields($d,array_merge(array('contract','id','title','elements'),array_key_exists('authoring',$d)?array('authoring'):array(),array_merge(array_key_exists('flow',$d)?array('flow'):array(),array_key_exists('content_language',$d)?array('content_language'):array())));
         if(array_key_exists('content_language',$d))\EIPSI\I18n\ContentDefaults::valid($d['content_language']);
@@ -43,6 +43,7 @@ final class Definition {
             if ($e['type']==='textarea') $fields[]='rows';
             if ($e['type']==='number') $fields=array_merge($fields,array('placeholder','min','max','step','integer_only'));
             if ($e['type']==='select') $fields[]='placeholder';
+            if($e['type']==='registration')foreach(array('register_label','decline_label','value_label','placeholder') as $key){$fields[]=$key;self::text($p[$key],2000);}
             if(in_array($e['type'],array('single_choice','multiple_choice'),true))$fields[]='columns';
             if($e['type']==='matrix')$fields=array_merge($fields,array('matrix_kind','matrix_rows'));
             if ($e['type']==='multiple_choice') $fields=array_merge($fields,array('min_selected','max_selected'));
@@ -57,7 +58,7 @@ final class Definition {
             if(array_key_exists('randomize_options',$p)&&in_array($e['type'],array('single_choice','multiple_choice','likert'),true)){$fields[]='randomize_options';if(!is_bool($p['randomize_options']))self::fail('Randomize options must be boolean');}
             foreach(array('required_message','validation_message','matrix_heading') as $key)if(array_key_exists($key,$p)){if(($key==='matrix_heading'&&$e['type']!=='matrix')||($key!=='matrix_heading'&&!$q))self::fail('Invalid message property');$fields[]=$key;self::text($p[$key],2000);}
             foreach(array('selection_min_message','selection_max_message') as $key)if(array_key_exists($key,$p)){if($e['type']!=='multiple_choice')self::fail('Invalid selection message');$fields[]=$key;self::text($p[$key],2000);}
-            $messageTypes=array('unanswered_value_message'=>array('vas'),'length_message'=>array('text','textarea','email','tel','url'),'number_range_message'=>array('number'),'min_length_message'=>array('textarea'),'max_length_message'=>array('textarea'),'invalid_value_message'=>array('date','vas','single_choice','multiple_choice','select','likert','matrix'),'empty_image_message'=>array('image'),'date_placeholder'=>array('date'),'date_open_label'=>array('date'),'date_close_label'=>array('date'),'date_previous_label'=>array('date'),'date_next_label'=>array('date'),'date_month_names'=>array('date'),'date_weekday_names'=>array('date'));
+            $messageTypes=array('unanswered_value_message'=>array('vas'),'length_message'=>array('text','textarea','email','tel','url'),'number_range_message'=>array('number'),'min_length_message'=>array('textarea'),'max_length_message'=>array('textarea'),'invalid_value_message'=>array('registration','date','vas','single_choice','multiple_choice','select','likert','matrix'),'empty_image_message'=>array('image'),'date_year_label'=>array('date'),'date_placeholder'=>array('date'),'date_open_label'=>array('date'),'date_close_label'=>array('date'),'date_previous_label'=>array('date'),'date_next_label'=>array('date'),'date_month_names'=>array('date'),'date_weekday_names'=>array('date'));
             foreach($messageTypes as $key=>$types)if(array_key_exists($key,$p)){if(!in_array($e['type'],$types,true))self::fail('Invalid control message');$fields[]=$key;self::text($p[$key],2000);if(in_array($key,array('date_month_names','date_weekday_names'),true)&&trim($p[$key])!==''&&count(explode('|',$p[$key]))!==($key==='date_month_names'?12:7))self::fail('Invalid calendar names');}
             if(array_key_exists('date_format',$p)){$fields[]='date_format';if($e['type']!=='date'||!in_array($p['date_format'],array('YYYY-MM-DD','DD/MM/YYYY','MM/DD/YYYY'),true))self::fail('Invalid date format');}
             self::fields($p,$fields); self::text($p['label'],$e['type']==='instruction'?20000:2000);

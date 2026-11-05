@@ -1131,19 +1131,16 @@ body:has(.ae-rich-overlay) .mce-fullscreen { z-index: 200000; }
 
 /* Keep the current page in place while its navigation is acknowledged. */
 .ae-native-runtime > [role="status"]:empty { display: none; }
-.ae-designed button.ae-is-loading {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  cursor: wait;
-}
+.ae-designed button.ae-is-loading { position: relative; cursor: wait; }
 .ae-loading-spinner {
   box-sizing: border-box;
-  display: inline-block;
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
+  display: block;
+  position: absolute;
+  inset-inline-end: 2px;
+  top: 50%;
+  margin-top: -7px;
+  width: 14px;
+  height: 14px;
   border: 2px solid currentColor;
   border-inline-end-color: transparent;
   border-radius: 50%;
@@ -1153,3 +1150,25 @@ body:has(.ae-rich-overlay) .mce-fullscreen { z-index: 200000; }
 @media (prefers-reduced-motion: reduce) {
   .ae-loading-spinner { animation: none; }
 }
+
+/* Validation presentation uses the existing validator's exact messages. */
+.ae-field-error { color: #9d1515; font-size: .875em; line-height: 1.5; margin: 6px 0 0; }
+/* The compact discard text button has no inner gutter; use adjacent free space. */
+.ae-discard-footer .ae-loading-spinner { inset-inline-end: auto; inset-inline-start: -18px; }
+
+/* Participant validation card: same burgundy border and pale background as PSIRA. */
+.ae-preview-question.ae-question-invalid { outline: 2px solid #800000; outline-offset: 6px; border-radius: var(--ae-radius,6px); background: #fffafa; }
+.ae-question-invalid .ae-field-error { color: #800000; margin-top: 14px; }
+.ae-calendar .ae-calendar-navigation { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: center; gap: 8px; }
+.ae-calendar-navigation > strong { grid-column: 1; grid-row: 1; }
+.ae-calendar-navigation > input[data-ae-calendar-year] { grid-column: 2; grid-row: 1; justify-self: end; width: 8ch; max-width: 100%; min-width: 0; padding: 6px; }
+.ae-calendar-navigation > button { grid-row: 2; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+
+/* Secondary calendar controls: larger targets without overlapping narrow cells. */
+.ae-calendar td button,.ae-calendar-navigation>button,.ae-calendar-navigation>input[data-ae-calendar-year],.ae-calendar-open { min-block-size:44px; }
+.ae-calendar td button { min-inline-size:0; max-inline-size:100%; touch-action:manipulation; }
+
+/* Registration uses the same choice cards; its value appears only on opt-in. */
+.ae-registration-field { display:flex;flex-direction:column;gap:.4rem;margin-top:1rem;min-width:0; }
+.ae-registration-field[hidden] { display:none!important; }
+.ae-registration-field input { width:100%;box-sizing:border-box; }

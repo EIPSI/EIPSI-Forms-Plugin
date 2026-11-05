@@ -87,6 +87,15 @@
       this.items.set(e.response_key, { ...e, id });
     }
     state(e, value) {
+      if(e.type==="registration")return typeof value?.register==="boolean"?value.register:null;
+      // Malformed numeric input remains in the answer for validation, but the
+      // persisted numeric history accepts only finite numbers or null.
+      if (e.type === "number" && value != null &&
+          (typeof value !== "number" || !Number.isFinite(value))) return null;
+      // A date may be incomplete while typing. Keep the existing ISO-or-null
+      // metadata contract without putting raw fragments into the persisted history.
+      if (e.type === "date" && value !== "" && value != null &&
+          (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value))) return null;
       return ["text", "textarea", "email", "tel", "url"].includes(e.type)
         ? { length: typeof value === "string" ? Array.from(value).length : 0 }
         : clone(value ?? null);

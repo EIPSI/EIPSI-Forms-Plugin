@@ -25,43 +25,41 @@
         if (!frame.matches?.('.eipsi-native-assessment-frame')) return;
         frameObservers.get(frame)?.();
         let doc;
-        try { doc = frame.contentDocument; if (!doc?.body) return; }
-        catch (_) { return; }
-        doc.documentElement.style.minHeight = '0';
-        doc.body.style.minHeight = '0';
-        let scheduled = 0;
-        const resize = () => {
-            if (scheduled) return;
-            scheduled = window.requestAnimationFrame(() => {
-                scheduled = 0;
-                if (!frame.isConnected) { cleanup(); return; }
-                const body = doc.body;
-                const bottom = Math.max(body.getBoundingClientRect().bottom,
-                    ...Array.from(body.children, child => child.getBoundingClientRect().bottom));
-                const height = Math.ceil(bottom + frame.contentWindow.scrollY + parseFloat(frame.contentWindow.getComputedStyle(body).marginBottom || 0));
-                if (height > 0 && frame.style.height !== height + 'px') frame.style.height = height + 'px';
-            });
+        try { doc = frame.contentDocument; if (!doc?.body) return; } catch (_) { return; }
+        doc.documentElement.style.minHeight='0';doc.body.style.minHeight='0';
+        let job=0,disposed=false,settled=false,candidate=0,last=parseFloat(frame.style.height)||0,observer,mutation,removal;
+        const child=doc.defaultView;
+        const cleanup=()=>{
+            if(disposed)return;disposed=true;
+            if(job)window.cancelAnimationFrame(job);
+            observer?.disconnect();mutation?.disconnect();removal?.disconnect();
+            doc.removeEventListener('load',schedule,true);window.removeEventListener('resize',schedule);child?.removeEventListener('pagehide',cleanup);
+            if(frameObservers.get(frame)===cleanup)frameObservers.delete(frame);
         };
-        const observer = new ResizeObserver(resize);
-        observer.observe(doc.body);
-        const mutation = new MutationObserver(resize);
-        mutation.observe(doc.body, {childList:true, subtree:true, attributes:true, characterData:true});
-        const cleanup = () => {
-            observer.disconnect(); mutation.disconnect();
-            window.cancelAnimationFrame(scheduled);
-            doc.removeEventListener('load', resize, true);
+        const measure=()=>{
+            job=0;if(disposed)return;if(!frame.isConnected){cleanup();return;}
+            if(doc.querySelector('.ae-native-runtime[aria-busy="true"]'))return;
+            const bottom=Math.max(doc.body.getBoundingClientRect().bottom,...Array.from(doc.body.children,node=>node.getBoundingClientRect().bottom+Math.max(0,parseFloat(child.getComputedStyle(node).marginBottom)||0)));
+            const height=Math.ceil(bottom+(child.scrollY||0)+(parseFloat(child.getComputedStyle(doc.body).marginBottom)||0));
+            if(!Number.isFinite(height)||height<=0)return; // Keep the last valid height while content is transiently empty.
+            if(settled&&height===last){candidate=0;return;}
+            if(candidate!==height){candidate=height;schedule();return;} // Confirm a positive measurement on the next frame.
+            last=height;candidate=0;settled=true;
+            frame.style.height=height+'px';frame.style.minHeight='0px';
         };
-        frameObservers.set(frame, cleanup);
-        doc.addEventListener('load', resize, true);
-        doc.fonts?.ready.then(resize);
-        resize();
+        const schedule=()=>{if(!disposed&&!job)job=window.requestAnimationFrame(measure);};
+        if(window.ResizeObserver){observer=new ResizeObserver(schedule);observer.observe(doc.body);}else window.addEventListener('resize',schedule);
+        mutation=new MutationObserver(schedule);mutation.observe(doc.body,{childList:true,subtree:true,attributes:true,characterData:true});
+        removal=new MutationObserver(()=>{if(!frame.isConnected)cleanup();});removal.observe(frame.ownerDocument.documentElement,{childList:true,subtree:true});
+        frameObservers.set(frame,cleanup);doc.addEventListener('load',schedule,true);child?.addEventListener('pagehide',cleanup,{once:true});doc.fonts?.ready.then(schedule);schedule();
     };
+    window.EIPSIStudyInteraction.fitAssessment=fitAssessment;
     document.addEventListener('load', event => fitAssessment(event.target), true);
     const ready=()=>{const content=document.getElementById('eipsi-study');reloadDestination(content);if(content){window.EIPSIStudyInteraction.present(content);content.querySelectorAll('.eipsi-native-assessment-frame').forEach(fitAssessment);}};
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
     const showOperationError=(root,text)=>{
                 let notices=root.querySelector('.eipsi-portal-notices');
-                if(!notices){notices=document.createElement('div');notices.className='eipsi-portal-notices';notices.setAttribute('aria-live','polite');root.prepend(notices);}
+                if(!notices){notices=document.createElement('div');notices.className='eipsi-portal-notices';root.prepend(notices);}
                 let notice=notices.querySelector('[data-operation-error]');
                 if(!notice){notice=document.createElement('section');notice.className='eipsi-portal-notice is-error';notice.dataset.operationError='1';notice.setAttribute('role','alert');notices.append(notice);}
                 notice.textContent=text;window.EIPSIStudyInteraction.notices(notice,true);    };
@@ -76,6 +74,10 @@
         }
         data.set('metadata_json', JSON.stringify(metadata()));
         const controls = [...form.querySelectorAll('input, select, textarea, button')];
+        const disabled = controls.map(control => control.disabled);
+        const active = button || form.querySelector('button[type="submit"],button:not([type]),input[type="submit"]');
+        form.setAttribute('aria-busy','true');
+        window.EIPSIStudyInteraction.loading(active,true);
         controls.forEach(el => { el.disabled = true; });
         try {
             const response = await fetch(form.getAttribute('action') || window.location.href, { method: 'POST', body: data, credentials: 'same-origin', headers: { Accept: 'application/json' }, cache: 'no-store' });
@@ -95,7 +97,12 @@
             // Retain the command ID and form for a network retry; never show false success.
             controls.forEach(el => { el.disabled = false; });
             showOperationError(document.getElementById('eipsi-study'),window.EIPSIStudyInteraction.message(form,'operation_failed','No pudimos completar la operación.'));
-        } finally { pending = false; }
+        } finally {
+            pending = false;
+            form.removeAttribute('aria-busy');
+            window.EIPSIStudyInteraction.loading(active,false);
+            controls.forEach((control,index)=>{control.disabled=disabled[index];});
+        }
     };
     const lookupWithdrawal=async(email,form)=>{
         const data=new FormData();data.set('action','withdrawal_lookup');data.set('email',email);data.set('csrf',form.querySelector('[name=csrf]').value);data.set('command_id','LOOKUP_'+crypto.randomUUID().replaceAll('-',''));

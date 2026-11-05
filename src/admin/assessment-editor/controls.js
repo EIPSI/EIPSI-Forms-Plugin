@@ -75,7 +75,7 @@
     "url",
   ];
   const choiceTypes = ["single_choice", "multiple_choice", "select", "likert"];
-  const questions = [...textTypes, ...choiceTypes, "vas", "matrix"];
+  const questions = [...textTypes, ...choiceTypes, "vas", "matrix", "registration"];
   const labels = {
     text: "Texto",
     textarea: "Texto largo",
@@ -85,6 +85,7 @@
     date: "Fecha",
     url: "URL",
     single_choice: "Opción única",
+    registration: "Datos de registro",
     multiple_choice: "Opción múltiple",
     select: "Lista desplegable",
     likert: "Likert",
@@ -110,6 +111,7 @@
         display_mode: type === "textarea" ? "multiline" : "single",
       });
     if (type === "number") out.integer_only = false;
+    if(type==="registration")Object.assign(out,{register_label:"Registrar",decline_label:"No registrar",value_label:"Dato de registro",placeholder:"",invalid_value_message:"Ingresá el dato que querés registrar."});
     if (["single_choice", "multiple_choice"].includes(type)) out.columns = 1;
     if (type === "matrix")
       Object.assign(out, {
@@ -213,7 +215,7 @@
     if(e.type==='number'&&typeof value==='number'&&Number.isFinite(value)&&((p.min!==null&&value<p.min)||(p.max!==null&&value>p.max)))return (p.number_range_message?.trim()?p.number_range_message:'La respuesta debe estar entre [MINIMO] - [MAXIMO].').replaceAll('[MINIMO]',String(p.min??'−∞')).replaceAll('[MAXIMO]',String(p.max??'∞'));
     const empty=value==null||value===''||(typeof value==='string'&&!value.trim())||(Array.isArray(value)&&!value.length)||(e.type==='vas'&&!touched);
     const text=['text','textarea','email','tel','url','number'].includes(e.type);
-    const custom=empty?p.required_message:text?p.validation_message:p.invalid_value_message;return custom?.trim()?custom:(empty?'Respondé esta pregunta para continuar.':message);
+    const absent=e.type==='registration'?value==null:empty;const custom=absent?p.required_message:text?p.validation_message:p.invalid_value_message;return custom?.trim()?custom:(absent?'Respondé esta pregunta para continuar.':message);
   }
   function defaultAnswerError(e, value, touched) {
     const p = { ...defaults(e.type, e.properties), ...e.properties };
@@ -225,6 +227,11 @@
       (typeof value === "string" && !value.trim());
     if (e.type === "vas" && !touched)
       return p.required ? "Tocá la escala para responder." : "";
+    if(e.type==="registration"&&value!=null){
+      if(typeof value!=="object"||Array.isArray(value)||Object.keys(value).length!==2||typeof value.register!=="boolean"||!Object.hasOwn(value,"value"))return "Respuesta de registro inválida.";
+      if(!value.register)return value.value===null?"":"Respuesta de registro inválida.";
+      return typeof value.value==="string"&&value.value.trim()&&Array.from(value.value).length<=2000?"":"Ingresá el dato que querés registrar.";
+    }
     if (empty) {
       if (p.required || (e.type === "multiple_choice" && p.min_selected > 0))
         return "Respondé esta pregunta para continuar.";
