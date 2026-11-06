@@ -1,0 +1,19 @@
+'use strict';
+const fs=require('fs'),path=require('path'),assert=require('assert/strict'),puppeteer=require('puppeteer-core');
+const base=path.resolve(__dirname,'../..');
+(async()=>{
+ const firefox=process.env.EIPSI_BROWSER==='firefox';
+ const browser=await puppeteer.launch({browser:firefox?'firefox':'chrome',executablePath:firefox?'/usr/bin/firefox-esr':'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});const results=[];
+ try{for(const width of [360,1366]){
+  const page=await browser.newPage();await page.setViewport({width,height:768});await page.setContent('<style>html,body{margin:0}</style><main id="eipsi-study"><iframe class="eipsi-native-assessment-frame" style="width:100%;min-height:85vh;border:0"></iframe></main>');
+  await page.$eval('iframe',f=>{f.srcdoc='<style>html,body{margin:0}</style><main id="root" class="ae-root ae-native-runtime"></main>';});await page.waitForFunction(()=>document.querySelector('iframe').contentDocument?.getElementById('root'));
+  await page.addScriptTag({path:path.join(base,'assets/js/study-runtime.js')});const frame=page.frames().find(f=>f!==page.mainFrame());for(const asset of ['assets/css/assessment-editor.css','assets/css/study-runtime.css'])await frame.addStyleTag({path:path.join(base,asset)});
+  await frame.addScriptTag({path:path.join(base,'assets/js/assessment-editor.js')});await frame.addScriptTag({path:process.env.EIPSI_RUNTIME_SOURCE||path.join(base,'src/admin/assessment-editor/product-runtime.js')});
+  await frame.evaluate(()=>{const A=window.EIPSIAssessment,d=A.assessment();d.flow.metadata_profile='basic';d.elements=Array.from({length:35},(_,i)=>A.element(i===0?'vas':'text'));d.elements[0].properties.required=true;window.key=d.elements[0].response_key;let f={execution_id:'NX_BROWSER',version_id:'NV_BROWSER',definition_hash:'fixed',definition:d,revision:0,state:'ACTIVE',page:0,session:null,csrf:'fixture',has_logic:true,participant_contract:'EIPSI_PARTICIPANT_FRAME_V2',projection_ref:'fixed',evaluate_logic_on_open:true};let held=false;window.app=A.mountProductRuntime(document.getElementById('root'),f,async q=>{if(q.action==='logic'&&!held){held=true;await new Promise(r=>window.release=r);}f={...f,revision:f.revision+1,session:{answers:q.answers,touched:q.touched,page:0,metadata:q.metadata}};return JSON.parse(JSON.stringify(f));});});
+  await page.evaluate(()=>window.EIPSIStudyInteraction.fitAssessment(document.querySelector('iframe')));await frame.waitForFunction(()=>!!window.release&&!document.querySelector('input[type=range]').disabled);
+  const height=await page.$eval('iframe',f=>({frame:f.getBoundingClientRect().height,content:f.contentDocument.body.getBoundingClientRect().bottom}));assert(height.frame>=height.content-2,'Initial page remains clipped before scrolling');
+  const range=await frame.$('input[type=range]'),box=await range.boundingBox();await frame.evaluate(()=>window.original=document.querySelector('input[type=range]'));await page.mouse.move(box.x+box.width*.8,box.y+box.height/2);await page.mouse.down();
+  const selected=await frame.evaluate(()=>window.app.session.answers[window.key]);assert(selected>60,'First pointer selection missing');await frame.evaluate(async()=>{window.release();await window.app.ready;});
+  const after=await frame.evaluate(()=>({value:window.app.session.answers[window.key],touched:window.app.session.touched[window.key],same:window.original===document.querySelector('input[type=range]')}));assert.equal(after.value,selected);assert.equal(after.touched,true);assert(after.same,'Startup replaced the live range');await page.mouse.up();results.push({width,height,selected,after});await page.close();
+ }console.log(JSON.stringify({browser:await browser.version(),results},null,2));}finally{await browser.close();}
+})().catch(error=>{console.error(error.stack);process.exitCode=1;});

@@ -24,7 +24,14 @@
     host.replaceChildren(status, body, actions, discardFooter);
     body.addEventListener('invalid',event=>root.EIPSIStudyInteraction.invalid(event),true);
     body.addEventListener('input',event=>root.EIPSIStudyInteraction.input(event));
-    body.addEventListener('submit',event=>{const form=event.target.closest('[data-previous-email]');if(form&&!root.EIPSIStudyInteraction.confirmEmail(form))event.preventDefault();});
+    body.addEventListener('submit',event=>{
+      const form=event.target.closest('[data-previous-email]');if(!form)return;
+      if(form.getAttribute('aria-busy')==='true'||!root.EIPSIStudyInteraction.confirmEmail(form)){event.preventDefault();return;}
+      form.setAttribute('aria-busy','true');
+      root.EIPSIStudyInteraction.loading(event.submitter||form.querySelector('button[value="confirm_email"]'),true);
+    });
+    const restoreConfirmation=()=>body.querySelectorAll('form[data-previous-email]').forEach(form=>{form.removeAttribute('aria-busy');root.EIPSIStudyInteraction.loading(form.querySelector('button[value="confirm_email"]'),false);});
+    root.addEventListener('pageshow',restoreConfirmation);
     const api =
       transport ||
       async function (payload, keepalive = false) {
@@ -411,8 +418,11 @@
     const ready = (async () => {
       if (frame.state === "COMPLETED" || frame.logical_exit) return;
       const payload = request("open");
+      const startedAtEpoch=inputEpoch;
       const okay = await send(payload);
-      if (okay) {
+      // send(open) may finish its logical check after the controls became editable.
+      // Its earlier snapshot must never overwrite those local edits or replace their controls.
+      if (okay && inputEpoch===startedAtEpoch) {
         restore(mountedWithSession);
         render();
       }
@@ -429,6 +439,7 @@
       heartbeat,
       destroy() {
         closed = true;
+        root.removeEventListener("pageshow",restoreConfirmation);
         document.removeEventListener("visibilitychange", visibilityChanged);
         root.clearInterval(heartbeatTimer);
         root.clearTimeout(logicTimer);

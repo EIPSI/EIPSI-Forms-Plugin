@@ -13,6 +13,13 @@ public static function process_batch($limit = 10) {
             'persistence_failed' => 0
         );
 
+        // Public participant navigation must not wait for SMTP or unrelated queue jobs.
+        // Scheduled workers retain delivery ownership and the existing retry policy.
+        if (!(defined('DOING_CRON') && DOING_CRON)
+            && (isset($_GET['eipsi_study']) || isset($_GET['eipsi_native']))) {
+            return $stats;
+        }
+
         $jobs = EIPSI_Notification_Nudge_Queue_Service::get_pending_jobs($limit);
 
         if (empty($jobs)) {

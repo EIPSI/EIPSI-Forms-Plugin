@@ -28,6 +28,18 @@ for(const kind of ['pointerup','touchend','keyup'])await test('First VAS '+kind+
  const range=e.host.querySelector('input[type=range]');range.dispatchEvent(kind==='keyup'?new e.w.KeyboardEvent(kind,{key:'Home',bubbles:true}):new e.w.Event(kind,{bubbles:true}));
  release();await tick();await tick();assert.equal(app.session.touched[d.elements[1].response_key],true);assert.equal(app.session.answers[d.elements[1].response_key],Number(range.value));assert.equal(app.session.errors().length,0);e.host.querySelector('.ae-nav-forward').click();await tick();await tick();assert.equal(app.frame.state,'COMPLETED');assert.equal(requests.find(r=>r.action==='submit').touched[d.elements[1].response_key],true);app.destroy();
 });
+await test('Initial logical check cannot reset the first VAS edit',async e=>{
+ const d=definition(e,['vas']);d.elements[0].properties.required=true;let f=frame(d),release;f.has_logic=true;f.participant_contract='EIPSI_PARTICIPANT_FRAME_V2';f.projection_ref='initial';f.evaluate_logic_on_open=true;
+ const app=e.A.mountProductRuntime(e.host,f,async request=>{if(request.action==='logic')await new Promise(r=>release=r);f={...f,revision:f.revision+1,session:{answers:request.answers,touched:request.touched,page:0,metadata:request.metadata}};return plain(f);});
+ await tick();assert(release);const range=e.host.querySelector('input[type=range]');assert(!range.disabled);range.value='82';range.dispatchEvent(new e.w.Event('input',{bubbles:true}));release();await app.ready;
+ assert.equal(app.session.answers[d.elements[0].response_key],82);assert.equal(app.session.touched[d.elements[0].response_key],true);assert.equal(e.host.querySelector('input[type=range]'),range);assert.equal(app.session.errors().length,0);app.destroy();
+});
+await test('Native email confirmation provides feedback without replacing its normal submission',async e=>{
+ const d=definition(e);const f=frame(d);f.state='COMPLETED';f.email_confirmation_html='<form target="_top" data-previous-email="a@example.test"><input type="hidden" name="action" value="confirm_email"><input type="email" name="email" value="a@example.test"><button name="action" value="confirm_email">Confirm</button></form>';
+ const app=e.A.mountProductRuntime(e.host,f,async()=>{throw Error('No assessment operation expected');});await app.ready;
+ const form=e.host.querySelector('form'),button=form.querySelector('button'),event=new e.w.Event('submit',{bubbles:true,cancelable:true});form.dispatchEvent(event);assert(!event.defaultPrevented);assert(form.querySelector('.eipsi-loading-spinner'));assert.equal(button.getAttribute('aria-busy'),'true');assert(!form.querySelector('[name=email]').disabled);
+ const duplicate=new e.w.Event('submit',{bubbles:true,cancelable:true});form.dispatchEvent(duplicate);assert(duplicate.defaultPrevented);app.destroy();
+});
 for(const position of ['top','bottom'])await test('Assessment preview respects '+position,e=>{
  const d=definition(e);d.flow.progress='both';d.flow.progress_position=position;const preview=e.A.openPreview(d),surface=preview.dialog.querySelector('.ae-preview-frame'),progress=surface.querySelector('.ae-assessment-progress');
  assert(progress);if(position==='top')assert.equal(surface.firstElementChild,progress);else assert(progress.previousElementSibling.classList.contains('ae-preview-actions'));preview.close();
