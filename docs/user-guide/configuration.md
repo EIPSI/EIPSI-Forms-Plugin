@@ -65,3 +65,19 @@ Changing a fallback does not edit an existing study or assessment. A nonexistent
 The test reports whether the configured transport accepts the message; it does not require a participant record. An optional researcher Reply-To address is not an SMTP prerequisite. Delivery statistics use current Study Engine transport attempts, including retryable failures; an accepted message is not proof of inbox delivery. Test messages are excluded, and the success rate is unavailable until there are outcomes. If automatic emails do not arrive, inspect Scheduler activity and the study communication/job records as well as SMTP. A successful manual test does not establish that scheduled jobs are running.
 
 A still-open opportunity blocked by a protocol dependency keeps its email pending until it becomes eligible. Study-level notice settings and selected templates are read from the latest published Initial screen settings even for earlier participations. Disabling notices defers eligible queued notices; re-enabling can deliver them while their original opportunity remains open. Expired or closed opportunities do not send their notices. Historical cancelled notices are not resent automatically.
+
+## Page caching
+
+Study and assessment pages contain private, changing participant state. Exclude their HTML from page caching. After adding an exclusion or updating the plugin's cache protection, purge any copies already stored by your cache service.
+
+For LiteSpeed Cache, open **Cache → Excludes → Do Not Cache Query Strings** and add each key on its own line:
+
+```text
+eipsi_study
+eipsi_native
+eipsi_native_asset
+```
+
+Save and purge the affected page cache. Reopen the evaluation and check that its HTML is not served with `X-LiteSpeed-Cache: hit`. Static CSS and JavaScript can retain their versioned asset caching.
+
+See LiteSpeed's [query-string exclusions and cache verification](https://docs.litespeedtech.com/lscache/lscwp/cache/#do-not-cache-query-strings).

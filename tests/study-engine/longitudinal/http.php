@@ -45,3 +45,13 @@ foreach(array('valid','expired','revoked') as $priorState)pf_case('F HTTP new em
  $again=pf_http($p['public'],$cookies,$request);pe_assert($again['status']===200&&$again['data']['state']==='OPEN_ASSESSMENT','Retry lost admission');
  pe_assert(pf_http_frame($p,$again,$again['cookies']?:$updated)['access']['id']===$current['access']['id'],'Retry duplicated session');
 });
+
+foreach(array('study','native') as $publicRoute)pf_case('Public '.$publicRoute.' request leaves queued mail for the background worker',function()use($publicRoute){
+ global $wpdb;list($p,$h,$cookies)=pf_http_enroll();preg_match('/eipsi_native=([^"&]+)/',$h['data']['html'],$native);pe_assert(!empty($native[1]),'No native fixture');
+ $table=$wpdb->prefix.'survey_nudge_jobs';$id=EIPSI_Notification_Nudge_Queue_Service::enqueue('runtime_latency_probe',array('fixture'=>true),-100);pe_assert($id>0,'No probe');
+ try{
+  $url='http://127.0.0.1/?'.($publicRoute==='study'?'eipsi_study='.rawurlencode($p['public']):'eipsi_native='.rawurlencode($native[1]));$response=wp_remote_get($url,array('timeout'=>15,'redirection'=>0,'cookies'=>$cookies,'headers'=>array('Host'=>'127.0.0.1:18080','Accept'=>'text/html')));pe_assert(!is_wp_error($response)&&wp_remote_retrieve_response_code($response)===200,'Public request failed');
+  $row=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE id=%d",$id));pe_assert($row->status==='pending'&&(int)$row->retries===0,'Public request synchronously dispatched a queue job');
+  $stats=EIPSI_Notification_Nudge_Worker_Service::process_batch(1);$row=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE id=%d",$id));pe_assert($stats['processed']===1&&(int)$row->retries===1,'Background delivery was disabled');
+ }finally{$wpdb->delete($table,array('id'=>$id));}
+});
