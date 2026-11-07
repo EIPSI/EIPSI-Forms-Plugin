@@ -183,7 +183,9 @@
           ? message("invalid")
           : message("delivery_error");
       } finally { busy = false; if (!quiet || !okay || resetSession || logicChanged) { host.removeAttribute("aria-busy"); render(); } if(logicChanged) body.querySelector("input,textarea,select,button")?.focus({preventScroll:true}); if(okay&&(previousExecution!==frame.execution_id||previousPage!==(frame.page||0)))root.EIPSIStudyInteraction.viewport(host); }
-      if (transitioned && frame.session == null && frame.state === "ACTIVE") { await send(request("open"),false,true); restore(false); render(); }
+      // Open the chained assessment as a visible navigation: render its acknowledged
+      // session before enabling answers, and let send preserve edits during initial logic.
+      if (transitioned && frame.session == null && frame.state === "ACTIVE") await send(request("open"));
       if (resetSession) {
         const notice = status.textContent;
         await send(request("open"));
