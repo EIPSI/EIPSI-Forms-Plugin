@@ -28,6 +28,10 @@ Global **Critical configuration missing** means either required component is unr
 
 Buttons only link to advanced tabs allowed by the current user's capabilities. Setup does not change other tabs' configuration, run repairs or send test mail. Other EIPSI admin pages show one combined **Configuration needs attention** warning when Setup keys, database/schema, or SMTP needs attention. Configuration instead shows a separate warning for each pending component except the currently open tab; Setup, Database & Storage and SMTP tabs share the yellow warning icon. Warnings include only components the user is authorized to administer and never block authoring. WordPress storage with a healthy schema is valid without an external database; an explicitly disabled saved connection, or an enabled external destination with missing settings or a recorded connection failure, needs review. Saving or disabling the connection updates its tab icon immediately. A missing SMTP warning does not make SMTP mandatory for email-free studies.
 
+## Page cache instructions
+
+Below the status cards, **Page cache: participant pages** explains when manual exclusions are needed for a cache plugin, hosting cache or CDN. It lists `eipsi_study`, `eipsi_native` and `eipsi_native_asset`, the purge and verification steps, and expandable LiteSpeed instructions. This is guidance, not an automatic cache-service diagnostic or a change to its settings. See the [general cache guide](user-guide/configuration.md#page-caching).
+
 ## Sources and existing installations
 
 Precedence is **explicit constant → environment variable → EIPSI encrypted Secret Store**. An invalid higher-precedence source fails closed; it never falls back to a different key. Even an empty, present environment value counts as external configuration and must be repaired there.

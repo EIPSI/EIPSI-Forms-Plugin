@@ -287,6 +287,9 @@
       );
       output.style.fontSize = p.value_font_size + "px";
       const touch = (event) => {
+        // Firefox can deliver pointerup on a disabled range during session loading.
+        // Such a gesture must not mark the initial value as a participant answer.
+        if (slider.disabled) return;
         const number = Number(slider.value);
         if (Number.isFinite(number)) {
           const changed=session && (session.answers[e.response_key]!==number || !session.touched[e.response_key]);
@@ -320,6 +323,7 @@
           }),
       );
       slider.addEventListener("keydown", (event) => {
+        if (slider.disabled) return;
         if(vertical&&["ArrowUp","ArrowDown"].includes(event.key)) {
           event.preventDefault();const up=event.key==='ArrowUp',increase=p.vertical_top==='min'?!up:up;
           if(increase)slider.stepUp();else slider.stepDown();touch(event);return;

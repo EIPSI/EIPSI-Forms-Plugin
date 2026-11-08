@@ -86,6 +86,17 @@ final class SetupAdmin {
             if($name!=='keys'&&$cap&&\EIPSI_Admin_Authorization_Policy::allows($cap))echo '<p class="setup-action"><a class="button eipsi-readiness-action" href="'.esc_url(self::url($tab)).'">'.esc_html(eipsi_admin_translate($action)).'</a></p>';
             echo '</article>';
         }
-        echo '</div></section>';
+        echo '</div>';
+        self::cacheGuide();
+        echo '</section>';
+    }
+    private static function cacheGuide(): void {
+        echo '<section class="setup-cache-guide" aria-labelledby="setup-cache-title"><h3 id="setup-cache-title"><span class="dashicons dashicons-performance" aria-hidden="true"></span>'.esc_html(eipsi_admin_translate('Page cache: participant pages')).'</h3>';
+        echo '<p>'.esc_html(eipsi_admin_translate('Study and assessment pages contain changing participant information. Their HTML must bypass page caching. EIPSI Forms sends no-cache instructions automatically; add manual exclusions if your cache plugin, hosting provider or CDN does not honor them.')).'</p><ol>';
+        echo '<li>'.esc_html(eipsi_admin_translate('In each service that caches HTML, exclude URLs containing any of these query-parameter names, regardless of its value:')).'<pre><code>eipsi_study' . "\n" . 'eipsi_native' . "\n" . 'eipsi_native_asset</code></pre></li>';
+        echo '<li>'.esc_html(eipsi_admin_translate('Save the rules and purge participant pages already stored in the relevant caches. These exclusions cover all studies; you do not need a rule for each study.')).'</li>';
+        echo '<li>'.esc_html(eipsi_admin_translate('Open the public study link in a private browser window with disposable data. In the Network panel, check that both the study document and its embedded assessment document bypass the page cache. Then test answering, navigating and reloading.')).'</li></ol>';
+        echo '<details><summary>'.esc_html(eipsi_admin_translate('Where to configure LiteSpeed Cache')).'</summary><p>'.esc_html(eipsi_admin_translate('Open LiteSpeed Cache → Cache → Excludes → Do Not Cache Query Strings. Add the three names above, one per line, save and purge the page cache. These are query parameters, not WordPress tags.')).'</p></details>';
+        echo '<p class="description">'.esc_html(eipsi_admin_translate('Keep normal caching for the rest of the website and static CSS/JavaScript. If your service uses URL patterns instead of parameter names, ask its support team for the equivalent bypass rule.')).'</p></section>';
     }
 }
