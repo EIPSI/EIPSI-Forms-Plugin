@@ -72,6 +72,7 @@ Open **EIPSI Forms → Configuration** and review these essentials before collec
 - **Database & Storage:** confirm where responses will be stored and arrange backups. WordPress storage is available; for external storage, prefer a dedicated database, test the connection, save it and verify the saved status. This does not relocate every internal study table.
 - **SMTP and templates:** for studies using email, configure the connection/sender, send a test and verify receipt. Review template links and variables.
 - **Scheduler:** configure WP-Cron or an external scheduler and verify that it is running. This is essential for longitudinal studies: timed evaluations and notifications depend on it.
+- **Page caching:** if you use a cache plugin, hosting cache or CDN, verify that participant pages bypass its HTML cache. EIPSI Forms sends no-cache instructions; services that override them need exclusions for `eipsi_study`, `eipsi_native` and `eipsi_native_asset`. Follow the [cache setup instructions](docs/user-guide/configuration.md#page-caching).
 - **Privacy:** decide which identifying data and optional metadata to collect before recruitment.
 - **Readiness:** review Schema Status, the study's time zone/timing and validation results. Try the simulation and real public link with disposable data.
 

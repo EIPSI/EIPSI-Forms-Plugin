@@ -124,7 +124,7 @@
     "tests/date-fluidity/runtime-dom.js": 14,
     "tests/ux-f1b/runtime-dom.js": 57,
     "tests/registration/runtime-dom.js": 9,
-    "tests/runtime-polish/runtime-dom.js": 18
+    "tests/runtime-polish/runtime-dom.js": 21
   },
   "pure_php": {
     "tests/run-study-engine-domain.php": 127,

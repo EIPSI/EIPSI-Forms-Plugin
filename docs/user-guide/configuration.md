@@ -68,7 +68,30 @@ A still-open opportunity blocked by a protocol dependency keeps its email pendin
 
 ## Page caching
 
-Study and assessment pages contain private, changing participant state. Exclude their HTML from page caching. After adding an exclusion or updating the plugin's cache protection, purge any copies already stored by your cache service.
+Study and assessment pages contain private, changing participant state. Their HTML must not be served from a page cache. A cached copy can show an outdated session or assessment state.
+
+EIPSI Forms sends no-cache instructions automatically. Manual exclusions are needed when a cache service overrides or does not honor those instructions; not every installation requires an extra rule. Check this when setting up or changing a cache plugin, hosting cache, reverse proxy or CDN.
+
+### General instructions for any cache service
+
+1. Find the service's page-cache exclusions or cache-bypass rules. If both the hosting provider and a CDN cache HTML, review both layers.
+2. Exclude requests whose URL contains **any one** of these query-parameter names, regardless of its value:
+
+   ```text
+   eipsi_study
+   eipsi_native
+   eipsi_native_asset
+   ```
+
+   For example, `/?eipsi_study=STUDY_KEY` must bypass the page cache for every study key. These are parameter names, not WordPress tags. If the service only accepts URL patterns, ask its support team to translate this rule into its supported syntax; do not assume LiteSpeed's syntax works in another service.
+3. Save the rules and purge previously cached participant pages in every relevant layer. New exclusions do not necessarily remove copies already stored.
+4. Open the real public study link in a private browser window and enter a disposable test participation. In the browser's Network panel, check the study document and the assessment document loaded inside its iframe. Their cache headers should indicate bypass/non-cacheable behavior, not a page-cache hit. Header names vary by service. Test answering, navigating and reloading as well.
+
+These exclusions apply to all studies in that installation; they are not configured separately for each study. Keep normal caching for the rest of the website and versioned static CSS/JavaScript. Page-cache exclusions do not require disabling the database object cache.
+
+If your service has no suitable exclusion controls, ask your hosting provider to bypass HTML caching for requests containing those parameters before collecting responses.
+
+### LiteSpeed Cache
 
 For LiteSpeed Cache, open **Cache → Excludes → Do Not Cache Query Strings** and add each key on its own line:
 
@@ -78,6 +101,6 @@ eipsi_native
 eipsi_native_asset
 ```
 
-Save and purge the affected page cache. Reopen the evaluation and check that its HTML is not served with `X-LiteSpeed-Cache: hit`. Static CSS and JavaScript can retain their versioned asset caching.
+Save and purge the affected page cache. Reopen the evaluation and check for `X-LiteSpeed-Cache-Control: no-cache` and that its HTML is not served with `X-LiteSpeed-Cache: hit`.
 
 See LiteSpeed's [query-string exclusions and cache verification](https://docs.litespeedtech.com/lscache/lscwp/cache/#do-not-cache-query-strings).

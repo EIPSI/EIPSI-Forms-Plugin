@@ -28,6 +28,15 @@ for(const kind of ['pointerup','touchend','keyup'])await test('First VAS '+kind+
  const range=e.host.querySelector('input[type=range]');range.dispatchEvent(kind==='keyup'?new e.w.KeyboardEvent(kind,{key:'Home',bubbles:true}):new e.w.Event(kind,{bubbles:true}));
  release();await tick();await tick();assert.equal(app.session.touched[d.elements[1].response_key],true);assert.equal(app.session.answers[d.elements[1].response_key],Number(range.value));assert.equal(app.session.errors().length,0);e.host.querySelector('.ae-nav-forward').click();await tick();await tick();assert.equal(app.frame.state,'COMPLETED');assert.equal(requests.find(r=>r.action==='submit').touched[d.elements[1].response_key],true);app.destroy();
 });
+for(const kind of ['pointerup','touchend','keyup'])await test('Disabled VAS ignores '+kind+' during initial session loading',async e=>{
+ const d=definition(e,['vas']);d.elements[0].properties.required=true;let f=frame(d),release;
+ f.participant_contract='EIPSI_PARTICIPANT_FRAME_V2';f.projection_ref='initial';
+ const app=e.A.mountProductRuntime(e.host,f,async request=>{if(request.action==='open')await new Promise(r=>release=r);f={...f,revision:f.revision+1,session:{answers:request.answers,touched:request.touched,page:0,metadata:request.metadata}};return plain(f);});
+ const range=e.host.querySelector('input[type=range]');assert(range.disabled);range.dispatchEvent(kind==='keyup'?new e.w.KeyboardEvent(kind,{key:'Home',bubbles:true}):new e.w.Event(kind,{bubbles:true}));
+ assert.equal(app.session.answers[d.elements[0].response_key],undefined);assert.equal(app.session.touched[d.elements[0].response_key],undefined);assert.equal(range.dataset.touched,'false');
+ release();await app.ready;const enabled=e.host.querySelector('input[type=range]');assert(!enabled.disabled);enabled.value='82';enabled.dispatchEvent(new e.w.Event('input',{bubbles:true}));
+ assert.equal(app.session.answers[d.elements[0].response_key],82);assert.equal(app.session.touched[d.elements[0].response_key],true);assert.equal(app.session.errors().length,0);app.destroy();
+});
 await test('Initial logical check cannot reset the first VAS edit',async e=>{
  const d=definition(e,['vas']);d.elements[0].properties.required=true;let f=frame(d),release;f.has_logic=true;f.participant_contract='EIPSI_PARTICIPANT_FRAME_V2';f.projection_ref='initial';f.evaluate_logic_on_open=true;
  const app=e.A.mountProductRuntime(e.host,f,async request=>{if(request.action==='logic')await new Promise(r=>release=r);f={...f,revision:f.revision+1,session:{answers:request.answers,touched:request.touched,page:0,metadata:request.metadata}};return plain(f);});
