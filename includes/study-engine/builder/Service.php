@@ -18,9 +18,9 @@ final class Service {
     }
     private static function nativeQuestions(array $d): array {
         $out=array();$page=0;$walk=function($items,$random=null,$path=array())use(&$walk,&$out,&$page){foreach($items as $e){if($e['type']==='page_break'){$page++;continue;}
-            $base=array('variable_name'=>$e['properties']['variable_name']??$e['response_key'],'label'=>strip_tags($e['properties']['label']??$e['properties']['label_html']??$e['type']),'value_type'=>$e['type']==='registration'?'BOOLEAN':(in_array($e['type'],array('number','vas'),true)?'NUMBER':($e['type']==='date'?'DATE':($e['type']==='multiple_choice'?'SET':'STRING'))),'options'=>$e['options'],'page'=>$page,'randomization_id'=>$random,'randomization_path'=>$path);
+            $base=array('required'=>$e['properties']['required']??false,'question_type'=>$e['type'],'variable_name'=>$e['properties']['variable_name']??$e['response_key'],'label'=>strip_tags($e['properties']['label']??$e['properties']['label_html']??$e['type']),'value_type'=>$e['type']==='registration'?'BOOLEAN':(in_array($e['type'],array('number','vas'),true)?'NUMBER':($e['type']==='date'?'DATE':($e['type']==='multiple_choice'?'SET':'STRING'))),'options'=>$e['options'],'page'=>$page,'randomization_id'=>$random,'randomization_path'=>$path);
             if($e['response_key']!==null&&$e['response_key']!=='')$out[]=array('id'=>$e['id'],'response_key'=>$e['response_key'])+($e['type']==='registration'?array('registration'=>true):array())+$base;
-            if($e['type']==='matrix')foreach($e['properties']['matrix_rows'] as $r)$out[]=array('id'=>$r['id'],'label'=>$r['label'],'response_key'=>$r['response_key'],'variable_name'=>$r['variable_name']??$r['response_key'],'value_type'=>'STRING')+$base;
+            if($e['type']==='matrix')foreach($e['properties']['matrix_rows'] as $r)$out[]=array('id'=>$r['id'],'label'=>$r['label'],'response_key'=>$r['response_key'],'variable_name'=>$r['variable_name']??$r['response_key'],'value_type'=>'STRING','required'=>$r['required']??($e['properties']['required']??false))+$base;
             if($e['type']==='randomization')foreach($e['children'] as $child)$walk(array($child),$e['id'],array_merge($path,array(array('randomization_id'=>$e['id'],'candidate_id'=>$child['id']))));else $walk($e['children'],$random,$path);
         }};$walk($d['elements']);return $out;
     }

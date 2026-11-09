@@ -99,7 +99,7 @@
     "tests/assessment-editor/randomization-dom.js": 57,
     "tests/study-engine/builder/public-messages-dom.js": 12,
     "tests/study-engine/builder/redesign-dom.js": 75,
-    "tests/study-engine/builder/trajectory-dom.js": 40,
+    "tests/study-engine/builder/trajectory-dom.js": 44,
     "tests/assessment-editor/logical-product-dom.js": 8,
     "tests/study-engine/builder/email-templates-dom.js": 7,
     "tests/study-engine/builder/experience-dom.js": 36,
