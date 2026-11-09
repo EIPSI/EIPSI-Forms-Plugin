@@ -86,5 +86,6 @@ trait ExecutionPlanning {
         // Definition references point at the active opportunity, never overwrite its history.
         if(!isset($state['current_occurrence'][$node['id']]))$state['current_occurrence'][$node['id']]=$instance['id'];if($state['current_occurrence'][$node['id']]===$instance['id'])$state['native_randomizations'][$node['id']]=array('blocks'=>$records);
         $this->context['logical_state']=$state;
+        $this->logicalQuestionExclusions($instance);
     }
 }
