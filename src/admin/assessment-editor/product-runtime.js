@@ -302,7 +302,8 @@
         body.append(
           A.richText.render({ label_html: page.description_html }, "label"),
         );
-      const progress=A.renderProgress(frame.definition,session.page-(frame.logical_entry_page||0)+1,session.pages.length-(frame.logical_entry_page||0));
+      const pages=frame.available_pages?.filter(p=>p>=(frame.logical_entry_page||0));
+      const progress=A.renderProgress(frame.definition,pages?pages.indexOf(session.page)+1:session.page-(frame.logical_entry_page||0)+1,pages?pages.length:session.pages.length-(frame.logical_entry_page||0));
       if(progress) {
         if(f.progress_position==='bottom')actions.after(progress);
         else host.prepend(progress);
@@ -320,7 +321,7 @@
           .forEach((n) => (n.disabled = true));
       if (pending) {
         actions.append(
-          button(pending.action === "back" ? (f.navigation_labels.back || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.back) : pending.action === "discard" ? message("discard_label") : session.page === session.pages.length - 1 ? (f.navigation_labels.finish || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.finish) : (f.navigation_labels.next || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.next), async () => {
+          button(pending.action === "back" ? (f.navigation_labels.back || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.back) : pending.action === "discard" ? message("discard_label") : (frame.available_pages?!frame.available_pages.some(p=>p>session.page):session.page === session.pages.length - 1) ? (f.navigation_labels.finish || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.finish) : (f.navigation_labels.next || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.next), async () => {
             const action = pending.action;
             const okay = await send(pending);
             if (okay) {
@@ -334,11 +335,11 @@
         actions.lastElementChild.classList.add(pending.action === "back" ? "ae-nav-back" : "ae-nav-forward");
         return;
       }
-      if (f.allow_back && session.page > (frame.logical_entry_page || 0))
+      if (f.allow_back && (frame.available_pages?frame.available_pages.some(p=>p<session.page&&p>=(frame.logical_entry_page||0)):session.page > (frame.logical_entry_page || 0)))
         actions.append(
           Object.assign(button(f.navigation_labels.back || root.EIPSIContent.get('flow',root.EIPSIContent.language(frame.definition)).navigation_labels.back, () => move("back")), {className: "ae-nav-back"}),
         );
-      const last = session.page === session.pages.length - 1;
+      const last = frame.available_pages?!frame.available_pages.some(p=>p>session.page):session.page === session.pages.length - 1;
       actions.append(
         button(
           last

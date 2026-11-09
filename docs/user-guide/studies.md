@@ -36,6 +36,18 @@ The track view shows possible routes through randomizations and conditions. Sele
 
 Sources and destinations depend on the track: earlier answers can inform a condition, while actions point to eligible future elements. Actions include question jumps, ending an assessment, waiting, and cancelling elements. Cancelling a repeated assessment targets the selected scheduled opportunity. Use the help dialog for operation details and inspect truncated/impossible routes in the track view.
 
+### Exclude questions or groups within an assessment
+
+Reuse **Group / section** in Assessment Editor to collect alternative questions, including nested groups, instructions and images. Groups remain within one assessment page; page breaks belong at assessment level. Publish the assessment and select that version in the study.
+
+In **Study Engine → Logical conditions**, select the controlling question, add a condition with **On response change**, and choose **Exclude questions or groups**. The destination selector lists eligible future questions and groups from that same assessment, with group labels identifying their origin. Earlier questions and the controlling question cannot be excluded by that rule. To create alternatives, add complementary rules: “Yes → exclude job-search group” and “No → exclude employment group”.
+
+Targets stay hidden while their condition is undetermined. When true, the target and its contents are hidden and not required. Multiple exclusions combine: a target remains excluded while any applicable rule excludes it. Empty pages are skipped in both directions and progress uses the applicable pages. Questions after the alternatives continue normally.
+
+If back navigation is enabled, changing the controlling response recalculates the route and **deletes answers and touched flags from branches that no longer apply**. Returning to that branch later does not restore its old answers. Common answers remain. This affects the current assessment opportunity; another longitudinal opportunity keeps its own responses. Existing execution/audit history remains an audit record, not a source for restoring discarded answers. Randomization seeds and stored selections are not changed by an exclusion.
+
+The real participant flow and study simulation use the same eligibility rules. Validate and publish the study protocol before activating it for participants. Include a real-browser check of both alternatives and back navigation before collecting data.
+
 ## Initial screen
 
 This tab appears for longitudinal studies. Edit the title, description, email authentication field, footer, and withdrawal button in the visual editor. Select an element to see its properties.

@@ -35,6 +35,13 @@ final class LogicalPast {
         if(in_array($action['type'],array('JUMP','WAIT'),true)&&$target===$source)return false;
         if($action['type']==='GO_QUESTION'&&$target!==$source)return false;
         if($action['type']==='CANCEL_BLOCK'&&$target===$source)return false;
+        if($action['type']==='EXCLUDE_ELEMENT'){
+            if($target!==$source||$rule['event']!=='ANSWER')return false;
+            $node=array_column($d['nodes'],null,'id')[$target];$entry=QuestionExclusions::targets($node)[$action['element_id']]??null;if(!$entry)return false;
+            $selected=array();foreach($node['metadata']['native_questions']??array() as $q){$on=true;foreach($q['randomization_path']??array() as $p)if(isset($native[$source.'|'.$p['randomization_id']])&&!in_array($p['candidate_id'],$native[$source.'|'.$p['randomization_id']],true))$on=false;if($on)$selected[$q['id']]=true;}
+            $ids=array_values(array_filter($entry['question_ids'],static function($id)use($selected){return isset($selected[$id]);}));if(!$ids)return false;
+            foreach($ids as $id)if(!self::allows($d,$rule,array('assessment_id'=>$target,'question_id'=>$id),$choices,$native,$times,true))return false;return true;
+        }
         $ref=array('node_id'=>$target);
         if(isset($action['question_id']))$ref=array('assessment_id'=>$target,'question_id'=>$action['question_id']);
         elseif(strpos($action['type'],'RANDOM')!==false)$ref=array('randomization_id'=>$action['randomization_id']??$target)+(isset($action['randomization_id'])?array('assessment_id'=>$target):array());

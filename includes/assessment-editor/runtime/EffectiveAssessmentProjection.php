@@ -18,7 +18,7 @@ final class EffectiveAssessmentProjection {
     private static function elements(array $frame): array {
         $d=Randomization::apply($frame['definition'],$frame['randomization']);
         $allowed=array((int)$frame['page']=>true);
-        $skipped=array_flip($frame['logical_skipped_ids']??array());
+        $skipped=array_flip(array_merge($frame['logical_skipped_ids']??array(),$frame['logical_excluded_ids']??array()));
         $entry=$frame['logical_entry_question']??null;
         $before=$entry!==null;
         // Determine the entry prefix before page filtering, including individual matrix rows.
@@ -44,7 +44,7 @@ final class EffectiveAssessmentProjection {
                     $item['properties']['matrix_rows']=array_values(array_filter($item['properties']['matrix_rows'],static function($row)use($skipped){return !isset($skipped[$row['id']]);}));
                     if(!$item['properties']['matrix_rows'])continue;
                 }
-                $item['children']=$filter($item['children']);
+                $item['children']=$filter($item['children']);if($item['type']==='group'&&!$item['children'])continue;
                 unset($item['randomization'],$item['properties']['randomize_options']);
                 foreach($item['options']as&$option)unset($option['value'],$option['fixed']);
                 unset($option);
@@ -71,8 +71,8 @@ final class EffectiveAssessmentProjection {
         $frame['evaluate_logic_on_open']=($frame['randomization']['contract']??null)==='LOCAL_RANDOMIZATION_LAZY_V3';
         $ref=self::reference($frame['randomization']);$frame['randomization']=$ref;
         foreach(array('metadata','session','partial') as$key){if(!is_array($frame[$key]??null))continue;$meta=&$frame[$key];if($key!=='metadata')$meta=&$frame[$key]['metadata'];if(isset($meta['randomization']))$meta['randomization']=$ref;unset($meta['logical_exit']);unset($meta);}
-        $frame['logical_entry_question']=null;$frame['logical_skipped_ids']=array();$frame['participant_contract']=self::CONTRACT;
-        $frame['projection_ref']=hash('sha256',D::json(array($frame['definition'],$frame['state'],$frame['logical_exit']??false,$frame['logical_entry_page']??0,$frame['can_discard']??false)));
+        $frame['logical_entry_question']=null;$frame['logical_skipped_ids']=array();unset($frame['logical_excluded_ids']);$frame['participant_contract']=self::CONTRACT;
+        $projection=array($frame['definition'],$frame['state'],$frame['logical_exit']??false,$frame['logical_entry_page']??0,$frame['can_discard']??false);if(isset($frame['available_pages']))$projection[]=$frame['available_pages'];$frame['projection_ref']=hash('sha256',D::json($projection));
         $frame['definition']=PrivateMedia::scopeDefinition($frame['definition'],$frame['execution_id']);
         return $frame;
     }

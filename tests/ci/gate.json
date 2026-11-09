@@ -49,7 +49,7 @@
     "assessment-authoring": 44,
     "assessment-corrections": 25,
     "assessment-functional": 48,
-    "assessment-product": 118,
+    "assessment-product": 128,
     "assessment-product-http": 18,
     "study-public-messages": 11,
     "study-engine-authoring": 14,
@@ -99,10 +99,10 @@
     "tests/assessment-editor/randomization-dom.js": 57,
     "tests/study-engine/builder/public-messages-dom.js": 12,
     "tests/study-engine/builder/redesign-dom.js": 75,
-    "tests/study-engine/builder/trajectory-dom.js": 38,
+    "tests/study-engine/builder/trajectory-dom.js": 40,
     "tests/assessment-editor/logical-product-dom.js": 8,
     "tests/study-engine/builder/email-templates-dom.js": 7,
-    "tests/study-engine/builder/experience-dom.js": 35,
+    "tests/study-engine/builder/experience-dom.js": 36,
     "tests/study-engine/builder/lifecycle-dom.js": 6,
     "tests/study-engine/builder/management-dom.js": 5,
     "tests/assessment-editor/versions-dom.js": 6,
@@ -124,7 +124,7 @@
     "tests/date-fluidity/runtime-dom.js": 14,
     "tests/ux-f1b/runtime-dom.js": 57,
     "tests/registration/runtime-dom.js": 9,
-    "tests/runtime-polish/runtime-dom.js": 21
+    "tests/runtime-polish/runtime-dom.js": 22
   },
   "pure_php": {
     "tests/run-study-engine-domain.php": 127,
@@ -142,6 +142,7 @@
     "tests/production-activation/cron-unit.php": 3,
     "tests/keyrings/generator.php": 5,
     "tests/setup/crypto.php": 5,
-    "tests/study-engine/management/timing-budget-unit.php": 7
+    "tests/study-engine/management/timing-budget-unit.php": 7,
+    "tests/run-question-exclusions-unit.php": 16
   }
 }

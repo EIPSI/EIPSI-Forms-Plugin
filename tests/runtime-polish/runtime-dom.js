@@ -75,5 +75,9 @@ await test('Tall initial assessment expands synchronously without waiting for st
  const iframe=e.w.document.createElement('iframe');e.host.append(iframe);iframe.className='eipsi-native-assessment-frame';iframe.style.height='500px';iframe.contentDocument.body.style.margin='0';iframe.contentDocument.body.getBoundingClientRect=()=>({bottom:2400});
  e.w.EIPSIStudyInteraction.fitAssessment(iframe);assert.equal(iframe.style.height,'2400px');
 });
+await test('Conditional page order controls forward back completion and progress',async e=>{
+ const d=definition(e,['text','page_break','text','page_break','text']);d.flow.progress='pages';d.flow.allow_back=true;let f=frame(d);f.participant_contract='EIPSI_PARTICIPANT_FRAME_V2';f.projection_ref='page0';f.available_pages=[0,2];const calls=[];
+ const app=e.A.mountProductRuntime(e.host,f,async q=>{calls.push(q.action);if(q.action==='next')f.page=2;if(q.action==='back')f.page=0;f={...f,projection_ref:'page'+f.page,revision:f.revision+1,session:{answers:q.answers,touched:q.touched,page:f.page,metadata:q.metadata}};return plain(f);});await app.ready;e.host.querySelector('.ae-nav-forward').click();await tick();await tick();assert.equal(app.session.page,2);assert(/2.*2/.test(e.host.querySelector('.ae-page-count').textContent));assert.equal(e.host.querySelector('.ae-nav-forward').textContent,d.flow.navigation_labels.finish);e.host.querySelector('.ae-nav-back').click();await tick();assert.equal(app.session.page,0);assert(calls.includes('back'));app.destroy();
+});
 console.log(`${tests} tests, ${failed} failures`);if(failed)process.exitCode=1;
 })().catch(error=>{console.error(error);process.exitCode=1;});

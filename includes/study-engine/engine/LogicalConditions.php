@@ -2,10 +2,11 @@
 namespace EIPSI\StudyEngine\Engine;
 
 require_once __DIR__.'/LogicalPast.php';
+require_once __DIR__.'/QuestionExclusions.php';
 
 /** Versioned scientific rules, independent of track coordinates and WordPress. */
 final class LogicalConditions {
-    const ACTIONS=array('GO_QUESTION','END_ASSESSMENT','END_STUDY','JUMP','WAIT','CANCEL_BLOCK','RESTRICT_RANDOM','EXCLUDE_RANDOM','FORCE_RANDOM');
+    const ACTIONS=array('EXCLUDE_ELEMENT','GO_QUESTION','END_ASSESSMENT','END_STUDY','JUMP','WAIT','CANCEL_BLOCK','RESTRICT_RANDOM','EXCLUDE_RANDOM','FORCE_RANDOM');
     public static function rules(array $d): array {return $d['protocol_metadata']['trajectory_conditions']??array();}
     public static function catalog(array $d): array {
         $out=array();foreach($d['nodes'] as $n){foreach($n['metadata']['native_questions']??array() as $q)$out[$n['id']][$q['id']]=$q;}
@@ -29,10 +30,20 @@ final class LogicalConditions {
                 self::expression($r['predicate'],$nodes,$questions);
                 if(!is_array($r['actions'])||array_values($r['actions'])!==$r['actions']||!$r['actions']||count($r['actions'])>32)throw new \DomainException('INVALID_CONDITION_ACTIONS');
                 foreach($r['actions'] as $a){
-                    self::fields($a,array('type'),array('target_id','question_id','candidate_ids','randomization_id'));if(!in_array($a['type'],self::ACTIONS,true))throw new \DomainException('INVALID_CONDITION_ACTION');
+                    self::fields($a,array('type'),array('target_id','question_id','candidate_ids','randomization_id','element_id'));if(!in_array($a['type'],self::ACTIONS,true))throw new \DomainException('INVALID_CONDITION_ACTION');
                     if($a['type']==='END_STUDY'){self::fields($a,array('type'));continue;}
                     if($a['type']==='END_ASSESSMENT')continue;
                     $target=$a['target_id']??null;if(!isset($nodes[$target]))throw new \DomainException('INVALID_ACTION_TARGET');$n=$nodes[$target];
+                    if($a['type']===QuestionExclusions::ACTION){
+                        self::fields($a,array('type','target_id','element_id'));
+                        $targetElement=QuestionExclusions::targets($n)[$a['element_id']]??null;
+                        if(($d['protocol_metadata']['execution_planning']??null)!=='DEPENDENCY_PLAN_V1'||$target!==$source||$r['event']!=='ANSWER'||($r['reference_scope']??null)!=='TRACK_PAST_V1'||($r['action_scope']??null)!=='TRACK_FUTURE_V1'||!isset($r['source']['question_id'])||!$targetElement||!$targetElement['question_ids'])throw new \DomainException('INVALID_QUESTION_EXCLUSION_TARGET');
+                        $order=array_keys($questions[$source]);$from=array_search($r['source']['question_id'],$order,true);if(in_array($r['source']['question_id'],$targetElement['element_ids'],true))throw new \DomainException('EXCLUSION_TARGET_MUST_FOLLOW_SOURCE');
+                        foreach($targetElement['question_ids'] as $qid)if(array_search($qid,$order,true)<=$from&&!QuestionExclusions::mayReorder($questions[$source][$r['source']['question_id']],$questions[$source][$qid]??array()))throw new \DomainException('EXCLUSION_TARGET_MUST_FOLLOW_SOURCE');
+                        $refs=function($p)use(&$refs){if(isset($p['args']))return array_merge(...array_map($refs,$p['args']));if(isset($p['arg']))return $refs($p['arg']);return array($p['reference']);};
+                        foreach($refs($r['predicate']) as $ref)if(isset($ref['question_id'])&&$ref['assessment_id']===$source&&(in_array($ref['question_id'],$targetElement['question_ids'],true)||array_search($ref['question_id'],$order,true)>$from&&!QuestionExclusions::mayReorder($questions[$source][$r['source']['question_id']],$questions[$source][$ref['question_id']])))throw new \DomainException('EXCLUSION_REQUIRES_PAST_REFERENCE');
+                        continue;
+                    }
                     if(in_array($a['type'],array('GO_QUESTION','JUMP','WAIT'),true)){
                         if(($n['completion_boundary']??null)!=='ASSESSMENT')throw new \DomainException('TARGET_MUST_BE_ASSESSMENT');
                         if(isset($a['question_id'])&&!isset($questions[$target][$a['question_id']]))throw new \DomainException('INVALID_ENTRY_QUESTION');

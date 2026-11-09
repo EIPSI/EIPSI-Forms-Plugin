@@ -466,3 +466,5 @@
 
 #eipsi-study-builder .sb-study-state-panel .sb-public-url{display:flex;align-items:center;gap:8px;min-width:0;max-width:440px;margin-top:14px}
 #eipsi-study-builder .sb-study-state-panel .sb-public-url>input{flex:1;min-width:0;width:0;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+
+#eipsi-study-builder .sb-question-card.is-excluded-by-condition,#eipsi-study-builder .sb-question-card.is-excluded-by-condition:hover,#eipsi-study-builder .sb-question-card.is-excluded-by-condition:focus{background:#c7cfda;color:#243b57;border-color:#9eafc3;border-style:dashed}
