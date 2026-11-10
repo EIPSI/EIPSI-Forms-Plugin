@@ -92,16 +92,42 @@
     const viability=B.trajectoryViability(app,{...path,actions:r.actions});
     return finish(viability);
   }
+  // Remove the unconditioned journey only when a finite, required response domain
+  // proves it impossible. Unknown/free-form domains retain their base journey.
+  function coversRequiredAnswers(app,branches){
+    const groups=new Map();
+    for(const r of branches){
+      if(r.event!=='ANSWER'||!r.source.question_id)continue;
+      const key=r.source.assessment_id+'|'+r.source.question_id;
+      if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);
+    }
+    for(const candidates of groups.values()){
+      const source=candidates[0].source,q=B.logicalQuestions(app,B.node(app.draft,source.assessment_id)).find(q=>q.id===source.question_id);
+      if(!q?.required||!['single_choice','select','likert','matrix','registration'].includes(q.question_type))continue;
+      const values=q.question_type==='registration'?[true,false]:(q.options||[]).map(o=>typeof o==='string'?o:o.id);
+      if(!values.length)continue;
+      const evaluate=(p,value)=>{
+        if(p.op==='NOT'){const v=evaluate(p.arg,value);return v===null?null:!v;}
+        if(p.args){const vs=p.args.map(a=>evaluate(a,value));return p.op==='AND'?(vs.includes(false)?false:vs.includes(null)?null:true):p.op==='OR'?(vs.includes(true)?true:vs.includes(null)?null:false):null;}
+        const ref=p.reference;if(ref?.kind!=='ANSWER'||ref.assessment_id!==source.assessment_id||ref.question_id!==source.question_id)return null;
+        if(p.op==='EQ')return value===p.value;if(p.op==='NEQ')return value!==p.value;if(p.op==='IN')return Array.isArray(p.value)?p.value.includes(value):null;return null;
+      };
+      if(values.every(value=>candidates.some(r=>evaluate(r.predicate,value)===true)))return true;
+    }
+    return false;
+  }
   B.trajectoryTracks=(app,limit=64)=>{
     const expanded=possibilities(app,limit),tracks=[];
     // All random paths are constructed first; conditions add their own distinct suffixes.
     expanded.paths.forEach(path=>{
       const sequence=tokens(app,path),description=Object.entries({...path.choices,...path.nativeChoices}).map(([key,outcome])=>{const r=B.logicalRandoms(app).find(r=>r.key===key);return outcome.map(id=>r?.candidates.find(c=>c.id===id)?.label||id).join(' → ');}).join(' / ');
       const zero=Object.entries(path.choices).some(([key,ids])=>ids.some(id=>B.node(app.draft,key).randomization.weights?.[id]===0));const base={...path,id:'PATH_'+JSON.stringify([Object.entries(path.choices).sort(),Object.entries(path.nativeChoices).sort()]),label:description||window.EIPSIAdminI18n.t("Journey without randomization"),sequence,actions:[],inactive:zero,reason:zero?window.EIPSIAdminI18n.t("Zero-weight candidate"):null};tracks.push(base);
+      const applicable=[];
       for(const r of [...rules(app.draft)].sort((a,b)=>a.priority-b.priority||a.id.localeCompare(b.id))){
         if(predicateValue(app,r.predicate,path)===false)continue;
-        const branch=applyRule(app,path,sequence,r);if(branch)tracks.push({...branch,inactive:base.inactive||branch.inactive,reason:base.reason||branch.reason,id:base.id+'|'+r.id,parent:base.id,condition_id:r.id,actions:r.actions,label:r.label+window.EIPSIAdminI18n.t(" · true condition")});
+        const branch=applyRule(app,path,sequence,r);if(branch)applicable.push(r);if(branch)tracks.push({...branch,inactive:base.inactive||branch.inactive,reason:base.reason||branch.reason,id:base.id+'|'+r.id,parent:base.id,condition_id:r.id,actions:r.actions,label:r.label+window.EIPSIAdminI18n.t(" · true condition")});
       }
+      if(coversRequiredAnswers(app,applicable))tracks.splice(tracks.indexOf(base),1);
     });tracks.sort((a,b)=>{const left=a.visual_sequence||a.sequence,right=b.visual_sequence||b.sequence;for(let i=0;i<Math.min(left.length,right.length);i++){const diff=left[i].key.localeCompare(right[i].key);if(diff)return diff;}return left.length-right.length||a.id.localeCompare(b.id);});return {tracks,more:expanded.more,randomPaths:expanded.paths.length};
   };
   // Prefix trie: only ancestors are shared. Equal future tokens after a fork never merge.

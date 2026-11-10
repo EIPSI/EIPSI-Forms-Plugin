@@ -75,7 +75,7 @@
     dialog.append(index,body);dialog.addEventListener('close',()=>{dialog.remove();opener?.focus();},{once:true});app.root.append(dialog);if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');dialog.querySelector('button').focus();
   };
   const rules = d => d.protocol_metadata.trajectory_conditions || [];
-  B.logicalQuestions = (app, n) => {const catalog=(app.nativeTemplates||[]).find(t=>t.id===n.metadata.native_version_id)?.questions||[];return (n.metadata.native_questions||catalog).map(q=>({...q,variable_name:q.variable_name||catalog.find(t=>t.id===q.id)?.variable_name||q.response_key}));};
+  B.logicalQuestions = (app, n) => {const catalog=(app.nativeTemplates||[]).find(t=>t.id===n.metadata.native_version_id)?.questions||[];return (n.metadata.native_questions||catalog).map(q=>({...catalog.find(t=>t.id===q.id),...q,variable_name:q.variable_name||catalog.find(t=>t.id===q.id)?.variable_name||q.response_key}));};
   B.logicalRandoms=app=>app.draft.nodes.flatMap(n=>{
     const out=[];
     if(n.randomization)out.push({key:n.id,target_id:n.id,label:B.label(n),config:n.randomization,candidates:n.randomization.candidates.map(id=>({id,label:B.label(B.node(app.draft,id))}))});
